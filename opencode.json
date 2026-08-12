@@ -11,13 +11,18 @@
         "skill": "allow"
     },
     "tool_output": {
-        "max_lines": 150,
-        "max_bytes": 8192
+        "max_lines": 60,
+        "max_bytes": 4096
     },
     "compaction": {
         "auto": true,
-        "tail_turns": 5
+        "tail_turns": 2
     },
+    "plugin": [
+        "opencode-vibeguard",
+        "opencode-pty",
+        "@tarquinen/opencode-dcp"
+    ],
     "mcp": {
         "context7": {
             "type": "local",
@@ -26,19 +31,6 @@
                 "-y",
                 "@upstash/context7-mcp@3.2.3"
             ]
-        },
-        "playwright": {
-            "type": "local",
-            "command": [
-                "npx",
-                "-y",
-                "@playwright/mcp@0.0.78"
-            ]
         }
-    },
-    "plugin": [
-        "opencode-vibeguard",
-        "opencode-pty",
-        "@tarquinen/opencode-dcp"
-    ]
+    }
 }

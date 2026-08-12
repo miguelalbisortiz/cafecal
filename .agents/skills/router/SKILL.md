@@ -37,7 +37,13 @@ Decide which **subagent** to invoke and/or which **knowledge skill** to load for
 - **"X is simple enough I can answer directly"** → WRONG. If the answer requires reading > 1 file, route. Reading = exploration = route.
 - **"I'll just write a meta-analysis about how the work would be done"** → WRONG. The user asked for the work, not for an analysis of how the work would be done.
 - **"The verb is 'analyze' / 'explore' / 'overview' so it must be Q&A"** → WRONG. These are non-Q&A — they imply reading files and producing a report. Route to `explore` or `code-explorer`.
-- **"Duda si aplica o no"** → WRONG. If in doubt, route. The router skill decides; you don't.
+- **"Duda si aplica o no"** → If you must read > 1 file or the request implies work, route. Single-file Q&A and pure explanations do not need routing.
+
+### Free-tier override (applies when on OpenCode Zen free / any quota-limited plan)
+- Subagent dispatches burn the free tier quota fast. Default to **zero subagents** if the request can be answered from AGENTS.md + the in-context system prompt alone.
+- Greetings ("hola", "hi", "gracias"), pure Q&A, definitions, "qué es X", "cómo funciona", single-file lookups, and tasks where the user named the agent/skill explicitly → **answer directly, no router load, no subagent dispatch**.
+- Only load `router` and dispatch when the task is unmistakably implementation/fix/review/refactor/plan/audit work AND needs >1 file read.
+- "If in doubt, route" → on free tier, **if in doubt, answer directly**. The user can re-ask with a slash command (`/route`, `/prd`) if they want full dispatch.
 
 ## When to Activate
 
