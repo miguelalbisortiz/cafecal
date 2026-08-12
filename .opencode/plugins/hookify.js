@@ -76,20 +76,16 @@ function extractFilePath(output) {
   )
 }
 
-const SecretBlocker = async () => {
-  return {
-    "tool.execute.before": async (input, output) => {
-      if (input.tool !== "edit" && input.tool !== "write") return
-      const filePath = extractFilePath(output)
-      if (isSecretPath(filePath)) {
-        throw new Error(
-          "[hookify:SecretBlocker] blocked write to '" + filePath + "'. " +
-            "Refusing to write to secret/credential files from inside a session. " +
-            "If this is intentional, edit the file directly outside opencode " +
-            "or rename the target (e.g. '.env' -> '.env.example')."
-        )
-      }
-    },
+async function secretBlocker(input, output) {
+  if (input.tool !== "edit" && input.tool !== "write") return
+  const filePath = extractFilePath(output)
+  if (isSecretPath(filePath)) {
+    throw new Error(
+      "[hookify:SecretBlocker] blocked write to '" + filePath + "'. " +
+        "Refusing to write to secret/credential files from inside a session. " +
+        "If this is intentional, edit the file directly outside opencode " +
+        "or rename the target (e.g. '.env' -> '.env.example')."
+    )
   }
 }
 
@@ -154,23 +150,26 @@ function logDestructive(tool, command, label) {
   }
 }
 
-const DestructiveWarner = async () => {
+async function destructiveWarner(input, output) {
+  if (input.tool !== "bash") return
+  const command = output && output.args && output.args.command
+  const label = findDestructive(command)
+  if (!label) return
+  logDestructive(input.tool, command, label)
+  // Soft warn via stderr (visible in TUI). Does NOT block — the user
+  // still gets to confirm the command through opencode's normal flow.
+  console.warn(
+    "[hookify:DestructiveWarner] detected '" + label + "' — " +
+      "logged to .opencode/logs/destructive.log. " +
+      "If you didn't explicitly approve this, abort."
+  )
+}
+
+module.exports = async () => {
   return {
     "tool.execute.before": async (input, output) => {
-      if (input.tool !== "bash") return
-      const command = output && output.args && output.args.command
-      const label = findDestructive(command)
-      if (!label) return
-      logDestructive(input.tool, command, label)
-      // Soft warn via stderr (visible in TUI). Does NOT block — the user
-      // still gets to confirm the command through opencode's normal flow.
-      console.warn(
-        "[hookify:DestructiveWarner] detected '" + label + "' — " +
-          "logged to .opencode/logs/destructive.log. " +
-          "If you didn't explicitly approve this, abort."
-      )
+      await secretBlocker(input, output)
+      await destructiveWarner(input, output)
     },
   }
 }
-
-module.exports = { SecretBlocker, DestructiveWarner }

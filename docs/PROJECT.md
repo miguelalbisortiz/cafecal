@@ -133,6 +133,14 @@
 - [ ] {question}
 - [ ] {question}
 
+## Token / MCP Opt-in (manual — preserved across refreshes)
+<!-- manual: default MCPs are OFF to cut boot tokens (2026-08-12). Override per-project below. -->
+- **Default**: MCPs cerrados (`context7`, `playwright` y todos los opcionales NO cargan en boot).
+- **Activar**: `/mcp-on context7` (o `node .opencode/bin/setup-mcp.js activate <name>`) → reiniciar opencode.
+- **Desactivar**: `/mcp-off <name>` → reiniciar opencode.
+- **Per-project override** (bloque manual): descomenta y edita para forzar MCPs en este proyecto aunque el env var global esté vacío:
+  `<!-- manual: [mcp] enabled=context7,playwright -->`
+
 ## Recent Activity
 <!-- auto-managed: appended by project-init.js. Do not edit by hand. -->
 
