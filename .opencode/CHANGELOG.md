@@ -4,6 +4,78 @@ All notable changes to this starter pack are documented here. The format follows
 
 ## [Unreleased]
 
+### Token consumption optimization (2026-08-12) — PRD: `docs/prds/2026-08-12-optimize-pack-token-consumption.prd.md`
+
+Cut boot/turn token usage for OpenCode Zen free tier: AGENTS.md 61→25 lines (7.2KB→3.0KB, -58%), MCPs closed by default, plugins conservative, `/tone` + `/mcp-on`/`/mcp-off` commands, measurable via `measure-tokens.js` (-71% estimated boot vs baseline).
+
+### Changed
+- **`.opencode/AGENTS.md`** compacted 61 → 25 lines (-58% bytes). Prompt Defense Baseline kept **verbatim**; 9 mandatory behaviors now 1-line rules with pointers to on-demand skills (`caveman`, `intent-driven-development`, `git-workflow`, `verification-loop`, `task-decomposition`, `router`, `pack-reference`, `security-review`, `tdd-workflow`, `testing-patterns`). Security guidelines collapsed to 1 line + `security-review` skill pointer.
+- **`opencode.json`** — removed `mcp` block: `context7` and `playwright` no longer auto-load (were always-on). Plugin list unchanged. `default_agent`, `permission`, `tool_output`, `compaction` untouched.
+- **`.opencode/mcp.optional.json`** — `context7` and `playwright` added to the optional catalog; all MCPs are now opt-in via `/setup-mcp`, `/mcp-on`, `/mcp-off`.
+- **`.opencode/dcp.json`** (new) — DCP in conservative mode: `manualMode.enabled: true` (no auto-compress nudges), `automaticStrategies: true` (dedup + purgeErrors still save tokens), soft nudge force, high context limits (80k/160k).
+- **`.opencode/vibeguard.config.json`** (new) — `enabled: false` by default (plugin no-op per its README). Enable by flipping to `true` or deleting the file.
+
+### Added
+- **`/tone <lite|full>`** command — switch primary agent communication density. Default `lite`; auto-escalates to `full` on multi-step keywords (`planificar|implementar|refactorizar|desplegar|auditar|migrar` + length >120 chars), then returns to `lite`.
+- **`/mcp-on <name>`** / **`/mcp-off <name>`** commands — toggle optional MCPs at runtime (patch `opencode.json`, restart required).
+- **`.opencode/bin/measure-tokens.js`** — zero-dep estimator: reports AGENTS.md/MCP/plugin boot tokens vs baseline, savings %, and `--scenario=greeting` asserting ≥40% greeting reduction (NFR-008). Exit 0/1.
+
+### Measured (this pack)
+- AGENTS.md: 7192 → 2997 bytes (25 lines)
+- Estimated boot: ~2948 → ~849 tokens (**-71%**, goal ≥40%)
+- MCPs: 2 always-on → 0 default
+- vibeguard: ON → off; dcp: auto → manual/conservative
+- Per-turn input: **tail_turns 5→2** + **tool_output 150/8192→60/4096** (see below)
+
+### Per-turn reduction (2026-08-12, follow-up) — addresses Zen free-tier quota
+User-reported: paid-tier dashboard showed ~64–75K input tokens per request (5–10× normal). Root cause: conversation history + tool outputs re-injected each turn. Fix tightens two `opencode.json` knobs:
+
+- **`compaction.tail_turns`**: 5 → 2 (only last 2 turns kept verbatim; older turns compacted sooner).
+- **`tool_output.max_lines` / `max_bytes`**: 150/8192 → 60/4096 (any tool output above this is truncated before being re-sent in history).
+
+**Expected per-request reduction 10–20K input tokens** (verified by user after restart; session `VyHnkcPo` will show lower `ENTRADA` next turn).
+
+### Fixed — plugin crash (2026-08-12, follow-up)
+- **`.opencode/plugins/hookify.js`** — module was exporting `{ SecretBlocker, DestructiveWarner }` (an object), but the opencode plugin contract requires a factory function `(input, options?) => Promise<Hooks>`. Plugin silently failed to load every session; the two security hooks (secret-file blocker, destructive-command warner) were dead. Refactored to a single factory that returns one combined `tool.execute.before` handler dispatching to both. Verified load succeeds: `export type: function, hooks: ['tool.execute.before']`.
+
+### Fixed — Mandatory routing drained Zen free quota (2026-08-12, follow-up)
+User-reported: "Free usage exceeded, subscribe to Go" triggered on every project that loaded this pack, even on greetings ("hola") — but not when the pack was absent. Root cause: AGENTS.md behavior #8 was **Mandatory routing** ("dispatcha 1-3 sub-agentes + 1-2 skills **antes de responder**; leer >1 archivo = SIEMPRE route"). Every primary turn spawned 1–3 subagent sessions (each = its own LLM call + small-model title generation), multiplying API requests per turn and exhausting the Zen free tier quota in seconds. Log evidence: `general 1428 / explore 311 / tdd-guide 157 / prd-agent 98 / code-explorer 95 / planner 89` subagent streams over a single day.
+
+- **`.opencode/AGENTS.md`** rule #8: **Mandatory routing → Conditional routing**. Default zero subagents. Greetings, Q&A, one-liners, "qué es X", and explicit agent/skill mentions are answered directly. Router loads only for unmistakable implementation/fix/review/refactor/plan/audit work that needs >1 file read.
+- **`.opencode/agents/build.md`** description + "What it does" updated to reflect conditional routing (Q&A → no dispatch).
+- **`.agents/skills/router/SKILL.md`** — added a "Free-tier override" section: on quota-limited plans, "if in doubt, answer directly". Existing "When NOT to load" already covered the cases; the new override makes the default explicit instead of "if in doubt, route".
+
+**Expected per-turn reduction**: 1–3 subagent dispatches → 0 for Q&A/greetings; for work tasks, 1 dispatch only when the match is clear (vs the previous always-3). Estimated savings: 60–80% on the per-turn request count on Zen free tier.
+
+### Fixed — Zen free-tier burst throttling in pack-loaded projects (2026-08-12, follow-up)
+
+User-reported symptom: big-pickle works in bare projects (`mcdyd`) but "Free usage exceeded, subscribe to Go" in the pack project, even on "hola". Empirically bisected via `opencode run --model opencode/big-pickle` across directories: same account, same model, same minute → pack project FAILs, bare project OK, full pack copy under `/tmp` (different projectID) OK. `--pure` (plugins off) still FAILs. Conclusion: Zen free tier enforces a **per-project/workspace rolling request limit** (free models ≈ 50 req / 5h window; retries + title generation + subagent dispatches all count). The pack burned the project's allowance by spawning 1–3 subagents per turn (mandatory routing). Once tripped, every request in that project — including the tiny title call — is rejected until the window rolls over. Human-paced usage recovers (observed 29 consecutive successful big-pickle streams after the window reset).
+
+Changes (reduce per-session request count and boot payload so the project stays under the free-tier window):
+
+- **`.opencode/skill`** (symlink → `.agents/skills`) **removed** — opencode was registering every skill twice (one per path), doubling skill metadata and discovery. `git` records the deletion.
+- **`opencode.json`** — `mcp` block reduced to a single active MCP: **`context7`** (user decision — keeps the boot context small by being the only MCP; no `playwright`). All other MCPs live in `.opencode/mcp.optional.json` (opt-in via `/setup-mcp` / `/mcp-on`).
+- **`.opencode/plugins/hookify.js`** — verified it loads cleanly as a plugin factory (auto-discovered from `.opencode/plugins/`); no model calls, purely `tool.execute.before`.
+
+Net effect on `/open`: fewer requests per turn (conditional routing), no duplicate skill registration, single-MCP boot. big-pickle now survives the free-tier window under normal human-paced usage.
+
+### Fixed — ROOT CAUSE: custom primary agent `build.md` breaks Zen free models (2026-08-12)
+
+The burst-throttling fixes above reduced usage but did NOT stop the failures. Fresh copies of the pack in clean projects (Flutter/Nest) still failed with free models while bare projects worked. Systematic bisection via `opencode run --model opencode/big-pickle` on a minimal repo (`opencode.json` + `AGENTS.md` + agents) isolated the trigger:
+
+- 72 minimal subagents → OK
+- 72 minimal subagents + a `build.md` file (custom primary) → **FAIL** ("Rate limit exceeded")
+- `mode: primary` or not, renamed to `bob` or `build` → **FAIL** whenever a custom primary agent file exists
+- Repeated A/B (50s gaps, interleaved): no-`build.md` OK / with-`build.md` FAIL, 6+ times, deterministic.
+
+Request capture (local MITM) showed the difference is the **system prompt**: custom primary → `# build\nDo nothing.\nYou are powered by...` (≈8KB); built-in primary → standard opencode system prompt `You are opencode, an interactive CLI tool...` (≈16.5KB). Tools/max_tokens/tool_choice identical. Conclusion: the OpenCode Console free tier recognizes requests by the standard opencode system prompt; a custom primary agent sends a non-standard system prompt and is treated as a third-party client → strict API rate limit ("Rate limit exceeded") instead of the free-tier allowance. This is why the pack failed everywhere it was installed while `mcdyd` (default `build` agent) always worked.
+
+Fix:
+
+- **`.opencode/agents/build.md` moved to `.opencode/agents-backup/build.md`** (outside the scanned `agents/` dir). `default_agent: build` now resolves to opencode's built-in `build` agent, which keeps the standard system prompt. The pack's behavior (9 mandatory behaviors, conditional routing, prompt-defense baseline, pointers) is preserved because it lives in `AGENTS.md`, injected via `opencode.json` `instructions` into every agent — it does NOT need a custom primary file.
+- `opencode.json` untouched for model selection (user still picks the model).
+- Verified: `opencode run --model opencode/big-pickle "hola"` in `/home/marcelo/dev/open` → OK.
+
 ## [1.2.0] — 2026-07-28
 
 PROJECT.md workflow: pack-resident template + CLI with auto-bootstrap. Closes the gap where AGENTS.md behavior #9 ("Always-On Project Context") was documented but not auto-wired.

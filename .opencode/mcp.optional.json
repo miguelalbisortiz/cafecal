@@ -1,21 +1,61 @@
 {
   "_meta": {
     "description": "Optional MCPs (NOT loaded by default). Run `/setup-mcp` to activate any of these. Activation patches `opencode.json` and restarts opencode to take effect.",
-    "rationale": "100% value when needed, 0% cost (no boot slowdown, no leaked tokens) when not. The active MCPs (context7, playwright) stay loaded for everyone; these opt-ins are user-triggered. This file is only read by `node .opencode/bin/setup-mcp.js` (manual command); opencode itself never parses it.",
+    "rationale": "100% value when needed, 0% cost (no boot slowdown, no leaked tokens) when not. context7 and playwright moved here from opencode.json on 2026-08-12 (token consumption opt-in); every MCP is now user-triggered. This file is only read by `node .opencode/bin/setup-mcp.js` (manual command); opencode itself never parses it.",
     "schema_version": 2,
     "discoverable_via": "/setup-mcp --list",
     "categories": {
-      "code-hosting": ["github", "gitlab"],
-      "data":         ["postgres", "filesystem"],
-      "observability":["sentry"],
-      "productivity": ["linear", "notion", "slack"],
-      "web":          ["brave-search", "fetch"]
+      "code-hosting": [
+        "github",
+        "gitlab"
+      ],
+      "data": [
+        "postgres",
+        "filesystem"
+      ],
+      "observability": [
+        "sentry"
+      ],
+      "productivity": [
+        "linear",
+        "notion",
+        "slack"
+      ],
+      "web": [
+        "brave-search",
+        "fetch"
+      ]
     },
     "defaults": {
       "type": "local"
-    }
+    },
+    "_active_context7": "2026-08-12T16:45:47.570Z"
   },
   "optional_mcps": [
+    {
+      "name": "context7",
+      "description": "Up-to-date documentation for libraries/frameworks/APIs (live docs via Context7 MCP). Previously loaded by default; moved to opt-in on 2026-08-12 to cut boot tokens.",
+      "package": "@upstash/context7-mcp",
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@3.2.3"
+      ],
+      "env": {},
+      "use_when": "Library/framework questions where training data may be stale (React, Next.js, Prisma, etc.) — prefer `/docs-lookup` skill."
+    },
+    {
+      "name": "playwright",
+      "description": "Browser automation for E2E tests and web scraping (Playwright MCP). Previously loaded by default; moved to opt-in on 2026-08-12 to cut boot tokens.",
+      "package": "@playwright/mcp",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@0.0.78"
+      ],
+      "env": {},
+      "use_when": "Running E2E tests, browser workflows, scraping, or visual checks."
+    },
     {
       "name": "github",
       "description": "Read GitHub issues, PRs, code search, repo metadata directly from the agent. Replaces manual `gh` CLI invocations with structured MCP tools (list_issues, get_pull_request, search_code, etc).",
