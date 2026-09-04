@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/alert_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/sync_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
+import '../widgets/alerts_banner.dart';
 import '../widgets/category_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/summary_card.dart';
@@ -94,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDashboard() {
     final tx = context.watch<TransactionProvider>();
+    final alerts = context.watch<AlertProvider>();
     final now = DateTime.now();
     final year = now.year;
     final month = now.month;
@@ -109,14 +112,16 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            'Resumen',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
+Text(
+                'Resumen',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              AlertsBanner(alerts: alerts.bySeverity),
+              const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
