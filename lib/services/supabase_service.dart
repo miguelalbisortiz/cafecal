@@ -51,8 +51,11 @@ class SupabaseService {
     await client.auth.signInWithPassword(email: email, password: password);
   }
 
-  Future<void> signUp(String email, String password) async {
-    await client.auth.signUp(email: email, password: password);
+  /// Devuelve `true` si el registro crea sesión inmediata.
+  /// `false` con usuario creado significa que falta confirmar el email.
+  Future<bool> signUp(String email, String password) async {
+    final res = await client.auth.signUp(email: email, password: password);
+    return res.session != null;
   }
 
   Future<void> signOut() async {
