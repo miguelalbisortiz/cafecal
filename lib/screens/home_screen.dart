@@ -12,6 +12,8 @@ import '../widgets/category_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/summary_card.dart';
 import 'register_screen.dart';
+import 'report_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Mi Cafetal',
+          'Mi Cafetal App',
           style:
               GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
         ),
@@ -63,8 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
           PopupMenuButton<String>(
             onSelected: (v) {
               if (v == 'logout') context.read<AuthProvider>().signOut();
+              if (v == 'report') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReportScreen()));
+              if (v == 'settings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(value: 'report', child: Text('Reporte')),
+              PopupMenuItem(value: 'settings', child: Text('Configuración')),
+              PopupMenuDivider(),
               PopupMenuItem(value: 'logout', child: Text('Cerrar sesión')),
             ],
           ),
