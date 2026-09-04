@@ -28,9 +28,28 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
-    final ok = _isRegister
-        ? await auth.signUp(_emailController.text, _passwordController.text)
-        : await auth.signIn(_emailController.text, _passwordController.text);
+    if (_isRegister) {
+      final result =
+          await auth.signUp(_emailController.text, _passwordController.text);
+      if (!mounted) return;
+      if (result == SignUpResult.emailConfirmationRequired) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Cuenta creada. Revisa tu correo (incluye spam) para confirmar y luego inicia sesión.',
+            ),
+            duration: Duration(seconds: 6),
+          ),
+        );
+        setState(() => _isRegister = false);
+      } else if (result == SignUpResult.failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(auth.error ?? 'Error al crear la cuenta')),
+        );
+      }
+      return;
+    }
+    final ok = await auth.signIn(_emailController.text, _passwordController.text);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.error ?? 'Error al iniciar sesión')),

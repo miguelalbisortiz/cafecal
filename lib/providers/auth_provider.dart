@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import '../services/local_store.dart';
 import '../services/supabase_service.dart';
 
+enum SignUpResult { success, emailConfirmationRequired, failure }
+
 class AuthProvider extends ChangeNotifier {
   final LocalStore _store;
   bool _isLoading = false;
@@ -33,15 +35,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signUp(String email, String password) async {
+  Future<SignUpResult> signUp(String email, String password) async {
     _setLoading(true);
     try {
-      await SupabaseService.instance.signUp(email.trim(), password);
+      final sessionCreated =
+          await SupabaseService.instance.signUp(email.trim(), password);
       _error = null;
-      return true;
+      return sessionCreated
+          ? SignUpResult.success
+          : SignUpResult.emailConfirmationRequired;
     } catch (e) {
       _error = _friendlyAuthError(e);
-      return false;
+      return SignUpResult.failure;
     } finally {
       _setLoading(false);
     }
@@ -57,6 +62,9 @@ class AuthProvider extends ChangeNotifier {
     final msg = e.toString();
     if (msg.contains('Invalid login credentials')) {
       return 'Correo o contraseña incorrectos.';
+    }
+    if (msg.contains('Email not confirmed')) {
+      return 'Tu correo aún no está confirmado. Revisa tu bandeja de entrada.';
     }
     if (msg.contains('already registered')) {
       return 'Ese correo ya está registrado. Inicia sesión.';
