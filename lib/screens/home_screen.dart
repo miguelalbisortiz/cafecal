@@ -3,9 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
-import '../providers/transaction_provider.dart';
 import '../providers/sync_provider.dart';
-import '../utils/format.dart';
+import '../providers/transaction_provider.dart';
+import '../models/transaction.dart';
+import '../widgets/category_breakdown.dart';
+import '../widgets/monthly_trend_chart.dart';
+import '../widgets/summary_card.dart';
+import 'register_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Primer sync al entrar (si hay conexión).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SyncProvider>().sync();
     });
@@ -28,27 +31,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tx = context.watch<TransactionProvider>();
     final sync = context.watch<SyncProvider>();
-
-    final monthExpenses = tx.totalExpenses(month: DateTime.now().month, year: DateTime.now().year);
-    final monthIncomes = tx.totalIncomes(month: DateTime.now().month, year: DateTime.now().year);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mi Cafetal', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Mi Cafetal',
+          style:
+              GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+        ),
         actions: [
-          IconButton(
-            tooltip: 'Sincronizar',
-            icon: sync.syncing
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync),
-            onPressed: sync.syncing ? null : () => context.read<SyncProvider>().sync(),
-          ),
+          if (sync.syncing)
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else
+            IconButton(
+              tooltip: 'Sincronizar',
+              icon: const Icon(Icons.sync),
+              onPressed: () => context.read<SyncProvider>().sync(),
+            ),
           PopupMenuButton<String>(
             onSelected: (v) {
               if (v == 'logout') context.read<AuthProvider>().signOut();
@@ -60,111 +69,120 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: switch (_tab) {
-        0 => _buildDashboard(context, monthExpenses, monthIncomes),
-        1 => _buildRegistro(context),
-        _ => _buildDashboard(context, monthExpenses, monthIncomes),
+        0 => _buildDashboard(),
+        1 => const RegisterScreen(),
+        _ => _buildDashboard(),
       },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Resumen'),
-          NavigationDestination(icon: Icon(Icons.add_circle_outline), selectedIcon: Icon(Icons.add_circle), label: 'Registrar'),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Resumen',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline),
+            selectedIcon: Icon(Icons.add_circle),
+            label: 'Registrar',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDashboard(BuildContext context, double expenses, double incomes) {
+  Widget _buildDashboard() {
     final tx = context.watch<TransactionProvider>();
     final now = DateTime.now();
-    final yearExpenses = tx.totalExpenses(year: now.year);
-    final yearIncomes = tx.totalIncomes(year: now.year);
+    final year = now.year;
+    final month = now.month;
+
+    final monthExpenses = tx.totalExpenses(year: year, month: month);
+    final monthIncomes = tx.totalIncomes(year: year, month: month);
+    final yearExpenses = tx.totalExpenses(year: year);
+    final yearIncomes = tx.totalIncomes(year: year);
     final balance = yearIncomes - yearExpenses;
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text('Mi Cafetal', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _SummaryCard(
-                label: 'Egresos del mes',
-                value: expenses,
-                color: Colors.red,
-                icon: Icons.trending_down,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _SummaryCard(
-                label: 'Ingresos del mes',
-                value: incomes,
-                color: Colors.green,
-                icon: Icons.trending_up,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _SummaryCard(
-          label: 'Balance del año',
-          value: balance,
-          color: balance >= 0 ? Colors.green.shade700 : Colors.red.shade700,
-          icon: balance >= 0 ? Icons.savings : Icons.warning,
-        ),
-        const SizedBox(height: 12),
-        Text('Registros ($yearExpenses egresos / $yearIncomes ingresos)'),
-        const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.add_circle, color: Colors.brown),
-            title: const Text('Registrar un gasto o ingreso'),
-            subtitle: const Text('Toma 10 segundos'),
-            onTap: () => setState(() => _tab = 1),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRegistro(BuildContext context) {
-    return const Center(
-      child: Text('Formulario de registro — Fase 2'),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final double value;
-  final Color color;
-  final IconData icon;
-
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
+    return RefreshIndicator(
+      onRefresh: () => context.read<SyncProvider>().sync(),
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 8),
-            Text(formatMoney(context, value),
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(label, style: const TextStyle(color: Colors.grey)),
+        children: [
+          Text(
+            'Resumen',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: SummaryCard(
+                  label: 'Gastos del mes',
+                  value: monthExpenses,
+                  color: Colors.red,
+                  icon: Icons.trending_down,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SummaryCard(
+                  label: 'Ingresos del mes',
+                  value: monthIncomes,
+                  color: Colors.green,
+                  icon: Icons.trending_up,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SummaryCard(
+            label: 'Balance del año $year',
+            value: balance,
+            color: balance >= 0 ? Colors.green.shade700 : Colors.red.shade700,
+            icon: balance >= 0 ? Icons.savings : Icons.warning_amber,
+          ),
+          const SizedBox(height: 24),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  MonthlyTrendChart(year: year),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: CategoryBreakdown(year: year, month: month, type: TransactionType.expense),
+            ),
+          ),
+          if (yearExpenses > 0 || yearIncomes > 0) ...[
+            const SizedBox(height: 24),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: CategoryBreakdown(year: year, type: TransactionType.income),
+              ),
+            ),
           ],
-        ),
+          const SizedBox(height: 24),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.add_circle, color: Colors.brown),
+              title: const Text('Registrar un gasto o ingreso'),
+              subtitle: const Text('Toma 10 segundos'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => setState(() => _tab = 1),
+            ),
+          ),
+        ],
       ),
     );
   }
