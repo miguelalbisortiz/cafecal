@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/alert_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/sync_provider.dart';
 import 'providers/transaction_provider.dart';
@@ -31,6 +32,9 @@ class MiCafetalApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => txProvider),
         ChangeNotifierProvider(
           create: (_) => SyncProvider(txProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AlertProvider(txProvider),
         ),
       ],
       child: MaterialApp(
