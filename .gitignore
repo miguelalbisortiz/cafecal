@@ -37,3 +37,6 @@ build/
 # Local env secrets
 .env
 .env.local
+
+# Supabase CLI temp
+supabase/.temp/
