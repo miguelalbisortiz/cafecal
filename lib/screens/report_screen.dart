@@ -90,9 +90,9 @@ class _ReportScreenState extends State<ReportScreen> {
                         border: const OutlineInputBorder(),
                       ),
                       items: [
-                        for (var i = 0; i < 12; i++)
+                        for (var i = 1; i <= 12; i++)
                           DropdownMenuItem(
-                              value: i, child: Text(months[i])),
+                              value: i, child: Text(months[i - 1])),
                       ],
                       onChanged: (v) =>
                           setState(() => _month = v ?? _month),
@@ -301,13 +301,13 @@ class _ReportScreenState extends State<ReportScreen> {
 
   String _periodLabel(AppLocalizations l10n) => switch (_mode) {
         _PeriodMode.month =>
-          l10n.reportPeriodMonth(l10n.monthFull[_month], _year),
+          l10n.reportPeriodMonth(l10n.monthFull[_month - 1], _year),
         _PeriodMode.year => l10n.yearLabel(_year),
         _PeriodMode.yearToDate => l10n.reportPeriodYtd(_year),
       };
 
   String _periodChipLabel(AppLocalizations l10n) => switch (_mode) {
-        _PeriodMode.month => l10n.reportChipMonth(l10n.monthFull[_month], _year),
+        _PeriodMode.month => l10n.reportChipMonth(l10n.monthFull[_month - 1], _year),
         _PeriodMode.year => '$_year',
         _PeriodMode.yearToDate => l10n.reportChipYtd(_year),
       };
