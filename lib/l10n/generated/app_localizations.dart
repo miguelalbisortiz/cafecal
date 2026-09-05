@@ -761,6 +761,12 @@ abstract class AppLocalizations {
   /// **'Resultado'**
   String get cropBreakdownSummaryR;
 
+  /// No description provided for @cropBreakdownRoiHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Cómo leer el ROI: por cada \$1 invertido recuperas la ganancia más el capital. Ej.: ROI 516% → por cada \$1 vuelven \$6,16 (5,16 de ganancia + 1 del capital).'**
+  String get cropBreakdownRoiHint;
+
   /// No description provided for @noCropData.
   ///
   /// In es, this message translates to:
