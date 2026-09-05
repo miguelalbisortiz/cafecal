@@ -50,13 +50,20 @@ class AlertService {
           expenses.where((t) => t.category == category).fold<double>(0, (a, t) => a + t.amount);
       if (current <= 0) continue;
 
-      final catHistory =
-          history.where((t) => t.category == category).toList();
-      if (catHistory.length < 2) continue;
+final catHistory =
+        history.where((t) => t.category == category).toList();
+    if (catHistory.length < 2) continue;
 
-      final avg = catHistory
-              .fold<double>(0, (a, t) => a + t.amount) /
-          catHistory.length;
+    // Promedio histórico MENSUAL: sumar el total de cada mes, luego
+    // dividir entre los meses con datos. Promediar por transacción
+    // distorsiona el umbral si un mes tuvo muchos movimientos puntuales.
+    final months = <int>{};
+    for (final t in catHistory) {
+      months.add(DateTime(t.date.year, t.date.month).millisecondsSinceEpoch);
+    }
+    if (months.length < 2) continue;
+    final avg = catHistory.fold<double>(0, (a, t) => a + t.amount) /
+        months.length;
 
       if (current > 2 * avg && avg > 0) {
         final label = l10n.expenseCategory(category);
@@ -168,7 +175,11 @@ class AlertService {
 
   void _checkLowPrice(List<Transaction> txns, DateTime now,
       AppLocalizations l10n, List<FarmAlert> out) {
-    final sales = txns.where((t) => !t.type.isExpense).toList();
+    // Solo ventas reales: subvenciones y apoyos no son precio de venta y
+    // distorsionarían el promedio del ticket por venta.
+    final sales = txns
+        .where((t) => !t.type.isExpense && t.category.startsWith('venta_'))
+        .toList();
     if (sales.length < 3) return;
 
     final histAvg = sales.fold<double>(0, (a, t) => a + t.amount) / sales.length;
