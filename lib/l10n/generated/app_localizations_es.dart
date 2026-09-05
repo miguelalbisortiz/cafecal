@@ -484,6 +484,70 @@ class AppLocalizationsEs extends AppLocalizations {
   String get assignCropsNow => 'Asignar cultivo ahora';
 
   @override
+  String get insightsTitle => 'Conclusión del período';
+
+  @override
+  String get insightNoActivity => 'No hay movimientos registrados en este período.';
+
+  @override
+  String insightBalanceNoIncome(Object spent) {
+    return 'Registraste $spent en gastos y no hay ventas en este período.';
+  }
+
+  @override
+  String insightBalancePositive(Object balance, Object margin) {
+    return 'Resultado positivo: $balance con $margin de margen sobre las ventas.';
+  }
+
+  @override
+  String insightBalanceNegative(Object loss, Object margin) {
+    return 'Resultado negativo: $loss con margen de $margin sobre las ventas.';
+  }
+
+  @override
+  String insightVsPrev(Object expChange, Object incChange, Object month) {
+    return 'Frente a $month: ventas $incChange y gastos $expChange.';
+  }
+
+  @override
+  String insightChangeUp(Object pct) {
+    return 'subieron $pct';
+  }
+
+  @override
+  String insightChangeDown(Object pct) {
+    return 'bajaron $pct';
+  }
+
+  @override
+  String get insightChangeFlat => 'sin cambios';
+
+  @override
+  String insightTopExpense(Object amount, Object category, Object pct) {
+    return 'Tu mayor gasto fue $category ($amount, el $pct del total).';
+  }
+
+  @override
+  String insightTopExpenseDependency(Object category) {
+    return 'Concentras más de la mitad de tus gastos en $category: revisa ese costo recurrente antes de que siga creciendo.';
+  }
+
+  @override
+  String insightTopIncome(Object amount, Object category, Object pct) {
+    return 'Tu mejor ingreso fue $category ($amount, el $pct del total).';
+  }
+
+  @override
+  String insightLowPrice(Object history, Object recent) {
+    return 'Vendes por montos menores que tu histórico: promedio reciente $recent vs $history por venta. Revisa precio, presentación o canal de venta.';
+  }
+
+  @override
+  String insightBestMonth(Object costAmount, Object costMonth, Object salesAmount, Object salesMonth) {
+    return 'Tu mejor mes de ventas fue $salesMonth ($salesAmount); tu menor gasto mensual fue $costMonth ($costAmount).';
+  }
+
+  @override
   String chartTitle(int year) {
     return 'Gastos vs ingresos — $year';
   }
