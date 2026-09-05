@@ -274,6 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : balance >= 0
                     ? positive
                     : negative,
+            highlighted: !noData,
             icon: noData
                 ? Icons.remove
                 : balance >= 0
