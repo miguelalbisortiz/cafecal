@@ -453,6 +453,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryBreakdownShowLess => 'Show less';
 
   @override
+  String get assignCropsTitle => 'Assign crops';
+
+  @override
+  String get assignCropsSubtitle => 'Pick a crop for each record. All changes are saved together.';
+
+  @override
+  String get assignCropsUnassigned => 'No crop';
+
+  @override
+  String get assignCropsNewCrop => 'New crop…';
+
+  @override
+  String get assignCropsSave => 'Save changes';
+
+  @override
+  String assignCropsSaved(Object count) {
+    return '$count records updated';
+  }
+
+  @override
+  String get assignCropsEmpty => 'No unassigned records left. All done!';
+
+  @override
+  String assignCropsBanner(Object count) {
+    return '$count records without an assigned crop';
+  }
+
+  @override
+  String get assignCropsNow => 'Assign crops now';
+
+  @override
   String chartTitle(int year) {
     return 'Expenses vs income — $year';
   }

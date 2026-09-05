@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
+import 'assign_crops_screen.dart';
 import 'register_screen.dart';
 
 enum _PeriodMode { month, year, all }
@@ -48,6 +49,8 @@ class _MovementsScreenState extends State<MovementsScreen> {
         return cmp != 0 ? cmp : b.createdAt.compareTo(a.createdAt);
       });
     final filtered = records.where(_matches).toList();
+    final unassigned =
+        records.where((t) => t.cropId == null).length;
 
     double totalsIn = 0;
     double totalsOut = 0;
@@ -144,6 +147,46 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           ],
                         );
                       },
+                    ),
+                  ),
+                ),
+              ),
+            if (unassigned > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .tertiaryContainer
+                      .withOpacity(0.5),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(Icons.assistant_direction_outlined,
+                            size: 18,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onTertiaryContainer),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.assignCropsBanner('$unassigned'),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => const AssignCropsScreen(),
+                          )),
+                          child: Text(l10n.assignCropsNow),
+                        ),
+                      ],
                     ),
                   ),
                 ),
