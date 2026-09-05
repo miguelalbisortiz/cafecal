@@ -67,6 +67,28 @@ void main() {
         reason: '150 no supera 2×100',
       );
     });
+
+    test(
+        'NO dispara si un solo mes tuvo muchos movimientos puntuales '
+        '(promedio MENSUAL, no por transacción)', () {
+      final txns = [
+        // Enero: 4 movimientos puntuales que suman 1000. Febrero: un solo gasto de 100.
+        _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 2), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 8), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 15), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 22), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
+        // Mes actual: 500. Por transacción el promedio sería 220 → dispararía
+        // (100>2×220). Por mes el promedio es 550 → no debe disparar.
+        _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 6, 10), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+        alerts.where((a) => a.rule == AlertRule.excessiveSpending),
+        isEmpty,
+        reason: '500 está dentro de 2×550 (promedio mensual)',
+      );
+    });
   });
 
   group('Regla 2 — Sin ingresos', () {
@@ -142,6 +164,26 @@ void main() {
       ];
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.where((a) => a.rule == AlertRule.lowPrice), isEmpty);
+    });
+
+    test('ignora subvenciones: solo compara ventas reales', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        // Ventas recientes menores…
+        _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+        // …pero una subvención reciente de $9.000 subiría el promedio si se
+        // mezclara con las ventas y ocultaría la caída.
+        _txn(type: TransactionType.income, amount: 9000, date: DateTime(2026, 6, 12), category: 'subvenciones'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+        alerts.any((a) => a.rule == AlertRule.lowPrice),
+        isTrue,
+        reason: '600 por venta < 1000 histórico, la subvención no debe contar',
+      );
     });
   });
 

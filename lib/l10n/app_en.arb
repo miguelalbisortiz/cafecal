@@ -166,7 +166,7 @@
   "alertLossesMessage": "The problem: in {months} you spent more than you earned.",
   "alertLossesSuggestion": "Review your fixed costs (labor, fertilizer, transport) and look to reduce expenses or improve the sales price.",
   "alertLowPriceTitle": "Your recent sales yield less than your average",
-  "alertLowPriceMessage": "The problem: in the last 30 days you sell on average at {recentAvg}, below your historical average ({histAvg}).",
+  "alertLowPriceMessage": "The problem: in the last 30 days each sale brings in {recentAvg} on average, below your historical average per sale ({histAvg}).",
   "alertLowPriceSuggestion": "Compare prices with other buyers and consider waiting for a better moment to sell part of the harvest.",
   "alertDeficitNoCropTitle": "Unassigned-crop expenses are not recovering (ROI {roi})",
   "alertDeficitNoCropMessage": "The problem: there are {spent} in expenses without an assigned crop and only {sold} in sales ({recovery} of what was invested).",
