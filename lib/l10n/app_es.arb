@@ -264,8 +264,8 @@
       "recovery": { "type": "String" }
     }
   },
-  "alertDeficitNoCropMessage": "El problema: hay {spent} en gastos sin cultivo asignado y solo {sold} en ventas (el {recovery} de lo invertido).",
-  "alertDeficitNoCropSuggestion": "Asigna cada gasto y cada venta a un cultivo para poder ver con claridad cuál te deja ganancias y cuál no.",
+  "alertDeficitNoCropMessage": "El problema: tienes {count} registros sin cultivo asignado que suman {spent} en gastos y {sold} en ventas (solo has recuperado el {recovery} de lo invertido).",
+  "alertDeficitNoCropSuggestion": "Edita esos {count} registros y asígnales su cultivo (Café, Plátano…) para que su costo cuente en el cultivo correcto, y esta alerta desaparecerá.",
   "@alertDeficitTitle": {
     "placeholders": {
       "crop": { "type": "String" },
