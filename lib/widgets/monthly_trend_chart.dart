@@ -111,25 +111,26 @@ class MonthlyTrendChart extends StatelessWidget {
               borderData: FlBorderData(show: false),
               barGroups: List.generate(12, (i) {
                 final dimmed = i > currentIdx;
-                final scheme = Theme.of(context).colorScheme;
+                final incomeColor = Colors.green.shade700;
+                final expenseColor = Colors.red.shade600;
                 return BarChartGroupData(
                   x: i,
                   barRods: [
                     BarChartRodData(
                       toY: incomes[i],
                       color: dimmed
-                          ? scheme.primary.withOpacity(0.2)
-                          : scheme.primary,
-                      width: 8,
-                      borderRadius: BorderRadius.circular(2),
+                          ? incomeColor.withOpacity(0.5)
+                          : incomeColor,
+                      width: 12,
+                      borderRadius: BorderRadius.circular(3),
                     ),
                     BarChartRodData(
                       toY: expenses[i],
                       color: dimmed
-                          ? scheme.error.withOpacity(0.2)
-                          : scheme.error,
-                      width: 8,
-                      borderRadius: BorderRadius.circular(2),
+                          ? expenseColor.withOpacity(0.5)
+                          : expenseColor,
+                      width: 12,
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ],
                 );
@@ -141,13 +142,11 @@ class MonthlyTrendChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _LegendDot(
-                color: Theme.of(context).colorScheme.primary,
-                label: l10n.incomeLabel),
+            _LegendBar(
+                color: Colors.green.shade700, label: l10n.incomeLabel),
             const SizedBox(width: 16),
-            _LegendDot(
-                color: Theme.of(context).colorScheme.error,
-                label: l10n.expensesLabel),
+            _LegendBar(
+                color: Colors.red.shade600, label: l10n.expensesLabel),
           ],
         ),
       ],
@@ -165,11 +164,11 @@ class MonthlyTrendChart extends StatelessWidget {
   }
 }
 
-class _LegendDot extends StatelessWidget {
+class _LegendBar extends StatelessWidget {
   final Color color;
   final String label;
 
-  const _LegendDot({required this.color, required this.label});
+  const _LegendBar({required this.color, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -177,12 +176,22 @@ class _LegendDot extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
         ),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
       ],
     );
   }
