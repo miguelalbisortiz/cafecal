@@ -201,6 +201,15 @@
   "categoryBreakdownTotal": "Total del período: {total}",
   "categoryBreakdownShowMore": "Ver {count} más",
   "categoryBreakdownShowLess": "Ver menos",
+  "assignCropsTitle": "Asignar cultivo",
+  "assignCropsSubtitle": "Elige un cultivo para cada registro. Todos los cambios se guardan juntos.",
+  "assignCropsUnassigned": "Sin cultivo",
+  "assignCropsNewCrop": "Nuevo cultivo…",
+  "assignCropsSave": "Guardar cambios",
+  "assignCropsSaved": "{count} registros actualizados",
+  "assignCropsEmpty": "Ya no hay registros sin cultivo. ¡Todo asignado!",
+  "assignCropsBanner": "{count} registros sin cultivo asignado",
+  "assignCropsNow": "Asignar cultivo ahora",
 
   "@chartTitle": {
     "placeholders": { "year": { "type": "int" } }

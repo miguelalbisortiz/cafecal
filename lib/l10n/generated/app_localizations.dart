@@ -911,6 +911,60 @@ abstract class AppLocalizations {
   /// **'Ver menos'**
   String get categoryBreakdownShowLess;
 
+  /// No description provided for @assignCropsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignar cultivo'**
+  String get assignCropsTitle;
+
+  /// No description provided for @assignCropsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige un cultivo para cada registro. Todos los cambios se guardan juntos.'**
+  String get assignCropsSubtitle;
+
+  /// No description provided for @assignCropsUnassigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin cultivo'**
+  String get assignCropsUnassigned;
+
+  /// No description provided for @assignCropsNewCrop.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo cultivo…'**
+  String get assignCropsNewCrop;
+
+  /// No description provided for @assignCropsSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar cambios'**
+  String get assignCropsSave;
+
+  /// No description provided for @assignCropsSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} registros actualizados'**
+  String assignCropsSaved(Object count);
+
+  /// No description provided for @assignCropsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya no hay registros sin cultivo. ¡Todo asignado!'**
+  String get assignCropsEmpty;
+
+  /// No description provided for @assignCropsBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} registros sin cultivo asignado'**
+  String assignCropsBanner(Object count);
+
+  /// No description provided for @assignCropsNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignar cultivo ahora'**
+  String get assignCropsNow;
+
   /// No description provided for @chartTitle.
   ///
   /// In es, this message translates to:

@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../widgets/new_crop_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Transaction? editing;
@@ -63,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final tx = context.read<TransactionProvider>();
     final name = await showDialog<String>(
       context: context,
-      builder: (_) => _NewCropDialog(
+      builder: (_) => NewCropDialog(
         existingNames: tx.crops.map((c) => c.name).toList(),
       ),
     );
@@ -369,66 +370,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     }
     return form;
-  }
-}
-
-class _NewCropDialog extends StatefulWidget {
-  final List<String> existingNames;
-
-  const _NewCropDialog({required this.existingNames});
-
-  @override
-  State<_NewCropDialog> createState() => _NewCropDialogState();
-}
-
-class _NewCropDialogState extends State<_NewCropDialog> {
-  final _controller = TextEditingController();
-  String? _error;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final n = _controller.text.trim();
-    if (n.isEmpty) {
-      setState(() => _error = AppLocalizations.of(context)!.cropNameRequired);
-      return;
-    }
-    final dup = widget.existingNames
-        .where((e) => e.toLowerCase() == n.toLowerCase())
-        .toList();
-    if (dup.isNotEmpty) {
-      Navigator.pop(context, dup.first);
-      return;
-    }
-    Navigator.pop(context, n);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Text(l10n.newCropDialogTitle),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        decoration: InputDecoration(
-          labelText: l10n.cropNameLabel,
-          errorText: _error,
-          prefixIcon: const Icon(Icons.grass_outlined),
-        ),
-        onSubmitted: (_) => _submit(),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(onPressed: _submit, child: Text(l10n.add)),
-      ],
-    );
   }
 }
