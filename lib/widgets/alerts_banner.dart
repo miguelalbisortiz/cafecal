@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/farm_alert.dart';
+import '../screens/assign_crops_screen.dart';
 import 'terminology_guide.dart';
 
 class AlertsBanner extends StatelessWidget {
@@ -108,6 +109,24 @@ class AlertsBanner extends StatelessWidget {
                                   ),
                                 ),
                               ],
+                            ),
+                          ],
+                          if (a.id == 'deficit_null') ...[
+                            const SizedBox(height: 4),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+                                onPressed: () => Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                  builder: (_) => const AssignCropsScreen(),
+                                )),
+                                icon: const Icon(Icons.assistant_direction,
+                                    size: 16),
+                                label: Text(l10n.assignCropsNow),
+                                style: TextButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
                             ),
                           ],
                         ],

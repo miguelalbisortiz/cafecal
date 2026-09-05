@@ -453,6 +453,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get categoryBreakdownShowLess => 'Ver menos';
 
   @override
+  String get assignCropsTitle => 'Asignar cultivo';
+
+  @override
+  String get assignCropsSubtitle => 'Elige un cultivo para cada registro. Todos los cambios se guardan juntos.';
+
+  @override
+  String get assignCropsUnassigned => 'Sin cultivo';
+
+  @override
+  String get assignCropsNewCrop => 'Nuevo cultivo…';
+
+  @override
+  String get assignCropsSave => 'Guardar cambios';
+
+  @override
+  String assignCropsSaved(Object count) {
+    return '$count registros actualizados';
+  }
+
+  @override
+  String get assignCropsEmpty => 'Ya no hay registros sin cultivo. ¡Todo asignado!';
+
+  @override
+  String assignCropsBanner(Object count) {
+    return '$count registros sin cultivo asignado';
+  }
+
+  @override
+  String get assignCropsNow => 'Asignar cultivo ahora';
+
+  @override
   String chartTitle(int year) {
     return 'Gastos vs ingresos — $year';
   }

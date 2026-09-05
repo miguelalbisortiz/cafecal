@@ -150,6 +150,15 @@
   "categoryBreakdownTotal": "Period total: {total}",
   "categoryBreakdownShowMore": "Show {count} more",
   "categoryBreakdownShowLess": "Show less",
+  "assignCropsTitle": "Assign crops",
+  "assignCropsSubtitle": "Pick a crop for each record. All changes are saved together.",
+  "assignCropsUnassigned": "No crop",
+  "assignCropsNewCrop": "New crop…",
+  "assignCropsSave": "Save changes",
+  "assignCropsSaved": "{count} records updated",
+  "assignCropsEmpty": "No unassigned records left. All done!",
+  "assignCropsBanner": "{count} records without an assigned crop",
+  "assignCropsNow": "Assign crops now",
 
   "chartTitle": "Expenses vs income — {year}",
 
