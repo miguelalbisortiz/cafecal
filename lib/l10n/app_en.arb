@@ -65,6 +65,8 @@
   "authCreatedMsg": "Account created. Check your email (including spam) to confirm, then sign in.",
   "authCreateError": "Error creating the account",
   "authSignInError": "Error signing in",
+  "authForgotPassword": "Forgot your password?",
+  "authResetSent": "We sent you a link to reset your password. Check your email (including spam).",
 
   "registerEditTitle": "Edit movement",
   "expenseTypeLabel": "Expense",

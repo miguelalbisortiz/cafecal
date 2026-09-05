@@ -437,6 +437,18 @@ abstract class AppLocalizations {
   /// **'Error al iniciar sesión'**
   String get authSignInError;
 
+  /// No description provided for @authForgotPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Olvidaste tu contraseña?'**
+  String get authForgotPassword;
+
+  /// No description provided for @authResetSent.
+  ///
+  /// In es, this message translates to:
+  /// **'Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo (incluye spam).'**
+  String get authResetSent;
+
   /// No description provided for @registerEditTitle.
   ///
   /// In es, this message translates to:

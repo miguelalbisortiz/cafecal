@@ -182,6 +182,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get authSignInError => 'Error al iniciar sesión';
 
   @override
+  String get authForgotPassword => '¿Olvidaste tu contraseña?';
+
+  @override
+  String get authResetSent => 'Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo (incluye spam).';
+
+  @override
   String get registerEditTitle => 'Editar movimiento';
 
   @override
