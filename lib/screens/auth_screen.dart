@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
+import '../providers/transaction_provider.dart';
+import '../models/transaction.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -28,23 +31,22 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
+    final l10n = AppLocalizations.of(context)!;
     if (_isRegister) {
       final result =
           await auth.signUp(_emailController.text, _passwordController.text);
       if (!mounted) return;
       if (result == SignUpResult.emailConfirmationRequired) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Cuenta creada. Revisa tu correo (incluye spam) para confirmar y luego inicia sesión.',
-            ),
-            duration: Duration(seconds: 6),
+          SnackBar(
+            content: Text(l10n.authCreatedMsg),
+            duration: const Duration(seconds: 6),
           ),
         );
         setState(() => _isRegister = false);
       } else if (result == SignUpResult.failure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error ?? 'Error al crear la cuenta')),
+          SnackBar(content: Text(auth.error ?? l10n.authCreateError)),
         );
       }
       return;
@@ -52,7 +54,56 @@ class _AuthScreenState extends State<AuthScreen> {
     final ok = await auth.signIn(_emailController.text, _passwordController.text);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error ?? 'Error al iniciar sesión')),
+        SnackBar(content: Text(auth.error ?? l10n.authSignInError)),
+      );
+    }
+  }
+
+  Future<void> _enterGuestMode() async {
+    final auth = context.read<AuthProvider>();
+    final tx = context.read<TransactionProvider>();
+    if (tx.transactions.isEmpty) {
+      await _seedDemoData(tx);
+    }
+    await auth.signInAsGuest();
+  }
+
+  Future<void> _seedDemoData(TransactionProvider tx) async {
+    final now = DateTime.now();
+    final sales = [3200000, 2750000, 2900000, 2400000, 3100000, 2650000];
+    for (var i = 0; i < sales.length; i++) {
+      await tx.addTransaction(
+        type: TransactionType.income,
+        category: 'Venta de café',
+        cropId: 'cafe',
+        amount: sales[i].toDouble(),
+        description: 'Venta de café ',
+        date: DateTime(now.year, now.month - i, 1),
+      );
+    }
+    await tx.addTransaction(
+      type: TransactionType.income,
+      category: 'Venta de plátano',
+      cropId: 'platano',
+      amount: 2500000,
+      description: 'Venta de plátano',
+      date: DateTime(now.year, now.month - 2, 1),
+    );
+    final exp = <List<Object?>>[
+      [DateTime(now.year, now.month - 1, 1), 'Fertilizantes', 'cafe', 450000],
+      [DateTime(now.year, now.month - 2, 1), 'Mano de obra', 'cafe', 700000],
+      [DateTime(now.year, now.month - 2, 1), 'Mano de obra', 'cafe', 620000],
+      [DateTime(now.year, now.month - 3, 1), 'Herramientas', 'platano', 300000],
+      [DateTime(now.year, now.month - 4, 1), 'Transporte', null, 180000],
+      [DateTime(now.year, now.month - 5, 1), 'Insumos', 'cafe', 350000],
+    ];
+    for (final e in exp) {
+      await tx.addTransaction(
+        type: TransactionType.expense,
+        category: e[1] as String,
+        cropId: e[2] as String?,
+        amount: (e[3] as int).toDouble(),
+        date: e[0] as DateTime,
       );
     }
   }
@@ -60,6 +111,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -67,10 +119,6 @@ class _AuthScreenState extends State<AuthScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
               child: Padding(
                 padding: const EdgeInsets.all(28),
                 child: Form(
@@ -79,10 +127,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(Icons.coffee, size: 64, color: Colors.brown),
+                      Icon(Icons.coffee,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary),
                       const SizedBox(height: 12),
                       Text(
-                        'Mi Cafetal',
+                        l10n.appTitle,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.playfairDisplay(
                           fontSize: 32,
@@ -91,30 +141,32 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       Text(
                         _isRegister
-                            ? 'Crea tu cuenta para llevar tus finanzas'
-                            : 'Bienvenido de vuelta',
+                            ? l10n.authSubtitleSignup
+                            : l10n.authSubtitleWelcome,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.grey),
+                        style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Correo',
-                          prefixIcon: Icon(Icons.mail_outline),
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.authEmailLabel,
+                          prefixIcon: const Icon(Icons.mail_outline),
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) => v != null && v.contains('@')
                             ? null
-                            : 'Ingresa un correo válido',
+                            : l10n.authInvalidEmail,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscure,
                         decoration: InputDecoration(
-                          labelText: 'Contraseña',
+                          labelText: l10n.authPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
                           border: const OutlineInputBorder(),
                           suffixIcon: IconButton(
@@ -127,7 +179,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         validator: (v) => v != null && v.length >= 6
                             ? null
-                            : 'Mínimo 6 caracteres',
+                            : l10n.authPasswordTooShort,
                         onFieldSubmitted: (_) => _submit(),
                       ),
                       if (auth.error != null) ...[
@@ -152,7 +204,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : Text(_isRegister ? 'Crear cuenta' : 'Entrar'),
+                            : Text(_isRegister
+                                ? l10n.authCreateAccount
+                                : l10n.authSignIn),
                       ),
                       const SizedBox(height: 8),
                       TextButton(
@@ -160,8 +214,23 @@ class _AuthScreenState extends State<AuthScreen> {
                             ? null
                             : () => setState(() => _isRegister = !_isRegister),
                         child: Text(_isRegister
-                            ? '¿Ya tienes cuenta? Entra'
-                            : '¿No tienes cuenta? Regístrate'),
+                            ? l10n.authHaveAccount
+                            : l10n.authNoAccount),
+                      ),
+                      const SizedBox(height: 4),
+                      TextButton.icon(
+                        onPressed: auth.isLoading ? null : _enterGuestMode,
+                        icon: const Icon(Icons.visibility_outlined, size: 18),
+                        label: Text(l10n.authGuest),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          l10n.authGuestHint,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 11, color: Colors.grey),
+                        ),
                       ),
                     ],
                   ),

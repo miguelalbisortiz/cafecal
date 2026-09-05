@@ -2,6 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/generated/app_localizations.dart';
+import '../l10n/strings.dart';
+import '../models/currencies.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
@@ -14,6 +17,7 @@ class MonthlyTrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
+    final l10n = AppLocalizations.of(context)!;
     final expenses = _monthlyTotals(tx, TransactionType.expense);
     final incomes = _monthlyTotals(tx, TransactionType.income);
 
@@ -23,11 +27,16 @@ class MonthlyTrendChart extends StatelessWidget {
       1.0,
     ].reduce((a, b) => a > b ? a : b);
 
+    final currentIdx = DateTime.now().month - 1;
+    final currency = tx.settings.currency;
+    final symbol = currencyInfo(currency).symbol;
+    final months = l10n.monthShort;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Gastos vs ingresos — $year',
+          l10n.chartTitle(year),
           style: Theme.of(context)
               .textTheme
               .titleMedium
@@ -45,7 +54,7 @@ class MonthlyTrendChart extends StatelessWidget {
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final isIncome = rodIndex == 0;
                     return BarTooltipItem(
-                      '${isIncome ? "Ingresos" : "Gastos"}\n'
+                      '${isIncome ? l10n.incomeLabel : l10n.expensesLabel}\n'
                       '${formatMoney(context, rod.toY)}',
                       const TextStyle(color: Colors.white),
                     );
@@ -57,16 +66,23 @@ class MonthlyTrendChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
-                      const months = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
                       final idx = value.toInt();
                       if (idx < 0 || idx >= months.length) {
                         return const SizedBox.shrink();
                       }
+                      final isCurrent = idx == currentIdx;
                       return Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          months[idx],
-                          style: const TextStyle(fontSize: 11),
+                          isCurrent ? '${months[idx]}•' : months[idx],
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight:
+                                isCurrent ? FontWeight.bold : FontWeight.normal,
+                            color: isCurrent
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
                         ),
                       );
                     },
@@ -79,7 +95,7 @@ class MonthlyTrendChart extends StatelessWidget {
                     getTitlesWidget: (value, meta) {
                       if (value < 1000) return const SizedBox.shrink();
                       return Text(
-                        '${(value / 1000).toStringAsFixed(0)}k',
+                        '$symbol${(value / 1000).toStringAsFixed(0)}k',
                         style: const TextStyle(fontSize: 10),
                       );
                     },
@@ -94,18 +110,24 @@ class MonthlyTrendChart extends StatelessWidget {
               ),
               borderData: FlBorderData(show: false),
               barGroups: List.generate(12, (i) {
+                final dimmed = i > currentIdx;
+                final scheme = Theme.of(context).colorScheme;
                 return BarChartGroupData(
                   x: i,
                   barRods: [
                     BarChartRodData(
                       toY: incomes[i],
-                      color: Colors.green.shade600,
+                      color: dimmed
+                          ? scheme.primary.withOpacity(0.2)
+                          : scheme.primary,
                       width: 8,
                       borderRadius: BorderRadius.circular(2),
                     ),
                     BarChartRodData(
                       toY: expenses[i],
-                      color: Colors.red.shade400,
+                      color: dimmed
+                          ? scheme.error.withOpacity(0.2)
+                          : scheme.error,
                       width: 8,
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -119,9 +141,13 @@ class MonthlyTrendChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _LegendDot(color: Colors.green.shade600, label: 'Ingresos'),
+            _LegendDot(
+                color: Theme.of(context).colorScheme.primary,
+                label: l10n.incomeLabel),
             const SizedBox(width: 16),
-            _LegendDot(color: Colors.red.shade400, label: 'Gastos'),
+            _LegendDot(
+                color: Theme.of(context).colorScheme.error,
+                label: l10n.expensesLabel),
           ],
         ),
       ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/generated/app_localizations.dart';
 import '../models/farm_alert.dart';
+import 'terminology_guide.dart';
 
 class AlertsBanner extends StatelessWidget {
   final List<FarmAlert> alerts;
@@ -11,35 +13,53 @@ class AlertsBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     if (alerts.isEmpty) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context)!;
     final sorted = [...alerts]..sort(
         (a, b) => b.severity.index.compareTo(a.severity.index));
+    final accent = sorted.first.severity.color;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.45),
+        color: accent.withOpacity(0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.error, width: 1),
+        border: Border.all(color: accent.withOpacity(0.6), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.campaign, size: 20),
+              Icon(Icons.campaign, size: 20, color: accent),
               const SizedBox(width: 8),
-              const Text(
-                'Alertas',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              Text(
+                l10n.alertsTitle,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              Text(
-                '${sorted.length}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+              IconButton(
+                tooltip: l10n.alertsTooltip,
+                visualDensity: VisualDensity.compact,
+                onPressed: () =>
+                    showTerminologyGuide(context, highlight: 'ROI'),
+                icon: Icon(Icons.info_outline, size: 16, color: accent),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${sorted.length}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -61,10 +81,35 @@ class AlertsBanner extends StatelessWidget {
                             style: const TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w600),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             a.message,
                             style: const TextStyle(fontSize: 12),
                           ),
+                          if (a.suggestion.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.lightbulb_outline,
+                                    size: 13, color: a.severity.color),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    a.suggestion,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      height: 1.25,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.7),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

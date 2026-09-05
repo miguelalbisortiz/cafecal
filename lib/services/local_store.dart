@@ -11,6 +11,7 @@ class LocalStore {
   static const _kCrops = 'crops_v1';
   static const _kSettings = 'settings_v1';
   static const _kSyncedAt = 'synced_at_v1';
+  static const _kGuestMode = 'guest_mode_v1';
 
   final SharedPreferences _prefs;
 
@@ -89,6 +90,20 @@ class LocalStore {
     await _prefs.setString(_kSyncedAt, time.toIso8601String());
   }
 
+  // ---- Guest mode ----
+
+  bool loadGuestMode() {
+    return _prefs.getBool(_kGuestMode) ?? false;
+  }
+
+  Future<void> saveGuestMode(bool value) async {
+    if (value) {
+      await _prefs.setBool(_kGuestMode, true);
+    } else {
+      await _prefs.remove(_kGuestMode);
+    }
+  }
+
   // ---- Clear (logout) ----
 
   Future<void> clearAll() async {
@@ -96,5 +111,6 @@ class LocalStore {
     await _prefs.remove(_kCrops);
     await _prefs.remove(_kSettings);
     await _prefs.remove(_kSyncedAt);
+    await _prefs.remove(_kGuestMode);
   }
 }

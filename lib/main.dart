@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/generated/app_localizations.dart';
 import 'providers/alert_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/sync_provider.dart';
@@ -10,6 +10,7 @@ import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/local_store.dart';
 import 'services/supabase_service.dart';
+import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,26 +38,18 @@ class MiCafetalApp extends StatelessWidget {
           create: (_) => AlertProvider(txProvider),
         ),
       ],
-      child: MaterialApp(
-        title: 'Mi Cafetal',
-        debugShowCheckedModeBanner: false,
-        theme: _buildTheme(ThemeMode.light),
-        darkTheme: _buildTheme(ThemeMode.dark),
-        home: const AuthGate(),
+      child: Consumer<TransactionProvider>(
+        builder: (context, tx, _) => MaterialApp(
+          title: 'Mi Cafetal',
+          debugShowCheckedModeBanner: false,
+          locale: Locale(tx.settings.language),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: buildAppTheme(Brightness.light),
+          darkTheme: buildAppTheme(Brightness.dark),
+          home: const AuthGate(),
+        ),
       ),
-    );
-  }
-
-  ThemeData _buildTheme(ThemeMode mode) {
-    final scheme =
-        (mode == ThemeMode.dark ? Brightness.dark : Brightness.light);
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6D4C41),
-        brightness: scheme,
-      ),
-      fontFamily: GoogleFonts.inter().fontFamily,
     );
   }
 }

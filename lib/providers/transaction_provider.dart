@@ -85,7 +85,7 @@ class TransactionProvider extends ChangeNotifier {
     String? cropId,
     String description = '',
     DateTime? date,
-    String currency = 'COP',
+    String? currency,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -93,7 +93,7 @@ class TransactionProvider extends ChangeNotifier {
       type: type,
       category: category,
       amount: amount,
-      currency: currency,
+      currency: currency ?? _settings.currency,
       description: description,
       date: date ?? DateTime.now(),
       createdAt: DateTime.now().toUtc(),
@@ -152,6 +152,20 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> updateSettings(FarmSettings settings) async {
     _settings = settings;
     await _store.saveSettings(settings);
+    notifyListeners();
+  }
+
+  /// Convierte todos los registros a otra moneda usando la tasa recibida
+  /// y los marca como pendientes de sincronizar.
+  Future<void> convertAllToCurrency(String newCurrency, double factor) async {
+    _transactions = _transactions
+        .map((t) => t.copyWith(
+              amount: t.amount * factor,
+              currency: newCurrency,
+              pendingSync: true,
+            ))
+        .toList();
+    await _store.saveTransactions(_transactions);
     notifyListeners();
   }
 
