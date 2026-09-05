@@ -21,24 +21,28 @@ class SummaryCard extends StatelessWidget {
     final isNegative = value < 0;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: isNegative ? Colors.red : color),
+                Icon(icon,
+                    color: isNegative
+                        ? Theme.of(context).colorScheme.error
+                        : color,
+                    size: 18),
                 const Spacer(),
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              formatMoney(context, value),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              formatCompact(context, value),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),

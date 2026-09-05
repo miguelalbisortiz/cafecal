@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../l10n/strings.dart';
 import '../models/farm_alert.dart';
 import '../services/alert_service.dart';
 import 'transaction_provider.dart';
@@ -25,7 +26,11 @@ class AlertProvider extends ChangeNotifier {
   }
 
   void _recompute() {
-    _alerts = _service.evaluate(_transactions.transactions, _transactions.crops);
+    _alerts = _service.evaluate(
+      _transactions.transactions,
+      _transactions.crops,
+      stringsFor(_transactions.settings.language),
+    );
     notifyListeners();
   }
 
