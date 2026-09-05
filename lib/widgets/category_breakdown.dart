@@ -62,6 +62,8 @@ class CategoryBreakdown extends StatelessWidget {
 
     final total = rows.fold<double>(0, (s, r) => s + r.amount);
     final maxAmount = rows.first.amount;
+    final typeColor =
+        type.isExpense ? Colors.red.shade600 : Colors.green.shade700;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -87,6 +89,25 @@ class CategoryBreakdown extends StatelessWidget {
               ),
           ],
         ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: typeColor, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              l10n.categoryBreakdownTotal(formatMoney(context, total)),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: typeColor,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         ...rows.map((row) {
           final width = (row.amount / maxAmount).clamp(0.04, 1.0);
@@ -94,7 +115,7 @@ class CategoryBreakdown extends StatelessWidget {
           final pctText =
               pct >= 10 ? pct.toStringAsFixed(0) : pct.toStringAsFixed(1);
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -116,21 +137,24 @@ class CategoryBreakdown extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      formatMoney(context, row.amount),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        formatMoney(context, row.amount),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(5),
                   child: LinearProgressIndicator(
                     value: width,
-                    minHeight: 8,
+                    minHeight: 10,
                     backgroundColor:
                         Theme.of(context).colorScheme.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation(row.color),
