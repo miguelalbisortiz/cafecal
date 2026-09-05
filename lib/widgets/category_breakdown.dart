@@ -151,20 +151,18 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
                         Expanded(
                           child: Text(
                             '${row.icon} ${row.label}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: row.color,
+                              fontWeight: FontWeight.w700,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
                           '$pctText%',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: row.color,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(width: 12),
