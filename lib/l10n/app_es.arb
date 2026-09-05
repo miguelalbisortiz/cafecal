@@ -251,7 +251,7 @@
       "histAvg": { "type": "String" }
     }
   },
-  "alertLowPriceMessage": "El problema: en los últimos 30 días vendes en promedio a {recentAvg}, por debajo de tu promedio histórico ({histAvg}).",
+  "alertLowPriceMessage": "El problema: en los últimos 30 días cada venta te rinde en promedio {recentAvg}, por debajo de tu promedio histórico por venta ({histAvg}).",
   "alertLowPriceSuggestion": "Compara precios con otros compradores y evalúa esperar un mejor momento para vender parte de la cosecha.",
   "@alertDeficitNoCropTitle": {
     "placeholders": { "roi": { "type": "String" } }

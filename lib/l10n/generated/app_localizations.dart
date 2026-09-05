@@ -998,7 +998,7 @@ abstract class AppLocalizations {
   /// No description provided for @alertLowPriceMessage.
   ///
   /// In es, this message translates to:
-  /// **'El problema: en los últimos 30 días vendes en promedio a {recentAvg}, por debajo de tu promedio histórico ({histAvg}).'**
+  /// **'El problema: en los últimos 30 días cada venta te rinde en promedio {recentAvg}, por debajo de tu promedio histórico por venta ({histAvg}).'**
   String alertLowPriceMessage(String recentAvg, String histAvg);
 
   /// No description provided for @alertLowPriceSuggestion.

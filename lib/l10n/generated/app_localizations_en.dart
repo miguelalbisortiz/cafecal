@@ -512,7 +512,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertLowPriceMessage(String recentAvg, String histAvg) {
-    return 'The problem: in the last 30 days you sell on average at $recentAvg, below your historical average ($histAvg).';
+    return 'The problem: in the last 30 days each sale brings in $recentAvg on average, below your historical average per sale ($histAvg).';
   }
 
   @override
