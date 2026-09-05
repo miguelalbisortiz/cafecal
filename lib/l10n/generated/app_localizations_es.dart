@@ -445,6 +445,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String categoryBreakdownShowMore(Object count) {
+    return 'Ver $count más';
+  }
+
+  @override
+  String get categoryBreakdownShowLess => 'Ver menos';
+
+  @override
   String chartTitle(int year) {
     return 'Gastos vs ingresos — $year';
   }

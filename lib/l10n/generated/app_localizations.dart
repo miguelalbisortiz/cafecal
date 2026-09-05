@@ -899,6 +899,18 @@ abstract class AppLocalizations {
   /// **'Total del período: {total}'**
   String categoryBreakdownTotal(Object total);
 
+  /// No description provided for @categoryBreakdownShowMore.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver {count} más'**
+  String categoryBreakdownShowMore(Object count);
+
+  /// No description provided for @categoryBreakdownShowLess.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver menos'**
+  String get categoryBreakdownShowLess;
+
   /// No description provided for @chartTitle.
   ///
   /// In es, this message translates to:

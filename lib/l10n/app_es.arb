@@ -199,6 +199,8 @@
   "expensesByCategory": "Gastos por categoría",
   "incomesByCategory": "Ingresos por categoría",
   "categoryBreakdownTotal": "Total del período: {total}",
+  "categoryBreakdownShowMore": "Ver {count} más",
+  "categoryBreakdownShowLess": "Ver menos",
 
   "@chartTitle": {
     "placeholders": { "year": { "type": "int" } }
