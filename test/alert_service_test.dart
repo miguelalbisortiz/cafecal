@@ -205,6 +205,20 @@ void main() {
       expect(alerts.where((a) => a.rule == AlertRule.deficitCrop), isEmpty);
     });
 
+    test('aviso sin cultivo cita cuántos registros están sin asignar', () {
+      final txns = [
+        // 3 registros sin cultivo (2 gastos + 1 venta) que no se recuperan.
+        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10)),
+        _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 2, 10)),
+        _txn(type: TransactionType.income, amount: 100, date: DateTime(2026, 3, 1)),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      final deficit = alerts.firstWhere((a) => a.rule == AlertRule.deficitCrop);
+      expect(deficit.message, contains('3'));
+      expect(deficit.message, contains(r'$'));
+      expect(deficit.suggestion, contains('3'));
+    });
+
     test('aviso de pérdidas cita el ROI y enuncia el problema con números', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),

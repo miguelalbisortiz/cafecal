@@ -1016,14 +1016,14 @@ abstract class AppLocalizations {
   /// No description provided for @alertDeficitNoCropMessage.
   ///
   /// In es, this message translates to:
-  /// **'El problema: hay {spent} en gastos sin cultivo asignado y solo {sold} en ventas (el {recovery} de lo invertido).'**
-  String alertDeficitNoCropMessage(String spent, String sold, String recovery);
+  /// **'El problema: tienes {count} registros sin cultivo asignado que suman {spent} en gastos y {sold} en ventas (solo has recuperado el {recovery} de lo invertido).'**
+  String alertDeficitNoCropMessage(String spent, String sold, String recovery, Object count);
 
   /// No description provided for @alertDeficitNoCropSuggestion.
   ///
   /// In es, this message translates to:
-  /// **'Asigna cada gasto y cada venta a un cultivo para poder ver con claridad cuál te deja ganancias y cuál no.'**
-  String get alertDeficitNoCropSuggestion;
+  /// **'Edita esos {count} registros y asígnales su cultivo (Café, Plátano…) para que su costo cuente en el cultivo correcto, y esta alerta desaparecerá.'**
+  String alertDeficitNoCropSuggestion(Object count);
 
   /// No description provided for @alertDeficitTitle.
   ///
