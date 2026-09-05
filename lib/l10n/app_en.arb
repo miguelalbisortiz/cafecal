@@ -122,6 +122,7 @@
   "cropBreakdownSummaryG": "Expenses",
   "cropBreakdownSummaryI": "Income",
   "cropBreakdownSummaryR": "Net result",
+  "cropBreakdownRoiHint": "How to read ROI: for every $1 invested you recover the profit plus the capital. E.g., ROI 516% → $6.16 back per $1 (5.16 profit + 1 of capital).",
   "noCropData": "No crop data in this period.",
   "exportPdf": "Export PDF and share",
   "generating": "Generating…",

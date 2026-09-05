@@ -360,6 +360,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cropBreakdownSummaryR => 'Net result';
 
   @override
+  String get cropBreakdownRoiHint => 'How to read ROI: for every \$1 invested you recover the profit plus the capital. E.g., ROI 516% → \$6.16 back per \$1 (5.16 profit + 1 of capital).';
+
+  @override
   String get noCropData => 'No crop data in this period.';
 
   @override
