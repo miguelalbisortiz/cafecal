@@ -293,6 +293,31 @@ class _ReportScreenState extends State<ReportScreen> {
                         )),
                     if (_cropRows(tx, l10n).isEmpty)
                       Text(l10n.noCropData),
+                    if (_cropRows(tx, l10n).isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.info_outline,
+                                size: 14,
+                                color: Color(0xFF1976D2)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                l10n.cropBreakdownRoiHint,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  height: 1.3,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
