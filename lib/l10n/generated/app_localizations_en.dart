@@ -440,6 +440,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incomesByCategory => 'Income by category';
 
   @override
+  String categoryBreakdownTotal(Object total) {
+    return 'Period total: $total';
+  }
+
+  @override
   String chartTitle(int year) {
     return 'Expenses vs income — $year';
   }

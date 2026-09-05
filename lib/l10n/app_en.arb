@@ -147,6 +147,7 @@
   "recordIncome": "Record income",
   "expensesByCategory": "Expenses by category",
   "incomesByCategory": "Income by category",
+  "categoryBreakdownTotal": "Period total: {total}",
 
   "chartTitle": "Expenses vs income — {year}",
 

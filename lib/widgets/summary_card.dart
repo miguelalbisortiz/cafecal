@@ -24,17 +24,26 @@ class SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isNegative = value < 0;
     final accent = isNegative ? scheme.error : color;
-    final foreground = highlighted ? Colors.white : null;
-    final cardColor = highlighted ? accent : null;
-    final iconColor = highlighted ? Colors.white : accent;
+    final foreground = highlighted ? accent : null;
+    final cardColor = highlighted ? accent.withOpacity(0.14) : null;
+    final borderColor = highlighted ? accent.withOpacity(0.5) : null;
+    final iconColor = highlighted ? accent : accent;
+    final labelColor = highlighted
+        ? accent
+        : (isDark ? Colors.white70 : Colors.grey[600]);
 
     return Card(
       color: cardColor,
-      elevation: highlighted ? 2 : 1,
+      elevation: highlighted ? 0 : 1,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: borderColor != null
+            ? BorderSide(color: borderColor)
+            : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -48,9 +57,7 @@ class SummaryCard extends StatelessWidget {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: highlighted
-                        ? Colors.white.withOpacity(0.25)
-                        : accent.withOpacity(0.12),
+                    color: accent.withOpacity(0.16),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: iconColor, size: 16),
@@ -63,9 +70,7 @@ class SummaryCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: highlighted
-                          ? Colors.white70
-                          : Colors.grey[600],
+                      color: labelColor,
                     ),
                   ),
                 ),

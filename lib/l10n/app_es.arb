@@ -198,6 +198,7 @@
   "recordIncome": "Registrar ingreso",
   "expensesByCategory": "Gastos por categoría",
   "incomesByCategory": "Ingresos por categoría",
+  "categoryBreakdownTotal": "Total del período: {total}",
 
   "@chartTitle": {
     "placeholders": { "year": { "type": "int" } }
