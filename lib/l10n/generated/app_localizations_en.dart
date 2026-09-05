@@ -484,6 +484,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignCropsNow => 'Assign crops now';
 
   @override
+  String get insightsTitle => 'Period conclusion';
+
+  @override
+  String get insightNoActivity => 'No movements were recorded in this period.';
+
+  @override
+  String insightBalanceNoIncome(Object spent) {
+    return 'You recorded $spent in expenses and no sales in this period.';
+  }
+
+  @override
+  String insightBalancePositive(Object balance, Object margin) {
+    return 'Positive result: $balance with $margin margin over sales.';
+  }
+
+  @override
+  String insightBalanceNegative(Object loss, Object margin) {
+    return 'Negative result: $loss with $margin margin over sales.';
+  }
+
+  @override
+  String insightVsPrev(Object expChange, Object incChange, Object month) {
+    return 'Compared to $month: sales $incChange and expenses $expChange.';
+  }
+
+  @override
+  String insightChangeUp(Object pct) {
+    return 'went up $pct';
+  }
+
+  @override
+  String insightChangeDown(Object pct) {
+    return 'went down $pct';
+  }
+
+  @override
+  String get insightChangeFlat => 'unchanged';
+
+  @override
+  String insightTopExpense(Object amount, Object category, Object pct) {
+    return 'Your biggest expense was $category ($amount, $pct of the total).';
+  }
+
+  @override
+  String insightTopExpenseDependency(Object category) {
+    return 'You concentrate more than half of your expenses in $category: review that recurring cost before it keeps growing.';
+  }
+
+  @override
+  String insightTopIncome(Object amount, Object category, Object pct) {
+    return 'Your best income was $category ($amount, $pct of the total).';
+  }
+
+  @override
+  String insightLowPrice(Object history, Object recent) {
+    return 'You sell for lower amounts than your average: recent average $recent vs $history per sale. Check price, packaging or sales channel.';
+  }
+
+  @override
+  String insightBestMonth(Object costAmount, Object costMonth, Object salesAmount, Object salesMonth) {
+    return 'Your best sales month was $salesMonth ($salesAmount); your lowest monthly expense was $costMonth ($costAmount).';
+  }
+
+  @override
   String chartTitle(int year) {
     return 'Expenses vs income — $year';
   }

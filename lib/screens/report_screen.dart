@@ -9,6 +9,7 @@ import '../l10n/strings.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
 import '../services/pdf_export_service.dart';
+import '../services/report_insights_service.dart';
 import '../utils/format.dart';
 import '../widgets/terminology_guide.dart';
 
@@ -41,6 +42,20 @@ class _ReportScreenState extends State<ReportScreen> {
     final l10n = AppLocalizations.of(context)!;
     final months = l10n.monthFull;
     final records = _recordsFor(tx);
+    final prevRecords = _previousMonthRecords(tx);
+    final inYear = tx.transactions
+        .where((t) => !t.deleted && t.date.year == _year)
+        .toList();
+    final insights = const ReportInsightsService().build(
+      now: DateTime.now(),
+      current: records,
+      previousMonth: prevRecords,
+      yearRecords: inYear,
+      year: _year,
+      month: _mode == _PeriodMode.month ? _month : null,
+      l10n: l10n,
+      money: (v) => formatMoney(context, v),
+    );
     final expenses = records
         .where((t) => t.type.isExpense)
         .fold<double>(0, (a, t) => a + t.amount);
@@ -126,6 +141,63 @@ class _ReportScreenState extends State<ReportScreen> {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
+
+            if (insights.isNotEmpty) ...[
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.auto_awesome,
+                              size: 18, color: Color(0xFF1976D2)),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.insightsTitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      ...insights.map((i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 3),
+                                  child: Icon(
+                                    i.tone.isNegative
+                                        ? Icons.error_outline
+                                        : i.tone.isPositive
+                                            ? Icons.check_circle_outline
+                                            : Icons.info_outline,
+                                    size: 15,
+                                    color: _toneColor(i.tone),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    i.text,
+                                    style:
+                                        const TextStyle(fontSize: 13, height: 1.3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
 
             Card(
               child: Padding(
@@ -298,6 +370,25 @@ class _ReportScreenState extends State<ReportScreen> {
         return inYear.where((t) => !t.date.isAfter(end)).toList();
     }
   }
+
+  // Registros del mes anterior para la comparación de tendencia mensual.
+  List<Transaction> _previousMonthRecords(TransactionProvider tx) {
+    if (_mode != _PeriodMode.month) return const [];
+    final prevYear = _month == 1 ? _year - 1 : _year;
+    final prevMonth = _month == 1 ? 12 : _month - 1;
+    return tx.transactions
+        .where((t) =>
+            !t.deleted &&
+            t.date.year == prevYear &&
+            t.date.month == prevMonth)
+        .toList();
+  }
+
+  Color _toneColor(InsightTone tone) => switch (tone) {
+        InsightTone.positive => const Color(0xFF2E7D32),
+        InsightTone.negative => const Color(0xFFD32F2F),
+        InsightTone.info => const Color(0xFF1976D2),
+      };
 
   String _periodLabel(AppLocalizations l10n) => switch (_mode) {
         _PeriodMode.month =>

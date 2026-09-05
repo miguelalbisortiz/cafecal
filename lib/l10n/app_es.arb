@@ -210,6 +210,20 @@
   "assignCropsEmpty": "Ya no hay registros sin cultivo. ¡Todo asignado!",
   "assignCropsBanner": "{count} registros sin cultivo asignado",
   "assignCropsNow": "Asignar cultivo ahora",
+  "insightsTitle": "Conclusión del período",
+  "insightNoActivity": "No hay movimientos registrados en este período.",
+  "insightBalanceNoIncome": "Registraste {spent} en gastos y no hay ventas en este período.",
+  "insightBalancePositive": "Resultado positivo: {balance} con {margin} de margen sobre las ventas.",
+  "insightBalanceNegative": "Resultado negativo: {loss} con margen de {margin} sobre las ventas.",
+  "insightVsPrev": "Frente a {month}: ventas {incChange} y gastos {expChange}.",
+  "insightChangeUp": "subieron {pct}",
+  "insightChangeDown": "bajaron {pct}",
+  "insightChangeFlat": "sin cambios",
+  "insightTopExpense": "Tu mayor gasto fue {category} ({amount}, el {pct} del total).",
+  "insightTopExpenseDependency": "Concentras más de la mitad de tus gastos en {category}: revisa ese costo recurrente antes de que siga creciendo.",
+  "insightTopIncome": "Tu mejor ingreso fue {category} ({amount}, el {pct} del total).",
+  "insightLowPrice": "Vendes por montos menores que tu histórico: promedio reciente {recent} vs {history} por venta. Revisa precio, presentación o canal de venta.",
+  "insightBestMonth": "Tu mejor mes de ventas fue {salesMonth} ({salesAmount}); tu menor gasto mensual fue {costMonth} ({costAmount}).",
 
   "@chartTitle": {
     "placeholders": { "year": { "type": "int" } }
