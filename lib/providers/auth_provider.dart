@@ -57,6 +57,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Envía el correo de recuperación de contraseña. Devuelve `true` si
+  /// Supabase aceptó el envío (el correo puede tardar unos minutos).
+  Future<bool> sendPasswordRecovery(String email) async {
+    try {
+      await SupabaseService.instance.sendPasswordRecovery(email.trim());
+      _error = null;
+      return true;
+    } catch (e) {
+      _error = _friendlyAuthError(e);
+      return false;
+    }
+  }
+
   /// Modo visita: entra a la app sin cuenta. Los datos quedan solo en el
   /// dispositivo y no se sincronizan.
   Future<void> signInAsGuest() async {

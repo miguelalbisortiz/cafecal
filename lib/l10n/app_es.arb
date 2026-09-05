@@ -71,6 +71,8 @@
   "authCreatedMsg": "Cuenta creada. Revisa tu correo (incluye spam) para confirmar y luego inicia sesión.",
   "authCreateError": "Error al crear la cuenta",
   "authSignInError": "Error al iniciar sesión",
+  "authForgotPassword": "¿Olvidaste tu contraseña?",
+  "authResetSent": "Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo (incluye spam).",
 
   "registerEditTitle": "Editar movimiento",
   "expenseTypeLabel": "Gasto",

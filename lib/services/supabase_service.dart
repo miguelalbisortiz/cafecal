@@ -58,6 +58,11 @@ class SupabaseService {
     return res.session != null;
   }
 
+  /// Envía el correo de recuperación de contraseña.
+  Future<void> sendPasswordRecovery(String email) async {
+    await client.auth.resetPasswordForEmail(email);
+  }
+
   Future<void> signOut() async {
     await client.auth.signOut();
   }
