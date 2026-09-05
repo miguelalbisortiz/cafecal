@@ -965,6 +965,90 @@ abstract class AppLocalizations {
   /// **'Asignar cultivo ahora'**
   String get assignCropsNow;
 
+  /// No description provided for @insightsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Conclusión del período'**
+  String get insightsTitle;
+
+  /// No description provided for @insightNoActivity.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay movimientos registrados en este período.'**
+  String get insightNoActivity;
+
+  /// No description provided for @insightBalanceNoIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Registraste {spent} en gastos y no hay ventas en este período.'**
+  String insightBalanceNoIncome(Object spent);
+
+  /// No description provided for @insightBalancePositive.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado positivo: {balance} con {margin} de margen sobre las ventas.'**
+  String insightBalancePositive(Object balance, Object margin);
+
+  /// No description provided for @insightBalanceNegative.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado negativo: {loss} con margen de {margin} sobre las ventas.'**
+  String insightBalanceNegative(Object loss, Object margin);
+
+  /// No description provided for @insightVsPrev.
+  ///
+  /// In es, this message translates to:
+  /// **'Frente a {month}: ventas {incChange} y gastos {expChange}.'**
+  String insightVsPrev(Object expChange, Object incChange, Object month);
+
+  /// No description provided for @insightChangeUp.
+  ///
+  /// In es, this message translates to:
+  /// **'subieron {pct}'**
+  String insightChangeUp(Object pct);
+
+  /// No description provided for @insightChangeDown.
+  ///
+  /// In es, this message translates to:
+  /// **'bajaron {pct}'**
+  String insightChangeDown(Object pct);
+
+  /// No description provided for @insightChangeFlat.
+  ///
+  /// In es, this message translates to:
+  /// **'sin cambios'**
+  String get insightChangeFlat;
+
+  /// No description provided for @insightTopExpense.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu mayor gasto fue {category} ({amount}, el {pct} del total).'**
+  String insightTopExpense(Object amount, Object category, Object pct);
+
+  /// No description provided for @insightTopExpenseDependency.
+  ///
+  /// In es, this message translates to:
+  /// **'Concentras más de la mitad de tus gastos en {category}: revisa ese costo recurrente antes de que siga creciendo.'**
+  String insightTopExpenseDependency(Object category);
+
+  /// No description provided for @insightTopIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu mejor ingreso fue {category} ({amount}, el {pct} del total).'**
+  String insightTopIncome(Object amount, Object category, Object pct);
+
+  /// No description provided for @insightLowPrice.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendes por montos menores que tu histórico: promedio reciente {recent} vs {history} por venta. Revisa precio, presentación o canal de venta.'**
+  String insightLowPrice(Object history, Object recent);
+
+  /// No description provided for @insightBestMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu mejor mes de ventas fue {salesMonth} ({salesAmount}); tu menor gasto mensual fue {costMonth} ({costAmount}).'**
+  String insightBestMonth(Object costAmount, Object costMonth, Object salesAmount, Object salesMonth);
+
   /// No description provided for @chartTitle.
   ///
   /// In es, this message translates to:
