@@ -893,6 +893,12 @@ abstract class AppLocalizations {
   /// **'Ingresos por categoría'**
   String get incomesByCategory;
 
+  /// No description provided for @categoryBreakdownTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total del período: {total}'**
+  String categoryBreakdownTotal(Object total);
+
   /// No description provided for @chartTitle.
   ///
   /// In es, this message translates to:
