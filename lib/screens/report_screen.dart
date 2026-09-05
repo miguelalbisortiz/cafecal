@@ -284,49 +284,12 @@ class _ReportScreenState extends State<ReportScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    ..._cropRows(tx, l10n).map((row) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(row.name,
-                                        style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600)),
-                                    Text(
-                                      '${l10n.movementsCount(row.count)} · '
-                                      '${l10n.cropBreakdownSummaryG} '
-                                      '${formatAmount(row.expenses,
-                                          currency: tx.settings.currency,
-                                          locale: tx.settings.locale)} · '
-                                      '${l10n.cropBreakdownSummaryI} '
-                                      '${formatAmount(row.incomes,
-                                          currency: tx.settings.currency,
-                                          locale: tx.settings.locale)} · '
-                                      '${l10n.cropBreakdownSummaryR} '
-                                      '${formatAmount(row.incomes - row.expenses,
-                                          currency: tx.settings.currency,
-                                          locale: tx.settings.locale)}',
-                                      style: const TextStyle(fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                row.roiLabel,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: row.roi < -0.30
-                                      ? Theme.of(context).colorScheme.error
-                                      : Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
+                    ..._cropRows(tx, l10n).map((row) => _CropBreakdownTile(
+                          row: row,
+                          l10n: l10n,
+                          currency: tx.settings.currency,
+                          locale: tx.settings.locale,
+                          scheme: Theme.of(context).colorScheme,
                         )),
                     if (_cropRows(tx, l10n).isEmpty)
                       Text(l10n.noCropData),
@@ -690,7 +653,133 @@ class _CropRow {
 
   _CropRow({required this.name});
 
+  double get net => incomes - expenses;
   double get roi => expenses <= 0 ? 0 : (incomes - expenses) / expenses;
   String get roiLabel =>
       expenses <= 0 ? '—' : 'ROI ${(roi * 100).toStringAsFixed(0)}%';
+}
+
+class _CropBreakdownTile extends StatelessWidget {
+  final _CropRow row;
+  final AppLocalizations l10n;
+  final String currency;
+  final String locale;
+  final ColorScheme scheme;
+
+  const _CropBreakdownTile({
+    required this.row,
+    required this.l10n,
+    required this.currency,
+    required this.locale,
+    required this.scheme,
+  });
+
+  static const _green = Color(0xFF2E7D32);
+
+  String _amount(double v) =>
+      formatAmount(v, currency: currency, locale: locale);
+
+  @override
+  Widget build(BuildContext context) {
+    final net = row.net;
+    final netColor = net >= 0 ? _green : scheme.error;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  row.name,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+              Text(
+                row.roiLabel,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: row.roi < -0.30 ? scheme.error : scheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.movementsCount(row.count),
+            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 6),
+          _miniLine(
+            icon: Icons.trending_down,
+            iconColor: scheme.onSurfaceVariant,
+            label: l10n.cropBreakdownSummaryG,
+            labelColor: scheme.onSurfaceVariant,
+            value: _amount(row.expenses),
+            valueColor: scheme.onSurfaceVariant,
+          ),
+          _miniLine(
+            icon: Icons.trending_up,
+            iconColor: _green,
+            label: l10n.cropBreakdownSummaryI,
+            labelColor: scheme.onSurfaceVariant,
+            value: _amount(row.incomes),
+            valueColor: _green,
+          ),
+          const SizedBox(height: 2),
+          const Divider(height: 12),
+          _miniLine(
+            icon: net >= 0
+                ? Icons.savings_outlined
+                : Icons.warning_amber_outlined,
+            iconColor: netColor,
+            label: l10n.cropBreakdownSummaryR,
+            labelColor: netColor,
+            value: _amount(net),
+            valueColor: netColor,
+            bold: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniLine({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required Color labelColor,
+    required String value,
+    required Color valueColor,
+    bool bold = false,
+  }) {
+    final w = TextStyle(
+      fontSize: 12,
+      color: labelColor,
+      fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: iconColor),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Text(label, style: w),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -155,9 +155,9 @@
     "placeholders": { "period": { "type": "String" } }
   },
   "cropBreakdownTitle": "Desglose por cultivo — {period}",
-  "cropBreakdownSummaryG": "G",
-  "cropBreakdownSummaryI": "I",
-  "cropBreakdownSummaryR": "R",
+  "cropBreakdownSummaryG": "Gastos",
+  "cropBreakdownSummaryI": "Ingresos",
+  "cropBreakdownSummaryR": "Resultado",
   "noCropData": "Sin datos de cultivos en el período.",
   "exportPdf": "Exportar PDF y compartir",
   "generating": "Generando…",
