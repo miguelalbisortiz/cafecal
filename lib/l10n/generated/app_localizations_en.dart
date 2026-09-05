@@ -351,13 +351,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get cropBreakdownSummaryG => 'Exp';
+  String get cropBreakdownSummaryG => 'Expenses';
 
   @override
-  String get cropBreakdownSummaryI => 'Inc';
+  String get cropBreakdownSummaryI => 'Income';
 
   @override
-  String get cropBreakdownSummaryR => 'Net';
+  String get cropBreakdownSummaryR => 'Net result';
 
   @override
   String get noCropData => 'No crop data in this period.';

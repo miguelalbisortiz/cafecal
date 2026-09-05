@@ -746,19 +746,19 @@ abstract class AppLocalizations {
   /// No description provided for @cropBreakdownSummaryG.
   ///
   /// In es, this message translates to:
-  /// **'G'**
+  /// **'Gastos'**
   String get cropBreakdownSummaryG;
 
   /// No description provided for @cropBreakdownSummaryI.
   ///
   /// In es, this message translates to:
-  /// **'I'**
+  /// **'Ingresos'**
   String get cropBreakdownSummaryI;
 
   /// No description provided for @cropBreakdownSummaryR.
   ///
   /// In es, this message translates to:
-  /// **'R'**
+  /// **'Resultado'**
   String get cropBreakdownSummaryR;
 
   /// No description provided for @noCropData.
