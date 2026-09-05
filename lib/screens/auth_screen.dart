@@ -68,6 +68,25 @@ class _AuthScreenState extends State<AuthScreen> {
     await auth.signInAsGuest();
   }
 
+  Future<void> _recoverPassword() async {
+    final l10n = AppLocalizations.of(context)!;
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.authInvalidEmail)),
+      );
+      return;
+    }
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.sendPasswordRecovery(email);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? l10n.authResetSent : (auth.error ?? l10n.authSignInError)),
+      ),
+    );
+  }
+
   Future<void> _seedDemoData(TransactionProvider tx) async {
     final now = DateTime.now();
     final sales = [3200000, 2750000, 2900000, 2400000, 3100000, 2650000];
@@ -182,6 +201,14 @@ class _AuthScreenState extends State<AuthScreen> {
                             : l10n.authPasswordTooShort,
                         onFieldSubmitted: (_) => _submit(),
                       ),
+                      if (!_isRegister)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: auth.isLoading ? null : _recoverPassword,
+                            child: Text(l10n.authForgotPassword),
+                          ),
+                        ),
                       if (auth.error != null) ...[
                         const SizedBox(height: 12),
                         Text(
