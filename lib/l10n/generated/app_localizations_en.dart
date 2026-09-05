@@ -524,12 +524,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String alertDeficitNoCropMessage(String spent, String sold, String recovery) {
-    return 'The problem: there are $spent in expenses without an assigned crop and only $sold in sales ($recovery of what was invested).';
+  String alertDeficitNoCropMessage(String spent, String sold, String recovery, Object count) {
+    return 'The problem: you have $count records without an assigned crop totaling $spent in expenses and $sold in sales, recovering only $recovery of what was invested.';
   }
 
   @override
-  String get alertDeficitNoCropSuggestion => 'Assign each expense and each sale to a crop so you can clearly see which one brings you profits and which does not.';
+  String alertDeficitNoCropSuggestion(Object count) {
+    return 'Edit those $count records and assign their crop (Coffee, Banana…) so their cost counts in the right crop, and this alert will disappear.';
+  }
 
   @override
   String alertDeficitTitle(String crop, String roi) {

@@ -233,13 +233,16 @@ final catHistory =
         final String message;
         final String suggestion;
         if (cropId == null) {
+          final unassigned = txns.where((t) => t.cropId == null).length;
           title = l10n.alertDeficitNoCropTitle(_percentage(ratio * 100));
           message = l10n.alertDeficitNoCropMessage(
+            '$unassigned',
             _money(row.expenses),
             _money(row.incomes),
             _percentage(recovery),
           );
-          suggestion = l10n.alertDeficitNoCropSuggestion;
+          suggestion =
+              l10n.alertDeficitNoCropSuggestion('$unassigned');
         } else {
           title = l10n.alertDeficitTitle(label, _percentage(ratio * 100));
           message = l10n.alertDeficitMessage(
