@@ -41,6 +41,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _category = e.category;
       _cropId = e.cropId;
       _date = e.date;
+    } else {
+      // Preselecciona el último cultivo usado para agilizar los gastos
+      // recurrentes del mismo cultivo. Solo si aún existe.
+      final provider = context.read<TransactionProvider>();
+      final last = provider.settings.lastCropId;
+      if (last != null && provider.crops.any((c) => c.id == last)) {
+        _cropId = last;
+      }
     }
   }
 
@@ -125,6 +133,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       date: _date,
     );
 
+    // Recuerda el cultivo elegido para preseleccionarlo la próxima vez.
+    // Null (= "Sin cultivo") limpia el recordatorio.
+    await tx.updateSettings(tx.settings.copyWith(lastCropId: _cropId));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
