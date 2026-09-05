@@ -1,8 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
+import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/farm_alert.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/alert_service.dart';
+
+/// AppLocalizations en español para las pruebas de mensajes.
+AppLocalizations get _es => stringsFor('es');
 
 Transaction _txn({
   required TransactionType type,
@@ -14,6 +19,7 @@ Transaction _txn({
   return Transaction(
     id: '${type.name}_${amount}_${date.millisecondsSinceEpoch}',
     type: type,
+    cropId: cropId,
     category: category,
     amount: amount,
     date: date,
@@ -39,7 +45,7 @@ void main() {
         // Mes actual: 300 > 2*100
         _txn(type: TransactionType.expense, amount: 300, date: DateTime(2026, 6, 10), category: 'mano_obra'),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(
         alerts.any((a) => a.rule == AlertRule.excessiveSpending),
         isTrue,
@@ -54,7 +60,7 @@ void main() {
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 3, 10), category: 'mano_obra'),
         _txn(type: TransactionType.expense, amount: 150, date: DateTime(2026, 6, 10), category: 'mano_obra'),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(
         alerts.where((a) => a.rule == AlertRule.excessiveSpending),
         isEmpty,
@@ -73,7 +79,7 @@ void main() {
           category: 'venta_cafe',
         ),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.any((a) => a.rule == AlertRule.noIncome), isTrue);
     });
 
@@ -86,7 +92,7 @@ void main() {
           category: 'venta_cafe',
         ),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.where((a) => a.rule == AlertRule.noIncome), isEmpty);
     });
   });
@@ -99,7 +105,7 @@ void main() {
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 6, 10)),
         _txn(type: TransactionType.income, amount: 100, date: DateTime(2026, 4, 15)),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.any((a) => a.rule == AlertRule.consecutiveLosses), isTrue);
     });
 
@@ -108,7 +114,7 @@ void main() {
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 6, 10)),
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 5, 10)),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.where((a) => a.rule == AlertRule.consecutiveLosses), isEmpty);
     });
   });
@@ -122,7 +128,7 @@ void main() {
         _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.any((a) => a.rule == AlertRule.lowPrice), isTrue);
     });
 
@@ -134,7 +140,7 @@ void main() {
         _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.where((a) => a.rule == AlertRule.lowPrice), isEmpty);
     });
   });
@@ -144,7 +150,7 @@ void main() {
       final txns = [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.any((a) => a.rule == AlertRule.deficitCrop), isTrue);
     });
 
@@ -153,8 +159,72 @@ void main() {
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
         _txn(type: TransactionType.income, amount: 800, date: DateTime(2026, 2, 10), cropId: 'cafe'),
       ];
-      final alerts = AlertService(now: now).evaluate(txns, _crops());
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.where((a) => a.rule == AlertRule.deficitCrop), isEmpty);
+    });
+
+    test('aviso de pérdidas cita el ROI y enuncia el problema con números', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
+        _txn(type: TransactionType.income, amount: 150, date: DateTime(2026, 2, 10), cropId: 'cafe'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      final deficit = alerts.firstWhere((a) => a.rule == AlertRule.deficitCrop);
+      expect(deficit.title, contains('ROI'));
+      expect(deficit.title, contains('%'));
+      expect(deficit.message.toLowerCase(), contains('el problema'));
+      expect(deficit.message.toLowerCase(), contains('invertiste'));
+      expect(deficit.message, contains(r'$'));
+      expect(deficit.suggestion, isNotEmpty);
+    });
+  });
+
+  group('Lenguaje claro en todas las alertas', () {
+    final scenarios = <String, List<Transaction>>{
+      'gasto excesivo': [
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 1, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 3, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 300, date: DateTime(2026, 6, 10), category: 'mano_obra'),
+      ],
+      'sin ingresos': [
+        _txn(type: TransactionType.income, amount: 500, date: DateTime(2026, 3, 1), category: 'venta_cafe'),
+      ],
+      'balance negativo': [
+        _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 4, 10)),
+        _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 5, 10)),
+        _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 6, 10)),
+        _txn(type: TransactionType.income, amount: 100, date: DateTime(2026, 4, 15)),
+      ],
+      'precio bajo': [
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+      ],
+      'cultivo deficitario': [
+        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
+      ],
+    };
+
+    test('toda alerta enuncia el problema con números y sugerencia accionable', () {
+      for (final entry in scenarios.entries) {
+        final alerts = AlertService(now: now).evaluate(entry.value, _crops(), _es);
+        expect(alerts, isNotEmpty, reason: 'escenario "${entry.key}" debe disparar');
+        for (final a in alerts) {
+          expect(a.title.trim(), isNotEmpty,
+              reason: 'título de ${a.rule}');
+          expect(a.suggestion.trim(), isNotEmpty,
+              reason: 'sugerencia de ${a.rule}');
+          final detail = '${a.title} ${a.message}';
+          expect(
+            RegExp(r'\d|%').hasMatch(detail),
+            isTrue,
+            reason: '${a.rule} debe citar números ($detail)',
+          );
+        }
+      }
     });
   });
 }

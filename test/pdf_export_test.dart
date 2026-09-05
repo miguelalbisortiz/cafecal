@@ -1,12 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/settings.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('buildReport genera un PDF válido con resumen y cultivos', () async {
     final txns = [
       Transaction(
@@ -35,7 +38,9 @@ void main() {
       crops: _crops(),
       year: 2026,
       month: 5,
-      monthName: 'Junio',
+      period: ReportPeriod.month,
+      periodName: 'Junio de 2026',
+      l10n: stringsFor('es'),
     );
 
     expect(bytes, isA<Uint8List>());

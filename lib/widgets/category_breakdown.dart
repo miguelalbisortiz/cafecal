@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/generated/app_localizations.dart';
+import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
@@ -10,40 +12,87 @@ class CategoryBreakdown extends StatelessWidget {
   final int year;
   final int? month;
   final TransactionType type;
+  final String? periodLabel;
+  final VoidCallback? onAddTap;
 
   const CategoryBreakdown({
     super.key,
     required this.year,
     this.month,
     required this.type,
+    this.periodLabel,
+    this.onAddTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
-    final rows = _groupByCategory(tx);
+    final l10n = AppLocalizations.of(context)!;
+    final rows = _groupByCategory(tx, l10n);
 
     if (rows.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(24),
-        child: Text('Sin registros en este período.'),
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(
+              type.isExpense
+                  ? Icons.trending_down
+                  : Icons.payments_outlined,
+              size: 40,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              type.isExpense ? l10n.noExpensesPeriod : l10n.noIncomesPeriod,
+            ),
+            if (onAddTap != null) ...[
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: onAddTap,
+                icon: const Icon(Icons.add),
+                label: Text(
+                    type.isExpense ? l10n.recordExpense : l10n.recordIncome),
+              ),
+            ],
+          ],
+        ),
       );
     }
 
+    final total = rows.fold<double>(0, (s, r) => s + r.amount);
     final maxAmount = rows.first.amount;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          type.isExpense ? 'Gastos por categoría' : 'Ingresos por categoría',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Expanded(
+              child: Text(
+                type.isExpense
+                    ? l10n.expensesByCategory
+                    : l10n.incomesByCategory,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            if (periodLabel != null)
+              Text(
+                periodLabel!,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         ...rows.map((row) {
           final width = (row.amount / maxAmount).clamp(0.04, 1.0);
+          final pct = total > 0 ? row.amount / total * 100 : 0.0;
+          final pctText =
+              pct >= 10 ? pct.toStringAsFixed(0) : pct.toStringAsFixed(1);
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Column(
@@ -55,8 +104,18 @@ class CategoryBreakdown extends StatelessWidget {
                       child: Text(
                         '${row.icon} ${row.label}',
                         style: const TextStyle(fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    Text(
+                      '$pctText%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: row.color,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Text(
                       formatMoney(context, row.amount),
                       style: const TextStyle(
@@ -85,7 +144,8 @@ class CategoryBreakdown extends StatelessWidget {
     );
   }
 
-  List<_CategoryRow> _groupByCategory(TransactionProvider provider) {
+  List<_CategoryRow> _groupByCategory(
+      TransactionProvider provider, AppLocalizations l10n) {
     final records = provider.where(type: type, year: year, month: month);
     final totals = <String, double>{};
     for (final t in records) {
@@ -122,8 +182,8 @@ class CategoryBreakdown extends StatelessWidget {
                       color: '#2E7D32'))
               .color;
       final label = isExpense
-          ? expenseCategoryLabel(key)
-          : incomeCategoryLabel(key);
+          ? l10n.expenseCategory(key)
+          : l10n.incomeCategory(key);
       return _CategoryRow(
         label: label,
         icon: icon,

@@ -28,6 +28,7 @@ class FarmAlert {
   final AlertSeverity severity;
   final String title;
   final String message;
+  final String suggestion;
 
   const FarmAlert({
     required this.id,
@@ -35,5 +36,6 @@ class FarmAlert {
     required this.severity,
     required this.title,
     required this.message,
+    this.suggestion = '',
   });
 }
