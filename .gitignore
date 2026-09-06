@@ -37,6 +37,11 @@ build/
 # Local env secrets
 .env
 .env.local
+report_creds.env
+
+# PDFs generados localmente con tool/generate_report_tool.dart
+reportes/
+_deploy/
 
 # Supabase CLI temp
 supabase/.temp/

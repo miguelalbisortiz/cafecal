@@ -162,6 +162,8 @@
   "noCropData": "Sin datos de cultivos en el período.",
   "exportPdf": "Exportar PDF y compartir",
   "generating": "Generando…",
+  "exportExcel": "Exportar a Excel y compartir",
+  "exportBalance": "Plantilla de balance (Excel)",
   "@movementsCount": {
     "description": "Contador de movimientos",
     "placeholders": {
@@ -342,6 +344,47 @@
   "pdfColResult": "Resultado",
   "pdfColRoi": "ROI",
   "pdfFileNamePrefix": "reporte",
+
+  "excelSheetSummary": "Resumen",
+  "excelSheetCrops": "Por cultivo",
+  "excelSheetMovements": "Movimientos",
+  "pdfColDate": "Fecha",
+  "pdfColType": "Tipo",
+  "pdfColCategory": "Categoría",
+  "pdfColDescription": "Descripción",
+  "pdfColAmount": "Monto",
+  "@balanceTemplateTitle": {
+    "placeholders": { "period": { "type": "String" } }
+  },
+  "balanceTemplateTitle": "PLANTILLA DE BALANCE — {period}",
+  "@balanceTemplateFarm": {
+    "placeholders": { "farm": { "type": "String" }, "date": { "type": "String" } }
+  },
+  "balanceTemplateFarm": "{farm} — Generado el {date}",
+  "balanceAssetsTitle": "ACTIVOS",
+  "balanceRowCash": "Caja / bancos",
+  "balanceRowReceivables": "Cuentas por cobrar",
+  "balanceRowInventory": "Inventario de café",
+  "balanceRowMachinery": "Maquinaria y equipos",
+  "balanceRowLand": "Terrenos / plantaciones",
+  "balanceRowOtherAssets": "Otros activos",
+  "balanceTotalAssets": "TOTAL ACTIVOS",
+  "balanceLiabilitiesTitle": "PASIVOS",
+  "balanceRowLoans": "Préstamos / deudas",
+  "balanceRowPayables": "Cuentas por pagar",
+  "balanceRowTaxes": "Impuestos por pagar",
+  "balanceTotalLiabilities": "TOTAL PASIVOS",
+  "balanceEquityTitle": "PATRIMONIO",
+  "balanceRowCapital": "Capital inicial",
+  "balanceRowAccumulated": "Utilidades acumuladas",
+  "@balanceRowNetIncome": {
+    "placeholders": { "year": { "type": "int" } }
+  },
+  "balanceRowNetIncome": "Utilidad del ejercicio ({year})",
+  "balanceTotalEquity": "TOTAL PATRIMONIO",
+  "balanceCheckLabel": "VERIFICACIÓN — Activo = Pasivo + Patrimonio (0 = balanceado)",
+  "balanceCheckFormula": "=B11-B17-B23",
+  "balanceNote": "Completa los montos de cada rubro en Excel. La celda de verificación usa fórmulas: debe dar 0 cuando el balance cuadra.",
 
   "catSiembra": "Siembra",
   "catSemillasInsumos": "Semillas e insumos",
