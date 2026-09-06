@@ -785,6 +785,18 @@ abstract class AppLocalizations {
   /// **'Generando…'**
   String get generating;
 
+  /// No description provided for @exportExcel.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar a Excel y compartir'**
+  String get exportExcel;
+
+  /// No description provided for @exportBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'Plantilla de balance (Excel)'**
+  String get exportBalance;
+
   /// Contador de movimientos
   ///
   /// In es, this message translates to:
@@ -1282,6 +1294,192 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'reporte'**
   String get pdfFileNamePrefix;
+
+  /// No description provided for @excelSheetSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen'**
+  String get excelSheetSummary;
+
+  /// No description provided for @excelSheetCrops.
+  ///
+  /// In es, this message translates to:
+  /// **'Por cultivo'**
+  String get excelSheetCrops;
+
+  /// No description provided for @excelSheetMovements.
+  ///
+  /// In es, this message translates to:
+  /// **'Movimientos'**
+  String get excelSheetMovements;
+
+  /// No description provided for @pdfColDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get pdfColDate;
+
+  /// No description provided for @pdfColType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get pdfColType;
+
+  /// No description provided for @pdfColCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get pdfColCategory;
+
+  /// No description provided for @pdfColDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get pdfColDescription;
+
+  /// No description provided for @pdfColAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto'**
+  String get pdfColAmount;
+
+  /// No description provided for @balanceTemplateTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'PLANTILLA DE BALANCE — {period}'**
+  String balanceTemplateTitle(String period);
+
+  /// No description provided for @balanceTemplateFarm.
+  ///
+  /// In es, this message translates to:
+  /// **'{farm} — Generado el {date}'**
+  String balanceTemplateFarm(String farm, String date);
+
+  /// No description provided for @balanceAssetsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'ACTIVOS'**
+  String get balanceAssetsTitle;
+
+  /// No description provided for @balanceRowCash.
+  ///
+  /// In es, this message translates to:
+  /// **'Caja / bancos'**
+  String get balanceRowCash;
+
+  /// No description provided for @balanceRowReceivables.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuentas por cobrar'**
+  String get balanceRowReceivables;
+
+  /// No description provided for @balanceRowInventory.
+  ///
+  /// In es, this message translates to:
+  /// **'Inventario de café'**
+  String get balanceRowInventory;
+
+  /// No description provided for @balanceRowMachinery.
+  ///
+  /// In es, this message translates to:
+  /// **'Maquinaria y equipos'**
+  String get balanceRowMachinery;
+
+  /// No description provided for @balanceRowLand.
+  ///
+  /// In es, this message translates to:
+  /// **'Terrenos / plantaciones'**
+  String get balanceRowLand;
+
+  /// No description provided for @balanceRowOtherAssets.
+  ///
+  /// In es, this message translates to:
+  /// **'Otros activos'**
+  String get balanceRowOtherAssets;
+
+  /// No description provided for @balanceTotalAssets.
+  ///
+  /// In es, this message translates to:
+  /// **'TOTAL ACTIVOS'**
+  String get balanceTotalAssets;
+
+  /// No description provided for @balanceLiabilitiesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'PASIVOS'**
+  String get balanceLiabilitiesTitle;
+
+  /// No description provided for @balanceRowLoans.
+  ///
+  /// In es, this message translates to:
+  /// **'Préstamos / deudas'**
+  String get balanceRowLoans;
+
+  /// No description provided for @balanceRowPayables.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuentas por pagar'**
+  String get balanceRowPayables;
+
+  /// No description provided for @balanceRowTaxes.
+  ///
+  /// In es, this message translates to:
+  /// **'Impuestos por pagar'**
+  String get balanceRowTaxes;
+
+  /// No description provided for @balanceTotalLiabilities.
+  ///
+  /// In es, this message translates to:
+  /// **'TOTAL PASIVOS'**
+  String get balanceTotalLiabilities;
+
+  /// No description provided for @balanceEquityTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'PATRIMONIO'**
+  String get balanceEquityTitle;
+
+  /// No description provided for @balanceRowCapital.
+  ///
+  /// In es, this message translates to:
+  /// **'Capital inicial'**
+  String get balanceRowCapital;
+
+  /// No description provided for @balanceRowAccumulated.
+  ///
+  /// In es, this message translates to:
+  /// **'Utilidades acumuladas'**
+  String get balanceRowAccumulated;
+
+  /// No description provided for @balanceRowNetIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Utilidad del ejercicio ({year})'**
+  String balanceRowNetIncome(int year);
+
+  /// No description provided for @balanceTotalEquity.
+  ///
+  /// In es, this message translates to:
+  /// **'TOTAL PATRIMONIO'**
+  String get balanceTotalEquity;
+
+  /// No description provided for @balanceCheckLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'VERIFICACIÓN — Activo = Pasivo + Patrimonio (0 = balanceado)'**
+  String get balanceCheckLabel;
+
+  /// No description provided for @balanceCheckFormula.
+  ///
+  /// In es, this message translates to:
+  /// **'=B11-B17-B23'**
+  String get balanceCheckFormula;
+
+  /// No description provided for @balanceNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Completa los montos de cada rubro en Excel. La celda de verificación usa fórmulas: debe dar 0 cuando el balance cuadra.'**
+  String get balanceNote;
 
   /// No description provided for @catSiembra.
   ///

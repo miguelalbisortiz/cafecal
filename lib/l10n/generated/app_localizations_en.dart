@@ -372,6 +372,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generating => 'Generating…';
 
   @override
+  String get exportExcel => 'Export to Excel and share';
+
+  @override
+  String get exportBalance => 'Balance template (Excel)';
+
+  @override
   String movementsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -701,6 +707,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdfFileNamePrefix => 'report';
+
+  @override
+  String get excelSheetSummary => 'Summary';
+
+  @override
+  String get excelSheetCrops => 'By crop';
+
+  @override
+  String get excelSheetMovements => 'Movements';
+
+  @override
+  String get pdfColDate => 'Date';
+
+  @override
+  String get pdfColType => 'Type';
+
+  @override
+  String get pdfColCategory => 'Category';
+
+  @override
+  String get pdfColDescription => 'Description';
+
+  @override
+  String get pdfColAmount => 'Amount';
+
+  @override
+  String balanceTemplateTitle(String period) {
+    return 'BALANCE TEMPLATE — $period';
+  }
+
+  @override
+  String balanceTemplateFarm(String farm, String date) {
+    return '$farm — Generated on $date';
+  }
+
+  @override
+  String get balanceAssetsTitle => 'ASSETS';
+
+  @override
+  String get balanceRowCash => 'Cash / bank';
+
+  @override
+  String get balanceRowReceivables => 'Accounts receivable';
+
+  @override
+  String get balanceRowInventory => 'Coffee inventory';
+
+  @override
+  String get balanceRowMachinery => 'Machinery & equipment';
+
+  @override
+  String get balanceRowLand => 'Land / plantations';
+
+  @override
+  String get balanceRowOtherAssets => 'Other assets';
+
+  @override
+  String get balanceTotalAssets => 'TOTAL ASSETS';
+
+  @override
+  String get balanceLiabilitiesTitle => 'LIABILITIES';
+
+  @override
+  String get balanceRowLoans => 'Loans / debt';
+
+  @override
+  String get balanceRowPayables => 'Accounts payable';
+
+  @override
+  String get balanceRowTaxes => 'Taxes payable';
+
+  @override
+  String get balanceTotalLiabilities => 'TOTAL LIABILITIES';
+
+  @override
+  String get balanceEquityTitle => 'EQUITY';
+
+  @override
+  String get balanceRowCapital => 'Initial capital';
+
+  @override
+  String get balanceRowAccumulated => 'Retained earnings';
+
+  @override
+  String balanceRowNetIncome(int year) {
+    return 'Net income ($year)';
+  }
+
+  @override
+  String get balanceTotalEquity => 'TOTAL EQUITY';
+
+  @override
+  String get balanceCheckLabel => 'CHECK — Assets = Liabilities + Equity (0 = balanced)';
+
+  @override
+  String get balanceCheckFormula => '=B11-B17-B23';
+
+  @override
+  String get balanceNote => 'Fill in the amounts per item in Excel. The check cell uses formulas: it must show 0 when the balance is balanced.';
 
   @override
   String get catSiembra => 'Planting';
