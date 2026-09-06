@@ -372,6 +372,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get generating => 'Generando…';
 
   @override
+  String get exportExcel => 'Exportar a Excel y compartir';
+
+  @override
+  String get exportBalance => 'Plantilla de balance (Excel)';
+
+  @override
   String movementsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -701,6 +707,105 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pdfFileNamePrefix => 'reporte';
+
+  @override
+  String get excelSheetSummary => 'Resumen';
+
+  @override
+  String get excelSheetCrops => 'Por cultivo';
+
+  @override
+  String get excelSheetMovements => 'Movimientos';
+
+  @override
+  String get pdfColDate => 'Fecha';
+
+  @override
+  String get pdfColType => 'Tipo';
+
+  @override
+  String get pdfColCategory => 'Categoría';
+
+  @override
+  String get pdfColDescription => 'Descripción';
+
+  @override
+  String get pdfColAmount => 'Monto';
+
+  @override
+  String balanceTemplateTitle(String period) {
+    return 'PLANTILLA DE BALANCE — $period';
+  }
+
+  @override
+  String balanceTemplateFarm(String farm, String date) {
+    return '$farm — Generado el $date';
+  }
+
+  @override
+  String get balanceAssetsTitle => 'ACTIVOS';
+
+  @override
+  String get balanceRowCash => 'Caja / bancos';
+
+  @override
+  String get balanceRowReceivables => 'Cuentas por cobrar';
+
+  @override
+  String get balanceRowInventory => 'Inventario de café';
+
+  @override
+  String get balanceRowMachinery => 'Maquinaria y equipos';
+
+  @override
+  String get balanceRowLand => 'Terrenos / plantaciones';
+
+  @override
+  String get balanceRowOtherAssets => 'Otros activos';
+
+  @override
+  String get balanceTotalAssets => 'TOTAL ACTIVOS';
+
+  @override
+  String get balanceLiabilitiesTitle => 'PASIVOS';
+
+  @override
+  String get balanceRowLoans => 'Préstamos / deudas';
+
+  @override
+  String get balanceRowPayables => 'Cuentas por pagar';
+
+  @override
+  String get balanceRowTaxes => 'Impuestos por pagar';
+
+  @override
+  String get balanceTotalLiabilities => 'TOTAL PASIVOS';
+
+  @override
+  String get balanceEquityTitle => 'PATRIMONIO';
+
+  @override
+  String get balanceRowCapital => 'Capital inicial';
+
+  @override
+  String get balanceRowAccumulated => 'Utilidades acumuladas';
+
+  @override
+  String balanceRowNetIncome(int year) {
+    return 'Utilidad del ejercicio ($year)';
+  }
+
+  @override
+  String get balanceTotalEquity => 'TOTAL PATRIMONIO';
+
+  @override
+  String get balanceCheckLabel => 'VERIFICACIÓN — Activo = Pasivo + Patrimonio (0 = balanceado)';
+
+  @override
+  String get balanceCheckFormula => '=B11-B17-B23';
+
+  @override
+  String get balanceNote => 'Completa los montos de cada rubro en Excel. La celda de verificación usa fórmulas: debe dar 0 cuando el balance cuadra.';
 
   @override
   String get catSiembra => 'Siembra';

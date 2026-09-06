@@ -8,6 +8,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
+import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
 import '../services/report_insights_service.dart';
 import '../utils/format.dart';
@@ -27,6 +28,8 @@ class _ReportScreenState extends State<ReportScreen> {
   late int _month;
   _PeriodMode _mode = _PeriodMode.month;
   bool _exporting = false;
+  bool _exportingExcel = false;
+  bool _exportingBalance = false;
 
   @override
   void initState() {
@@ -335,6 +338,36 @@ class _ReportScreenState extends State<ReportScreen> {
                   : const Icon(Icons.picture_as_pdf),
               label: Text(_exporting ? l10n.generating : l10n.exportPdf),
             ),
+            const SizedBox(height: 10),
+            FilledButton.tonalIcon(
+              onPressed:
+                  _exportingExcel ? null : () => _exportExcel(tx, l10n),
+              icon: _exportingExcel
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.table_chart),
+              label: Text(_exportingExcel
+                  ? l10n.generating
+                  : l10n.exportExcel),
+            ),
+            const SizedBox(height: 10),
+            FilledButton.tonalIcon(
+              onPressed:
+                  _exportingBalance ? null : () => _exportBalance(tx, l10n),
+              icon: _exportingBalance
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.account_balance),
+              label: Text(_exportingBalance
+                  ? l10n.generating
+                  : l10n.exportBalance),
+            ),
           ],
             ),
           ),
@@ -459,6 +492,90 @@ class _ReportScreenState extends State<ReportScreen> {
       );
     } finally {
       if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _exportExcel(
+      TransactionProvider tx, AppLocalizations l10n) async {
+    setState(() => _exportingExcel = true);
+    try {
+      final svc = ExcelExportService();
+      final bytes = svc.buildReport(
+        settings: tx.settings,
+        transactions: tx.transactions,
+        crops: tx.crops,
+        year: _year,
+        month: _mode == _PeriodMode.month ? _month : null,
+        period: switch (_mode) {
+          _PeriodMode.month => ReportPeriod.month,
+          _PeriodMode.year => ReportPeriod.year,
+          _PeriodMode.yearToDate => ReportPeriod.yearToDate,
+        },
+        periodName: _periodLabel(l10n),
+        l10n: l10n,
+      );
+
+      final fileName =
+          '${l10n.pdfFileNamePrefix}_$_year-${(_month + 1).toString().padLeft(2, '0')}.xlsx';
+      final result = await SharePlus.instance.share(ShareParams(
+        files: [
+          XFile.fromData(Uint8List.fromList(bytes),
+              mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              name: fileName),
+        ],
+        subject: l10n.pdfShareSubject(_year),
+      ));
+      if (!mounted) return;
+      if (result.status != ShareResultStatus.dismissed) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.reportGeneratedSnack)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.exportError('$e'))),
+      );
+    } finally {
+      if (mounted) setState(() => _exportingExcel = false);
+    }
+  }
+
+  Future<void> _exportBalance(
+      TransactionProvider tx, AppLocalizations l10n) async {
+    setState(() => _exportingBalance = true);
+    try {
+      final svc = ExcelExportService();
+      final bytes = svc.buildBalanceTemplate(
+        settings: tx.settings,
+        transactions: tx.transactions,
+        year: _year,
+        periodName: _periodLabel(l10n),
+        l10n: l10n,
+      );
+
+      final fileName =
+          '${l10n.pdfFileNamePrefix}_balance_$_year.csv';
+      final result = await SharePlus.instance.share(ShareParams(
+        files: [
+          XFile.fromData(bytes,
+              mimeType: 'text/csv', name: fileName),
+        ],
+        subject: l10n.pdfShareSubject(_year),
+      ));
+      if (!mounted) return;
+      if (result.status != ShareResultStatus.dismissed) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.reportGeneratedSnack)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.exportError('$e'))),
+      );
+    } finally {
+      if (mounted) setState(() => _exportingBalance = false);
     }
   }
 
