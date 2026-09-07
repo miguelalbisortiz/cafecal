@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/crop.dart';
+import '../models/harvest.dart';
 import '../models/settings.dart';
+import '../models/sowing.dart';
 import '../models/transaction.dart';
 
 class LocalStore {
@@ -12,6 +14,8 @@ class LocalStore {
   static const _kSettings = 'settings_v1';
   static const _kSyncedAt = 'synced_at_v1';
   static const _kGuestMode = 'guest_mode_v1';
+  static const _kHarvests = 'harvests_v1';
+  static const _kSowings = 'sowings_v1';
 
   final SharedPreferences _prefs;
 
@@ -60,6 +64,46 @@ class LocalStore {
   Future<void> saveCrops(List<Crop> crops) async {
     final raw = jsonEncode(crops.map((c) => c.toJson()).toList());
     await _prefs.setString(_kCrops, raw);
+  }
+
+  // ---- Harvests ----
+
+  List<Harvest> loadHarvests() {
+    final raw = _prefs.getString(_kHarvests);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list
+          .map((e) => Harvest.fromJson((e as Map).cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveHarvests(List<Harvest> harvests) async {
+    final raw = jsonEncode(harvests.map((h) => h.toJson()).toList());
+    await _prefs.setString(_kHarvests, raw);
+  }
+
+  // ---- Sowings ----
+
+  List<Sowing> loadSowings() {
+    final raw = _prefs.getString(_kSowings);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list
+          .map((e) => Sowing.fromJson((e as Map).cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveSowings(List<Sowing> sowings) async {
+    final raw = jsonEncode(sowings.map((s) => s.toJson()).toList());
+    await _prefs.setString(_kSowings, raw);
   }
 
   // ---- Settings ----
@@ -112,5 +156,7 @@ class LocalStore {
     await _prefs.remove(_kSettings);
     await _prefs.remove(_kSyncedAt);
     await _prefs.remove(_kGuestMode);
+    await _prefs.remove(_kHarvests);
+    await _prefs.remove(_kSowings);
   }
 }

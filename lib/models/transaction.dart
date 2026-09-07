@@ -24,12 +24,15 @@ class Transaction {
   final bool deleted;
 
   // ---- Capa productiva (Nivel 1) ----
-  // Volumen/precio: aplica principalmente a ventas y compras con cantidad.
-  final double? quantity; // cantidad vendida/comprada
-  final String? unit; // 'kg' | 'arroba' | 'saco'
-  final double? pricePerUnit; // derivable = amount / quantity
-  final String? client; // ingreso: comprador
-  final String? provider; // gasto: proveedor/vendedor
+  final double? quantity;
+  final String? unit;
+  final double? pricePerUnit;
+  final String? client;
+  final String? provider;
+
+  // ---- Capa productiva (Nivel 2) ----
+  final String? harvestId;
+  final String? sowingId;
 
   const Transaction({
     required this.id,
@@ -48,6 +51,8 @@ class Transaction {
     this.pricePerUnit,
     this.client,
     this.provider,
+    this.harvestId,
+    this.sowingId,
   });
 
   Transaction copyWith({
@@ -67,6 +72,8 @@ class Transaction {
     double? pricePerUnit,
     String? client,
     String? provider,
+    String? harvestId,
+    String? sowingId,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -85,6 +92,8 @@ class Transaction {
       pricePerUnit: pricePerUnit ?? this.pricePerUnit,
       client: client ?? this.client,
       provider: provider ?? this.provider,
+      harvestId: harvestId ?? this.harvestId,
+      sowingId: sowingId ?? this.sowingId,
     );
   }
 
@@ -105,6 +114,8 @@ class Transaction {
         'price_per_unit': pricePerUnit,
         'client': client,
         'provider': provider,
+        'harvest_id': harvestId,
+        'sowing_id': sowingId,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -125,6 +136,8 @@ class Transaction {
       pricePerUnit: (json['price_per_unit'] as num?)?.toDouble(),
       client: json['client'] as String?,
       provider: json['provider'] as String?,
+      harvestId: json['harvest_id'] as String?,
+      sowingId: json['sowing_id'] as String?,
     );
   }
 }

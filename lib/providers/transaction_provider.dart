@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/crop.dart';
+import '../models/harvest.dart';
 import '../models/settings.dart';
+import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../services/local_store.dart';
 
@@ -13,16 +15,40 @@ class TransactionProvider extends ChangeNotifier {
   List<Transaction> _transactions = [];
   List<Crop> _crops = [];
   FarmSettings _settings = const FarmSettings();
+  List<Harvest> _harvests = [];
+  List<Sowing> _sowings = [];
 
   TransactionProvider(this._store) {
     _transactions = _store.loadTransactions();
     _crops = _store.loadCrops();
     _settings = _store.loadSettings();
+    _harvests = _store.loadHarvests();
+    _sowings = _store.loadSowings();
   }
 
   List<Transaction> get transactions => _transactions;
   List<Crop> get crops => _crops;
   FarmSettings get settings => _settings;
+  List<Harvest> get harvests => _harvests;
+  List<Sowing> get sowings => _sowings;
+
+  List<Harvest> harvestsFor(String? cropId, {DateTime? from, DateTime? to}) {
+    return _harvests.where((h) {
+      if (cropId != null && h.cropId != cropId) return false;
+      if (from != null && h.date.isBefore(from)) return false;
+      if (to != null && h.date.isAfter(to)) return false;
+      return true;
+    }).toList();
+  }
+
+  List<Sowing> sowingsFor(String? cropId, {DateTime? from, DateTime? to}) {
+    return _sowings.where((s) {
+      if (cropId != null && s.cropId != cropId) return false;
+      if (from != null && s.date.isBefore(from)) return false;
+      if (to != null && s.date.isAfter(to)) return false;
+      return true;
+    }).toList();
+  }
 
   /// Transacciones del período actual (por defecto: año en curso).
   List<Transaction> transactionsInYear(int year) {
@@ -90,6 +116,8 @@ class TransactionProvider extends ChangeNotifier {
     String? unit,
     String? client,
     String? provider,
+    String? harvestId,
+    String? sowingId,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -106,6 +134,8 @@ class TransactionProvider extends ChangeNotifier {
       unit: unit,
       client: client,
       provider: provider,
+      harvestId: harvestId,
+      sowingId: sowingId,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
@@ -149,10 +179,131 @@ class TransactionProvider extends ChangeNotifier {
     return crop;
   }
 
+  Future<void> updateCrop(Crop crop) async {
+    final idx = _crops.indexWhere((c) => c.id == crop.id);
+    if (idx == -1) return;
+    final list = [..._crops];
+    list[idx] = crop.copyWith(pendingSync: true);
+    _crops = list;
+    await _store.saveCrops(_crops);
+    notifyListeners();
+  }
+
   Future<void> deleteCrop(String id) async {
     _crops = _crops.where((c) => c.id != id).toList();
     await _store.saveCrops(_crops);
     notifyListeners();
+  }
+
+  // ---- Harvards ----
+
+  Future<Harvest> addHarvest({
+    String? cropId,
+    required DateTime date,
+    required double amount,
+    String unit = 'kg',
+    HarvestDestination destination = HarvestDestination.vendido,
+  }) async {
+    final harvest = Harvest(
+      id: _uuid.v4(),
+      cropId: cropId,
+      date: date,
+      amount: amount,
+      unit: unit,
+      destination: destination,
+      pendingSync: true,
+    );
+    _harvests = [..._harvests, harvest];
+    await _store.saveHarvests(_harvests);
+    notifyListeners();
+    return harvest;
+  }
+
+  Future<void> updateHarvest(Harvest updated) async {
+    final idx = _harvests.indexWhere((h) => h.id == updated.id);
+    if (idx == -1) return;
+    final list = [..._harvests];
+    list[idx] = updated.copyWith(pendingSync: true);
+    _harvests = list;
+    await _store.saveHarvests(_harvests);
+    notifyListeners();
+  }
+
+  Future<void> deleteHarvest(String id) async {
+    _harvests = _harvests.where((h) => h.id != id).toList();
+    await _store.saveHarvests(_harvests);
+    notifyListeners();
+  }
+
+  // ---- Sowings ----
+
+  Future<Sowing> addSowing({
+    String? cropId,
+    required DateTime date,
+    SowingKind kind = SowingKind.siembra,
+    required int plants,
+    double? areaHa,
+    int? lostPlants,
+    String? reason,
+  }) async {
+    final sowing = Sowing(
+      id: _uuid.v4(),
+      cropId: cropId,
+      date: date,
+      kind: kind,
+      plants: plants,
+      areaHa: areaHa,
+      lostPlants: lostPlants,
+      reason: reason,
+      pendingSync: true,
+    );
+    _sowings = [..._sowings, sowing];
+    await _store.saveSowings(_sowings);
+    await _recomputeCropsFromSowings();
+    notifyListeners();
+    return sowing;
+  }
+
+  Future<void> updateSowing(Sowing updated) async {
+    final idx = _sowings.indexWhere((s) => s.id == updated.id);
+    if (idx == -1) return;
+    final list = [..._sowings];
+    list[idx] = updated.copyWith(pendingSync: true);
+    _sowings = list;
+    await _store.saveSowings(_sowings);
+    await _recomputeCropsFromSowings();
+    notifyListeners();
+  }
+
+  Future<void> deleteSowing(String id) async {
+    _sowings = _sowings.where((s) => s.id != id).toList();
+    await _store.saveSowings(_sowings);
+    await _recomputeCropsFromSowings();
+    notifyListeners();
+  }
+
+  /// Recomputa livePlants/areaHa de cada cultivo a partir de sus siembras
+  /// en orden cronológico, persistiendo los cambios con pendingSync true.
+  Future<void> _recomputeCropsFromSowings() async {
+    final updates = recomputeCropState(_sowings);
+    if (updates.isEmpty) return;
+    var changed = false;
+    final list = [..._crops];
+    for (var i = 0; i < list.length; i++) {
+      final c = list[i];
+      final u = updates[c.id];
+      if (u == null) continue;
+      list[i] = c.copyWith(
+        livePlants: u.livePlants,
+        areaHa: u.areaHa ?? c.areaHa,
+        pendingSync: true,
+      );
+      changed = true;
+    }
+    if (changed) {
+      _crops = list;
+      await _store.saveCrops(_crops);
+    }
   }
 
   // ---- Settings ----
@@ -179,11 +330,16 @@ class TransactionProvider extends ChangeNotifier {
 
   // ---- Sync helpers ----
 
-  void replaceAllFromSync(List<Transaction> remote, List<Crop> remoteCrops) {
+  void replaceAllFromSync(List<Transaction> remote, List<Crop> remoteCrops,
+      {List<Harvest>? remoteHarvests, List<Sowing>? remoteSowings}) {
     _transactions = remote;
     _crops = remoteCrops;
+    if (remoteHarvests != null) _harvests = remoteHarvests;
+    if (remoteSowings != null) _sowings = remoteSowings;
     _store.saveTransactions(remote);
     _store.saveCrops(remoteCrops);
+    _store.saveHarvests(_harvests);
+    _store.saveSowings(_sowings);
     notifyListeners();
   }
 
@@ -197,8 +353,14 @@ class TransactionProvider extends ChangeNotifier {
         .toList();
     _crops =
         _crops.map((c) => c.copyWith(pendingSync: false)).toList();
+    _harvests =
+        _harvests.map((h) => h.copyWith(pendingSync: false)).toList();
+    _sowings =
+        _sowings.map((s) => s.copyWith(pendingSync: false)).toList();
     await _store.saveTransactions(_transactions);
     await _store.saveCrops(_crops);
+    await _store.saveHarvests(_harvests);
+    await _store.saveSowings(_sowings);
     notifyListeners();
   }
 
@@ -219,6 +381,26 @@ class TransactionProvider extends ChangeNotifier {
       ...remoteCrops.where((c) => !existing.contains(c.id)),
     ];
     _store.saveCrops(_crops);
+    notifyListeners();
+  }
+
+  void mergeRemoteHarvests(List<Harvest> remoteHarvests) {
+    final existing = _harvests.map((h) => h.id).toSet();
+    _harvests = [
+      ..._harvests,
+      ...remoteHarvests.where((h) => !existing.contains(h.id)),
+    ];
+    _store.saveHarvests(_harvests);
+    notifyListeners();
+  }
+
+  void mergeRemoteSowings(List<Sowing> remoteSowings) {
+    final existing = _sowings.map((s) => s.id).toSet();
+    _sowings = [
+      ..._sowings,
+      ...remoteSowings.where((s) => !existing.contains(s.id)),
+    ];
+    _store.saveSowings(_sowings);
     notifyListeners();
   }
 }

@@ -17,7 +17,10 @@ enum AlertRule {
   noIncome,
   consecutiveLosses,
   lowPrice,
-  deficitCrop;
+  deficitCrop,
+  cropEstablishment,
+  harvestVsSales,
+  cropRecentlyPlanted;
 
   String get key => name;
 }
