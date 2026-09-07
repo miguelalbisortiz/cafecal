@@ -9,9 +9,11 @@ import '../providers/auth_provider.dart';
 import '../providers/sync_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
+import '../services/next_step_service.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/category_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
+import '../widgets/next_step_card.dart';
 import '../widgets/summary_card.dart';
 import 'movements_screen.dart';
 import 'register_screen.dart';
@@ -30,6 +32,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
+  TransactionType? _registerInitialType;
 
   @override
   void initState() {
@@ -154,10 +157,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _body() => switch (_tab) {
         0 => _buildDashboard(),
-        1 => const RegisterScreen(),
+        1 => RegisterScreen(initialType: _registerInitialType),
         2 => const MovementsScreen(),
         _ => _buildDashboard(),
       };
+
+  /// Abre la pestaña Registrar, prefijando Gasto/Ingreso si el próximo paso lo
+  /// requiere. El prefijo se descarta tras montarse la pantalla para no
+  /// condicionar las siguientes visitas.
+  void _goRegister([TransactionType? initialType]) {
+    setState(() {
+      _registerInitialType = initialType;
+      _tab = 1;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _registerInitialType = null);
+    });
+  }
+
+  void _onNextStep(NextStepType type) {
+    switch (type) {
+      case NextStepType.crop:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CropsScreen()),
+        );
+        break;
+      case NextStepType.sowing:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SowingScreen()),
+        );
+        break;
+      case NextStepType.harvest:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const HarvestScreen()),
+        );
+        break;
+      case NextStepType.expenses:
+        _goRegister(TransactionType.expense);
+        break;
+      case NextStepType.sale:
+        _goRegister(TransactionType.income);
+        break;
+    }
+  }
 
   Widget _buildDashboard() {
     final tx = context.watch<TransactionProvider>();
@@ -174,8 +216,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final yearIncomes = tx.totalIncomes(year: year);
     final yearBalance = yearIncomes - yearExpenses;
     final monthLabel = '${l10n.monthFull[month - 1]} $year';
-
-    void goRegister() => setState(() => _tab = 1);
 
     return RefreshIndicator(
       onRefresh: () => context.read<SyncProvider>().sync(),
@@ -200,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
+          NextStepCard(onAction: _onNextStep),
           AlertsBanner(alerts: alerts.bySeverity),
           _SectionHeader(title: l10n.sectionThisMonth),
           const SizedBox(height: 12),
@@ -224,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 month: month,
                 type: TransactionType.expense,
                 periodLabel: monthLabel,
-                onAddTap: goRegister,
+                onAddTap: _goRegister,
               ),
             ),
           ),
@@ -237,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 month: month,
                 type: TransactionType.income,
                 periodLabel: monthLabel,
-                onAddTap: goRegister,
+                onAddTap: _goRegister,
               ),
             ),
           ),
