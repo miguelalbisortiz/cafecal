@@ -375,10 +375,17 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   void mergeRemoteCrops(List<Crop> remoteCrops) {
-    final existing = _crops.map((c) => c.id).toSet();
+    final existingIds = _crops.map((c) => c.id).toSet();
+    final existingNames = _crops
+        .map((c) => c.name.trim().toLowerCase())
+        .toSet();
     _crops = [
       ..._crops,
-      ...remoteCrops.where((c) => !existing.contains(c.id)),
+      ...remoteCrops.where(
+        (c) =>
+            !existingIds.contains(c.id) &&
+            !existingNames.contains(c.name.trim().toLowerCase()),
+      ),
     ];
     _store.saveCrops(_crops);
     notifyListeners();
