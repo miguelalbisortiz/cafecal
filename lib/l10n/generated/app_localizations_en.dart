@@ -68,6 +68,93 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextStepSaleSubtitle => 'Link the sale to the harvest to see your real profit.';
 
   @override
+  String get nextStepGuideLink => 'View full guide';
+
+  @override
+  String get helpTitle => 'Help';
+
+  @override
+  String get helpSectionGuide => 'Getting started guide';
+
+  @override
+  String get helpIntro => 'Mi Cafetal keeps track of your farm: how much you invest, produce and sell, per crop, per month and per year.';
+
+  @override
+  String get helpIntroPromesa => 'The app never guesses your production: the numbers come from what you record. The more complete your records, the more useful the results.';
+
+  @override
+  String get helpWhereTitle => 'Where do I enter each piece of data?';
+
+  @override
+  String get helpRowOverview => 'Your farm overview (income, expenses and balance)';
+
+  @override
+  String get helpRowCrops => 'Set up your farm\'s crops';
+
+  @override
+  String get helpRowSowings => 'Plant or replant';
+
+  @override
+  String get helpRowHarvests => 'Record what you collected';
+
+  @override
+  String get helpRowExpenses => 'Expenses (supplies, labor…)';
+
+  @override
+  String get helpRowIncome => 'Sales of your harvest';
+
+  @override
+  String get helpCaseTitle => 'Where do I start? Depends on your case';
+
+  @override
+  String get helpCaseATitle => 'Case A — I already have crops planted';
+
+  @override
+  String get helpCaseA1 => 'Crops: review Coffee and Plantain and set their stage to Production (and, if you know it, area and live plants).';
+
+  @override
+  String get helpCaseA2 => 'Record: enter the month\'s expenses (supplies, labor).';
+
+  @override
+  String get helpCaseA3 => 'Harvests: when you collect, record the harvest with its destination.';
+
+  @override
+  String get helpCaseA4 => 'Record: when you sell, record the sale income.';
+
+  @override
+  String get helpCaseAEnd => 'Check the Overview: balance and indicators start making sense.';
+
+  @override
+  String get helpCaseBTitle => 'Case B — I\'m going to plant something new';
+
+  @override
+  String get helpCaseB1 => 'Crops: create your crop with stage Establishment (cycle Annual or Perennial).';
+
+  @override
+  String get helpCaseB2 => 'Plantings: record the initial planting (plants and area; you can link its cost).';
+
+  @override
+  String get helpCaseB3 => 'In establishment the app does not flag losses: it is investment, not production.';
+
+  @override
+  String get helpCaseB4 => 'When it reaches Production, follow the Case A flow of harvests and sales.';
+
+  @override
+  String get helpUnitsTitle => 'Units';
+
+  @override
+  String get helpUnitsBody => 'Use kg, or arroba (12.5 kg) and bag (70 kg) for coffee. The app converts everything to kg for comparison.';
+
+  @override
+  String get helpGlossaryTitle => 'Glossary';
+
+  @override
+  String get helpGlossaryBody => 'Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Destination: sold, stored or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.';
+
+  @override
+  String get helpGlossaryFinance => 'View financial glossary';
+
+  @override
   String get syncTooltip => 'Sync';
 
   @override
@@ -84,6 +171,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuHarvests => 'Harvests';
+
+  @override
+  String get menuHelp => 'Help';
 
   @override
   String get unitRacimo => 'Bunches';
