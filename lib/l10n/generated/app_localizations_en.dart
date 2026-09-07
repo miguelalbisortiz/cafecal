@@ -36,6 +36,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextStepCropSubtitle => 'Start by recording the crop you manage (Coffee, Plantain…).';
 
   @override
+  String get nextStepCropSetupTitle => 'Set up your first crop';
+
+  @override
+  String get nextStepCropSetupSubtitle => 'Review Coffee, Plantain or Other, or create yours, and adjust stage and area.';
+
+  @override
   String nextStepSowingTitle(String crop) {
     return 'Record the planting of $crop';
   }

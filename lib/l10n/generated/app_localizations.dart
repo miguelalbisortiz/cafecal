@@ -149,6 +149,18 @@ abstract class AppLocalizations {
   /// **'Empieza registrando el cultivo que manejarás (Café, Plátano…).'**
   String get nextStepCropSubtitle;
 
+  /// No description provided for @nextStepCropSetupTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura tu primer cultivo'**
+  String get nextStepCropSetupTitle;
+
+  /// No description provided for @nextStepCropSetupSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa Café, Plátano u Otro, o crea el tuyo, y ajusta fase y área.'**
+  String get nextStepCropSetupSubtitle;
+
   /// No description provided for @nextStepSowingTitle.
   ///
   /// In es, this message translates to:
