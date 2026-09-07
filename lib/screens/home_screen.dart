@@ -17,6 +17,9 @@ import 'movements_screen.dart';
 import 'register_screen.dart';
 import 'report_screen.dart';
 import 'settings_screen.dart';
+import 'sowing_screen.dart';
+import 'harvest_screen.dart';
+import 'crops_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,9 +77,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (v == 'logout') context.read<AuthProvider>().signOut();
                   if (v == 'report') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReportScreen()));
                   if (v == 'settings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                  if (v == 'sowings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SowingScreen()));
+                  if (v == 'harvests') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HarvestScreen()));
+                  if (v == 'crops') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CropsScreen()));
                 },
                 itemBuilder: (_) => [
                   PopupMenuItem(value: 'report', child: Text(l10n.menuReport)),
+                  PopupMenuItem(value: 'crops', child: Text(l10n.menuCrops)),
+                  PopupMenuItem(value: 'sowings', child: Text(l10n.menuSowings)),
+                  PopupMenuItem(value: 'harvests', child: Text(l10n.menuHarvests)),
                   PopupMenuItem(value: 'settings', child: Text(l10n.menuSettings)),
                   const PopupMenuDivider(),
                   PopupMenuItem(value: 'logout', child: Text(l10n.menuLogout)),

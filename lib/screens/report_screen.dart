@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,10 +7,15 @@ import 'package:share_plus/share_plus.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../providers/transaction_provider.dart';
+import '../models/farm_alert.dart';
+import '../models/harvest.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
+import '../services/alert_service.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
+import '../services/recommendations.dart';
+import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
 import '../utils/format.dart';
 import '../widgets/terminology_guide.dart';
@@ -249,11 +254,11 @@ class _ReportScreenState extends State<ReportScreen> {
                     const SizedBox(height: 10),
                     _metricLine(
                       l10n.marginLabel,
-                      margen != null ? '${_pct(margen)}%' : '—',
+                      margen != null ? '${_pct(margen)}%' : 'â€”',
                     ),
                     _metricLine(
                       l10n.ratioLabel,
-                      ratio != null ? '${_pct(ratio)}%' : '—',
+                      ratio != null ? '${_pct(ratio)}%' : 'â€”',
                     ),
                   ],
                 ),
@@ -330,6 +335,12 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
 
             const SizedBox(height: 20),
+            _builtHarvestCard(context, tx, l10n),
+            const SizedBox(height: 20),
+            _builtSoldVsHarvestedCard(context, tx, l10n),
+            const SizedBox(height: 20),
+            _builtRecommendationsCard(context, tx, l10n),
+            const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: _exporting ? null : () => _export(tx, l10n),
               icon: _exporting
@@ -395,7 +406,7 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
-  // Registros del mes anterior para la comparación de tendencia mensual.
+  // Registros del mes anterior para la comparaciÃ³n de tendencia mensual.
   List<Transaction> _previousMonthRecords(TransactionProvider tx) {
     if (_mode != _PeriodMode.month) return const [];
     final prevYear = _month == 1 ? _year - 1 : _year;
@@ -454,6 +465,285 @@ class _ReportScreenState extends State<ReportScreen> {
           .compareTo(a.expenses + a.incomes));
   }
 
+  // ---- Nivel 2: secciÃ³n cosechas, vendido vs cosechado, y "QuÃ© hacer" ----
+
+  List<Harvest> _periodHarvests(TransactionProvider tx) {
+    return tx.harvests.where((h) {
+      if (_mode == _PeriodMode.month) {
+        return h.date.year == _year && h.date.month == _month;
+      }
+      if (_mode == _PeriodMode.year) {
+        return h.date.year == _year;
+      }
+      final today = DateTime.now();
+      final end = _year < today.year ? DateTime(_year, 12, 31) : today;
+      return !h.date.isAfter(end);
+    }).toList();
+  }
+
+  Widget _builtHarvestCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    const metrics = ReportHarvestMetrics();
+    final harvests = _periodHarvests(tx);
+    final byCrop = metrics.totalsByCrop(harvests, tx.crops);
+    final byDestination = metrics.totalsByDestination(harvests);
+    final pickupKg = metrics.pickupCostPerKg(tx.transactions, harvests);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.reportHarvestSection,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            if (harvests.isEmpty)
+              Text(l10n.reportNoHarvestData)
+            else ...[
+              Text(
+                l10n.reportHarvestedTotal,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              ...byCrop.map((c) => _harvestLine(
+                    label: c.name,
+                    value: '${_num(c.amount)} ${c.unit}',
+                    extra: '${_numKg(c.kg)} kg',
+                    color: scheme.primary,
+                  )),
+              const SizedBox(height: 8),
+              Text(
+                l10n.reportHarvestDestinations,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              ...byDestination.entries.map((e) => _harvestLine(
+                    label: _destinationLabel(e.key, l10n),
+                    value: _num(e.value),
+                    color: scheme.onSurfaceVariant,
+                  )),
+              if (pickupKg != null) ...[
+                const SizedBox(height: 8),
+                _harvestLine(
+                  label: l10n.reportPickupCostPerKg,
+                  value: formatMoney(context, pickupKg),
+                  bold: true,
+                ),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _builtSoldVsHarvestedCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    const metrics = ReportHarvestMetrics();
+    final rows = metrics.soldVsHarvested(
+        tx.transactions, _periodHarvests(tx), tx.crops, DateTime.now());
+    if (rows.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.reportSoldVsHarvested,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...rows.map((r) {
+              final mismatch = r.soldKg > r.harvestedKg * 1.1;
+              final color = mismatch ? scheme.error : scheme.primary;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.name,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    _harvestLine(
+                        label: l10n.reportSoldKg,
+                        value: _numKg(r.soldKg),
+                        color: color),
+                    _harvestLine(
+                        label: l10n.reportHarvestedKg,
+                        value: _numKg(r.harvestedKg),
+                        color: scheme.onSurfaceVariant),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _builtRecommendationsCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final alerts = const AlertService().evaluate(
+      tx.transactions,
+      tx.crops,
+      l10n,
+      harvests: tx.harvests,
+      sowings: tx.sowings,
+    );
+    final recommendations =
+        const RecommendationService().derive(alerts, 4);
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.reportWhatsNext,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            if (recommendations.isEmpty)
+              Text(l10n.reportNoRecommendations)
+            else
+              ...[
+                for (var i = 0; i < recommendations.length; i++) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 11,
+                          backgroundColor: _severityColor(
+                              recommendations[i].severity, scheme),
+                          child: Text(
+                            '${i + 1}',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                recommendations[i].title,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                recommendations[i].message,
+                                style: const TextStyle(
+                                    fontSize: 12, height: 1.3),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (i < recommendations.length - 1)
+                    Divider(height: 8, color: scheme.outlineVariant),
+                ],
+              ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _severityColor(AlertSeverity s, ColorScheme scheme) => switch (s) {
+        AlertSeverity.danger => scheme.error,
+        AlertSeverity.warning => const Color(0xFFF9A825),
+        AlertSeverity.info => const Color(0xFF1976D2),
+      };
+
+  String _num(double v) => v % 1 == 0
+      ? v.toStringAsFixed(0)
+      : v.toStringAsFixed(2);
+
+  String _numKg(double v) => v >= 100
+      ? v.toStringAsFixed(0)
+      : v.toStringAsFixed(v % 1 == 0 ? 0 : 2);
+
+  Widget _harvestLine(
+      {required String label,
+      required String value,
+      String? extra,
+      Color? color,
+      bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+                color: color ?? Colors.grey.shade700,
+              ),
+            ),
+          ),
+          if (extra != null) ...[
+            Text(
+              extra,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+              color: color ?? Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _destinationLabel(HarvestDestination d, AppLocalizations l10n) =>
+      switch (d) {
+        HarvestDestination.vendido => l10n.harvestDstVendido,
+        HarvestDestination.almacenado => l10n.harvestDstAlmacenado,
+        HarvestDestination.perdida => l10n.harvestDstPerdida,
+      };
+
   Future<void> _export(TransactionProvider tx, AppLocalizations l10n) async {
     setState(() => _exporting = true);
     try {
@@ -471,6 +761,8 @@ class _ReportScreenState extends State<ReportScreen> {
         },
         periodName: _periodLabel(l10n),
         l10n: l10n,
+        harvests: tx.harvests,
+        sowings: tx.sowings,
       );
 
       final fileName =
@@ -516,6 +808,8 @@ class _ReportScreenState extends State<ReportScreen> {
         },
         periodName: _periodLabel(l10n),
         l10n: l10n,
+        harvests: tx.harvests,
+        sowings: tx.sowings,
       );
 
       final fileName =
@@ -873,7 +1167,7 @@ class _CropRow {
   double get net => incomes - expenses;
   double get roi => expenses <= 0 ? 0 : (incomes - expenses) / expenses;
   String get roiLabel =>
-      expenses <= 0 ? '—' : 'ROI ${(roi * 100).toStringAsFixed(0)}%';
+      expenses <= 0 ? 'â€”' : 'ROI ${(roi * 100).toStringAsFixed(0)}%';
 }
 
 class _CropBreakdownTile extends StatelessWidget {

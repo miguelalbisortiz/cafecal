@@ -36,6 +36,207 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuLogout => 'Cerrar sesión';
 
   @override
+  String get menuSowings => 'Siembras';
+
+  @override
+  String get menuHarvests => 'Cosechas';
+
+  @override
+  String get unitRacimo => 'Racimos';
+
+  @override
+  String get unitCajon => 'Cajones';
+
+  @override
+  String get defaultUnitLabel => 'Unidad preferida';
+
+  @override
+  String get defaultUnitNone => 'Sin preferencia';
+
+  @override
+  String get cycleLabel => 'Ciclo';
+
+  @override
+  String get cyclePerenne => 'Perenne';
+
+  @override
+  String get cycleAnual => 'Anual';
+
+  @override
+  String get phaseLabel => 'Fase de vida';
+
+  @override
+  String get phaseEstablecimiento => 'Establecimiento';
+
+  @override
+  String get phaseProduccion => 'Producción';
+
+  @override
+  String get phaseRenovacion => 'Renovación';
+
+  @override
+  String get phaseHelp => 'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.';
+
+  @override
+  String get areaHaLabel => 'Área (hectáreas)';
+
+  @override
+  String get livePlantsLabel => 'Plantas vivas';
+
+  @override
+  String get editCropTitle => 'Editar cultivo';
+
+  @override
+  String get sowingTitle => 'Siembras';
+
+  @override
+  String get sowingEmpty => 'Aún no hay siembras registradas.';
+
+  @override
+  String get sowingAdd => 'Nueva siembra';
+
+  @override
+  String get sowingKindLabel => 'Tipo';
+
+  @override
+  String get sowingKindSiembra => 'Siembra inicial';
+
+  @override
+  String get sowingKindResiembra => 'Resiembra';
+
+  @override
+  String get sowingPlantsLabel => 'Número de plantas';
+
+  @override
+  String get sowingLostPlantsLabel => 'Plantas perdidas (bajas)';
+
+  @override
+  String get sowingReasonLabel => 'Motivo (opcional)';
+
+  @override
+  String get sowingAreaLabel => 'Área (hectáreas, opcional)';
+
+  @override
+  String get sowingCostLabel => 'Costo (opcional)';
+
+  @override
+  String get sowingCostHint => 'Si registras un costo, se crea un gasto vinculado a esta siembra.';
+
+  @override
+  String get plantsInvalid => 'Ingresa un número de plantas válido';
+
+  @override
+  String get sowingRecordSaved => 'Siembra guardada';
+
+  @override
+  String get sowingRecordUpdated => 'Siembra actualizada';
+
+  @override
+  String get sowingRecordDeleted => 'Siembra eliminada';
+
+  @override
+  String get sowingConfirmDelete => '¿Eliminar esta siembra?';
+
+  @override
+  String get harvestTitle => 'Cosechas';
+
+  @override
+  String get harvestEmpty => 'Aún no hay cosechas registradas.';
+
+  @override
+  String get harvestAdd => 'Nueva cosecha';
+
+  @override
+  String get harvestAmountLabel => 'Cantidad';
+
+  @override
+  String get harvestUnitLabel => 'Unidad';
+
+  @override
+  String get harvestDestinationLabel => 'Destino';
+
+  @override
+  String get harvestDstVendido => 'Vendido';
+
+  @override
+  String get harvestDstAlmacenado => 'Almacenado';
+
+  @override
+  String get harvestDstPerdida => 'Pérdida';
+
+  @override
+  String get harvestAmountInvalid => 'Ingresa una cantidad mayor a 0';
+
+  @override
+  String get harvestRecordSaved => 'Cosecha guardada';
+
+  @override
+  String get harvestRecordUpdated => 'Cosecha actualizada';
+
+  @override
+  String get harvestRecordDeleted => 'Cosecha eliminada';
+
+  @override
+  String get harvestConfirmDelete => '¿Eliminar esta cosecha?';
+
+  @override
+  String get expenseLinkHarvestLabel => 'Vincular a cosecha (opcional)';
+
+  @override
+  String get expenseLinkHarvestNone => 'Sin vincular';
+
+  @override
+  String get unitPreferenceHint => 'Se usa tu unidad preferida si aún no eliges una.';
+
+  @override
+  String get reportHarvestSection => 'Cosechas del período';
+
+  @override
+  String get reportHarvestedTotal => 'Total cosechado por cultivo';
+
+  @override
+  String get reportHarvestKg => 'Kg (normalizado)';
+
+  @override
+  String get reportHarvestDestinations => 'Por destino';
+
+  @override
+  String get reportPickupCostPerKg => 'Costo de recogida por kg';
+
+  @override
+  String get reportTotalCostPerKg => 'Costo total por kg';
+
+  @override
+  String get reportInvestmentEstablecimiento => 'Inversión acumulada (establecimiento)';
+
+  @override
+  String get reportYieldPerArea => 'Rendimiento por área (kg/ha)';
+
+  @override
+  String get reportYieldPerPlant => 'Rendimiento por planta (kg/planta)';
+
+  @override
+  String get reportApprox => '(aproximado)';
+
+  @override
+  String get reportSoldVsHarvested => 'Vendido vs cosechado';
+
+  @override
+  String get reportSoldKg => 'Vendido (kg)';
+
+  @override
+  String get reportHarvestedKg => 'Cosechado (kg)';
+
+  @override
+  String get reportWhatsNext => 'Qué hacer';
+
+  @override
+  String get reportNoRecommendations => 'No hay recomendaciones para este período.';
+
+  @override
+  String get reportNoHarvestData => 'Sin datos de cosechas en el período.';
+
+  @override
   String get monthJan => 'Enero';
 
   @override
@@ -327,6 +528,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cropNameRequired => 'Escribe el nombre del cultivo.';
+
+  @override
+  String get menuCrops => 'Cultivos';
+
+  @override
+  String get cropsEmpty => 'Aún no hay cultivos. Agrega el primero.';
 
   @override
   String get segMonth => 'Mes';
@@ -783,6 +990,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get excelSheetMovements => 'Movimientos';
 
   @override
+  String get excelSheetHarvests => 'Cosechas';
+
+  @override
   String get pdfColDate => 'Fecha';
 
   @override
@@ -925,4 +1135,45 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get catVentaOtro => 'Venta otros';
+
+  @override
+  String alertCropEstablishmentTitle(String crop) {
+    return '$crop está en establecimiento: es inversión, no pérdida';
+  }
+
+  @override
+  String alertCropEstablishmentMessage(String investment, String crop) {
+    return 'El problema: llevas $investment invertidos en $crop y aún no hay ingresos. Es normal en esta etapa: el plantío está creciendo y la primera cosecha llega al pasar a producción.';
+  }
+
+  @override
+  String alertCropEstablishmentSuggestion(String crop) {
+    return 'Sigue registrando los gastos de $crop. Cuando el cultivo entre en producción, la app evaluará su rentabilidad normal.';
+  }
+
+  @override
+  String alertHarvestVsSalesTitle(String crop) {
+    return 'Vendiste más de lo que cosechaste en $crop';
+  }
+
+  @override
+  String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop) {
+    return 'El problema: en los últimos 12 meses vendiste $soldKg de $crop, pero solo registraste $harvestedKg de cosecha. Revisa si hay inventario almacenado o un error de registro.';
+  }
+
+  @override
+  String alertHarvestVsSalesSuggestion(String crop) {
+    return 'Compara tus registros de $crop: asegúrate de registrar cada cosecha y cada venta con la misma unidad para evitar desfases.';
+  }
+
+  @override
+  String get alertRecentlyPlantedTitle => 'Registraste una siembra reciente';
+
+  @override
+  String alertRecentlyPlantedMessage(String crop, String date) {
+    return 'Registraste una siembra o resiembra de $crop el $date. Verifica que el número de plantas vivas actualizado del cultivo coincida con el conteo real.';
+  }
+
+  @override
+  String get alertRecentlyPlantedSuggestion => 'Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.';
 }

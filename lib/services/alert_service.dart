@@ -4,9 +4,12 @@ import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../models/crop.dart';
 import '../models/farm_alert.dart';
+import '../models/harvest.dart';
+import '../models/sowing.dart';
 import '../models/transaction.dart';
+import '../models/units.dart';
 
-/// Motor de alertas — 5 reglas del PRD.
+/// Motor de alertas — 5 reglas del PRD + 3 reglas Nivel 2.
 /// Funciones puras sobre datos locales; evaluar en cada registro y apertura.
 /// Los avisos usan lenguaje claro, sin siglas financieras (ROI, EBITDA…),
 /// incluyen los números que los disparan y una acción sugerida.
@@ -16,9 +19,14 @@ class AlertService {
 
   final DateTime? _now;
 
-  List<FarmAlert> evaluate(List<Transaction> transactions, List<Crop> crops,
-      AppLocalizations l10n,
-      {double? manualThresholdPerKg}) {
+  List<FarmAlert> evaluate(
+    List<Transaction> transactions,
+    List<Crop> crops,
+    AppLocalizations l10n, {
+    double? manualThresholdPerKg,
+    List<Harvest> harvests = const [],
+    List<Sowing> sowings = const [],
+  }) {
     final now = _now ?? DateTime.now();
     final alerts = <FarmAlert>[];
     final active = transactions.where((t) => !t.deleted).toList();
@@ -29,6 +37,8 @@ class AlertService {
     _checkLowPrice(active, now, l10n, alerts,
         manualThresholdPerKg: manualThresholdPerKg);
     _checkDeficitCrop(active, crops, l10n, alerts);
+    _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts);
+    _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
 
     return alerts;
   }
@@ -174,10 +184,6 @@ final catHistory =
   }
 
   // ---- Regla 4: precio de venta bajo ----
-  // Compara el PRECIO POR KILOGRAMO (monto ÷ cantidad normalizada) de las
-  // ventas recientes contra (a) el promedio histórico propio y (b) un umbral
-  // manual opcional configurado en ajustes. Dispara si alguna condición se
-  // cumple. Solo ventas reales (categoría venta_*) con cantidad registrada.
 
   void _checkLowPrice(List<Transaction> txns, DateTime now,
       AppLocalizations l10n, List<FarmAlert> out,
@@ -192,9 +198,8 @@ final catHistory =
     if (sales.isEmpty) return;
 
     double pricePerKg(Transaction t) =>
-        t.amount / (t.quantity! * _unitToKg(t.unit));
+        t.amount / (t.quantity! * unitToKg(t.unit));
 
-    // Umbral manual: la venta más reciente por debajo del umbral.
     if (manualThresholdPerKg != null && manualThresholdPerKg > 0) {
       final below = sales
           .where((t) => pricePerKg(t) < manualThresholdPerKg)
@@ -217,7 +222,6 @@ final catHistory =
       }
     }
 
-    // Histórico: promedio de precio/kg de los últimos 30 días vs el histórico.
     if (sales.length < 3) return;
     final histAvg =
         sales.fold<double>(0, (a, t) => a + pricePerKg(t)) / sales.length;
@@ -247,12 +251,11 @@ final catHistory =
   }
 
   // ---- Regla 5: cultivo con pérdidas superiores al 30% de lo invertido ----
-  // Se mide (Ingresos − Gastos) / Gastos. Si es < −30 %, el cultivo no
-  // recupera ni el 70 % de lo que se ha invertido en él.
+  // Modificada para Nivel 2: en establecimiento/renovación → info, no danger.
 
   void _checkDeficitCrop(List<Transaction> txns, List<Crop> crops,
       AppLocalizations l10n, List<FarmAlert> out) {
-    final cropName = {for (final c in crops) c.id: c.name};
+    final cropMap = {for (final c in crops) c.id: c};
     final totals = <String?, _CropTotals>{};
     for (final t in txns) {
       final row = totals.putIfAbsent(t.cropId, _CropTotals.new);
@@ -267,9 +270,29 @@ final catHistory =
       if (row.expenses <= 0) return;
       final ratio = (row.incomes - row.expenses) / row.expenses;
       if (ratio < -0.30) {
+        final crop = cropId != null ? cropMap[cropId] : null;
+        final phase = crop?.phase ?? CropPhase.produccion;
+
+        if (phase == CropPhase.establecimiento || phase == CropPhase.renovacion) {
+          if (cropId == null) return;
+          final label = crop?.name ?? cropId;
+          out.add(FarmAlert(
+            id: 'crop_establishment_$cropId',
+            rule: AlertRule.cropEstablishment,
+            severity: AlertSeverity.info,
+            title: l10n.alertCropEstablishmentTitle(label),
+            message: l10n.alertCropEstablishmentMessage(
+              _money(row.expenses),
+              label,
+            ),
+            suggestion: l10n.alertCropEstablishmentSuggestion(label),
+          ));
+          return;
+        }
+
         final label = cropId == null
             ? l10n.cropUnspecified
-            : (cropName[cropId] ?? cropId);
+            : (crop?.name ?? cropId);
         final recovery = row.incomes / row.expenses * 100;
         final String title;
         final String message;
@@ -306,6 +329,92 @@ final catHistory =
       }
     });
   }
+
+  // ---- Regla 6: vendido más de lo cosechado (>10% margen, últimos 12 meses) ----
+
+  void _checkHarvestVsSales(
+    List<Transaction> txns,
+    List<Crop> crops,
+    List<Harvest> harvests,
+    DateTime now,
+    AppLocalizations l10n,
+    List<FarmAlert> out,
+  ) {
+    final cutoff = DateTime(now.year - 1, now.month, now.day);
+    final cropMap = {for (final c in crops) c.id: c};
+
+    final salesByCrop = <String, double>{};
+    for (final t in txns) {
+      if (t.type.isExpense || !t.category.startsWith('venta_')) continue;
+      if (t.date.isBefore(cutoff)) continue;
+      final cid = t.cropId ?? '_none_';
+      final qty = (t.quantity ?? 0);
+      salesByCrop[cid] = (salesByCrop[cid] ?? 0) + qty * unitToKg(t.unit);
+    }
+
+    final harvestedByCrop = <String, double>{};
+    for (final h in harvests) {
+      if (h.date.isBefore(cutoff)) continue;
+      final cid = h.cropId ?? '_none_';
+      harvestedByCrop[cid] =
+          (harvestedByCrop[cid] ?? 0) + h.amount * unitToKg(h.unit);
+    }
+
+    final allCropIds = {...salesByCrop.keys, ...harvestedByCrop.keys};
+    for (final cid in allCropIds) {
+      final soldKg = salesByCrop[cid] ?? 0;
+      final harvestedKg = harvestedByCrop[cid] ?? 0;
+      if (soldKg <= 0 || harvestedKg <= 0) continue;
+      if (soldKg > harvestedKg * 1.1) {
+        final label = cid == '_none_'
+            ? l10n.cropUnspecified
+            : (cropMap[cid]?.name ?? cid);
+        out.add(FarmAlert(
+          id: 'harvest_vs_sales_$cid',
+          rule: AlertRule.harvestVsSales,
+          severity: AlertSeverity.warning,
+          title: l10n.alertHarvestVsSalesTitle(label),
+          message: l10n.alertHarvestVsSalesMessage(
+            _kg(soldKg),
+            _kg(harvestedKg),
+            label,
+          ),
+          suggestion: l10n.alertHarvestVsSalesSuggestion(label),
+        ));
+      }
+    }
+  }
+
+  // ---- Regla 7: siembra/resiembra en últimos 15 días ----
+
+  void _checkRecentlyPlanted(
+    List<Sowing> sowings,
+    DateTime now,
+    List<Crop> crops,
+    AppLocalizations l10n,
+    List<FarmAlert> out,
+  ) {
+    final cutoff = now.subtract(const Duration(days: 15));
+    final cropMap = {for (final c in crops) c.id: c};
+
+    final recent = sowings.where((s) => s.date.isAfter(cutoff)).toList();
+    for (final s in recent) {
+      final label = s.cropId == null
+          ? l10n.cropUnspecified
+          : (cropMap[s.cropId]?.name ?? s.cropId!);
+      out.add(FarmAlert(
+        id: 'recently_planted_${s.id}',
+        rule: AlertRule.cropRecentlyPlanted,
+        severity: AlertSeverity.info,
+        title: l10n.alertRecentlyPlantedTitle,
+        message: l10n.alertRecentlyPlantedMessage(
+          label,
+          DateFormat('dd/MM/yyyy').format(s.date),
+        ),
+        suggestion: l10n.alertRecentlyPlantedSuggestion,
+      ));
+    }
+  }
 }
 
 String _money(double value) {
@@ -313,14 +422,8 @@ String _money(double value) {
   return value < 0 ? '-\$$digits' : '\$$digits';
 }
 
-/// Convierte una unidad de venta a kilogramos. Si es null o desconocida se
-/// asume kg (factor 1) para no sesgar la comparación en unidades sin registrar.
-double _unitToKg(String? unit) {
-  return switch (unit) {
-    'arroba' => 12.5,
-    'saco' => 70,
-    _ => 1,
-  };
+String _kg(double kg) {
+  return '${NumberFormat('#,##0.0', 'es_CO').format(kg)} kg';
 }
 
 String _percentage(double value) {

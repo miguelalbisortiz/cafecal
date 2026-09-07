@@ -7,9 +7,14 @@ import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../models/crop.dart';
 import '../models/currencies.dart';
+import '../models/harvest.dart';
 import '../models/settings.dart';
+import '../models/sowing.dart';
 import '../models/transaction.dart';
+import 'alert_service.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
+import 'recommendations.dart';
+import 'report_harvest_metrics.dart';
 
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
 /// con Excel) manteniendo la misma lógica de cálculo que el PDF.
@@ -25,6 +30,8 @@ class ExcelExportService {
     required ReportPeriod period,
     required String periodName,
     required AppLocalizations l10n,
+    List<Harvest> harvests = const [],
+    List<Sowing> sowings = const [],
   }) {
     final active = transactions.where((t) => !t.deleted).toList();
 
@@ -48,6 +55,21 @@ class ExcelExportService {
     final expenses = sum(periodTx, TransactionType.expense);
     final incomes = sum(periodTx, TransactionType.income);
     final balance = incomes - expenses;
+
+    final periodHarvests = switch (period) {
+      ReportPeriod.month => harvests
+          .where((h) =>
+              h.date.year == year && h.date.month == (month ?? now.month))
+          .toList(),
+      ReportPeriod.year =>
+        harvests.where((h) => h.date.year == year).toList(),
+      ReportPeriod.yearToDate => harvests
+          .where((h) =>
+              h.date.year == year &&
+              !h.date.isAfter(
+                  year < now.year ? DateTime(year, 12, 31) : now))
+          .toList(),
+    };
 
     final incomeTotals = _groupTotals(
         periodTx.where((t) => t.type == TransactionType.income).toList());
@@ -79,6 +101,15 @@ class ExcelExportService {
     _movementsSheet(excel[l10n.excelSheetMovements],
         periodTx: periodTx,
         crops: crops,
+        currency: currency,
+        l10n: l10n);
+
+    _harvestSheet(excel[l10n.excelSheetHarvests],
+        periodTx: periodTx,
+        periodHarvests: periodHarvests,
+        crops: crops,
+        sowings: sowings,
+        harvests: harvests,
         currency: currency,
         l10n: l10n);
 
@@ -334,6 +365,167 @@ class ExcelExportService {
       sheet.setColumnWidth(i, i == 3 ? 40 : 18);
     }
   }
+
+  // ---- Nivel 2: hoja de cosechas (totales, costos, rendimiento, conciliación, "Qué hacer") ----
+
+  void _harvestSheet(
+    Sheet sheet, {
+    required List<Transaction> periodTx,
+    required List<Harvest> periodHarvests,
+    required List<Crop> crops,
+    required List<Sowing> sowings,
+    required List<Harvest> harvests,
+    required String currency,
+    required AppLocalizations l10n,
+  }) {
+    void row(List<CellValue?> cols) => sheet.appendRow(cols);
+    const metrics = ReportHarvestMetrics();
+    final cropById = {for (final c in crops) c.id: c};
+
+    row([TextCellValue(l10n.reportHarvestSection)]);
+    if (periodHarvests.isEmpty) {
+      row([TextCellValue(l10n.reportNoHarvestData)]);
+      sheet.setColumnWidth(0, 42);
+      return;
+    }
+
+    // Totales por cultivo.
+    row([null, null, null]);
+    row([TextCellValue(l10n.reportHarvestedTotal)]);
+    row([
+      TextCellValue(l10n.pdfColCrop),
+      TextCellValue(l10n.pdfColAmount),
+      TextCellValue(l10n.reportHarvestKg),
+    ]);
+    final byCrop = metrics.totalsByCrop(periodHarvests, crops);
+    for (final c in byCrop) {
+      row([
+        TextCellValue(c.name),
+        TextCellValue('${_decimal(c.amount)} ${c.unit}'),
+        DoubleCellValue(c.kg),
+      ]);
+    }
+
+    // Por destino.
+    row([null, null, null]);
+    row([TextCellValue(l10n.reportHarvestDestinations)]);
+    final byDestination = metrics.totalsByDestination(periodHarvests);
+    for (final e in byDestination.entries) {
+      row([
+        TextCellValue(_destinationLabel(e.key, l10n)),
+        DoubleCellValue(e.value),
+      ]);
+    }
+
+    // Costo de recogida por kg.
+    final pickupKg = metrics.pickupCostPerKg(periodTx, periodHarvests);
+    if (pickupKg != null) {
+      row([null, null, null]);
+      row([
+        TextCellValue(l10n.reportPickupCostPerKg),
+        DoubleCellValue(pickupKg),
+      ]);
+    }
+
+    // Costo total por kg / inversión acumulada y rendimiento por cultivo.
+    row([null, null, null]);
+    for (final c in byCrop) {
+      final crop = c.cropId == null ? null : cropById[c.cropId];
+      if (crop == null) continue;
+      final cropHarvests =
+          periodHarvests.where((h) => h.cropId == crop.id).toList();
+      final cropExpenses =
+          periodTx.where((t) => t.cropId == crop.id).toList();
+      final hasResiembra = sowings.any(
+          (s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
+
+      if (crop.phase == CropPhase.establecimiento ||
+          crop.phase == CropPhase.renovacion) {
+        final inv = metrics.accumulatedInvestment(cropExpenses);
+        row([
+          TextCellValue('${crop.name} — ${l10n.reportInvestmentEstablecimiento}'),
+          DoubleCellValue(inv),
+        ]);
+      } else {
+        final totalKg = metrics.totalCostPerKg(crop, cropExpenses, cropHarvests);
+        if (totalKg != null) {
+          row([
+            TextCellValue('${crop.name} — ${l10n.reportTotalCostPerKg}'),
+            DoubleCellValue(totalKg),
+          ]);
+        }
+        final yieldArea = metrics.yieldPerArea(cropHarvests, crop.areaHa);
+        if (yieldArea != null) {
+          row([
+            TextCellValue('${crop.name} — ${l10n.reportYieldPerArea}'
+                '${hasResiembra ? ' ${l10n.reportApprox}' : ''}'),
+            DoubleCellValue(yieldArea),
+          ]);
+        }
+        final yieldPlant = metrics.yieldPerPlant(cropHarvests, crop.livePlants);
+        if (yieldPlant != null) {
+          row([
+            TextCellValue('${crop.name} — ${l10n.reportYieldPerPlant}'
+                '${hasResiembra ? ' ${l10n.reportApprox}' : ''}'),
+            DoubleCellValue(yieldPlant),
+          ]);
+        }
+      }
+    }
+
+    // Vendido vs cosechado.
+    row([null, null, null]);
+    row([TextCellValue(l10n.reportSoldVsHarvested)]);
+    final soldVs = metrics.soldVsHarvested(
+        periodTx, periodHarvests, crops, DateTime.now());
+    if (soldVs.isEmpty) {
+      row([TextCellValue(l10n.reportNoHarvestData)]);
+    }
+    for (final s in soldVs) {
+      row([
+        TextCellValue('${s.name} — ${l10n.reportSoldKg}'),
+        DoubleCellValue(s.soldKg),
+      ]);
+      row([
+        TextCellValue('${s.name} — ${l10n.reportHarvestedKg}'),
+        DoubleCellValue(s.harvestedKg),
+      ]);
+    }
+
+    // "Qué hacer" derivado del motor de reglas.
+    row([null, null, null]);
+    row([TextCellValue(l10n.reportWhatsNext)]);
+    final alerts = const AlertService().evaluate(
+      periodTx,
+      crops,
+      l10n,
+      harvests: harvests,
+      sowings: sowings,
+    );
+    final recommendations = const RecommendationService().derive(alerts, 4);
+    if (recommendations.isEmpty) {
+      row([TextCellValue(l10n.reportNoRecommendations)]);
+    }
+    for (var i = 0; i < recommendations.length; i++) {
+      row([
+        TextCellValue('${i + 1}. ${recommendations[i].title}'),
+      ]);
+      row([
+        TextCellValue(recommendations[i].message),
+      ]);
+    }
+
+    for (var i = 0; i < 3; i++) {
+      sheet.setColumnWidth(i, i == 0 ? 46 : (i == 1 ? 20 : 18));
+    }
+  }
+
+  String _destinationLabel(HarvestDestination d, AppLocalizations l10n) =>
+      switch (d) {
+        HarvestDestination.vendido => l10n.harvestDstVendido,
+        HarvestDestination.almacenado => l10n.harvestDstAlmacenado,
+        HarvestDestination.perdida => l10n.harvestDstPerdida,
+      };
 
   String _pctOf(double part, double total) {
     if (total <= 0) return '—';

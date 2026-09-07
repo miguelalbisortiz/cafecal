@@ -149,6 +149,408 @@ abstract class AppLocalizations {
   /// **'Cerrar sesión'**
   String get menuLogout;
 
+  /// No description provided for @menuSowings.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembras'**
+  String get menuSowings;
+
+  /// No description provided for @menuHarvests.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechas'**
+  String get menuHarvests;
+
+  /// No description provided for @unitRacimo.
+  ///
+  /// In es, this message translates to:
+  /// **'Racimos'**
+  String get unitRacimo;
+
+  /// No description provided for @unitCajon.
+  ///
+  /// In es, this message translates to:
+  /// **'Cajones'**
+  String get unitCajon;
+
+  /// No description provided for @defaultUnitLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad preferida'**
+  String get defaultUnitLabel;
+
+  /// No description provided for @defaultUnitNone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin preferencia'**
+  String get defaultUnitNone;
+
+  /// No description provided for @cycleLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Ciclo'**
+  String get cycleLabel;
+
+  /// No description provided for @cyclePerenne.
+  ///
+  /// In es, this message translates to:
+  /// **'Perenne'**
+  String get cyclePerenne;
+
+  /// No description provided for @cycleAnual.
+  ///
+  /// In es, this message translates to:
+  /// **'Anual'**
+  String get cycleAnual;
+
+  /// No description provided for @phaseLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Fase de vida'**
+  String get phaseLabel;
+
+  /// No description provided for @phaseEstablecimiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Establecimiento'**
+  String get phaseEstablecimiento;
+
+  /// No description provided for @phaseProduccion.
+  ///
+  /// In es, this message translates to:
+  /// **'Producción'**
+  String get phaseProduccion;
+
+  /// No description provided for @phaseRenovacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Renovación'**
+  String get phaseRenovacion;
+
+  /// No description provided for @phaseHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.'**
+  String get phaseHelp;
+
+  /// No description provided for @areaHaLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Área (hectáreas)'**
+  String get areaHaLabel;
+
+  /// No description provided for @livePlantsLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Plantas vivas'**
+  String get livePlantsLabel;
+
+  /// No description provided for @editCropTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar cultivo'**
+  String get editCropTitle;
+
+  /// No description provided for @sowingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembras'**
+  String get sowingTitle;
+
+  /// No description provided for @sowingEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay siembras registradas.'**
+  String get sowingEmpty;
+
+  /// No description provided for @sowingAdd.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva siembra'**
+  String get sowingAdd;
+
+  /// No description provided for @sowingKindLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get sowingKindLabel;
+
+  /// No description provided for @sowingKindSiembra.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembra inicial'**
+  String get sowingKindSiembra;
+
+  /// No description provided for @sowingKindResiembra.
+  ///
+  /// In es, this message translates to:
+  /// **'Resiembra'**
+  String get sowingKindResiembra;
+
+  /// No description provided for @sowingPlantsLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de plantas'**
+  String get sowingPlantsLabel;
+
+  /// No description provided for @sowingLostPlantsLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Plantas perdidas (bajas)'**
+  String get sowingLostPlantsLabel;
+
+  /// No description provided for @sowingReasonLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Motivo (opcional)'**
+  String get sowingReasonLabel;
+
+  /// No description provided for @sowingAreaLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Área (hectáreas, opcional)'**
+  String get sowingAreaLabel;
+
+  /// No description provided for @sowingCostLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo (opcional)'**
+  String get sowingCostLabel;
+
+  /// No description provided for @sowingCostHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Si registras un costo, se crea un gasto vinculado a esta siembra.'**
+  String get sowingCostHint;
+
+  /// No description provided for @plantsInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un número de plantas válido'**
+  String get plantsInvalid;
+
+  /// No description provided for @sowingRecordSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembra guardada'**
+  String get sowingRecordSaved;
+
+  /// No description provided for @sowingRecordUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembra actualizada'**
+  String get sowingRecordUpdated;
+
+  /// No description provided for @sowingRecordDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembra eliminada'**
+  String get sowingRecordDeleted;
+
+  /// No description provided for @sowingConfirmDelete.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar esta siembra?'**
+  String get sowingConfirmDelete;
+
+  /// No description provided for @harvestTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechas'**
+  String get harvestTitle;
+
+  /// No description provided for @harvestEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay cosechas registradas.'**
+  String get harvestEmpty;
+
+  /// No description provided for @harvestAdd.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva cosecha'**
+  String get harvestAdd;
+
+  /// No description provided for @harvestAmountLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cantidad'**
+  String get harvestAmountLabel;
+
+  /// No description provided for @harvestUnitLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad'**
+  String get harvestUnitLabel;
+
+  /// No description provided for @harvestDestinationLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Destino'**
+  String get harvestDestinationLabel;
+
+  /// No description provided for @harvestDstVendido.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendido'**
+  String get harvestDstVendido;
+
+  /// No description provided for @harvestDstAlmacenado.
+  ///
+  /// In es, this message translates to:
+  /// **'Almacenado'**
+  String get harvestDstAlmacenado;
+
+  /// No description provided for @harvestDstPerdida.
+  ///
+  /// In es, this message translates to:
+  /// **'Pérdida'**
+  String get harvestDstPerdida;
+
+  /// No description provided for @harvestAmountInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa una cantidad mayor a 0'**
+  String get harvestAmountInvalid;
+
+  /// No description provided for @harvestRecordSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosecha guardada'**
+  String get harvestRecordSaved;
+
+  /// No description provided for @harvestRecordUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosecha actualizada'**
+  String get harvestRecordUpdated;
+
+  /// No description provided for @harvestRecordDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosecha eliminada'**
+  String get harvestRecordDeleted;
+
+  /// No description provided for @harvestConfirmDelete.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar esta cosecha?'**
+  String get harvestConfirmDelete;
+
+  /// No description provided for @expenseLinkHarvestLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Vincular a cosecha (opcional)'**
+  String get expenseLinkHarvestLabel;
+
+  /// No description provided for @expenseLinkHarvestNone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin vincular'**
+  String get expenseLinkHarvestNone;
+
+  /// No description provided for @unitPreferenceHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Se usa tu unidad preferida si aún no eliges una.'**
+  String get unitPreferenceHint;
+
+  /// No description provided for @reportHarvestSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechas del período'**
+  String get reportHarvestSection;
+
+  /// No description provided for @reportHarvestedTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total cosechado por cultivo'**
+  String get reportHarvestedTotal;
+
+  /// No description provided for @reportHarvestKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Kg (normalizado)'**
+  String get reportHarvestKg;
+
+  /// No description provided for @reportHarvestDestinations.
+  ///
+  /// In es, this message translates to:
+  /// **'Por destino'**
+  String get reportHarvestDestinations;
+
+  /// No description provided for @reportPickupCostPerKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo de recogida por kg'**
+  String get reportPickupCostPerKg;
+
+  /// No description provided for @reportTotalCostPerKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo total por kg'**
+  String get reportTotalCostPerKg;
+
+  /// No description provided for @reportInvestmentEstablecimiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Inversión acumulada (establecimiento)'**
+  String get reportInvestmentEstablecimiento;
+
+  /// No description provided for @reportYieldPerArea.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento por área (kg/ha)'**
+  String get reportYieldPerArea;
+
+  /// No description provided for @reportYieldPerPlant.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento por planta (kg/planta)'**
+  String get reportYieldPerPlant;
+
+  /// No description provided for @reportApprox.
+  ///
+  /// In es, this message translates to:
+  /// **'(aproximado)'**
+  String get reportApprox;
+
+  /// No description provided for @reportSoldVsHarvested.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendido vs cosechado'**
+  String get reportSoldVsHarvested;
+
+  /// No description provided for @reportSoldKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendido (kg)'**
+  String get reportSoldKg;
+
+  /// No description provided for @reportHarvestedKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechado (kg)'**
+  String get reportHarvestedKg;
+
+  /// No description provided for @reportWhatsNext.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué hacer'**
+  String get reportWhatsNext;
+
+  /// No description provided for @reportNoRecommendations.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay recomendaciones para este período.'**
+  String get reportNoRecommendations;
+
+  /// No description provided for @reportNoHarvestData.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin datos de cosechas en el período.'**
+  String get reportNoHarvestData;
+
   /// No description provided for @monthJan.
   ///
   /// In es, this message translates to:
@@ -730,6 +1132,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Escribe el nombre del cultivo.'**
   String get cropNameRequired;
+
+  /// No description provided for @menuCrops.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultivos'**
+  String get menuCrops;
+
+  /// No description provided for @cropsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay cultivos. Agrega el primero.'**
+  String get cropsEmpty;
 
   /// No description provided for @segMonth.
   ///
@@ -1439,6 +1853,12 @@ abstract class AppLocalizations {
   /// **'Movimientos'**
   String get excelSheetMovements;
 
+  /// No description provided for @excelSheetHarvests.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechas'**
+  String get excelSheetHarvests;
+
   /// No description provided for @pdfColDate.
   ///
   /// In es, this message translates to:
@@ -1714,6 +2134,60 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Venta otros'**
   String get catVentaOtro;
+
+  /// No description provided for @alertCropEstablishmentTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'{crop} está en establecimiento: es inversión, no pérdida'**
+  String alertCropEstablishmentTitle(String crop);
+
+  /// No description provided for @alertCropEstablishmentMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: llevas {investment} invertidos en {crop} y aún no hay ingresos. Es normal en esta etapa: el plantío está creciendo y la primera cosecha llega al pasar a producción.'**
+  String alertCropEstablishmentMessage(String investment, String crop);
+
+  /// No description provided for @alertCropEstablishmentSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Sigue registrando los gastos de {crop}. Cuando el cultivo entre en producción, la app evaluará su rentabilidad normal.'**
+  String alertCropEstablishmentSuggestion(String crop);
+
+  /// No description provided for @alertHarvestVsSalesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendiste más de lo que cosechaste en {crop}'**
+  String alertHarvestVsSalesTitle(String crop);
+
+  /// No description provided for @alertHarvestVsSalesMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si hay inventario almacenado o un error de registro.'**
+  String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop);
+
+  /// No description provided for @alertHarvestVsSalesSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Compara tus registros de {crop}: asegúrate de registrar cada cosecha y cada venta con la misma unidad para evitar desfases.'**
+  String alertHarvestVsSalesSuggestion(String crop);
+
+  /// No description provided for @alertRecentlyPlantedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registraste una siembra reciente'**
+  String get alertRecentlyPlantedTitle;
+
+  /// No description provided for @alertRecentlyPlantedMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Registraste una siembra o resiembra de {crop} el {date}. Verifica que el número de plantas vivas actualizado del cultivo coincida con el conteo real.'**
+  String alertRecentlyPlantedMessage(String crop, String date);
+
+  /// No description provided for @alertRecentlyPlantedSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.'**
+  String get alertRecentlyPlantedSuggestion;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

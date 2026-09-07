@@ -1,12 +1,14 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/farm_alert.dart';
+import 'package:mi_cafetal/models/harvest.dart';
+import 'package:mi_cafetal/models/sowing.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/alert_service.dart';
 
-/// AppLocalizations en español para las pruebas de mensajes.
+/// AppLocalizations en espaÃ±ol para las pruebas de mensajes.
 AppLocalizations get _es => stringsFor('es');
 
 Transaction _txn({
@@ -32,17 +34,17 @@ Transaction _txn({
 }
 
 List<Crop> _crops() => const [
-      Crop(id: 'cafe', name: 'Café', icon: '☕', color: '#6D4C41'),
-      Crop(id: 'platano', name: 'Plátano', icon: '🍌', color: '#F9A825'),
+      Crop(id: 'cafe', name: 'CafÃ©', icon: 'â˜•', color: '#6D4C41'),
+      Crop(id: 'platano', name: 'PlÃ¡tano', icon: 'ðŸŒ', color: '#F9A825'),
     ];
 
 void main() {
   final now = DateTime(2026, 6, 15);
 
-  group('Regla 1 — Gasto excesivo', () {
-    test('dispara cuando mes actual > 2× promedio histórico', () {
+  group('Regla 1 â€” Gasto excesivo', () {
+    test('dispara cuando mes actual > 2Ã— promedio histÃ³rico', () {
       final txns = [
-        // Histórico manual de obra 100/mes x 3 meses
+        // HistÃ³rico manual de obra 100/mes x 3 meses
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 1, 10), category: 'mano_obra'),
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 3, 10), category: 'mano_obra'),
@@ -57,7 +59,7 @@ void main() {
       );
     });
 
-    test('NO dispara si el gasto mes actual está dentro de 2×', () {
+    test('NO dispara si el gasto mes actual estÃ¡ dentro de 2Ã—', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 1, 10), category: 'mano_obra'),
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
@@ -68,13 +70,13 @@ void main() {
       expect(
         alerts.where((a) => a.rule == AlertRule.excessiveSpending),
         isEmpty,
-        reason: '150 no supera 2×100',
+        reason: '150 no supera 2Ã—100',
       );
     });
 
     test(
         'NO dispara si un solo mes tuvo muchos movimientos puntuales '
-        '(promedio MENSUAL, no por transacción)', () {
+        '(promedio MENSUAL, no por transacciÃ³n)', () {
       final txns = [
         // Enero: 4 movimientos puntuales que suman 1000. Febrero: un solo gasto de 100.
         _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 2), category: 'mano_obra'),
@@ -82,21 +84,21 @@ void main() {
         _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 15), category: 'mano_obra'),
         _txn(type: TransactionType.expense, amount: 250, date: DateTime(2026, 1, 22), category: 'mano_obra'),
         _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
-        // Mes actual: 500. Por transacción el promedio sería 220 → dispararía
-        // (100>2×220). Por mes el promedio es 550 → no debe disparar.
+        // Mes actual: 500. Por transacciÃ³n el promedio serÃ­a 220 â†’ dispararÃ­a
+        // (100>2Ã—220). Por mes el promedio es 550 â†’ no debe disparar.
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 6, 10), category: 'mano_obra'),
       ];
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(
         alerts.where((a) => a.rule == AlertRule.excessiveSpending),
         isEmpty,
-        reason: '500 está dentro de 2×550 (promedio mensual)',
+        reason: '500 estÃ¡ dentro de 2Ã—550 (promedio mensual)',
       );
     });
   });
 
-  group('Regla 2 — Sin ingresos', () {
-    test('dispara si la última venta tiene >= 60 días', () {
+  group('Regla 2 â€” Sin ingresos', () {
+    test('dispara si la Ãºltima venta tiene >= 60 dÃ­as', () {
       final txns = [
         _txn(
           type: TransactionType.income,
@@ -123,8 +125,8 @@ void main() {
     });
   });
 
-  group('Regla 3 — Balance negativo 3+ meses', () {
-    test('dispara con 3 meses consecutivos de pérdida', () {
+  group('Regla 3 â€” Balance negativo 3+ meses', () {
+    test('dispara con 3 meses consecutivos de pÃ©rdida', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 4, 10)),
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 5, 10)),
@@ -135,7 +137,7 @@ void main() {
       expect(alerts.any((a) => a.rule == AlertRule.consecutiveLosses), isTrue);
     });
 
-    test('NO dispara con solo 2 meses de pérdida', () {
+    test('NO dispara con solo 2 meses de pÃ©rdida', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 6, 10)),
         _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 5, 10)),
@@ -145,9 +147,9 @@ void main() {
     });
   });
 
-  group('Regla 4 — Precio bajo', () {
-    test('dispara si la media de precio/kg de los últimos 30 días es menor a la histórica', () {
-      // 10 kg cada venta: histórico 100.000/kg, reciente 40.000/kg.
+  group('Regla 4 â€” Precio bajo', () {
+    test('dispara si la media de precio/kg de los Ãºltimos 30 dÃ­as es menor a la histÃ³rica', () {
+      // 10 kg cada venta: histÃ³rico 100.000/kg, reciente 40.000/kg.
       final txns = [
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
@@ -160,7 +162,7 @@ void main() {
     });
 
     test('NO dispara si la media reciente de precio/kg es mayor o igual', () {
-      // 10 kg cada venta: histórico 50.000/kg, reciente 60.000/kg.
+      // 10 kg cada venta: histÃ³rico 50.000/kg, reciente 60.000/kg.
       final txns = [
         _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
@@ -173,8 +175,8 @@ void main() {
     });
 
     test('normaliza por unidad: arroba (12.5 kg) y saco (70 kg)', () {
-      // Venta en kg a 100.000/kg (histórico) y una reciente en ARROBA que
-      // equivale a 40.000/kg → debe disparar.
+      // Venta en kg a 100.000/kg (histÃ³rico) y una reciente en ARROBA que
+      // equivale a 40.000/kg â†’ debe disparar.
       final txns = [
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
@@ -192,10 +194,10 @@ void main() {
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 3, 10), category: 'venta_cafe'),
-        // Ventas recientes menores…
+        // Ventas recientes menoresâ€¦
         _txn(type: TransactionType.income, amount: 600000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 600000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 8), category: 'venta_cafe'),
-        // …pero una subvención reciente y una venta sin cantidad NO deben
+        // â€¦pero una subvenciÃ³n reciente y una venta sin cantidad NO deben
         // contar para el promedio de precio/kg.
         _txn(type: TransactionType.income, amount: 9000000, date: DateTime(2026, 6, 12), category: 'subvenciones'),
         _txn(type: TransactionType.income, amount: 9999999, date: DateTime(2026, 6, 13), category: 'venta_cafe'),
@@ -204,7 +206,7 @@ void main() {
       expect(
         alerts.any((a) => a.rule == AlertRule.lowPrice),
         isTrue,
-        reason: '60.000/kg reciente < 100.000/kg histórico; ni subvención ni venta sin cantidad deben mezclarse',
+        reason: '60.000/kg reciente < 100.000/kg histÃ³rico; ni subvenciÃ³n ni venta sin cantidad deben mezclarse',
       );
     });
 
@@ -233,7 +235,7 @@ void main() {
     });
   });
 
-  group('Regla 5 — Cultivo deficitario', () {
+  group('Regla 5 â€” Cultivo deficitario', () {
     test('dispara ROI < -30% en un cultivo', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
@@ -251,7 +253,7 @@ void main() {
       expect(alerts.where((a) => a.rule == AlertRule.deficitCrop), isEmpty);
     });
 
-    test('aviso sin cultivo cita cuántos registros están sin asignar', () {
+    test('aviso sin cultivo cita cuÃ¡ntos registros estÃ¡n sin asignar', () {
       final txns = [
         // 3 registros sin cultivo (2 gastos + 1 venta) que no se recuperan.
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10)),
@@ -265,7 +267,7 @@ void main() {
       expect(deficit.suggestion, contains('3'));
     });
 
-    test('aviso de pérdidas cita el ROI y enuncia el problema con números', () {
+    test('aviso de pÃ©rdidas cita el ROI y enuncia el problema con nÃºmeros', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
         _txn(type: TransactionType.income, amount: 150, date: DateTime(2026, 2, 10), cropId: 'cafe'),
@@ -310,23 +312,140 @@ void main() {
       ],
     };
 
-    test('toda alerta enuncia el problema con números y sugerencia accionable', () {
+    test('toda alerta enuncia el problema con nÃºmeros y sugerencia accionable', () {
       for (final entry in scenarios.entries) {
         final alerts = AlertService(now: now).evaluate(entry.value, _crops(), _es);
         expect(alerts, isNotEmpty, reason: 'escenario "${entry.key}" debe disparar');
         for (final a in alerts) {
           expect(a.title.trim(), isNotEmpty,
-              reason: 'título de ${a.rule}');
+              reason: 'tÃ­tulo de ${a.rule}');
           expect(a.suggestion.trim(), isNotEmpty,
               reason: 'sugerencia de ${a.rule}');
           final detail = '${a.title} ${a.message}';
           expect(
             RegExp(r'\d|%').hasMatch(detail),
             isTrue,
-            reason: '${a.rule} debe citar números ($detail)',
+            reason: '${a.rule} debe citar nÃºmeros ($detail)',
           );
         }
       }
+    });
+  });
+
+  group('Regla 6-8 â€” Nivel 2 (fase, conciliaciÃ³n, siembra reciente)', () {
+    List<Crop> cropsWithPhases() => const [
+          Crop(
+            id: 'cafe',
+            name: 'CafÃ©',
+            phase: CropPhase.establecimiento,
+          ),
+          Crop(
+            id: 'platano',
+            name: 'PlÃ¡tano',
+            phase: CropPhase.produccion,
+          ),
+          Crop(
+            id: 'tomate',
+            name: 'Tomate',
+            cycle: CropCycle.anual,
+          ),
+        ];
+
+    Harvest harvest({required String cropId, required double amount,
+        required DateTime date, String unit = 'kg'}) {
+      return Harvest(
+        id: 'h_${cropId}_${date.millisecondsSinceEpoch}',
+        cropId: cropId,
+        date: date,
+        amount: amount,
+        unit: unit,
+      );
+    }
+
+    Sowing sowing({required String id, required String cropId,
+        required DateTime date}) {
+      return Sowing(id: id, cropId: cropId, date: date, plants: 100);
+    }
+
+    test('establecimiento/renovaciÃ³n emite aviso info, NO deficit danger', () {
+      // Cultivo en establecimiento con pÃ©rdida: no debe marcar peligro.
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 1000,
+            date: DateTime(2026, 1, 10), cropId: 'cafe'),
+      ];
+      final alerts =
+          AlertService(now: now).evaluate(txns, cropsWithPhases(), _es);
+      expect(alerts.any((a) => a.rule == AlertRule.cropEstablishment), isTrue);
+      expect(alerts.any((a) => a.rule == AlertRule.deficitCrop), isFalse,
+          reason: 'en establecimiento no se marca pÃ©rdida de producciÃ³n');
+    });
+
+    test('producciÃ³n mantiene deficit danger', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 1000,
+            date: DateTime(2026, 1, 10), cropId: 'platano'),
+      ];
+      final alerts =
+          AlertService(now: now).evaluate(txns, cropsWithPhases(), _es);
+      expect(alerts.any((a) => a.rule == AlertRule.deficitCrop), isTrue);
+      expect(alerts.any((a) => a.rule == AlertRule.cropEstablishment), isFalse);
+    });
+
+    test('cultivo anual (producciÃ³n) mantiene deficit danger', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 1000,
+            date: DateTime(2026, 1, 10), cropId: 'tomate'),
+      ];
+      final alerts =
+          AlertService(now: now).evaluate(txns, cropsWithPhases(), _es);
+      expect(alerts.any((a) => a.rule == AlertRule.deficitCrop), isTrue);
+    });
+
+    test('conciliaciÃ³n dispara si vendiÃ³ >1.1x lo cosechado (12 meses)', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 150,
+            unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe',
+            cropId: 'cafe'),
+      ];
+      final harvests = [
+        harvest(cropId: 'cafe', amount: 100, date: DateTime(2026, 5, 1)),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, harvests: harvests);
+      expect(alerts.any((a) => a.rule == AlertRule.harvestVsSales), isTrue);
+    });
+
+    test('conciliaciÃ³n NO dispara dentro del margen', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 100,
+            unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe',
+            cropId: 'cafe'),
+      ];
+      final harvests = [
+        harvest(cropId: 'cafe', amount: 100, date: DateTime(2026, 5, 1)),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, harvests: harvests);
+      expect(alerts.where((a) => a.rule == AlertRule.harvestVsSales), isEmpty);
+    });
+
+    test('siembra reciente (dentro de 15 dÃ­as) emite aviso info', () {
+      final sowings = [
+        sowing(id: 's1', cropId: 'cafe', date: DateTime(2026, 6, 10)),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate([], _crops(), _es, sowings: sowings);
+      expect(alerts.any((a) => a.rule == AlertRule.cropRecentlyPlanted), isTrue);
+    });
+
+    test('siembra fuera de 15 dÃ­as NO emite aviso', () {
+      final sowings = [
+        sowing(id: 's1', cropId: 'cafe', date: DateTime(2026, 5, 1)),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate([], _crops(), _es, sowings: sowings);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.cropRecentlyPlanted), isEmpty);
     });
   });
 }
