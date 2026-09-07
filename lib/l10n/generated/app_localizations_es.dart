@@ -36,6 +36,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nextStepCropSubtitle => 'Empieza registrando el cultivo que manejarás (Café, Plátano…).';
 
   @override
+  String get nextStepCropSetupTitle => 'Configura tu primer cultivo';
+
+  @override
+  String get nextStepCropSetupSubtitle => 'Revisa Café, Plátano u Otro, o crea el tuyo, y ajusta fase y área.';
+
+  @override
   String nextStepSowingTitle(String crop) {
     return 'Registra la siembra de $crop';
   }
