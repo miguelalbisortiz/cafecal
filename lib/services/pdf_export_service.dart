@@ -9,6 +9,7 @@ import '../l10n/strings.dart';
 import '../models/crop.dart';
 import '../models/currencies.dart';
 import '../models/settings.dart';
+import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 
 enum ReportPeriod { month, year, yearToDate }
@@ -151,6 +152,8 @@ class PdfExportService {
               small: true,
               valueColor: PdfColors.grey700),
           pw.SizedBox(height: 20),
+          _topAccounts(periodTx, l10n, currency),
+          pw.SizedBox(height: 20),
           pw.Text(
             l10n.pdfCropBreakdown(periodName),
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
@@ -232,6 +235,44 @@ class PdfExportService {
     final info = currencyInfo(currency);
     final s = '${info.symbol}${value.abs().toStringAsFixed(info.decimals)}';
     return value < 0 ? '($s)' : s;
+  }
+
+  /// Sección "Principales compradores / proveedores" del período.
+  /// Solo se muestra si hay ventas con cliente o gastos con proveedor.
+  pw.Widget _topAccounts(Iterable<Transaction> source,
+      AppLocalizations l10n, String currency) {
+    final accounts = TopAccounts.from(source.toList());
+    if (accounts.isEmpty) return pw.SizedBox.shrink();
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        if (accounts.clients.isNotEmpty)
+          _topAccountBlock(l10n.topClientsTitle, accounts.topClients(3),
+              currency),
+        if (accounts.providers.isNotEmpty)
+          _topAccountBlock(l10n.topProvidersTitle, accounts.topProviders(3),
+              currency),
+        pw.SizedBox(height: 6),
+      ],
+    );
+  }
+
+  pw.Widget _topAccountBlock(
+      String title, List<MapEntry<String, AccountTotal>> rows, String currency) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(title,
+            style:
+                pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+        ...rows.map((e) => _statementRow(
+              '    ${e.key} (${e.value.count})',
+              formatPdfMoney(e.value.amount, currency),
+              small: true,
+            )),
+        pw.SizedBox(height: 6),
+      ],
+    );
   }
 
   pw.Widget _cropTable(pw.Context context, Iterable<Transaction> source,

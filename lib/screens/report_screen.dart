@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../providers/transaction_provider.dart';
+import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
@@ -259,6 +260,8 @@ class _ReportScreenState extends State<ReportScreen> {
               ),
             ),
 
+            const SizedBox(height: 20),
+            _TopAccountsCard(records: records, l10n: l10n),
             const SizedBox(height: 20),
             Card(
               child: Padding(
@@ -785,6 +788,78 @@ class _CategoryRow {
     required this.amount,
     required this.isExpense,
   });
+}
+
+class _TopAccountsCard extends StatelessWidget {
+  final List<Transaction> records;
+  final AppLocalizations l10n;
+
+  const _TopAccountsCard({required this.records, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final accounts = TopAccounts.from(records);
+    if (accounts.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (accounts.clients.isNotEmpty) ...[
+              Text(
+                l10n.topClientsTitle,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ..._rows(context, accounts.topClients(3)),
+              const SizedBox(height: 14),
+            ],
+            if (accounts.providers.isNotEmpty) ...[
+              Text(
+                l10n.topProvidersTitle,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ..._rows(context, accounts.topProviders(3)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _rows(
+      BuildContext context, List<MapEntry<String, AccountTotal>> rows) {
+    return rows.map((e) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${e.key} (${e.value.count})',
+                style: const TextStyle(fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              formatMoney(context, e.value.amount),
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
 }
 
 class _CropRow {

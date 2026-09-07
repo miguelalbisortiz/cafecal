@@ -239,6 +239,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incomeFootnote => 'You are recording an INCOME. The amount will be used in your monthly summary.';
 
   @override
+  String get prodSectionTitle => 'Production data';
+
+  @override
+  String get quantityFieldLabel => 'Quantity sold';
+
+  @override
+  String get unitFieldLabel => 'Unit';
+
+  @override
+  String get unitKg => 'Kilograms (kg)';
+
+  @override
+  String get unitArroba => 'Arrobas (12.5 kg)';
+
+  @override
+  String get unitSaco => 'Bags (70 kg)';
+
+  @override
+  String get clientFieldLabel => 'Client / buyer (optional)';
+
+  @override
+  String get providerFieldLabel => 'Supplier / seller (optional)';
+
+  @override
+  String get pricePerUnitLabel => 'Price per';
+
+  @override
+  String get pricePerUnitHint => 'Calculated automatically: amount ÷ quantity';
+
+  @override
+  String get lowPriceThresholdLabel => 'Minimum sale price per kg';
+
+  @override
+  String get lowPriceThresholdHelper => 'Optional. Alert when selling coffee below this price (per kg). Leave empty to use only your history.';
+
+  @override
+  String get excelColQty => 'Quantity';
+
+  @override
+  String get excelColUnit => 'Unit';
+
+  @override
+  String get excelColPricePerUnit => 'Price per unit';
+
+  @override
+  String get excelColClient => 'Client';
+
+  @override
+  String get excelColProvider => 'Supplier';
+
+  @override
+  String get topClientsTitle => 'Top buyers';
+
+  @override
+  String get topProvidersTitle => 'Top suppliers';
+
+  @override
   String get recordSaved => 'Record saved';
 
   @override
@@ -621,6 +678,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertLowPriceSuggestion => 'Compare prices with other buyers and consider waiting for a better moment to sell part of the harvest.';
+
+  @override
+  String get alertLowPriceManualTitle => 'You sold coffee below your minimum price';
+
+  @override
+  String alertLowPriceManualMessage(String price, String threshold, String date) {
+    return 'On $date you sold at $price per kg, below your minimum price of $threshold. Consider negotiating a better price or waiting.';
+  }
 
   @override
   String alertDeficitNoCropTitle(String roi) {
