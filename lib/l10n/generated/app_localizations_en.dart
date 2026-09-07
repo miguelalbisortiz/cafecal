@@ -502,12 +502,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authNoAccount => 'No account? Register';
 
   @override
-  String get authGuest => 'Explore the app without an account';
-
-  @override
-  String get authGuestHint => 'Guest mode: sample data stays only on this device and is not synced.';
-
-  @override
   String get authCreatedMsg => 'Account created. Check your email (including spam) to confirm, then sign in.';
 
   @override

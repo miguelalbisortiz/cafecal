@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import '../providers/transaction_provider.dart';
-import '../models/transaction.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -59,15 +57,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _enterGuestMode() async {
-    final auth = context.read<AuthProvider>();
-    final tx = context.read<TransactionProvider>();
-    if (tx.transactions.isEmpty) {
-      await _seedDemoData(tx);
-    }
-    await auth.signInAsGuest();
-  }
-
   Future<void> _recoverPassword() async {
     final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
@@ -85,46 +74,6 @@ class _AuthScreenState extends State<AuthScreen> {
         content: Text(ok ? l10n.authResetSent : (auth.error ?? l10n.authSignInError)),
       ),
     );
-  }
-
-  Future<void> _seedDemoData(TransactionProvider tx) async {
-    final now = DateTime.now();
-    final sales = [3200000, 2750000, 2900000, 2400000, 3100000, 2650000];
-    for (var i = 0; i < sales.length; i++) {
-      await tx.addTransaction(
-        type: TransactionType.income,
-        category: 'Venta de café',
-        cropId: 'cafe',
-        amount: sales[i].toDouble(),
-        description: 'Venta de café ',
-        date: DateTime(now.year, now.month - i, 1),
-      );
-    }
-    await tx.addTransaction(
-      type: TransactionType.income,
-      category: 'Venta de plátano',
-      cropId: 'platano',
-      amount: 2500000,
-      description: 'Venta de plátano',
-      date: DateTime(now.year, now.month - 2, 1),
-    );
-    final exp = <List<Object?>>[
-      [DateTime(now.year, now.month - 1, 1), 'Fertilizantes', 'cafe', 450000],
-      [DateTime(now.year, now.month - 2, 1), 'Mano de obra', 'cafe', 700000],
-      [DateTime(now.year, now.month - 2, 1), 'Mano de obra', 'cafe', 620000],
-      [DateTime(now.year, now.month - 3, 1), 'Herramientas', 'platano', 300000],
-      [DateTime(now.year, now.month - 4, 1), 'Transporte', null, 180000],
-      [DateTime(now.year, now.month - 5, 1), 'Insumos', 'cafe', 350000],
-    ];
-    for (final e in exp) {
-      await tx.addTransaction(
-        type: TransactionType.expense,
-        category: e[1] as String,
-        cropId: e[2] as String?,
-        amount: (e[3] as int).toDouble(),
-        date: e[0] as DateTime,
-      );
-    }
   }
 
   @override
@@ -245,20 +194,6 @@ class _AuthScreenState extends State<AuthScreen> {
                             : l10n.authNoAccount),
                       ),
                       const SizedBox(height: 4),
-                      TextButton.icon(
-                        onPressed: auth.isLoading ? null : _enterGuestMode,
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: Text(l10n.authGuest),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          l10n.authGuestHint,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 11, color: Colors.grey),
-                        ),
-                      ),
                     ],
                   ),
                 ),

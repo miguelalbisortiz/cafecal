@@ -9,17 +9,13 @@ class AuthProvider extends ChangeNotifier {
   final LocalStore _store;
   bool _isLoading = false;
   String? _error;
-  bool _guestMode = false;
 
-  AuthProvider(this._store) {
-    _guestMode = _store.loadGuestMode();
-  }
+  AuthProvider(this._store);
 
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get isGuest => _guestMode;
 
-  bool get isLoggedIn => _guestMode || SupabaseService.instance.isAuthenticated;
+  bool get isLoggedIn => SupabaseService.instance.isAuthenticated;
 
   Future<void> init() async {
     notifyListeners();
@@ -29,7 +25,6 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       await SupabaseService.instance.signIn(email.trim(), password);
-      await _exitGuestMode();
       _error = null;
       return true;
     } catch (e) {
@@ -70,24 +65,10 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Modo visita: entra a la app sin cuenta. Los datos quedan solo en el
-  /// dispositivo y no se sincronizan.
-  Future<void> signInAsGuest() async {
-    _guestMode = true;
-    await _store.saveGuestMode(true);
-    notifyListeners();
-  }
-
   Future<void> signOut() async {
-    await _exitGuestMode();
     await SupabaseService.instance.signOut();
     await _store.clearAll();
     notifyListeners();
-  }
-
-  Future<void> _exitGuestMode() async {
-    _guestMode = false;
-    await _store.saveGuestMode(false);
   }
 
   String _friendlyAuthError(Object e) {

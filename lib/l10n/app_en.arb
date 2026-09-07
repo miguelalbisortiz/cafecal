@@ -175,8 +175,6 @@
   "authSignIn": "Sign in",
   "authHaveAccount": "Already have an account? Sign in",
   "authNoAccount": "No account? Register",
-  "authGuest": "Explore the app without an account",
-  "authGuestHint": "Guest mode: sample data stays only on this device and is not synced.",
   "authCreatedMsg": "Account created. Check your email (including spam) to confirm, then sign in.",
   "authCreateError": "Error creating the account",
   "authSignInError": "Error signing in",
