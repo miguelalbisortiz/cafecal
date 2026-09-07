@@ -290,12 +290,28 @@ class ExcelExportService {
       TextCellValue(l10n.pdfColDescription),
       TextCellValue(l10n.pdfColCrop),
       TextCellValue(l10n.pdfColAmount),
+      TextCellValue(l10n.excelColQty),
+      TextCellValue(l10n.excelColUnit),
+      TextCellValue(l10n.excelColPricePerUnit),
+      TextCellValue(l10n.excelColClient),
+      TextCellValue(l10n.excelColProvider),
     ]);
     final nameById = {for (final c in crops) c.id: c.name};
     for (final t in periodTx) {
       final cropName = t.cropId == null
           ? l10n.cropUnspecified
           : (nameById[t.cropId] ?? t.cropId!);
+      final pricePerUnit = (t.quantity != null && t.quantity! > 0)
+          ? DoubleCellValue(t.amount / t.quantity!)
+          : null;
+      final unitLabel = t.unit == null
+          ? null
+          : switch (t.unit!) {
+              'kg' => TextCellValue(l10n.unitKg),
+              'arroba' => TextCellValue(l10n.unitArroba),
+              'saco' => TextCellValue(l10n.unitSaco),
+              _ => TextCellValue(t.unit!),
+            };
       sheet.appendRow([
         TextCellValue(t.date.toIso8601String().split('T').first),
         TextCellValue(
@@ -307,9 +323,14 @@ class ExcelExportService {
         TextCellValue(t.description),
         TextCellValue(cropName),
         DoubleCellValue(t.type.isExpense ? -t.amount : t.amount),
+        t.quantity == null ? null : DoubleCellValue(t.quantity!),
+        unitLabel,
+        pricePerUnit,
+        t.client == null ? null : TextCellValue(t.client!),
+        t.provider == null ? null : TextCellValue(t.provider!),
       ]);
     }
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 11; i++) {
       sheet.setColumnWidth(i, i == 3 ? 40 : 18);
     }
   }

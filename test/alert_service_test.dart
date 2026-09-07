@@ -15,6 +15,8 @@ Transaction _txn({
   required DateTime date,
   String category = 'otro',
   String? cropId,
+  double? quantity,
+  String? unit,
 }) {
   return Transaction(
     id: '${type.name}_${amount}_${date.millisecondsSinceEpoch}',
@@ -22,6 +24,8 @@ Transaction _txn({
     cropId: cropId,
     category: category,
     amount: amount,
+    quantity: quantity,
+    unit: unit,
     date: date,
     createdAt: DateTime(2026, 1, 1),
   );
@@ -142,48 +146,90 @@ void main() {
   });
 
   group('Regla 4 — Precio bajo', () {
-    test('dispara si la media de los últimos 30 días es menor a la histórica', () {
+    test('dispara si la media de precio/kg de los últimos 30 días es menor a la histórica', () {
+      // 10 kg cada venta: histórico 100.000/kg, reciente 40.000/kg.
       final txns = [
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 400000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 400000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 8), category: 'venta_cafe'),
       ];
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.any((a) => a.rule == AlertRule.lowPrice), isTrue);
     });
 
-    test('NO dispara si la media reciente es mayor o igual', () {
+    test('NO dispara si la media reciente de precio/kg es mayor o igual', () {
+      // 10 kg cada venta: histórico 50.000/kg, reciente 60.000/kg.
       final txns = [
-        _txn(type: TransactionType.income, amount: 500, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 500, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 500, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 600000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 600000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 8), category: 'venta_cafe'),
       ];
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(alerts.where((a) => a.rule == AlertRule.lowPrice), isEmpty);
     });
 
-    test('ignora subvenciones: solo compara ventas reales', () {
+    test('normaliza por unidad: arroba (12.5 kg) y saco (70 kg)', () {
+      // Venta en kg a 100.000/kg (histórico) y una reciente en ARROBA que
+      // equivale a 40.000/kg → debe disparar.
       final txns = [
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        // 1 arroba a $500.000 = 500.000 / 12.5 = 40.000/kg.
+        _txn(type: TransactionType.income, amount: 500000, quantity: 1, unit: 'arroba', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 500000, quantity: 1, unit: 'arroba', date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(alerts.any((a) => a.rule == AlertRule.lowPrice), isTrue);
+    });
+
+    test('ignora subvenciones y ventas sin cantidad: solo compara ventas con volumen', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 3, 10), category: 'venta_cafe'),
         // Ventas recientes menores…
-        _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 600, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
-        // …pero una subvención reciente de $9.000 subiría el promedio si se
-        // mezclara con las ventas y ocultaría la caída.
-        _txn(type: TransactionType.income, amount: 9000, date: DateTime(2026, 6, 12), category: 'subvenciones'),
+        _txn(type: TransactionType.income, amount: 600000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 600000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+        // …pero una subvención reciente y una venta sin cantidad NO deben
+        // contar para el promedio de precio/kg.
+        _txn(type: TransactionType.income, amount: 9000000, date: DateTime(2026, 6, 12), category: 'subvenciones'),
+        _txn(type: TransactionType.income, amount: 9999999, date: DateTime(2026, 6, 13), category: 'venta_cafe'),
       ];
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       expect(
         alerts.any((a) => a.rule == AlertRule.lowPrice),
         isTrue,
-        reason: '600 por venta < 1000 histórico, la subvención no debe contar',
+        reason: '60.000/kg reciente < 100.000/kg histórico; ni subvención ni venta sin cantidad deben mezclarse',
       );
+    });
+
+    test('dispara con umbral manual cuando se vende por debajo (precio/kg)', () {
+      final txns = [
+        // 3 ventas de 10kg: una reciente a $20.000/kg con umbral $80.000.
+        _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 500000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 200000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, manualThresholdPerKg: 80000);
+      expect(alerts.any((a) => a.rule == AlertRule.lowPrice), isTrue);
+      expect(alerts.any((a) => a.id == 'low_price_manual'), isTrue);
+    });
+
+    test('NO dispara con umbral manual si todo se vende arriba', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, manualThresholdPerKg: 80000);
+      expect(alerts.where((a) => a.id == 'low_price_manual'), isEmpty);
     });
   });
 
@@ -253,11 +299,11 @@ void main() {
         _txn(type: TransactionType.income, amount: 100, date: DateTime(2026, 4, 15)),
       ],
       'precio bajo': [
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
-        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 2, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 400000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+        _txn(type: TransactionType.income, amount: 400000, quantity: 10, unit: 'kg', date: DateTime(2026, 6, 8), category: 'venta_cafe'),
       ],
       'cultivo deficitario': [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),

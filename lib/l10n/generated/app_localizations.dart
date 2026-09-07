@@ -551,6 +551,120 @@ abstract class AppLocalizations {
   /// **'Vas a registrar un INGRESO. El monto se usará en tu resumen del mes.'**
   String get incomeFootnote;
 
+  /// No description provided for @prodSectionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de producción'**
+  String get prodSectionTitle;
+
+  /// No description provided for @quantityFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cantidad vendida'**
+  String get quantityFieldLabel;
+
+  /// No description provided for @unitFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad'**
+  String get unitFieldLabel;
+
+  /// No description provided for @unitKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Kilogramos (kg)'**
+  String get unitKg;
+
+  /// No description provided for @unitArroba.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrobas (12.5 kg)'**
+  String get unitArroba;
+
+  /// No description provided for @unitSaco.
+  ///
+  /// In es, this message translates to:
+  /// **'Sacos (70 kg)'**
+  String get unitSaco;
+
+  /// No description provided for @clientFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cliente / comprador (opcional)'**
+  String get clientFieldLabel;
+
+  /// No description provided for @providerFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Proveedor / vendedor (opcional)'**
+  String get providerFieldLabel;
+
+  /// No description provided for @pricePerUnitLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio por'**
+  String get pricePerUnitLabel;
+
+  /// No description provided for @pricePerUnitHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Se calcula automáticamente: monto ÷ cantidad'**
+  String get pricePerUnitHint;
+
+  /// No description provided for @lowPriceThresholdLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio mínimo de venta por kg'**
+  String get lowPriceThresholdLabel;
+
+  /// No description provided for @lowPriceThresholdHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Si vendes café por debajo de este precio (por kg), se mostrará una alerta. Déjalo vacío para usar solo tu historial.'**
+  String get lowPriceThresholdHelper;
+
+  /// No description provided for @excelColQty.
+  ///
+  /// In es, this message translates to:
+  /// **'Cantidad'**
+  String get excelColQty;
+
+  /// No description provided for @excelColUnit.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad'**
+  String get excelColUnit;
+
+  /// No description provided for @excelColPricePerUnit.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio por unidad'**
+  String get excelColPricePerUnit;
+
+  /// No description provided for @excelColClient.
+  ///
+  /// In es, this message translates to:
+  /// **'Cliente'**
+  String get excelColClient;
+
+  /// No description provided for @excelColProvider.
+  ///
+  /// In es, this message translates to:
+  /// **'Proveedor'**
+  String get excelColProvider;
+
+  /// No description provided for @topClientsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Principales compradores'**
+  String get topClientsTitle;
+
+  /// No description provided for @topProvidersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Principales proveedores'**
+  String get topProvidersTitle;
+
   /// No description provided for @recordSaved.
   ///
   /// In es, this message translates to:
@@ -1162,6 +1276,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Compara precios con otros compradores y evalúa esperar un mejor momento para vender parte de la cosecha.'**
   String get alertLowPriceSuggestion;
+
+  /// No description provided for @alertLowPriceManualTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendiste café por debajo de tu precio mínimo'**
+  String get alertLowPriceManualTitle;
+
+  /// No description provided for @alertLowPriceManualMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El {date} vendiste a {price} por kg, por debajo de tu precio mínimo de {threshold}. Considera negociar un mejor precio o esperar.'**
+  String alertLowPriceManualMessage(String price, String threshold, String date);
 
   /// No description provided for @alertDeficitNoCropTitle.
   ///

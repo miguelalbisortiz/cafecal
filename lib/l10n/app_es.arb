@@ -91,6 +91,25 @@
   "saveChanges": "Guardar cambios",
   "expenseFootnote": "Vas a registrar un GASTO. El monto se usará en tu resumen del mes.",
   "incomeFootnote": "Vas a registrar un INGRESO. El monto se usará en tu resumen del mes.",
+  "prodSectionTitle": "Datos de producción",
+  "quantityFieldLabel": "Cantidad vendida",
+  "unitFieldLabel": "Unidad",
+  "unitKg": "Kilogramos (kg)",
+  "unitArroba": "Arrobas (12.5 kg)",
+  "unitSaco": "Sacos (70 kg)",
+  "clientFieldLabel": "Cliente / comprador (opcional)",
+  "providerFieldLabel": "Proveedor / vendedor (opcional)",
+  "pricePerUnitLabel": "Precio por",
+  "pricePerUnitHint": "Se calcula automáticamente: monto ÷ cantidad",
+  "lowPriceThresholdLabel": "Precio mínimo de venta por kg",
+  "lowPriceThresholdHelper": "Opcional. Si vendes café por debajo de este precio (por kg), se mostrará una alerta. Déjalo vacío para usar solo tu historial.",
+  "excelColQty": "Cantidad",
+  "excelColUnit": "Unidad",
+  "excelColPricePerUnit": "Precio por unidad",
+  "excelColClient": "Cliente",
+  "excelColProvider": "Proveedor",
+  "topClientsTitle": "Principales compradores",
+  "topProvidersTitle": "Principales proveedores",
   "recordSaved": "Registro guardado",
   "recordUpdated": "Movimiento actualizado",
   "recordDeleted": "Movimiento eliminado",
@@ -279,6 +298,15 @@
   },
   "alertLowPriceMessage": "El problema: en los últimos 30 días cada venta te rinde en promedio {recentAvg}, por debajo de tu promedio histórico por venta ({histAvg}).",
   "alertLowPriceSuggestion": "Compara precios con otros compradores y evalúa esperar un mejor momento para vender parte de la cosecha.",
+  "alertLowPriceManualTitle": "Vendiste café por debajo de tu precio mínimo",
+  "@alertLowPriceManualMessage": {
+    "placeholders": {
+      "price": { "type": "String" },
+      "threshold": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "alertLowPriceManualMessage": "El {date} vendiste a {price} por kg, por debajo de tu precio mínimo de {threshold}. Considera negociar un mejor precio o esperar.",
   "@alertDeficitNoCropTitle": {
     "placeholders": { "roi": { "type": "String" } }
   },

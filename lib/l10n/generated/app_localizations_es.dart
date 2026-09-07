@@ -239,6 +239,63 @@ class AppLocalizationsEs extends AppLocalizations {
   String get incomeFootnote => 'Vas a registrar un INGRESO. El monto se usará en tu resumen del mes.';
 
   @override
+  String get prodSectionTitle => 'Datos de producción';
+
+  @override
+  String get quantityFieldLabel => 'Cantidad vendida';
+
+  @override
+  String get unitFieldLabel => 'Unidad';
+
+  @override
+  String get unitKg => 'Kilogramos (kg)';
+
+  @override
+  String get unitArroba => 'Arrobas (12.5 kg)';
+
+  @override
+  String get unitSaco => 'Sacos (70 kg)';
+
+  @override
+  String get clientFieldLabel => 'Cliente / comprador (opcional)';
+
+  @override
+  String get providerFieldLabel => 'Proveedor / vendedor (opcional)';
+
+  @override
+  String get pricePerUnitLabel => 'Precio por';
+
+  @override
+  String get pricePerUnitHint => 'Se calcula automáticamente: monto ÷ cantidad';
+
+  @override
+  String get lowPriceThresholdLabel => 'Precio mínimo de venta por kg';
+
+  @override
+  String get lowPriceThresholdHelper => 'Opcional. Si vendes café por debajo de este precio (por kg), se mostrará una alerta. Déjalo vacío para usar solo tu historial.';
+
+  @override
+  String get excelColQty => 'Cantidad';
+
+  @override
+  String get excelColUnit => 'Unidad';
+
+  @override
+  String get excelColPricePerUnit => 'Precio por unidad';
+
+  @override
+  String get excelColClient => 'Cliente';
+
+  @override
+  String get excelColProvider => 'Proveedor';
+
+  @override
+  String get topClientsTitle => 'Principales compradores';
+
+  @override
+  String get topProvidersTitle => 'Principales proveedores';
+
+  @override
   String get recordSaved => 'Registro guardado';
 
   @override
@@ -621,6 +678,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertLowPriceSuggestion => 'Compara precios con otros compradores y evalúa esperar un mejor momento para vender parte de la cosecha.';
+
+  @override
+  String get alertLowPriceManualTitle => 'Vendiste café por debajo de tu precio mínimo';
+
+  @override
+  String alertLowPriceManualMessage(String price, String threshold, String date) {
+    return 'El $date vendiste a $price por kg, por debajo de tu precio mínimo de $threshold. Considera negociar un mejor precio o esperar.';
+  }
 
   @override
   String alertDeficitNoCropTitle(String roi) {
