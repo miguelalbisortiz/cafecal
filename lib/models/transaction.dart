@@ -23,6 +23,14 @@ class Transaction {
   final bool pendingSync;
   final bool deleted;
 
+  // ---- Capa productiva (Nivel 1) ----
+  // Volumen/precio: aplica principalmente a ventas y compras con cantidad.
+  final double? quantity; // cantidad vendida/comprada
+  final String? unit; // 'kg' | 'arroba' | 'saco'
+  final double? pricePerUnit; // derivable = amount / quantity
+  final String? client; // ingreso: comprador
+  final String? provider; // gasto: proveedor/vendedor
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -35,6 +43,11 @@ class Transaction {
     required this.createdAt,
     this.pendingSync = false,
     this.deleted = false,
+    this.quantity,
+    this.unit,
+    this.pricePerUnit,
+    this.client,
+    this.provider,
   });
 
   Transaction copyWith({
@@ -49,6 +62,11 @@ class Transaction {
     DateTime? createdAt,
     bool? pendingSync,
     bool? deleted,
+    double? quantity,
+    String? unit,
+    double? pricePerUnit,
+    String? client,
+    String? provider,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -62,6 +80,11 @@ class Transaction {
       createdAt: createdAt ?? this.createdAt,
       pendingSync: pendingSync ?? this.pendingSync,
       deleted: deleted ?? this.deleted,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      pricePerUnit: pricePerUnit ?? this.pricePerUnit,
+      client: client ?? this.client,
+      provider: provider ?? this.provider,
     );
   }
 
@@ -77,6 +100,11 @@ class Transaction {
         'created_at': createdAt.toIso8601String(),
         'pending_sync': pendingSync,
         'deleted': deleted,
+        'quantity': quantity,
+        'unit': unit,
+        'price_per_unit': pricePerUnit,
+        'client': client,
+        'provider': provider,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -92,6 +120,11 @@ class Transaction {
       createdAt: DateTime.parse(json['created_at'] as String),
       pendingSync: (json['pending_sync'] as bool?) ?? false,
       deleted: (json['deleted'] as bool?) ?? false,
+      quantity: (json['quantity'] as num?)?.toDouble(),
+      unit: json['unit'] as String?,
+      pricePerUnit: (json['price_per_unit'] as num?)?.toDouble(),
+      client: json['client'] as String?,
+      provider: json['provider'] as String?,
     );
   }
 }
