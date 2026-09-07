@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../models/categories.dart';
+import '../models/harvest.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
@@ -32,6 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _category;
   String? _cropId;
   String? _unit;
+  String? _harvestId;
   DateTime _date = DateTime.now();
 
   static const _saleCategories = {
@@ -54,6 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _cropId = e.cropId;
       _date = e.date;
       _unit = e.unit;
+      _harvestId = e.harvestId;
       if (e.quantity != null) {
         _quantityController.text = (e.quantity! % 1 == 0)
             ? e.quantity!.toInt().toString()
@@ -134,6 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final provider = _type == TransactionType.expense
         ? _providerController.text.trim()
         : null;
+    final harvestId = _type == TransactionType.expense ? _harvestId : null;
 
     final editing = widget.editing;
     if (editing != null) {
@@ -156,6 +160,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         unit: unit,
         client: client,
         provider: provider,
+        harvestId: harvestId,
+        sowingId: editing.sowingId,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,6 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       unit: unit,
       client: client,
       provider: provider,
+      harvestId: harvestId,
     );
 
     // Recuerda el cultivo elegido para preseleccionarlo la próxima vez.
@@ -233,6 +240,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
     Navigator.pop(context);
+  }
+
+  String _effectiveUnit(TransactionProvider tx) {
+    // Si el usuario no eligió unidad y el cultivo tiene una preferida, la usa.
+    // Una transacción guardada conserva su unidad almacenada.
+    if (_unit != null) return _unit!;
+    if (_cropId != null) {
+      final matches = tx.crops.where((c) => c.id == _cropId).toList();
+      if (matches.isNotEmpty && matches.first.defaultUnit != null) {
+        return matches.first.defaultUnit!;
+      }
+    }
+    return 'kg';
+  }
+
+  /// Cosechas del cultivo activo ordenadas de más reciente a más antigua,
+  /// usadas para vincular el gasto con una cosecha.
+  List<Harvest> _linkedHarvests(TransactionProvider tx) {
+    if (_cropId == null) return const [];
+    final list = tx.harvestsFor(_cropId).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+    return list;
   }
 
   @override
@@ -313,7 +342,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               if (v == _newCropOption) {
                 _createCrop();
               } else {
-                setState(() => _cropId = v);
+                setState(() {
+                  _cropId = v;
+                  _unit = null;
+                  _harvestId = null;
+                });
               }
             },
           ),
@@ -364,7 +397,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             // Unidad
             DropdownButtonFormField<String>(
-              value: _unit,
+              value: _effectiveUnit(tx),
               decoration: InputDecoration(
                 labelText: l10n.unitFieldLabel,
                 prefixIcon: const Icon(Icons.category_outlined),
@@ -374,6 +407,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 DropdownMenuItem(value: 'kg', child: Text(l10n.unitKg)),
                 DropdownMenuItem(value: 'arroba', child: Text(l10n.unitArroba)),
                 DropdownMenuItem(value: 'saco', child: Text(l10n.unitSaco)),
+                DropdownMenuItem(value: 'racimo', child: Text(l10n.unitRacimo)),
+                DropdownMenuItem(value: 'cajon', child: Text(l10n.unitCajon)),
               ],
               onChanged: (v) => setState(() => _unit = v),
             ),
@@ -416,6 +451,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 12),
+            // Vincular a cosecha (solo gastos): las cosechas recientes del
+            // cultivo elegido, para asociar el pago de recogida.
+            if (_cropId != null && _linkedHarvests(tx).isNotEmpty) ...[
+              DropdownButtonFormField<String?>(
+                value: _harvestId,
+                decoration: InputDecoration(
+                  labelText: l10n.expenseLinkHarvestLabel,
+                  prefixIcon: const Icon(Icons.link),
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(l10n.expenseLinkHarvestNone),
+                  ),
+                  ..._linkedHarvests(tx).map((h) => DropdownMenuItem<String?>(
+                        value: h.id,
+                        child: Text(
+                          '${h.date.day.toString().padLeft(2, '0')}/'
+                          '${h.date.month.toString().padLeft(2, '0')}/'
+                          '${h.date.year} · '
+                          '${h.amount.toStringAsFixed(h.amount % 1 == 0 ? 0 : 2)}',
+                        ),
+                      )),
+                ],
+                onChanged: (v) => setState(() => _harvestId = v),
+              ),
+            ],
             const SizedBox(height: 16),
           ],
 
