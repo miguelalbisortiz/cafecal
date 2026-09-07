@@ -11,7 +11,14 @@ class NextStepCard extends StatelessWidget {
   /// Qué hacer cuando el usuario pulsa la acción del paso.
   final void Function(NextStepType type) onAction;
 
-  const NextStepCard({super.key, required this.onAction});
+  /// Qué hacer al pulsar "Ver guía completa" (sección Ayuda).
+  final VoidCallback onOpenGuide;
+
+  const NextStepCard({
+    super.key,
+    required this.onAction,
+    required this.onOpenGuide,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,8 +102,20 @@ class NextStepCard extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                        scheme.onPrimaryContainer.withOpacity(0.75),
+                    color: scheme.onPrimaryContainer.withOpacity(0.75),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: onOpenGuide,
+                    icon: const Icon(Icons.menu_book_outlined, size: 14),
+                    label: Text(l10n.nextStepGuideLink),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      foregroundColor: scheme.onPrimaryContainer,
+                    ),
                   ),
                 ),
               ],

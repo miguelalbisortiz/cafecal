@@ -209,6 +209,180 @@ abstract class AppLocalizations {
   /// **'Vincula la venta a la cosecha para ver tu ganancia real.'**
   String get nextStepSaleSubtitle;
 
+  /// No description provided for @nextStepGuideLink.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver guía completa'**
+  String get nextStepGuideLink;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get helpTitle;
+
+  /// No description provided for @helpSectionGuide.
+  ///
+  /// In es, this message translates to:
+  /// **'Guía de primeros pasos'**
+  String get helpSectionGuide;
+
+  /// No description provided for @helpIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Mi Cafetal lleva las cuentas de tu finca: cuánto inviertes, produces y vendes, por cultivo, por mes y por año.'**
+  String get helpIntro;
+
+  /// No description provided for @helpIntroPromesa.
+  ///
+  /// In es, this message translates to:
+  /// **'La app nunca adivina tu producción: los números salen de lo que tú registras. Cuanto más completo sea tu registro, más útiles son los resultados.'**
+  String get helpIntroPromesa;
+
+  /// No description provided for @helpWhereTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Dónde entro cada dato?'**
+  String get helpWhereTitle;
+
+  /// No description provided for @helpRowOverview.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen de tu finca (ingresos, gastos y balance)'**
+  String get helpRowOverview;
+
+  /// No description provided for @helpRowCrops.
+  ///
+  /// In es, this message translates to:
+  /// **'Definir los cultivos de tu finca'**
+  String get helpRowCrops;
+
+  /// No description provided for @helpRowSowings.
+  ///
+  /// In es, this message translates to:
+  /// **'Sembrar o resembrar'**
+  String get helpRowSowings;
+
+  /// No description provided for @helpRowHarvests.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar lo recogido'**
+  String get helpRowHarvests;
+
+  /// No description provided for @helpRowExpenses.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos (insumos, mano de obra…)'**
+  String get helpRowExpenses;
+
+  /// No description provided for @helpRowIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Ventas de la cosecha'**
+  String get helpRowIncome;
+
+  /// No description provided for @helpCaseTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Por dónde empiezo? Según tu caso'**
+  String get helpCaseTitle;
+
+  /// No description provided for @helpCaseATitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Caso A — Ya tengo los cultivos sembrados'**
+  String get helpCaseATitle;
+
+  /// No description provided for @helpCaseA1.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultivos: revisa Café y Plátano y pon su fase en Producción (si conoces el dato, área y plantas vivas).'**
+  String get helpCaseA1;
+
+  /// No description provided for @helpCaseA2.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar: anota los gastos del mes (insumos, mano de obra).'**
+  String get helpCaseA2;
+
+  /// No description provided for @helpCaseA3.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechas: al recoger, registra la cosecha con su destino.'**
+  String get helpCaseA3;
+
+  /// No description provided for @helpCaseA4.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar: al vender, registra el ingreso de la venta.'**
+  String get helpCaseA4;
+
+  /// No description provided for @helpCaseAEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa el Resumen: balance e indicadores empiezan a cobrar sentido.'**
+  String get helpCaseAEnd;
+
+  /// No description provided for @helpCaseBTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Caso B — Voy a sembrar algo nuevo'**
+  String get helpCaseBTitle;
+
+  /// No description provided for @helpCaseB1.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultivos: crea tu cultivo con fase Establecimiento (ciclo Anual o Perenne).'**
+  String get helpCaseB1;
+
+  /// No description provided for @helpCaseB2.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembras: registra la siembra inicial (plantas y área; puedes vincular su costo).'**
+  String get helpCaseB2;
+
+  /// No description provided for @helpCaseB3.
+  ///
+  /// In es, this message translates to:
+  /// **'En establecimiento la app no marca pérdidas: es inversión, no producción.'**
+  String get helpCaseB3;
+
+  /// No description provided for @helpCaseB4.
+  ///
+  /// In es, this message translates to:
+  /// **'Al pasar a Producción, sigue el flujo de cosechas y ventas del Caso A.'**
+  String get helpCaseB4;
+
+  /// No description provided for @helpUnitsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidades'**
+  String get helpUnitsTitle;
+
+  /// No description provided for @helpUnitsBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa kg, o arroba (12.5 kg) y saco (70 kg) para café. La app convierte todo a kg para comparar.'**
+  String get helpUnitsBody;
+
+  /// No description provided for @helpGlossaryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Glosario'**
+  String get helpGlossaryTitle;
+
+  /// No description provided for @helpGlossaryBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Plantines: plantío joven en establecimiento. Área: superficie del cultivo. Plantas vivas: total vigente (siembra − bajas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guarda en la nube para entrar desde cualquier dispositivo. Alerta: aviso automático en el Resumen.'**
+  String get helpGlossaryBody;
+
+  /// No description provided for @helpGlossaryFinance.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver glosario financiero'**
+  String get helpGlossaryFinance;
+
   /// No description provided for @syncTooltip.
   ///
   /// In es, this message translates to:
@@ -244,6 +418,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cosechas'**
   String get menuHarvests;
+
+  /// No description provided for @menuHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get menuHelp;
 
   /// No description provided for @unitRacimo.
   ///
