@@ -11,6 +11,8 @@
   "nextStepAction": "Ir",
   "nextStepCropTitle": "Crea tu primer cultivo",
   "nextStepCropSubtitle": "Empieza registrando el cultivo que manejarás (Café, Plátano…).",
+  "nextStepCropSetupTitle": "Configura tu primer cultivo",
+  "nextStepCropSetupSubtitle": "Revisa Café, Plátano u Otro, o crea el tuyo, y ajusta fase y área.",
   "@nextStepSowingTitle": {
     "placeholders": { "crop": { "type": "String" } }
   },

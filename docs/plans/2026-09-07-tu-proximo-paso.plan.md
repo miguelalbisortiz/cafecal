@@ -36,7 +36,7 @@ En el Home, antes de los resúmenes, se muestra una **tarjeta compacta** con:
 
 | # | Condición | Paso que muestra |
 |---|---|---|
-| 1 | `crops.isEmpty` | "Crea tu primer cultivo" → **Cultivos** |
+| 1 | `crops.isEmpty`, **o solo los 3 cultivos por defecto sin configurar y sin ningún dato** (ni gastos, ni siembras, ni cosechas) | "Crea tu primer cultivo" / "Configura tu primer cultivo" → **Cultivos** |
 | 2 | Existe cultivo en `establecimiento` (o `renovacion`) sin ninguna siembra para ese cultivo | "Registra la siembra de {cultivo}" → **Siembras** |
 | 3 | Existe cultivo (cualquier fase) y `transactions` sin gastos en el año | "Registra tus primeros gastos" → **Registrar (Gasto)** |
 | 4 | Existe cultivo en `produccion` con gastos pero sin cosechas | "Registra tu primera cosecha" → **Cosechas** |
@@ -55,6 +55,12 @@ En el Home, antes de los resúmenes, se muestra una **tarjeta compacta** con:
   - Cultivo nuevo en `establecimiento` → la app te lleva a la **siembra**.
   - Cultivo ya productivo (`produccion`) sin siembra → **no sugiere siembra** (finca
     establecida), salta a gastos/cosechas. La siembra no debe exigirse.
+- **Arranque por el cultivo**: `loadCrops()` siembra siempre los 3 cultivos por
+  defecto (Café/Plátano/Otro, en `produccion`), así que `crops` nunca está vacío en
+  una cuenta nueva. Para que la guía no salte a "gastos", la regla 1 también aplica
+  cuando los cultivos son **solo los por defecto, sin tocar** y **no hay ningún dato**
+  (sin gastos, siembras ni cosechas) → el primer paso es revisar/configurar el
+  cultivo. En cuanto hay algún dato o un cultivo configurado, siguen las reglas 2-5.
 - **Respeto al demo**: si entró por modo invitado con datos demo (que ya vienen con
   cultivos, ventas y gastos), la tarjeta **no debería aparecer** salvo que falte algo
   real (ej. no hay cosechas). La condición del paso 4/5 lo cubre naturalmente.
@@ -102,8 +108,9 @@ En el Home, antes de los resúmenes, se muestra una **tarjeta compacta** con:
 
 ## Criterios de aceptación (observables)
 
-- **AC-1**: Sin cultivos → la tarjeta muestra **"Crea tu primer cultivo"** y navega a
-  Cultivos al pulsar el CTA.
+- **AC-1**: Cuenta nueva (sin cultivos, o solo los 3 por defecto sin datos) → la
+  tarjeta muestra el paso de **cultivo** ("Crea tu primer cultivo" si está vacío,
+  "Configura tu primer cultivo" si son los defaults) y navega a Cultivos.
 - **AC-2**: Con un cultivo nuevo en `establecimiento` y sin siembras → la tarjeta
   muestra **"Registra la siembra de {cultivo}"** (no salta a gastos).
 - **AC-3**: Con un cultivo en `produccion` y sin siembras → **no sugiere siembra**;

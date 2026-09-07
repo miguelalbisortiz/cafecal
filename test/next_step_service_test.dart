@@ -47,6 +47,42 @@ void main() {
       expect(step?.type, NextStepType.crop);
     });
 
+    test('solo cultivos por defecto sin tocar y sin datos sugiere configurar el cultivo', () {
+      final step = nextStepFor(
+        crops: defaultCrops,
+        sowings: const [],
+        harvests: const [],
+        transactions: const [],
+        year: year,
+      );
+      expect(step?.type, NextStepType.crop);
+    });
+
+    test('solo defaults pero con gastos ya no pide el cultivo (siguen reglas 3-5)', () {
+      final step = nextStepFor(
+        crops: defaultCrops,
+        sowings: const [],
+        harvests: const [],
+        transactions: [_txn('e1', category: 'cosecha')],
+        year: year,
+      );
+      expect(step?.type, NextStepType.harvest);
+    });
+
+    test('demo (defaults + ventas y gastos, sin cosechas) sugiere cosecha, no siembra', () {
+      final step = nextStepFor(
+        crops: defaultCrops,
+        sowings: const [],
+        harvests: const [],
+        transactions: [
+          _txn('e1', category: 'cosecha'),
+          _txn('i1', type: TransactionType.income, category: 'Venta de café'),
+        ],
+        year: year,
+      );
+      expect(step?.type, NextStepType.harvest);
+    });
+
     test('establecimiento sin siembra propia sugiere sembrar ese cultivo', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.establecimiento)],

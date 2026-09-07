@@ -33,6 +33,25 @@ class NextStep {
 
 const Set<String> _saleCategories = {'venta_cafe', 'venta_platano', 'venta_otro'};
 
+/// True si el cultivo conserva exactamente los valores por defecto con los que
+/// la app siembra los cultivos (sin que el usuario los haya configurado).
+bool _isUntouchedDefault(Crop c) =>
+    c.phase == CropPhase.produccion &&
+    c.cycle == CropCycle.perenne &&
+    c.defaultUnit == null &&
+    c.areaHa == null &&
+    c.livePlants == null;
+
+/// True si la lista son solo los 3 cultivos por defecto (Café, Plátano, Otro)
+/// intactos — el usuario aún no configura nada propio.
+bool _onlyUntouchedDefaults(List<Crop> crops) {
+  if (crops.length != defaultCrops.length) return false;
+  final names = {'café', 'plátano', 'otro'};
+  return crops.every(
+    (c) => names.contains(c.name.trim().toLowerCase()) && _isUntouchedDefault(c),
+  );
+}
+
 /// Deriva EL siguiente paso que el usuario debe completar, según el estado
 /// actual de sus datos. Reglas en orden de prioridad:
 ///
@@ -45,6 +64,9 @@ const Set<String> _saleCategories = {'venta_cafe', 'venta_platano', 'venta_otro'
 /// 5. Con cosecha pero sin ventas → registrar venta de la cosecha.
 ///
 /// Cero estado guardado: se recalcula en cada llamada y aparece/desaparece solo.
+/// 1. Sin cultivos, o solo los por defecto sin configurar y sin ningún dato
+///    registrado → revisar/crear el primer cultivo (así la tarjeta arranca por
+///    el cultivo, como explica la guía, y no salta a los gastos).
 NextStep? nextStepFor({
   required List<Crop> crops,
   required List<Sowing> sowings,
@@ -52,7 +74,10 @@ NextStep? nextStepFor({
   required List<Transaction> transactions,
   required int year,
 }) {
-  if (crops.isEmpty) {
+  final hasAnyData = sowings.isNotEmpty ||
+      harvests.isNotEmpty ||
+      transactions.any((t) => !t.deleted);
+  if ((crops.isEmpty || _onlyUntouchedDefaults(crops)) && !hasAnyData) {
     return const NextStep(type: NextStepType.crop);
   }
 

@@ -11,6 +11,8 @@
   "nextStepAction": "Go",
   "nextStepCropTitle": "Create your first crop",
   "nextStepCropSubtitle": "Start by recording the crop you manage (Coffee, Plantain…).",
+  "nextStepCropSetupTitle": "Set up your first crop",
+  "nextStepCropSetupSubtitle": "Review Coffee, Plantain or Other, or create yours, and adjust stage and area.",
   "@nextStepSowingTitle": {
     "placeholders": { "crop": { "type": "String" } }
   },
