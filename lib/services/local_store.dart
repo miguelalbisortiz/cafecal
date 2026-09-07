@@ -53,8 +53,10 @@ class LocalStore {
     if (raw == null || raw.isEmpty) return List.of(defaultCrops);
     try {
       final list = jsonDecode(raw) as List<dynamic>;
+      final seen = <String>{};
       return list
           .map((e) => Crop.fromJson((e as Map).cast<String, dynamic>()))
+          .where((c) => seen.add(c.name.trim().toLowerCase()))
           .toList();
     } catch (_) {
       return List.of(defaultCrops);
