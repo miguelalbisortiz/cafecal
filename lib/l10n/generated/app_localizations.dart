@@ -1073,18 +1073,6 @@ abstract class AppLocalizations {
   /// **'¿No tienes cuenta? Regístrate'**
   String get authNoAccount;
 
-  /// No description provided for @authGuest.
-  ///
-  /// In es, this message translates to:
-  /// **'Explorar la app sin cuenta'**
-  String get authGuest;
-
-  /// No description provided for @authGuestHint.
-  ///
-  /// In es, this message translates to:
-  /// **'Modo visita: los datos de ejemplo quedan solo en este dispositivo y no se sincronizan.'**
-  String get authGuestHint;
-
   /// No description provided for @authCreatedMsg.
   ///
   /// In es, this message translates to:
