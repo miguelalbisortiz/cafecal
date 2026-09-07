@@ -16,8 +16,9 @@ class AlertService {
 
   final DateTime? _now;
 
-  List<FarmAlert> evaluate(
-      List<Transaction> transactions, List<Crop> crops, AppLocalizations l10n) {
+  List<FarmAlert> evaluate(List<Transaction> transactions, List<Crop> crops,
+      AppLocalizations l10n,
+      {double? manualThresholdPerKg}) {
     final now = _now ?? DateTime.now();
     final alerts = <FarmAlert>[];
     final active = transactions.where((t) => !t.deleted).toList();
@@ -25,7 +26,8 @@ class AlertService {
     _checkExcessiveSpending(active, now, l10n, alerts);
     _checkNoIncome(active, now, l10n, alerts);
     _checkConsecutiveLosses(active, now, l10n, alerts);
-    _checkLowPrice(active, now, l10n, alerts);
+    _checkLowPrice(active, now, l10n, alerts,
+        manualThresholdPerKg: manualThresholdPerKg);
     _checkDeficitCrop(active, crops, l10n, alerts);
 
     return alerts;
@@ -171,24 +173,64 @@ final catHistory =
     }
   }
 
-  // ---- Regla 4: precio de venta < promedio histórico ----
+  // ---- Regla 4: precio de venta bajo ----
+  // Compara el PRECIO POR KILOGRAMO (monto ÷ cantidad normalizada) de las
+  // ventas recientes contra (a) el promedio histórico propio y (b) un umbral
+  // manual opcional configurado en ajustes. Dispara si alguna condición se
+  // cumple. Solo ventas reales (categoría venta_*) con cantidad registrada.
 
   void _checkLowPrice(List<Transaction> txns, DateTime now,
-      AppLocalizations l10n, List<FarmAlert> out) {
-    // Solo ventas reales: subvenciones y apoyos no son precio de venta y
-    // distorsionarían el promedio del ticket por venta.
+      AppLocalizations l10n, List<FarmAlert> out,
+      {double? manualThresholdPerKg}) {
     final sales = txns
-        .where((t) => !t.type.isExpense && t.category.startsWith('venta_'))
+        .where((t) =>
+            !t.type.isExpense &&
+            t.category.startsWith('venta_') &&
+            t.quantity != null &&
+            t.quantity! > 0)
         .toList();
-    if (sales.length < 3) return;
+    if (sales.isEmpty) return;
 
-    final histAvg = sales.fold<double>(0, (a, t) => a + t.amount) / sales.length;
+    double pricePerKg(Transaction t) =>
+        t.amount / (t.quantity! * _unitToKg(t.unit));
+
+    // Umbral manual: la venta más reciente por debajo del umbral.
+    if (manualThresholdPerKg != null && manualThresholdPerKg > 0) {
+      final below = sales
+          .where((t) => pricePerKg(t) < manualThresholdPerKg)
+          .toList();
+      if (below.isNotEmpty) {
+        final latest = below.reduce(
+            (a, b) => a.date.isAfter(b.date) ? a : b);
+        out.add(FarmAlert(
+          id: 'low_price_manual',
+          rule: AlertRule.lowPrice,
+          severity: AlertSeverity.warning,
+          title: l10n.alertLowPriceManualTitle,
+          message: l10n.alertLowPriceManualMessage(
+            _money(pricePerKg(latest)),
+            _money(manualThresholdPerKg),
+            DateFormat('dd/MM/yyyy').format(latest.date),
+          ),
+          suggestion: l10n.alertLowPriceSuggestion,
+        ));
+      }
+    }
+
+    // Histórico: promedio de precio/kg de los últimos 30 días vs el histórico.
+    if (sales.length < 3) return;
+    final histAvg =
+        sales.fold<double>(0, (a, t) => a + pricePerKg(t)) / sales.length;
+    if (histAvg <= 0) return;
+
     final threshold = DateTime(now.year, now.month, now.day - 30);
-    final recent = sales.where((t) => t.date.isAfter(threshold)).toList();
+    final recent = sales
+        .where((t) => t.date.isAfter(threshold))
+        .toList();
     if (recent.length < 2) return;
 
     final recentAvg =
-        recent.fold<double>(0, (a, t) => a + t.amount) / recent.length;
+        recent.fold<double>(0, (a, t) => a + pricePerKg(t)) / recent.length;
     if (recentAvg < histAvg) {
       out.add(FarmAlert(
         id: 'low_price',
@@ -269,6 +311,16 @@ final catHistory =
 String _money(double value) {
   final digits = NumberFormat('#,##0', 'es_CO').format(value.abs());
   return value < 0 ? '-\$$digits' : '\$$digits';
+}
+
+/// Convierte una unidad de venta a kilogramos. Si es null o desconocida se
+/// asume kg (factor 1) para no sesgar la comparación en unidades sin registrar.
+double _unitToKg(String? unit) {
+  return switch (unit) {
+    'arroba' => 12.5,
+    'saco' => 70,
+    _ => 1,
+  };
 }
 
 String _percentage(double value) {

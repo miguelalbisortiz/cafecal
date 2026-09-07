@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/currencies.dart';
-import '../models/settings.dart';
 import '../providers/transaction_provider.dart';
 import '../services/currency_rates_service.dart';
 
@@ -16,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _farmName;
+  late final TextEditingController _threshold;
   String _currency = 'COP';
   String _language = 'es';
   bool _converting = false;
@@ -29,11 +29,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _farmName = TextEditingController(text: s.farmName);
     _currency = s.currency;
     _language = s.language;
+    _threshold = TextEditingController(
+      text: s.lowPriceThresholdPerKg == null
+          ? ''
+          : (s.lowPriceThresholdPerKg! % 1 == 0
+              ? s.lowPriceThresholdPerKg!.toInt().toString()
+              : s.lowPriceThresholdPerKg.toString()),
+    );
   }
 
   @override
   void dispose() {
     _farmName.dispose();
+    _threshold.dispose();
     super.dispose();
   }
 
@@ -62,13 +70,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
 
-    await tx.updateSettings(FarmSettings(
+    final thresholdText = _threshold.text.trim().replaceAll(',', '.');
+    final threshold =
+        thresholdText.isEmpty ? null : double.tryParse(thresholdText);
+
+    await tx.updateSettings(tx.settings.copyWith(
       farmName: _farmName.text.trim().isEmpty
           ? tx.settings.farmName
           : _farmName.text.trim(),
       currency: _currency,
-      locale: tx.settings.locale,
       language: _language,
+      lowPriceThresholdPerKg: threshold,
     ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -123,6 +135,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               DropdownMenuItem(value: 'en', child: Text('English')),
             ],
             onChanged: (v) => setState(() => _language = v ?? 'es'),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _threshold,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.lowPriceThresholdLabel,
+              helperText: l10n.lowPriceThresholdHelper,
+              prefixIcon: const Icon(Icons.trending_down),
+              border: const OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 24),
           FilledButton.icon(

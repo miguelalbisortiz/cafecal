@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../utils/format.dart';
 import '../widgets/new_crop_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -23,11 +24,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _quantityController = TextEditingController();
+  final _clientController = TextEditingController();
+  final _providerController = TextEditingController();
 
   TransactionType _type = TransactionType.expense;
   String? _category;
   String? _cropId;
+  String? _unit;
   DateTime _date = DateTime.now();
+
+  static const _saleCategories = {
+    'venta_cafe',
+    'venta_platano',
+    'venta_otro',
+  };
 
   @override
   void initState() {
@@ -42,6 +53,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _category = e.category;
       _cropId = e.cropId;
       _date = e.date;
+      _unit = e.unit;
+      if (e.quantity != null) {
+        _quantityController.text = (e.quantity! % 1 == 0)
+            ? e.quantity!.toInt().toString()
+            : e.quantity!.toString();
+      }
+      if (e.client != null) _clientController.text = e.client!;
+      if (e.provider != null) _providerController.text = e.provider!;
     } else {
       // Preselecciona el último cultivo usado para agilizar los gastos
       // recurrentes del mismo cultivo. Solo si aún existe.
@@ -57,6 +76,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _amountController.dispose();
     _descriptionController.dispose();
+    _quantityController.dispose();
+    _clientController.dispose();
+    _providerController.dispose();
     super.dispose();
   }
 
@@ -103,16 +125,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final tx = context.read<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
     final amount = double.parse(_amountController.text.replaceAll(',', '.'));
+    final qtyText = _quantityController.text.trim().replaceAll(',', '.');
+    final quantity = qtyText.isEmpty ? null : double.tryParse(qtyText);
+    final isSale = _type == TransactionType.income &&
+        _saleCategories.contains(_category);
+    final unit = (isSale && quantity != null) ? (_unit ?? 'kg') : null;
+    final client = isSale ? _clientController.text.trim() : null;
+    final provider = _type == TransactionType.expense
+        ? _providerController.text.trim()
+        : null;
 
     final editing = widget.editing;
     if (editing != null) {
-      await tx.updateTransaction(editing.copyWith(
+      // Construimos el objeto directamente (no copyWith) para que los campos
+      // nullable de producción se puedan LIMPIAR con null al cambiar de tipo
+      // o categoría (p.ej. una venta convertida en gasto).
+      await tx.updateTransaction(Transaction(
+        id: editing.id,
+        cropId: _cropId,
         type: _type,
         category: _category ?? 'otro',
-        cropId: _cropId,
         amount: amount,
+        currency: editing.currency,
         description: _descriptionController.text.trim(),
         date: _date,
+        createdAt: editing.createdAt,
+        deleted: editing.deleted,
+        pendingSync: true,
+        quantity: quantity,
+        unit: unit,
+        client: client,
+        provider: provider,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,6 +175,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       amount: amount,
       description: _descriptionController.text.trim(),
       date: _date,
+      quantity: quantity,
+      unit: unit,
+      client: client,
+      provider: provider,
     );
 
     // Recuerda el cultivo elegido para preseleccionarlo la próxima vez.
@@ -146,6 +193,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     _descriptionController.clear();
     _amountController.clear();
+    _quantityController.clear();
+    _clientController.clear();
+    _providerController.clear();
+    setState(() {
+      _unit = (isSale && quantity != null) ? _unit : null;
+    });
   }
 
   Future<void> _confirmDelete() async {
@@ -289,6 +342,83 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           const SizedBox(height: 16),
 
+          // Datos de producción (solo ventas de café/plátano/otro)
+          if (_type == TransactionType.income &&
+              _saleCategories.contains(_category)) ...[
+            _ProdSectionHeader(label: l10n.prodSectionTitle),
+            const SizedBox(height: 12),
+
+            // Cantidad vendida
+            TextFormField(
+              controller: _quantityController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.quantityFieldLabel,
+                prefixIcon: const Icon(Icons.scale_outlined),
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+
+            // Unidad
+            DropdownButtonFormField<String>(
+              value: _unit,
+              decoration: InputDecoration(
+                labelText: l10n.unitFieldLabel,
+                prefixIcon: const Icon(Icons.category_outlined),
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                DropdownMenuItem(value: 'kg', child: Text(l10n.unitKg)),
+                DropdownMenuItem(value: 'arroba', child: Text(l10n.unitArroba)),
+                DropdownMenuItem(value: 'saco', child: Text(l10n.unitSaco)),
+              ],
+              onChanged: (v) => setState(() => _unit = v),
+            ),
+            const SizedBox(height: 12),
+
+            // Cliente / comprador
+            TextFormField(
+              controller: _clientController,
+              decoration: InputDecoration(
+                labelText: l10n.clientFieldLabel,
+                prefixIcon: const Icon(Icons.person_outline),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Precio por unidad (auto)
+            _PricePerUnitInfo(
+              amount: double.tryParse(
+                  _amountController.text.trim().replaceAll(',', '.')),
+              quantity: double.tryParse(
+                  _quantityController.text.trim().replaceAll(',', '.')),
+              unit: _unit,
+              currency: tx.settings.currency,
+              locale: tx.settings.locale,
+              l10n: l10n,
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Proveedor (solo gastos)
+          if (_type == TransactionType.expense) ...[
+            _ProdSectionHeader(label: l10n.providerFieldLabel),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _providerController,
+              decoration: InputDecoration(
+                labelText: l10n.providerFieldLabel,
+                prefixIcon: const Icon(Icons.storefront_outlined),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Monto
           TextFormField(
             controller: _amountController,
@@ -303,6 +433,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               if (n == null || n <= 0) return l10n.amountInvalid;
               return null;
             },
+            onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 16),
 
@@ -370,5 +501,92 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     }
     return form;
+  }
+}
+
+class _ProdSectionHeader extends StatelessWidget {
+  final String label;
+  const _ProdSectionHeader({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.factory_outlined,
+            size: 18, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PricePerUnitInfo extends StatelessWidget {
+  final double? amount;
+  final double? quantity;
+  final String? unit;
+  final String currency;
+  final String locale;
+  final AppLocalizations l10n;
+
+  const _PricePerUnitInfo({
+    required this.amount,
+    required this.quantity,
+    required this.unit,
+    required this.currency,
+    required this.locale,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final a = amount;
+    final q = quantity;
+    final u = unit;
+    if (a == null || q == null || q <= 0 || u == null) {
+      return Text(
+        l10n.pricePerUnitHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      );
+    }
+    final perUnit = a / q;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calculate_outlined, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                      text: '${l10n.pricePerUnitLabel} $u: ',
+                      style: Theme.of(context).textTheme.bodyMedium),
+                  TextSpan(
+                    text: formatAmount(perUnit,
+                        currency: currency, locale: locale, decimals: 2),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

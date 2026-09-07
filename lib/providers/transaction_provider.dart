@@ -86,6 +86,10 @@ class TransactionProvider extends ChangeNotifier {
     String description = '',
     DateTime? date,
     String? currency,
+    double? quantity,
+    String? unit,
+    String? client,
+    String? provider,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -98,6 +102,10 @@ class TransactionProvider extends ChangeNotifier {
       date: date ?? DateTime.now(),
       createdAt: DateTime.now().toUtc(),
       pendingSync: true,
+      quantity: quantity,
+      unit: unit,
+      client: client,
+      provider: provider,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
