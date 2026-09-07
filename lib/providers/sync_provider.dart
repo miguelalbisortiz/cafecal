@@ -78,6 +78,11 @@ class SyncProvider extends ChangeNotifier {
       'description': t.description,
       'txn_date': t.date.toIso8601String().substring(0, 10),
       'created_at': t.createdAt.toUtc().toIso8601String(),
+      'quantity': t.quantity,
+      'unit': t.unit,
+      'price_per_unit': t.pricePerUnit,
+      'client': t.client,
+      'provider': t.provider,
     }, onConflict: 'id');
   }
 
@@ -142,6 +147,11 @@ class SyncProvider extends ChangeNotifier {
       'created_at': (row['created_at'] as String),
       'pending_sync': false,
       'deleted': false,
+      'quantity': (row['quantity'] as num?)?.toDouble(),
+      'unit': row['unit'] as String?,
+      'price_per_unit': (row['price_per_unit'] as num?)?.toDouble(),
+      'client': row['client'] as String?,
+      'provider': row['provider'] as String?,
     });
   }
 
