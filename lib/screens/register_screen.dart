@@ -13,7 +13,11 @@ import '../widgets/new_crop_dialog.dart';
 class RegisterScreen extends StatefulWidget {
   final Transaction? editing;
 
-  const RegisterScreen({super.key, this.editing});
+  /// Tipo prefijado al abrir la pantalla (Gasto/Ingreso). Solo aplica cuando
+  /// no se está editando un registro existente.
+  final TransactionType? initialType;
+
+  const RegisterScreen({super.key, this.editing, this.initialType});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -71,6 +75,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final last = provider.settings.lastCropId;
       if (last != null && provider.crops.any((c) => c.id == last)) {
         _cropId = last;
+      }
+      if (widget.initialType != null) {
+        _type = widget.initialType!;
       }
     }
   }

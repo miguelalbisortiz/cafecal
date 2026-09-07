@@ -24,6 +24,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tabHistory => 'Historial';
 
   @override
+  String get nextStepTitle => 'Tu próximo paso';
+
+  @override
+  String get nextStepAction => 'Ir';
+
+  @override
+  String get nextStepCropTitle => 'Crea tu primer cultivo';
+
+  @override
+  String get nextStepCropSubtitle => 'Empieza registrando el cultivo que manejarás (Café, Plátano…).';
+
+  @override
+  String nextStepSowingTitle(String crop) {
+    return 'Registra la siembra de $crop';
+  }
+
+  @override
+  String get nextStepSowingSubtitle => 'Un plantío en establecimiento necesita su siembra inicial registrada.';
+
+  @override
+  String get nextStepExpensesTitle => 'Registra tus primeros gastos';
+
+  @override
+  String get nextStepExpensesSubtitle => 'Lleva el control de lo que inviertes cada mes.';
+
+  @override
+  String get nextStepHarvestTitle => 'Registra tu primera cosecha';
+
+  @override
+  String get nextStepHarvestSubtitle => 'Anota cuánto recogiste y su destino.';
+
+  @override
+  String get nextStepSaleTitle => 'Registra la venta de tu cosecha';
+
+  @override
+  String get nextStepSaleSubtitle => 'Vincula la venta a la cosecha para ver tu ganancia real.';
+
+  @override
   String get syncTooltip => 'Sincronizar';
 
   @override

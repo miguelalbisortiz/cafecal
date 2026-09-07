@@ -125,6 +125,78 @@ abstract class AppLocalizations {
   /// **'Historial'**
   String get tabHistory;
 
+  /// No description provided for @nextStepTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu próximo paso'**
+  String get nextStepTitle;
+
+  /// No description provided for @nextStepAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir'**
+  String get nextStepAction;
+
+  /// No description provided for @nextStepCropTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea tu primer cultivo'**
+  String get nextStepCropTitle;
+
+  /// No description provided for @nextStepCropSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Empieza registrando el cultivo que manejarás (Café, Plátano…).'**
+  String get nextStepCropSubtitle;
+
+  /// No description provided for @nextStepSowingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra la siembra de {crop}'**
+  String nextStepSowingTitle(String crop);
+
+  /// No description provided for @nextStepSowingSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Un plantío en establecimiento necesita su siembra inicial registrada.'**
+  String get nextStepSowingSubtitle;
+
+  /// No description provided for @nextStepExpensesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra tus primeros gastos'**
+  String get nextStepExpensesTitle;
+
+  /// No description provided for @nextStepExpensesSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Lleva el control de lo que inviertes cada mes.'**
+  String get nextStepExpensesSubtitle;
+
+  /// No description provided for @nextStepHarvestTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra tu primera cosecha'**
+  String get nextStepHarvestTitle;
+
+  /// No description provided for @nextStepHarvestSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Anota cuánto recogiste y su destino.'**
+  String get nextStepHarvestSubtitle;
+
+  /// No description provided for @nextStepSaleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra la venta de tu cosecha'**
+  String get nextStepSaleTitle;
+
+  /// No description provided for @nextStepSaleSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vincula la venta a la cosecha para ver tu ganancia real.'**
+  String get nextStepSaleSubtitle;
+
   /// No description provided for @syncTooltip.
   ///
   /// In es, this message translates to:
