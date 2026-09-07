@@ -181,8 +181,6 @@
   "authSignIn": "Entrar",
   "authHaveAccount": "¿Ya tienes cuenta? Entra",
   "authNoAccount": "¿No tienes cuenta? Regístrate",
-  "authGuest": "Explorar la app sin cuenta",
-  "authGuestHint": "Modo visita: los datos de ejemplo quedan solo en este dispositivo y no se sincronizan.",
   "authCreatedMsg": "Cuenta creada. Revisa tu correo (incluye spam) para confirmar y luego inicia sesión.",
   "authCreateError": "Error al crear la cuenta",
   "authSignInError": "Error al iniciar sesión",
