@@ -68,6 +68,93 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nextStepSaleSubtitle => 'Vincula la venta a la cosecha para ver tu ganancia real.';
 
   @override
+  String get nextStepGuideLink => 'Ver guía completa';
+
+  @override
+  String get helpTitle => 'Ayuda';
+
+  @override
+  String get helpSectionGuide => 'Guía de primeros pasos';
+
+  @override
+  String get helpIntro => 'Mi Cafetal lleva las cuentas de tu finca: cuánto inviertes, produces y vendes, por cultivo, por mes y por año.';
+
+  @override
+  String get helpIntroPromesa => 'La app nunca adivina tu producción: los números salen de lo que tú registras. Cuanto más completo sea tu registro, más útiles son los resultados.';
+
+  @override
+  String get helpWhereTitle => '¿Dónde entro cada dato?';
+
+  @override
+  String get helpRowOverview => 'Resumen de tu finca (ingresos, gastos y balance)';
+
+  @override
+  String get helpRowCrops => 'Definir los cultivos de tu finca';
+
+  @override
+  String get helpRowSowings => 'Sembrar o resembrar';
+
+  @override
+  String get helpRowHarvests => 'Registrar lo recogido';
+
+  @override
+  String get helpRowExpenses => 'Gastos (insumos, mano de obra…)';
+
+  @override
+  String get helpRowIncome => 'Ventas de la cosecha';
+
+  @override
+  String get helpCaseTitle => '¿Por dónde empiezo? Según tu caso';
+
+  @override
+  String get helpCaseATitle => 'Caso A — Ya tengo los cultivos sembrados';
+
+  @override
+  String get helpCaseA1 => 'Cultivos: revisa Café y Plátano y pon su fase en Producción (si conoces el dato, área y plantas vivas).';
+
+  @override
+  String get helpCaseA2 => 'Registrar: anota los gastos del mes (insumos, mano de obra).';
+
+  @override
+  String get helpCaseA3 => 'Cosechas: al recoger, registra la cosecha con su destino.';
+
+  @override
+  String get helpCaseA4 => 'Registrar: al vender, registra el ingreso de la venta.';
+
+  @override
+  String get helpCaseAEnd => 'Revisa el Resumen: balance e indicadores empiezan a cobrar sentido.';
+
+  @override
+  String get helpCaseBTitle => 'Caso B — Voy a sembrar algo nuevo';
+
+  @override
+  String get helpCaseB1 => 'Cultivos: crea tu cultivo con fase Establecimiento (ciclo Anual o Perenne).';
+
+  @override
+  String get helpCaseB2 => 'Siembras: registra la siembra inicial (plantas y área; puedes vincular su costo).';
+
+  @override
+  String get helpCaseB3 => 'En establecimiento la app no marca pérdidas: es inversión, no producción.';
+
+  @override
+  String get helpCaseB4 => 'Al pasar a Producción, sigue el flujo de cosechas y ventas del Caso A.';
+
+  @override
+  String get helpUnitsTitle => 'Unidades';
+
+  @override
+  String get helpUnitsBody => 'Usa kg, o arroba (12.5 kg) y saco (70 kg) para café. La app convierte todo a kg para comparar.';
+
+  @override
+  String get helpGlossaryTitle => 'Glosario';
+
+  @override
+  String get helpGlossaryBody => 'Plantines: plantío joven en establecimiento. Área: superficie del cultivo. Plantas vivas: total vigente (siembra − bajas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guarda en la nube para entrar desde cualquier dispositivo. Alerta: aviso automático en el Resumen.';
+
+  @override
+  String get helpGlossaryFinance => 'Ver glosario financiero';
+
+  @override
   String get syncTooltip => 'Sincronizar';
 
   @override
@@ -84,6 +171,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get menuHarvests => 'Cosechas';
+
+  @override
+  String get menuHelp => 'Ayuda';
 
   @override
   String get unitRacimo => 'Racimos';

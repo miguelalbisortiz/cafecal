@@ -22,6 +22,7 @@ import 'settings_screen.dart';
 import 'sowing_screen.dart';
 import 'harvest_screen.dart';
 import 'crops_screen.dart';
+import 'help_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -83,12 +84,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (v == 'sowings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SowingScreen()));
                   if (v == 'harvests') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HarvestScreen()));
                   if (v == 'crops') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CropsScreen()));
+                  if (v == 'help') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpScreen()));
                 },
                 itemBuilder: (_) => [
                   PopupMenuItem(value: 'report', child: Text(l10n.menuReport)),
                   PopupMenuItem(value: 'crops', child: Text(l10n.menuCrops)),
                   PopupMenuItem(value: 'sowings', child: Text(l10n.menuSowings)),
                   PopupMenuItem(value: 'harvests', child: Text(l10n.menuHarvests)),
+                  PopupMenuItem(value: 'help', child: Text(l10n.menuHelp)),
                   PopupMenuItem(value: 'settings', child: Text(l10n.menuSettings)),
                   const PopupMenuDivider(),
                   PopupMenuItem(value: 'logout', child: Text(l10n.menuLogout)),
@@ -240,7 +243,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          NextStepCard(onAction: _onNextStep),
+          NextStepCard(
+            onAction: _onNextStep,
+            onOpenGuide: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HelpScreen()),
+            ),
+          ),
           AlertsBanner(alerts: alerts.bySeverity),
           _SectionHeader(title: l10n.sectionThisMonth),
           const SizedBox(height: 12),

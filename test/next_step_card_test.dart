@@ -25,6 +25,7 @@ void main() {
     WidgetTester tester,
     TransactionProvider provider, {
     void Function(NextStepType type)? onAction,
+    VoidCallback? onOpenGuide,
   }) async {
     await tester.pumpWidget(ChangeNotifierProvider.value(
       value: provider,
@@ -33,7 +34,10 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: NextStepCard(onAction: onAction ?? (_) {}),
+          body: NextStepCard(
+            onAction: onAction ?? (_) {},
+            onOpenGuide: onOpenGuide ?? () {},
+          ),
         ),
       ),
     ));
@@ -89,5 +93,15 @@ void main() {
 
     await tester.tap(find.text(l10n.nextStepAction));
     expect(tapped, NextStepType.crop);
+  });
+
+  testWidgets('el link "Ver guía completa" dispara el callback de guía', (tester) async {
+    final provider = await makeProvider();
+    var opened = false;
+    await pumpCard(tester, provider, onOpenGuide: () => opened = true);
+
+    expect(find.text(l10n.nextStepGuideLink), findsOneWidget);
+    await tester.tap(find.text(l10n.nextStepGuideLink));
+    expect(opened, isTrue);
   });
 }
