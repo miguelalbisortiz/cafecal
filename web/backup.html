@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Cafetal — Respaldo local</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 560px; margin: 48px auto; padding: 0 16px; color: #1b2a20; }
+  h1 { font-size: 20px; }
+  p { font-size: 14px; line-height: 1.5; }
+  button { font-size: 15px; padding: 12px 18px; background: #1976D2; color: #fff; border: 0; border-radius: 8px; cursor: pointer; }
+  pre { background: #f3f6f4; padding: 12px; border-radius: 8px; margin-top: 20px; font-size: 13px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <h1>Mi Cafetal — exportar datos locales</h1>
+  <p>Esta página solo lee los datos guardados en este navegador (modo local /
+     sin cuenta). No envía nada a internet: la descarga queda directamente en tu equipo.</p>
+  <button id="btn">Descargar datos (datos.json)</button>
+  <pre id="out">Cargando…</pre>
+<script>
+  var PREFIX = 'flutter.';
+  var NAMES = ['transactions_v1', 'crops_v1', 'settings_v1', 'synced_at_v1', 'guest_mode_v1'];
+
+  function collect() {
+    var out = {};
+    NAMES.forEach(function (key) {
+      var v = localStorage.getItem(PREFIX + key);
+      if (v !== null) out[key] = v;
+    });
+    return out;
+  }
+
+  function preview() {
+    var data = collect();
+    var tx = 0, crops = 0;
+    if (data.transactions_v1) { try { tx = JSON.parse(data.transactions_v1).length; } catch (e) {} }
+    if (data.crops_v1) { try { crops = JSON.parse(data.crops_v1).length; } catch (e) {} }
+    if (data.transactions_v1 === undefined) {
+      return 'No hay datos guardados en este navegador (o ya se limpiaron).';
+    }
+    return 'Transacciones: ' + tx + ' · Cultivos: ' + crops +
+      '  →  haz clic en "Descargar datos" y guarda el archivo ' +
+      'como reportes/datos.json dentro del proyecto.';
+  }
+
+  document.getElementById('btn').onclick = function () {
+    var data = collect();
+    if (data.transactions_v1 === undefined) {
+      document.getElementById('out').textContent = 'No hay datos guardados en este navegador.';
+      return;
+    }
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'datos.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    document.getElementById('out').textContent =
+      'Descargado. Guarda el archivo en el proyecto como: reportes/datos.json';
+  };
+
+  document.getElementById('out').textContent = preview();
+</script>
+</body>
+</html>
