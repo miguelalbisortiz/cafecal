@@ -7,17 +7,24 @@ enum SignUpResult { success, emailConfirmationRequired, failure }
 
 class AuthProvider extends ChangeNotifier {
   final LocalStore _store;
+  final Future<void> Function()? onUserChanged;
   bool _isLoading = false;
   String? _error;
 
-  AuthProvider(this._store);
+  AuthProvider(this._store, {this.onUserChanged});
 
   bool get isLoading => _isLoading;
   String? get error => _error;
 
   bool get isLoggedIn => SupabaseService.instance.isAuthenticated;
 
+  Future<void> _bindCurrentUser() async {
+    await _store.bindUser(SupabaseService.instance.currentUserId);
+    await onUserChanged?.call();
+  }
+
   Future<void> init() async {
+    await _bindCurrentUser();
     notifyListeners();
   }
 
@@ -25,6 +32,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       await SupabaseService.instance.signIn(email.trim(), password);
+      await _bindCurrentUser();
       _error = null;
       return true;
     } catch (e) {
@@ -40,6 +48,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final sessionCreated =
           await SupabaseService.instance.signUp(email.trim(), password);
+      await _bindCurrentUser();
       _error = null;
       return sessionCreated
           ? SignUpResult.success
@@ -68,6 +77,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     await SupabaseService.instance.signOut();
     await _store.clearAll();
+    // Cierra el namespace del usuario saliente: si entra otra cuenta, la
+    // sesión local arranca limpia y solo ve sus propios datos (H1).
+    await _store.bindUser(null);
     notifyListeners();
   }
 

@@ -15,7 +15,10 @@ import 'theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseService.instance.init();
-  final store = await LocalStore.create();
+  // Si hay sesión persistida, el store arranca en el namespace del usuario
+  // (migrando las claves legacy) para que ningún dato cruce cuentas (H1).
+  final store =
+      await LocalStore.create(uid: SupabaseService.instance.currentUserId);
   runApp(MiCafetalApp(store: store));
 }
 
@@ -29,7 +32,12 @@ class MiCafetalApp extends StatelessWidget {
     final txProvider = TransactionProvider(store);
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider(store)),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(
+            store,
+            onUserChanged: () => txProvider.reloadFromCache(),
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => txProvider),
         ChangeNotifierProvider(
           create: (_) => SyncProvider(txProvider),

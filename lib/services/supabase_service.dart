@@ -47,6 +47,16 @@ class SupabaseService {
     }
   }
 
+  /// Id del usuario con sesión activa (para aislar datos locales por cuenta).
+  String? get currentUserId {
+    if (!isConfigured) return null;
+    try {
+      return client.auth.currentUser?.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> signIn(String email, String password) async {
     await client.auth.signInWithPassword(email: email, password: password);
   }
