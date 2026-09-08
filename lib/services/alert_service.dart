@@ -39,6 +39,7 @@ class AlertService {
     _checkDeficitCrop(active, crops, l10n, alerts);
     _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts);
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
+    _checkMissingQuantity(active, now, l10n, alerts);
 
     return alerts;
   }
@@ -49,12 +50,25 @@ class AlertService {
       AppLocalizations l10n, List<FarmAlert> out) {
     final currentMonth = now.month;
     final expenses = txns
-        .where((t) => t.type.isExpense && t.date.month == currentMonth)
+        .where((t) =>
+            t.type.isExpense &&
+            t.date.month == currentMonth &&
+            t.date.year == now.year)
         .toList();
     if (expenses.isEmpty) return;
 
-    final history = txns
+    // Baseline estacional (Nivel 3): comparar contra el mismo mes calendario de
+    // años anteriores, para no marcar como "exceso" el pico recurrente de una
+    // campaña (fertilización, mano de obra). Si ese baseline no alcanza 2
+    // meses-dato con datos, se cae al promedio global histórico (original).
+    final globalHistory = txns
         .where((t) => t.type.isExpense && t.date.month != currentMonth)
+        .toList();
+    final sameMonthHistory = txns
+        .where((t) =>
+            t.type.isExpense &&
+            t.date.month == currentMonth &&
+            t.date.year != now.year)
         .toList();
 
     for (final category in expenses.map((t) => t.category).toSet()) {
@@ -62,20 +76,25 @@ class AlertService {
           expenses.where((t) => t.category == category).fold<double>(0, (a, t) => a + t.amount);
       if (current <= 0) continue;
 
-final catHistory =
-        history.where((t) => t.category == category).toList();
-    if (catHistory.length < 2) continue;
+      final sameMonthForCat =
+          sameMonthHistory.where((t) => t.category == category).toList();
 
-    // Promedio histórico MENSUAL: sumar el total de cada mes, luego
-    // dividir entre los meses con datos. Promediar por transacción
-    // distorsiona el umbral si un mes tuvo muchos movimientos puntuales.
-    final months = <int>{};
-    for (final t in catHistory) {
-      months.add(DateTime(t.date.year, t.date.month).millisecondsSinceEpoch);
-    }
-    if (months.length < 2) continue;
-    final avg = catHistory.fold<double>(0, (a, t) => a + t.amount) /
-        months.length;
+      // Promedio histórico del MISMO mes calendario: sumar el total de cada
+      // (año,mes) igual, luego dividir entre esos meses-dato. Si el baseline
+      // estacional no alcanza 2 meses-dato, se usa el promedio global
+      // (promediar por transacción distorsiona si un mes tuvo picos).
+      final catHistory = sameMonthForCat.length >= 2
+          ? sameMonthForCat
+          : globalHistory.where((t) => t.category == category).toList();
+      if (catHistory.length < 2) continue;
+
+      final months = <int>{};
+      for (final t in catHistory) {
+        months.add(DateTime(t.date.year, t.date.month).millisecondsSinceEpoch);
+      }
+      if (months.length < 2) continue;
+      final avg = catHistory.fold<double>(0, (a, t) => a + t.amount) /
+          months.length;
 
       if (current > 2 * avg && avg > 0) {
         final label = l10n.expenseCategory(category);
@@ -355,6 +374,9 @@ final catHistory =
     final harvestedByCrop = <String, double>{};
     for (final h in harvests) {
       if (h.date.isBefore(cutoff)) continue;
+      // Solo lo vendido y lo almacenado respaldan ventas; la pérdida no
+      // justifica vender más de lo cosechado.
+      if (h.destination == HarvestDestination.perdida) continue;
       final cid = h.cropId ?? '_none_';
       harvestedByCrop[cid] =
           (harvestedByCrop[cid] ?? 0) + h.amount * unitToKg(h.unit);
@@ -412,6 +434,31 @@ final catHistory =
           DateFormat('dd/MM/yyyy').format(s.date),
         ),
         suggestion: l10n.alertRecentlyPlantedSuggestion,
+      ));
+    }
+  }
+
+  // ---- Regla 9: ventas sin cantidad registrada (últimos 90 días) ----
+
+  void _checkMissingQuantity(List<Transaction> txns, DateTime now,
+      AppLocalizations l10n, List<FarmAlert> out) {
+    final cutoff = now.subtract(const Duration(days: 90));
+    var count = 0;
+    for (final t in txns) {
+      if (t.type.isExpense || !t.category.startsWith('venta_')) continue;
+      if (t.date.isBefore(cutoff)) continue;
+      final qty = t.quantity ?? 0;
+      if (qty > 0) continue;
+      count++;
+    }
+    if (count >= 3) {
+      out.add(FarmAlert(
+        id: 'missing_quantity',
+        rule: AlertRule.missingQuantity,
+        severity: AlertSeverity.info,
+        title: l10n.alertMissingQtyTitle,
+        message: l10n.alertMissingQtyMessage(count),
+        suggestion: l10n.alertMissingQtySuggestion,
       ));
     }
   }

@@ -2626,6 +2626,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.'**
   String get alertRecentlyPlantedSuggestion;
+
+  /// No description provided for @alertMissingQtyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tienes ventas sin kilos registrados'**
+  String get alertMissingQtyTitle;
+
+  /// No description provided for @alertMissingQtyMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: en los últimos 90 días registraste {count} ventas sin la cantidad vendida. Sin ese dato, la app no puede calcular tu precio por kilo ni tu rentabilidad.'**
+  String alertMissingQtyMessage(int count);
+
+  /// No description provided for @alertMissingQtySuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.'**
+  String get alertMissingQtySuggestion;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

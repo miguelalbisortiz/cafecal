@@ -448,4 +448,167 @@ void main() {
           alerts.where((a) => a.rule == AlertRule.cropRecentlyPlanted), isEmpty);
     });
   });
+
+  group('A1 â€” R6 excluye cosechas perdidas', () {
+    Harvest harvest({required String cropId, required double amount,
+        required DateTime date, HarvestDestination destination = HarvestDestination.vendido}) {
+      return Harvest(
+        id: 'h_${cropId}_${date.millisecondsSinceEpoch}_${destination.name}',
+        cropId: cropId,
+        date: date,
+        amount: amount,
+        destination: destination,
+      );
+    }
+
+    test('cosecha con destino pÃ©rdida NO respalda ventas', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 150,
+            unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe',
+            cropId: 'cafe'),
+      ];
+      final harvests = [
+        harvest(cropId: 'cafe', amount: 100, date: DateTime(2026, 5, 1)),
+        harvest(cropId: 'cafe', amount: 80, date: DateTime(2026, 5, 20),
+            destination: HarvestDestination.perdida),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, harvests: harvests);
+      expect(alerts.any((a) => a.rule == AlertRule.harvestVsSales), isTrue,
+          reason: '150 vendidos > 1.1x(100 respaldados); la pÃ©rdida no cuenta');
+    });
+
+    test('solo cosechas perdidas NO respaldan ventas (R6 no dispara)', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 150,
+            unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe',
+            cropId: 'cafe'),
+      ];
+      final harvests = [
+        harvest(cropId: 'cafe', amount: 200, date: DateTime(2026, 5, 1),
+            destination: HarvestDestination.perdida),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, harvests: harvests);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.harvestVsSales), isEmpty,
+          reason: 'sin respaldo real (pÃ©rdida) la conciliaciÃ³n se calla');
+    });
+
+    test('almacenado SÃ respalda las ventas', () {
+      final txns = [
+        _txn(type: TransactionType.income, amount: 1000000, quantity: 200,
+            unit: 'kg', date: DateTime(2026, 6, 1), category: 'venta_cafe',
+            cropId: 'cafe'),
+      ];
+      final harvests = [
+        harvest(cropId: 'cafe', amount: 150, date: DateTime(2026, 5, 1),
+            destination: HarvestDestination.almacenado),
+        harvest(cropId: 'cafe', amount: 50, date: DateTime(2026, 5, 2),
+            destination: HarvestDestination.perdida),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, harvests: harvests);
+      expect(alerts.any((a) => a.rule == AlertRule.harvestVsSales), isTrue,
+          reason: 'vendido 200 > 1.1x150 almacenado (la pÃ©rdida no cuenta)');
+    });
+  });
+
+  group('C â€” R1 compara contra el mismo mes calendario histÃ³rico', () {
+    test('estacionalidad recurrente NO dispara falsa alarma', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2025, 6, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2024, 6, 10), category: 'mano_obra'),
+        // Meses "flojos" en el promedio global hunden la media.
+        _txn(type: TransactionType.expense, amount: 10, date: DateTime(2026, 1, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 10, date: DateTime(2026, 2, 10), category: 'mano_obra'),
+        // Junio 2026 = 150: 1.5x su propio junio habitual, pero 2.7x el promedio global.
+        _txn(type: TransactionType.expense, amount: 150, date: DateTime(2026, 6, 10), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.excessiveSpending), isEmpty,
+          reason: '150 estÃ¡ dentro de 2x el junio histÃ³rico (100)');
+    });
+
+    test('detecta el exceso respecto al mismo mes, aunque el promedio global lo oculte', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2025, 6, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2024, 6, 10), category: 'mano_obra'),
+        // Marzos pesados en el promedio global.
+        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 3, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2025, 3, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 300, date: DateTime(2026, 6, 10), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(alerts.any((a) => a.rule == AlertRule.excessiveSpending), isTrue,
+          reason: '300 > 2x el junio histÃ³rico (100)');
+    });
+
+    test('fallback al promedio global cuando hay < 2 meses-dato del mismo mes', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2025, 6, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 3, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 300, date: DateTime(2026, 6, 10), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(alerts.any((a) => a.rule == AlertRule.excessiveSpending), isTrue,
+          reason: 'con 1 solo junio histÃ³rico se usa la media global (100)');
+    });
+  });
+
+  group('B â€” Ventas sin cantidad', () {
+    Transaction sale({required double amount, DateTime? date, double? qty}) => _txn(
+          type: TransactionType.income,
+          amount: amount,
+          quantity: qty,
+          date: date ?? DateTime(2026, 6, 1),
+          category: 'venta_cafe',
+        );
+
+    test('3+ ventas sin cantidad en 90 dÃ­as dispara INFO', () {
+      final txns = [
+        sale(amount: 500000, date: DateTime(2026, 5, 1)),
+        sale(amount: 300000, date: DateTime(2026, 6, 1)),
+        sale(amount: 200000, date: DateTime(2026, 6, 10)),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      final found = alerts.where((a) => a.rule == AlertRule.missingQuantity);
+      expect(found, isNotEmpty);
+      expect(found.first.severity, AlertSeverity.info);
+    });
+
+    test('menos de 3 ventas sin cantidad NO dispara', () {
+      final txns = [
+        sale(amount: 500000, date: DateTime(2026, 5, 1)),
+        sale(amount: 300000, date: DateTime(2026, 6, 1), qty: 50),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.missingQuantity), isEmpty);
+    });
+
+    test('ventas con cantidad NO dispara', () {
+      final txns = [
+        sale(amount: 500000, date: DateTime(2026, 5, 1), qty: 50),
+        sale(amount: 300000, date: DateTime(2026, 6, 1), qty: 30),
+        sale(amount: 200000, date: DateTime(2026, 6, 10), qty: 20),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.missingQuantity), isEmpty);
+    });
+
+    test('ventas sin cantidad fuera de 90 dÃ­as NO dispara', () {
+      final txns = [
+        sale(amount: 500000, date: DateTime(2026, 1, 10)),
+        sale(amount: 300000, date: DateTime(2026, 2, 10)),
+        sale(amount: 200000, date: DateTime(2026, 3, 1)),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.missingQuantity), isEmpty);
+    });
+  });
 }
