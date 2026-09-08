@@ -64,6 +64,40 @@ class HelpScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              _Section(title: l10n.helpFlowTitle),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.helpFlowIntro,
+                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                    const SizedBox(height: 12),
+                    _FlowSteps(items: [
+                      (l10n.helpFlowStep1Title, l10n.helpFlowStep1Body,
+                          Icons.grass_outlined),
+                      (l10n.helpFlowStep2Title, l10n.helpFlowStep2Body,
+                          Icons.spa_outlined),
+                      (l10n.helpFlowStep3Title, l10n.helpFlowStep3Body,
+                          Icons.trending_down_outlined),
+                      (l10n.helpFlowStep4Title, l10n.helpFlowStep4Body,
+                          Icons.inventory_2_outlined),
+                      (l10n.helpFlowStep5Title, l10n.helpFlowStep5Body,
+                          Icons.sell_outlined),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.helpFlowHint,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.35,
+                        fontStyle: FontStyle.italic,
+                        color: scheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               _Section(title: l10n.helpCaseTitle),
               _Card(
                 child: _StepsCard(
@@ -172,6 +206,16 @@ class HelpScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 20),
+              _Section(title: l10n.helpCommonTitle),
+              _Card(
+                child: _DefList(items: [
+                  (l10n.helpCommonMistake, l10n.helpCommonFix),
+                  (l10n.helpCommonFix2, l10n.helpCommonAssignedFix),
+                  (l10n.helpCommonAssigned, l10n.helpCommonTypeFix),
+                  (l10n.helpCommonType, l10n.helpCommonAreaFix),
+                ]),
               ),
               const SizedBox(height: 24),
             ],
@@ -378,6 +422,67 @@ class _UnitChip extends StatelessWidget {
           color: scheme.onSecondaryContainer,
         ),
       ),
+    );
+  }
+}
+
+class _FlowSteps extends StatelessWidget {
+  final List<(String, String, IconData)> items;
+
+  const _FlowSteps({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: scheme.primaryContainer,
+                child: Icon(
+                  items[i].$3,
+                  size: 14,
+                  color: scheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${i + 1}. ${items[i].$1}',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      items[i].$2,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.3,
+                        color: scheme.onSurface.withOpacity(0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (i < items.length - 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Icon(
+                Icons.arrow_downward,
+                size: 16,
+                color: scheme.primary.withOpacity(0.4),
+              ),
+            ),
+        ],
+      ],
     );
   }
 }
