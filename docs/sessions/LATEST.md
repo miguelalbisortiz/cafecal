@@ -1,4 +1,4 @@
-# 2026-09-08 — Nivel 3 desplegado + auditoría de seguridad + Alertas A1/C/B
+# 2026-09-08 — Nivel 3 + Alertas A1/C/B + Fix H1 (aislamiento local por usuario)
 
 ## Summary
 
@@ -22,14 +22,17 @@ Sesión de cierre técnico: se implementó y desplegó el **Nivel 3 (KPI por hec
    - **C**: R1 usa baseline del mismo mes calendario de años anteriores (fallback a la media global si < 2 meses-dato). Bug descubierto y corregido: `expenses` ahora filtra `year == now.year` (antes contaba los junios históricos como gasto actual → falsa alarma).
    - **B**: `AlertRule.missingQuantity` — INFO `missing_quantity` si ≥3 ventas sin kilos en 90 días. Strings `alertMissingQty*` (es/en).
 
+5. **Fix H1 — aislamiento de datos locales por usuario** (commit main `4a8c125`, gh-pages `d8a1716`, HTTP 200, **144/144 tests**):
+   - `LocalStore` con namespace por uid (`transactions_v1_<uid>`, …), migración legacy idempotente y no destructiva, `clearAll()` selectivo por usuario, `SupabaseService.currentUserId`, `AuthProvider` bindea en login/logout, `TransactionProvider.reloadFromCache()`. Detalle: `docs/plans/2026-09-08-fix-h1-aislamiento-local.plan.md` + `docs/sessions/2026-09-08-fix-h1-aislamiento-local.md`.
+
 ## State
 
 | Item | Status |
 |---|---|
-| Tests | **137/137 verdes** |
+| Tests | **144/144 verdes** |
 | analyze | limpio |
-| gh-pages | `d5d5476`, HTTP 200 |
-| main | `27beabd` |
+| gh-pages | `d8a1716`, HTTP 200 |
+| main | `4a8c125` |
 | Migración N3 | aplicada (usuario) |
 | .env | gitignored, funciona local |
 
@@ -42,14 +45,6 @@ Sesión de cierre técnico: se implementó y desplegó el **Nivel 3 (KPI por hec
 
 ## Pending
 
-- [ ] Decidir e implementar fixes de auditoría H1 (prefijo uid en LocalStore) y H5 (prefijo `'` en CSV); opcional informe en `docs/reports/`.
+- [ ] Decidir e implementar el fix H5 (prefijo `'` anti-fórmulas en CSV) y, si se quiere, H3 (validación email/password cliente) y H2 (init muerto); opcional guardar el informe de auditoría en `docs/reports/`.
 - [ ] Iteración futura de alertas: A2 (ventana 24m/stock campaña), D (pérdida >10% anual), E (higiene: max alertas, silenciar).
-
-## Files
-
-- `lib/services/alert_service.dart` (Reglas 1 y 6 modificadas; `_checkMissingQuantity` nueva)
-- `lib/models/farm_alert.dart` (enum `AlertRule.missingQuantity`)
-- `lib/l10n/app_es.arb`, `lib/l10n/app_en.arb` + generados (`alertMissingQty*`)
-- `test/alert_service_test.dart` (grupos A1/C/B)
-- `lib/widgets/per_hectare_panel.dart`, `report_harvest_metrics.dart`, `supabase/migrations/202609080001_add_establishment_cost.sql`
-- `docs/prds/2026-09-08-alertas-coherencia-estacional.prd.md`, `docs/plans/2026-09-08-alertas-coherencia-estacional.plan.md`
+- [ ] Verificación manual en producción del fix H1: login con la cuenta real → migración automática de claves legacy → datos intactos; segunda cuenta no ve nada.
