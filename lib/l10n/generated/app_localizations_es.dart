@@ -1399,4 +1399,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertRecentlyPlantedSuggestion => 'Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.';
+
+  @override
+  String get alertMissingQtyTitle => 'Tienes ventas sin kilos registrados';
+
+  @override
+  String alertMissingQtyMessage(int count) {
+    return 'El problema: en los últimos 90 días registraste $count ventas sin la cantidad vendida. Sin ese dato, la app no puede calcular tu precio por kilo ni tu rentabilidad.';
+  }
+
+  @override
+  String get alertMissingQtySuggestion => 'Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.';
 }
