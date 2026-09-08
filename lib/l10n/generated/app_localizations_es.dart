@@ -146,6 +146,75 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpUnitsBody => 'Puedes usar kilogramos (kg), arrobas (1 arroba = 12.5 kg, común para café en Colombia) o sacos (1 saco = 70 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.';
 
   @override
+  String get helpUnitsTableTitle => 'Equivalencias';
+
+  @override
+  String get helpUnitsKgRow => 'Kilogramo (kg)';
+
+  @override
+  String get helpUnitsKgRowDesc => 'Unidad base. Todo se convierte a kg.';
+
+  @override
+  String get helpUnitsArrobaRow => 'Arroba';
+
+  @override
+  String get helpUnitsArrobaRowDesc => '12.5 kg. Común para café en Colombia.';
+
+  @override
+  String get helpUnitsSacoRow => 'Saco';
+
+  @override
+  String get helpUnitsSacoRowDesc => '70 kg. Para café en sacos.';
+
+  @override
+  String get helpUnitsRacimoRow => 'Racimo';
+
+  @override
+  String get helpUnitsRacimoRowDesc => 'Para plátano. No se pesa.';
+
+  @override
+  String get helpUnitsCajonRow => 'Cajón';
+
+  @override
+  String get helpUnitsCajonRowDesc => 'Para frutas y verduras. Su peso varía.';
+
+  @override
+  String get helpExampleTitle => '¿Cómo se ve en la práctica? Ejemplos con números';
+
+  @override
+  String get helpCaseAExampleTitle => 'Caso A — café en producción (2 ha, 3000 plantas)';
+
+  @override
+  String get helpCaseAEx1 => 'Café, Producción, Perenne, 2 ha, 3000 plantas';
+
+  @override
+  String get helpCaseAEx2 => 'Gasto de \$500,000 en Fertilizante';
+
+  @override
+  String get helpCaseAEx3 => '4 arrobas (50 kg), Vendido';
+
+  @override
+  String get helpCaseAEx4 => 'Ingreso de \$750,000 por la venta';
+
+  @override
+  String get helpCaseAEx5 => 'Balance +\$250,000 · Margen 33% · ROI 50%';
+
+  @override
+  String get helpCaseBExampleTitle => 'Caso B — plátano nuevo (500 plantas en 0.5 ha)';
+
+  @override
+  String get helpCaseBEx1 => 'Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas';
+
+  @override
+  String get helpCaseBEx2 => 'Siembra inicial, 500 plantas, 0.5 ha, costo \$200,000';
+
+  @override
+  String get helpCaseBEx3 => '\$100,000 de mano de obra y \$150,000 de fertilizante';
+
+  @override
+  String get helpCaseBEx4 => 'Inversión \$450,000. No dice pérdida: es inversión hasta que produzca.';
+
+  @override
   String get helpGlossaryTitle => 'Glosario';
 
   @override
