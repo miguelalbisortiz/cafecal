@@ -224,19 +224,19 @@ abstract class AppLocalizations {
   /// No description provided for @helpSectionGuide.
   ///
   /// In es, this message translates to:
-  /// **'Guía de primeros pasos'**
+  /// **'Guía para empezar'**
   String get helpSectionGuide;
 
   /// No description provided for @helpIntro.
   ///
   /// In es, this message translates to:
-  /// **'Mi Cafetal lleva las cuentas de tu finca: cuánto inviertes, produces y vendes, por cultivo, por mes y por año.'**
+  /// **'Mi Cafetal te dice si tu finca está ganando o perdiendo dinero. Tú le dices cuánto gastas y cuánto vendes. La app hace las cuentas y te avisa si algo va mal.'**
   String get helpIntro;
 
   /// No description provided for @helpIntroPromesa.
   ///
   /// In es, this message translates to:
-  /// **'La app nunca adivina tu producción: los números salen de lo que tú registras. Cuanto más completo sea tu registro, más útiles son los resultados.'**
+  /// **'La app no inventa números: todo sale de lo que tú registras. Si le das pocos datos, te da poca información. Si le das más, te da más.'**
   String get helpIntroPromesa;
 
   /// No description provided for @helpWhereTitle.
@@ -248,121 +248,121 @@ abstract class AppLocalizations {
   /// No description provided for @helpRowOverview.
   ///
   /// In es, this message translates to:
-  /// **'Resumen de tu finca (ingresos, gastos y balance)'**
+  /// **'Ver el panorama: cuánto ganaste, cuánto gastaste, si estás en positivo o negativo'**
   String get helpRowOverview;
 
   /// No description provided for @helpRowCrops.
   ///
   /// In es, this message translates to:
-  /// **'Definir los cultivos de tu finca'**
+  /// **'Decirle a la app qué cosechas manejas (café, plátano, etc.)'**
   String get helpRowCrops;
 
   /// No description provided for @helpRowSowings.
   ///
   /// In es, this message translates to:
-  /// **'Sembrar o resembrar'**
+  /// **'Registrar cuántas plantas sembraste o reemplazaste'**
   String get helpRowSowings;
 
   /// No description provided for @helpRowHarvests.
   ///
   /// In es, this message translates to:
-  /// **'Registrar lo recogido'**
+  /// **'Registrar cuánto recogiste y qué hiciste con ello'**
   String get helpRowHarvests;
 
   /// No description provided for @helpRowExpenses.
   ///
   /// In es, this message translates to:
-  /// **'Gastos (insumos, mano de obra…)'**
+  /// **'Anotar gastos: fertilizante, pago de trabajadores, semillas, etc.'**
   String get helpRowExpenses;
 
   /// No description provided for @helpRowIncome.
   ///
   /// In es, this message translates to:
-  /// **'Ventas de la cosecha'**
+  /// **'Registrar cuánto te pagaron por lo que vendiste'**
   String get helpRowIncome;
 
   /// No description provided for @helpCaseTitle.
   ///
   /// In es, this message translates to:
-  /// **'¿Por dónde empiezo? Según tu caso'**
+  /// **'¿Por dónde empiezo? Depende de tu situación'**
   String get helpCaseTitle;
 
   /// No description provided for @helpCaseATitle.
   ///
   /// In es, this message translates to:
-  /// **'Caso A — Ya tengo los cultivos sembrados'**
+  /// **'Ya tengo la finca funcionando, solo quiero controlar las cuentas'**
   String get helpCaseATitle;
 
   /// No description provided for @helpCaseA1.
   ///
   /// In es, this message translates to:
-  /// **'Cultivos: revisa Café y Plátano y pon su fase en Producción (si conoces el dato, área y plantas vivas).'**
+  /// **'Entra a Cultivos (menú ⋮). Edita Café y Plátano y ponles fase Producción (ya están dando frutos). Si sabes hectáreas y plantas, ponlo.'**
   String get helpCaseA1;
 
   /// No description provided for @helpCaseA2.
   ///
   /// In es, this message translates to:
-  /// **'Registrar: anota los gastos del mes (insumos, mano de obra).'**
+  /// **'En Registrar, anota tus gastos del mes: fertilizante, pago de trabajadores, etc.'**
   String get helpCaseA2;
 
   /// No description provided for @helpCaseA3.
   ///
   /// In es, this message translates to:
-  /// **'Cosechas: al recoger, registra la cosecha con su destino.'**
+  /// **'Cuando coseches, entra a Cosechas y registra cuánto recogiste y si lo vendiste, lo guardaste o se perdió.'**
   String get helpCaseA3;
 
   /// No description provided for @helpCaseA4.
   ///
   /// In es, this message translates to:
-  /// **'Registrar: al vender, registra el ingreso de la venta.'**
+  /// **'Cuando vendas, vuelve a Registrar y pon un Ingreso con el dinero que te pagaron.'**
   String get helpCaseA4;
 
   /// No description provided for @helpCaseAEnd.
   ///
   /// In es, this message translates to:
-  /// **'Revisa el Resumen: balance e indicadores empiezan a cobrar sentido.'**
+  /// **'Mira el Resumen: ahí ves si estás ganando o perdiendo. Las alertas te avisan si algo necesita atención.'**
   String get helpCaseAEnd;
 
   /// No description provided for @helpCaseBTitle.
   ///
   /// In es, this message translates to:
-  /// **'Caso B — Voy a sembrar algo nuevo'**
+  /// **'Estoy empezando un cultivo nuevo desde cero'**
   String get helpCaseBTitle;
 
   /// No description provided for @helpCaseB1.
   ///
   /// In es, this message translates to:
-  /// **'Cultivos: crea tu cultivo con fase Establecimiento (ciclo Anual o Perenne).'**
+  /// **'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Establecimiento. Elige si es Anual o Perenne.'**
   String get helpCaseB1;
 
   /// No description provided for @helpCaseB2.
   ///
   /// In es, this message translates to:
-  /// **'Siembras: registra la siembra inicial (plantas y área; puedes vincular su costo).'**
+  /// **'En Siembras, registra cuántas plantas pusiste, en qué área, y si quieres el costo.'**
   String get helpCaseB2;
 
   /// No description provided for @helpCaseB3.
   ///
   /// In es, this message translates to:
-  /// **'En establecimiento la app no marca pérdidas: es inversión, no producción.'**
+  /// **'Mientras esté en Establecimiento, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.'**
   String get helpCaseB3;
 
   /// No description provided for @helpCaseB4.
   ///
   /// In es, this message translates to:
-  /// **'Al pasar a Producción, sigue el flujo de cosechas y ventas del Caso A.'**
+  /// **'Cuando empiece a dar fruto y pases a Producción, sigue el flujo del caso anterior: cosechas y ventas.'**
   String get helpCaseB4;
 
   /// No description provided for @helpUnitsTitle.
   ///
   /// In es, this message translates to:
-  /// **'Unidades'**
+  /// **'¿Qué unidad uso?'**
   String get helpUnitsTitle;
 
   /// No description provided for @helpUnitsBody.
   ///
   /// In es, this message translates to:
-  /// **'Usa kg, o arroba (12.5 kg) y saco (70 kg) para café. La app convierte todo a kg para comparar.'**
+  /// **'Puedes usar kilogramos (kg), arrobas (1 arroba = 12.5 kg, común para café en Colombia) o sacos (1 saco = 70 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.'**
   String get helpUnitsBody;
 
   /// No description provided for @helpGlossaryTitle.
@@ -374,7 +374,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpGlossaryBody.
   ///
   /// In es, this message translates to:
-  /// **'Plantines: plantío joven en establecimiento. Área: superficie del cultivo. Plantas vivas: total vigente (siembra − bajas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guarda en la nube para entrar desde cualquier dispositivo. Alerta: aviso automático en el Resumen.'**
+  /// **'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.'**
   String get helpGlossaryBody;
 
   /// No description provided for @helpGlossaryFinance.
@@ -386,13 +386,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaTitle.
   ///
   /// In es, this message translates to:
-  /// **'¿Qué significa por hectárea?'**
+  /// **'¿Qué es el panel \"Por hectárea\"?'**
   String get helpPerHaTitle;
 
   /// No description provided for @helpPerHaIntro.
   ///
   /// In es, this message translates to:
-  /// **'Normalizar por hectárea convierte tus datos en comparables: así sabes si una parcela rinde más que otra aunque sus tamaños sean distintos.'**
+  /// **'Si registras cuántas hectáreas tiene tu cultivo, la app puede calcular cuánto produce cada hectárea. Esto es útil para comparar parcelas de diferente tamaño con la misma regla.'**
   String get helpPerHaIntro;
 
   /// No description provided for @helpPerHaTitleYield.
@@ -404,7 +404,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaYield.
   ///
   /// In es, this message translates to:
-  /// **'Cosechas del período ÷ área del cultivo. El mismo estándar de tus exportaciones.'**
+  /// **'Cuántos kilos produce cada hectárea. Es el mismo dato que piden tus compradores.'**
   String get helpPerHaYield;
 
   /// No description provided for @helpPerHaTitleVentas.
@@ -416,7 +416,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaRevenue.
   ///
   /// In es, this message translates to:
-  /// **'Ingresos del período ÷ área. Cuánto dinero produce tu tierra.'**
+  /// **'Cuánto dinero genera cada hectárea. Divide tus ingresos entre las hectáreas.'**
   String get helpPerHaRevenue;
 
   /// No description provided for @helpPerHaTitleGastos.
@@ -428,7 +428,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaCost.
   ///
   /// In es, this message translates to:
-  /// **'Gastos del período ÷ área. Lo que cuesta producir cada hectárea.'**
+  /// **'Cuánto cuesta producir en cada hectárea. Divide tus gastos entre las hectáreas.'**
   String get helpPerHaCost;
 
   /// No description provided for @helpPerHaTitleMargen.
@@ -440,25 +440,25 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaMargin.
   ///
   /// In es, this message translates to:
-  /// **'Ventas − gastos, por hectárea. Positivo = la hectárea deja dinero.'**
+  /// **'Si cada hectárea deja ganancia. Positivo = la hectárea produce más de lo que cuesta.'**
   String get helpPerHaMargin;
 
   /// No description provided for @helpPerHaWhy.
   ///
   /// In es, this message translates to:
-  /// **'¿Por qué normalizar? Una parcela de 3 ha que vende \$9M no compite con otra de 1 ha que vende \$5M: por hectárea, la segunda gana. El panel divide por área para que compares con la misma regla.'**
+  /// **'¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende \$9M y otra de 1 ha que vende \$5M. Por hectárea, la segunda gana más (\$5M vs \$3M). Este panel te muestra esa comparación justa.'**
   String get helpPerHaWhy;
 
   /// No description provided for @helpPaybackTitle.
   ///
   /// In es, this message translates to:
-  /// **'¿Cómo se recupera la inversión del establecimiento?'**
+  /// **'¿Cómo sé cuándo recupero lo invertido?'**
   String get helpPaybackTitle;
 
   /// No description provided for @helpPaybackIntro.
   ///
   /// In es, this message translates to:
-  /// **'Al editar un cultivo puedes registrar el Costo del establecimiento: lo invertido en sembrar y levantar el cultivo (plantines, mano de obra, fertilización inicial…).'**
+  /// **'Cuando editas un cultivo puedes poner el Costo del establecimiento: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cuánto ya recuperaste.'**
   String get helpPaybackIntro;
 
   /// No description provided for @helpPaybackTitlePercent.
@@ -470,7 +470,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPaybackPercent.
   ///
   /// In es, this message translates to:
-  /// **'La app divide el margen acumulado del cultivo (ventas − gastos) entre esa inversión. 100% = ya la pagaste.'**
+  /// **'Divide lo que ya ganaste con ventas menos gastos, entre lo que invertiste. 100% = ya lo pagaste completamente.'**
   String get helpPaybackPercent;
 
   /// No description provided for @helpPaybackTitleYears.
@@ -482,20 +482,158 @@ abstract class AppLocalizations {
   /// No description provided for @helpPaybackYears.
   ///
   /// In es, this message translates to:
-  /// **'Promedio del margen anual medido. Es un promedio de tus datos reales, no una promesa de cosecha.'**
+  /// **'Un estimado basado en tu margen promedio real. No es una promesa — es un cálculo con tus datos.'**
   String get helpPaybackYears;
 
   /// No description provided for @helpPaybackTitleNotLoss.
   ///
   /// In es, this message translates to:
-  /// **'No es pérdida: es inversión'**
+  /// **'No es una pérdida, es una inversión'**
   String get helpPaybackTitleNotLoss;
 
   /// No description provided for @helpPaybackNotLoss.
   ///
   /// In es, this message translates to:
-  /// **'Mientras el cultivo está en establecimiento, gastar no es perder: es el costo de sembrar tu activo.'**
+  /// **'Si inviertes \$1,000,000 en plantar café y aún no vendes, no perdiste \$1,000,000. Invertiste \$1,000,000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.'**
   String get helpPaybackNotLoss;
+
+  /// No description provided for @helpFlowTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'El orden de la app'**
+  String get helpFlowTitle;
+
+  /// No description provided for @helpFlowIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Piensa en esto como una cadena: primero le dices qué cultivas, luego cuánto sembraste, luego cuánto gastaste, luego qué recogiste, y por último cuánto vendiste.'**
+  String get helpFlowIntro;
+
+  /// No description provided for @helpFlowStep1Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Definir el cultivo'**
+  String get helpFlowStep1Title;
+
+  /// No description provided for @helpFlowStep1Body.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué manejas (café, plátano…).'**
+  String get helpFlowStep1Body;
+
+  /// No description provided for @helpFlowStep2Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar la siembra'**
+  String get helpFlowStep2Title;
+
+  /// No description provided for @helpFlowStep2Body.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántas plantas pusiste.'**
+  String get helpFlowStep2Body;
+
+  /// No description provided for @helpFlowStep3Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Anotar gastos'**
+  String get helpFlowStep3Title;
+
+  /// No description provided for @helpFlowStep3Body.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué invertiste.'**
+  String get helpFlowStep3Body;
+
+  /// No description provided for @helpFlowStep4Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar cosecha'**
+  String get helpFlowStep4Title;
+
+  /// No description provided for @helpFlowStep4Body.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué recogiste.'**
+  String get helpFlowStep4Body;
+
+  /// No description provided for @helpFlowStep5Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar venta'**
+  String get helpFlowStep5Title;
+
+  /// No description provided for @helpFlowStep5Body.
+  ///
+  /// In es, this message translates to:
+  /// **'A quién vendiste y cuánto.'**
+  String get helpFlowStep5Body;
+
+  /// No description provided for @helpFlowHint.
+  ///
+  /// In es, this message translates to:
+  /// **'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya hiciste todo, la tarjeta desaparece sola.'**
+  String get helpFlowHint;
+
+  /// No description provided for @helpCommonTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Errores comunes (y cómo corregirlos)'**
+  String get helpCommonTitle;
+
+  /// No description provided for @helpCommonMistake.
+  ///
+  /// In es, this message translates to:
+  /// **'Miseria en el monto'**
+  String get helpCommonMistake;
+
+  /// No description provided for @helpCommonFix.
+  ///
+  /// In es, this message translates to:
+  /// **'Puse un monto incorrecto'**
+  String get helpCommonFix;
+
+  /// No description provided for @helpCommonFix2.
+  ///
+  /// In es, this message translates to:
+  /// **'Ve a Historial, busca el registro, edítalo o elimínalo'**
+  String get helpCommonFix2;
+
+  /// No description provided for @helpCommonAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'No le asigné cultivo a un gasto'**
+  String get helpCommonAssigned;
+
+  /// No description provided for @helpCommonAssignedFix.
+  ///
+  /// In es, this message translates to:
+  /// **'En Historial aparece \"X registros sin cultivo\". Pulsa \"Asignar cultivo ahora\" y elige a qué cultivo pertenece'**
+  String get helpCommonAssignedFix;
+
+  /// No description provided for @helpCommonType.
+  ///
+  /// In es, this message translates to:
+  /// **'Confundí gasto con ingreso'**
+  String get helpCommonType;
+
+  /// No description provided for @helpCommonTypeFix.
+  ///
+  /// In es, this message translates to:
+  /// **'Abre el registro y cambia el tipo de Gasto a Ingreso (o al revés)'**
+  String get helpCommonTypeFix;
+
+  /// No description provided for @helpCommonArea.
+  ///
+  /// In es, this message translates to:
+  /// **'No veo el panel \"Por hectárea\"'**
+  String get helpCommonArea;
+
+  /// No description provided for @helpCommonAreaFix.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra el área del cultivo: en Cultivos edita el cultivo y pon las hectáreas'**
+  String get helpCommonAreaFix;
 
   /// No description provided for @syncTooltip.
   ///

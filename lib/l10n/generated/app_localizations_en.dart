@@ -209,7 +209,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPaybackTitleNotLoss => 'It is not a loss: it is an investment';
 
   @override
-  String get helpPaybackNotLoss => 'While the crop is in establishment, spending is not losing: it is the cost of planting your asset.';
+  String get helpPaybackNotLoss => 'If you invest \$1,000,000 planting coffee and have not sold yet, you did not lose \$1,000,000. You invested \$1,000,000. When you start selling, the recovery percentage starts to rise.';
+
+  @override
+  String get helpFlowTitle => 'The order of the app';
+
+  @override
+  String get helpFlowIntro => 'Think of it as a chain: first you tell it what you grow, then how much you planted, then what you spent, then what you harvested, and finally how much you sold for.';
+
+  @override
+  String get helpFlowStep1Title => 'Define the crop';
+
+  @override
+  String get helpFlowStep1Body => 'What you manage (coffee, plantain…).';
+
+  @override
+  String get helpFlowStep2Title => 'Record the planting';
+
+  @override
+  String get helpFlowStep2Body => 'How many plants you put in.';
+
+  @override
+  String get helpFlowStep3Title => 'Log expenses';
+
+  @override
+  String get helpFlowStep3Body => 'What you invested.';
+
+  @override
+  String get helpFlowStep4Title => 'Record the harvest';
+
+  @override
+  String get helpFlowStep4Body => 'What you collected.';
+
+  @override
+  String get helpFlowStep5Title => 'Record the sale';
+
+  @override
+  String get helpFlowStep5Body => 'Who you sold to and for how much.';
+
+  @override
+  String get helpFlowHint => 'The \"Your next step\" card on the Overview tells you exactly which record you need next. When you have done it all, the card disappears on its own.';
+
+  @override
+  String get helpCommonTitle => 'Common mistakes (and how to fix them)';
+
+  @override
+  String get helpCommonMistake => 'Wrong amount';
+
+  @override
+  String get helpCommonFix => 'I entered the wrong amount';
+
+  @override
+  String get helpCommonFix2 => 'Go to History, find the record, edit or delete it';
+
+  @override
+  String get helpCommonAssigned => 'I did not assign a crop to an expense';
+
+  @override
+  String get helpCommonAssignedFix => 'In History you will see \"X records without a crop\". Press \"Assign crops now\" and pick which crop it belongs to';
+
+  @override
+  String get helpCommonType => 'I mixed up expense and income';
+
+  @override
+  String get helpCommonTypeFix => 'Open the record and switch the type from Expense to Income (or the other way)';
+
+  @override
+  String get helpCommonArea => 'I cannot see the \"Per hectare\" panel';
+
+  @override
+  String get helpCommonAreaFix => 'Set the crop area: in Crops edit the crop and enter the hectares';
 
   @override
   String get syncTooltip => 'Sync';

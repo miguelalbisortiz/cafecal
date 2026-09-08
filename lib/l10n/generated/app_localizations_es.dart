@@ -74,142 +74,211 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpTitle => 'Ayuda';
 
   @override
-  String get helpSectionGuide => 'Guía de primeros pasos';
+  String get helpSectionGuide => 'Guía para empezar';
 
   @override
-  String get helpIntro => 'Mi Cafetal lleva las cuentas de tu finca: cuánto inviertes, produces y vendes, por cultivo, por mes y por año.';
+  String get helpIntro => 'Mi Cafetal te dice si tu finca está ganando o perdiendo dinero. Tú le dices cuánto gastas y cuánto vendes. La app hace las cuentas y te avisa si algo va mal.';
 
   @override
-  String get helpIntroPromesa => 'La app nunca adivina tu producción: los números salen de lo que tú registras. Cuanto más completo sea tu registro, más útiles son los resultados.';
+  String get helpIntroPromesa => 'La app no inventa números: todo sale de lo que tú registras. Si le das pocos datos, te da poca información. Si le das más, te da más.';
 
   @override
   String get helpWhereTitle => '¿Dónde entro cada dato?';
 
   @override
-  String get helpRowOverview => 'Resumen de tu finca (ingresos, gastos y balance)';
+  String get helpRowOverview => 'Ver el panorama: cuánto ganaste, cuánto gastaste, si estás en positivo o negativo';
 
   @override
-  String get helpRowCrops => 'Definir los cultivos de tu finca';
+  String get helpRowCrops => 'Decirle a la app qué cosechas manejas (café, plátano, etc.)';
 
   @override
-  String get helpRowSowings => 'Sembrar o resembrar';
+  String get helpRowSowings => 'Registrar cuántas plantas sembraste o reemplazaste';
 
   @override
-  String get helpRowHarvests => 'Registrar lo recogido';
+  String get helpRowHarvests => 'Registrar cuánto recogiste y qué hiciste con ello';
 
   @override
-  String get helpRowExpenses => 'Gastos (insumos, mano de obra…)';
+  String get helpRowExpenses => 'Anotar gastos: fertilizante, pago de trabajadores, semillas, etc.';
 
   @override
-  String get helpRowIncome => 'Ventas de la cosecha';
+  String get helpRowIncome => 'Registrar cuánto te pagaron por lo que vendiste';
 
   @override
-  String get helpCaseTitle => '¿Por dónde empiezo? Según tu caso';
+  String get helpCaseTitle => '¿Por dónde empiezo? Depende de tu situación';
 
   @override
-  String get helpCaseATitle => 'Caso A — Ya tengo los cultivos sembrados';
+  String get helpCaseATitle => 'Ya tengo la finca funcionando, solo quiero controlar las cuentas';
 
   @override
-  String get helpCaseA1 => 'Cultivos: revisa Café y Plátano y pon su fase en Producción (si conoces el dato, área y plantas vivas).';
+  String get helpCaseA1 => 'Entra a Cultivos (menú ⋮). Edita Café y Plátano y ponles fase Producción (ya están dando frutos). Si sabes hectáreas y plantas, ponlo.';
 
   @override
-  String get helpCaseA2 => 'Registrar: anota los gastos del mes (insumos, mano de obra).';
+  String get helpCaseA2 => 'En Registrar, anota tus gastos del mes: fertilizante, pago de trabajadores, etc.';
 
   @override
-  String get helpCaseA3 => 'Cosechas: al recoger, registra la cosecha con su destino.';
+  String get helpCaseA3 => 'Cuando coseches, entra a Cosechas y registra cuánto recogiste y si lo vendiste, lo guardaste o se perdió.';
 
   @override
-  String get helpCaseA4 => 'Registrar: al vender, registra el ingreso de la venta.';
+  String get helpCaseA4 => 'Cuando vendas, vuelve a Registrar y pon un Ingreso con el dinero que te pagaron.';
 
   @override
-  String get helpCaseAEnd => 'Revisa el Resumen: balance e indicadores empiezan a cobrar sentido.';
+  String get helpCaseAEnd => 'Mira el Resumen: ahí ves si estás ganando o perdiendo. Las alertas te avisan si algo necesita atención.';
 
   @override
-  String get helpCaseBTitle => 'Caso B — Voy a sembrar algo nuevo';
+  String get helpCaseBTitle => 'Estoy empezando un cultivo nuevo desde cero';
 
   @override
-  String get helpCaseB1 => 'Cultivos: crea tu cultivo con fase Establecimiento (ciclo Anual o Perenne).';
+  String get helpCaseB1 => 'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Establecimiento. Elige si es Anual o Perenne.';
 
   @override
-  String get helpCaseB2 => 'Siembras: registra la siembra inicial (plantas y área; puedes vincular su costo).';
+  String get helpCaseB2 => 'En Siembras, registra cuántas plantas pusiste, en qué área, y si quieres el costo.';
 
   @override
-  String get helpCaseB3 => 'En establecimiento la app no marca pérdidas: es inversión, no producción.';
+  String get helpCaseB3 => 'Mientras esté en Establecimiento, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.';
 
   @override
-  String get helpCaseB4 => 'Al pasar a Producción, sigue el flujo de cosechas y ventas del Caso A.';
+  String get helpCaseB4 => 'Cuando empiece a dar fruto y pases a Producción, sigue el flujo del caso anterior: cosechas y ventas.';
 
   @override
-  String get helpUnitsTitle => 'Unidades';
+  String get helpUnitsTitle => '¿Qué unidad uso?';
 
   @override
-  String get helpUnitsBody => 'Usa kg, o arroba (12.5 kg) y saco (70 kg) para café. La app convierte todo a kg para comparar.';
+  String get helpUnitsBody => 'Puedes usar kilogramos (kg), arrobas (1 arroba = 12.5 kg, común para café en Colombia) o sacos (1 saco = 70 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.';
 
   @override
   String get helpGlossaryTitle => 'Glosario';
 
   @override
-  String get helpGlossaryBody => 'Plantines: plantío joven en establecimiento. Área: superficie del cultivo. Plantas vivas: total vigente (siembra − bajas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guarda en la nube para entrar desde cualquier dispositivo. Alerta: aviso automático en el Resumen.';
+  String get helpGlossaryBody => 'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.';
 
   @override
   String get helpGlossaryFinance => 'Ver glosario financiero';
 
   @override
-  String get helpPerHaTitle => '¿Qué significa por hectárea?';
+  String get helpPerHaTitle => '¿Qué es el panel \"Por hectárea\"?';
 
   @override
-  String get helpPerHaIntro => 'Normalizar por hectárea convierte tus datos en comparables: así sabes si una parcela rinde más que otra aunque sus tamaños sean distintos.';
+  String get helpPerHaIntro => 'Si registras cuántas hectáreas tiene tu cultivo, la app puede calcular cuánto produce cada hectárea. Esto es útil para comparar parcelas de diferente tamaño con la misma regla.';
 
   @override
   String get helpPerHaTitleYield => 'Rendimiento (kg/ha)';
 
   @override
-  String get helpPerHaYield => 'Cosechas del período ÷ área del cultivo. El mismo estándar de tus exportaciones.';
+  String get helpPerHaYield => 'Cuántos kilos produce cada hectárea. Es el mismo dato que piden tus compradores.';
 
   @override
   String get helpPerHaTitleVentas => 'Ventas por ha';
 
   @override
-  String get helpPerHaRevenue => 'Ingresos del período ÷ área. Cuánto dinero produce tu tierra.';
+  String get helpPerHaRevenue => 'Cuánto dinero genera cada hectárea. Divide tus ingresos entre las hectáreas.';
 
   @override
   String get helpPerHaTitleGastos => 'Gastos por ha';
 
   @override
-  String get helpPerHaCost => 'Gastos del período ÷ área. Lo que cuesta producir cada hectárea.';
+  String get helpPerHaCost => 'Cuánto cuesta producir en cada hectárea. Divide tus gastos entre las hectáreas.';
 
   @override
   String get helpPerHaTitleMargen => 'Margen por ha';
 
   @override
-  String get helpPerHaMargin => 'Ventas − gastos, por hectárea. Positivo = la hectárea deja dinero.';
+  String get helpPerHaMargin => 'Si cada hectárea deja ganancia. Positivo = la hectárea produce más de lo que cuesta.';
 
   @override
-  String get helpPerHaWhy => '¿Por qué normalizar? Una parcela de 3 ha que vende \$9M no compite con otra de 1 ha que vende \$5M: por hectárea, la segunda gana. El panel divide por área para que compares con la misma regla.';
+  String get helpPerHaWhy => '¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende \$9M y otra de 1 ha que vende \$5M. Por hectárea, la segunda gana más (\$5M vs \$3M). Este panel te muestra esa comparación justa.';
 
   @override
-  String get helpPaybackTitle => '¿Cómo se recupera la inversión del establecimiento?';
+  String get helpPaybackTitle => '¿Cómo sé cuándo recupero lo invertido?';
 
   @override
-  String get helpPaybackIntro => 'Al editar un cultivo puedes registrar el Costo del establecimiento: lo invertido en sembrar y levantar el cultivo (plantines, mano de obra, fertilización inicial…).';
+  String get helpPaybackIntro => 'Cuando editas un cultivo puedes poner el Costo del establecimiento: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cuánto ya recuperaste.';
 
   @override
   String get helpPaybackTitlePercent => '% recuperado';
 
   @override
-  String get helpPaybackPercent => 'La app divide el margen acumulado del cultivo (ventas − gastos) entre esa inversión. 100% = ya la pagaste.';
+  String get helpPaybackPercent => 'Divide lo que ya ganaste con ventas menos gastos, entre lo que invertiste. 100% = ya lo pagaste completamente.';
 
   @override
   String get helpPaybackTitleYears => 'Se pagaría en N años (aprox.)';
 
   @override
-  String get helpPaybackYears => 'Promedio del margen anual medido. Es un promedio de tus datos reales, no una promesa de cosecha.';
+  String get helpPaybackYears => 'Un estimado basado en tu margen promedio real. No es una promesa — es un cálculo con tus datos.';
 
   @override
-  String get helpPaybackTitleNotLoss => 'No es pérdida: es inversión';
+  String get helpPaybackTitleNotLoss => 'No es una pérdida, es una inversión';
 
   @override
-  String get helpPaybackNotLoss => 'Mientras el cultivo está en establecimiento, gastar no es perder: es el costo de sembrar tu activo.';
+  String get helpPaybackNotLoss => 'Si inviertes \$1,000,000 en plantar café y aún no vendes, no perdiste \$1,000,000. Invertiste \$1,000,000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.';
+
+  @override
+  String get helpFlowTitle => 'El orden de la app';
+
+  @override
+  String get helpFlowIntro => 'Piensa en esto como una cadena: primero le dices qué cultivas, luego cuánto sembraste, luego cuánto gastaste, luego qué recogiste, y por último cuánto vendiste.';
+
+  @override
+  String get helpFlowStep1Title => 'Definir el cultivo';
+
+  @override
+  String get helpFlowStep1Body => 'Qué manejas (café, plátano…).';
+
+  @override
+  String get helpFlowStep2Title => 'Registrar la siembra';
+
+  @override
+  String get helpFlowStep2Body => 'Cuántas plantas pusiste.';
+
+  @override
+  String get helpFlowStep3Title => 'Anotar gastos';
+
+  @override
+  String get helpFlowStep3Body => 'Qué invertiste.';
+
+  @override
+  String get helpFlowStep4Title => 'Registrar cosecha';
+
+  @override
+  String get helpFlowStep4Body => 'Qué recogiste.';
+
+  @override
+  String get helpFlowStep5Title => 'Registrar venta';
+
+  @override
+  String get helpFlowStep5Body => 'A quién vendiste y cuánto.';
+
+  @override
+  String get helpFlowHint => 'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya hiciste todo, la tarjeta desaparece sola.';
+
+  @override
+  String get helpCommonTitle => 'Errores comunes (y cómo corregirlos)';
+
+  @override
+  String get helpCommonMistake => 'Miseria en el monto';
+
+  @override
+  String get helpCommonFix => 'Puse un monto incorrecto';
+
+  @override
+  String get helpCommonFix2 => 'Ve a Historial, busca el registro, edítalo o elimínalo';
+
+  @override
+  String get helpCommonAssigned => 'No le asigné cultivo a un gasto';
+
+  @override
+  String get helpCommonAssignedFix => 'En Historial aparece \"X registros sin cultivo\". Pulsa \"Asignar cultivo ahora\" y elige a qué cultivo pertenece';
+
+  @override
+  String get helpCommonType => 'Confundí gasto con ingreso';
+
+  @override
+  String get helpCommonTypeFix => 'Abre el registro y cambia el tipo de Gasto a Ingreso (o al revés)';
+
+  @override
+  String get helpCommonArea => 'No veo el panel \"Por hectárea\"';
+
+  @override
+  String get helpCommonAreaFix => 'Registra el área del cultivo: en Cultivos edita el cultivo y pon las hectáreas';
 
   @override
   String get syncTooltip => 'Sincronizar';

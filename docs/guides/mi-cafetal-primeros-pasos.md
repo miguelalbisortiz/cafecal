@@ -1,161 +1,231 @@
-# Mi Cafetal — Guía de primeros pasos
+# Mi Cafetal — Guía para empezar (sin saber nada de la app)
 
-Bienvenido a **Mi Cafetal App**, la aplicación para llevar las cuentas de tu finca:
-cuánto inviertes, cuánto produces y cuánto vendes — por cultivo, por mes y por año.
-
-Esta guía te lleva de cero a tus primeros registros en 10 minutos.
+> **Si no sabes qué es una arroba, un ROI o un cultivo, esta guía es para ti.**
+> Te explica todo con palabras simples y ejemplos reales.
 
 ---
 
-## 1. ¿Para qué sirve la app?
+## Qué hace la app en una frase
 
-- **Saber si ganas o pierdes** con cada cultivo (ROI y balance).
-- **Ver tus gastos y ventas** por mes y por año.
-- **Llevar tu producción**: siembras (plantines/plantas) y cosechas (kg, arrobas…).
-- **Detectar problemas a tiempo** con alertas: sin ventas, precios bajos, pérdidas
-  repetidas, gastos sin cultivo asignado, ventas que no cuadran con lo cosechado.
+**Mi Cafetal te dice si tu finca está ganando o perdiendo dinero**, por cada cosa que siembras, mes a mes.
 
-La app nunca adivina tu producción: **los números salen de lo que tú registras.**
-Cuanto más completo sea tu registro, más útiles son los resultados.
+Tú le dices cuánto gastas y cuánto vendes. La app hace las cuentas y te avisa si algo va mal.
 
 ---
 
-## 2. Conceptos clave
+## Mapa rápido de la app
 
-| Concepto | Qué significa |
+Cuando abres la app ves **3 pestañas** abajo:
+
+| Pestaña | Para qué la usas |
 |---|---|
-| **Cultivo** | Cada actividad de tu finca: Café, Plátano, Verduras… Cada uno con su fase de vida, ciclo y unidad preferida. |
-| **Fase de vida** | `Establecimiento` (plantío joven que aún no produce), `Producción` (ya cosecha) o `Renovación` (lo replantaste). |
-| **Ciclo** | `Perenne` (café, plátano: producen varios años) o `Anual` (hortalizas: un ciclo por siembra). |
-| **Siembra** | Registro de plantas puestas (y su área). |
-| **Resiembra** | Remplazo de plantas perdidas (bajas) de un plantío ya sembrado. |
-| **Cosecha** | Registro de lo que recogiste, con su cantidad, unidad y destino. |
-| **Destino de la cosecha** | `Vendido`, `Almacenado` o `Pérdida`. |
+| **Resumen** | Ver el panorama: cuánto ganaste, cuánto gastaste, si estás en positivo o negativo. Aquí aparece también la tarjeta "Tu próximo paso" que te dice qué hacer. |
+| **Registrar** | Anotar un gasto o una venta. Es como apuntar en una libreta, pero la app hace las cuentas solita. |
+| **Historial** | Ver todo lo que has registrado, mes por mes. |
 
-💡 **Fase = caso A o B.** En `Establecimiento`/`Renovación` la app te lleva a registrar
-la **siembra**. En `Producción` no te exige siembra: la finca ya está establecida y
-solo registras gastos, cosechas y ventas.
+Además, el **menú ⋮** (arriba a la derecha) tiene:
+
+- **Cultivos** — Para decirle a la app qué cosechas manejas (café, plátano, etc.)
+- **Siembras** — Para registrar cuántas plantas sembraste
+- **Cosechas** — Para registrar cuánto recogiste
+- **Reporte** — Para ver un resumen detallado con números y gráficas
+- **Ayuda** — Esta guía, pero dentro de la app
+- **Configuración** — Nombre de la finca, moneda, idioma
 
 ---
 
-## 3. ¿Dónde entro cada dato?
+## Palabras que vas a ver (explicadas como si fueran nuevas)
 
-| Situación | Pantalla | Qué pide |
+| Palabra de la app | Qué significa en la vida real |
+|---|---|
+| **Cultivo** | Cada cosa que manejas en la finca. Ejemplo: Café, Plátano, Verduras. No es un término técnico — es simplemente "qué estás cultivando". |
+| **Fase** | En qué etapa está tu cultivo. Puede ser **Establecimiento** (lo sembraste hace poco, aún no produce), **Producción** (ya está dando frutos), o **Renovación** (lo replantaste porque se dañó o envejeció). |
+| **Ciclo** | Si el cultivo dura varios años (**Perenne**, como el café) o si se siembra y recoge en un solo año (**Anual**, como las verduras). |
+| **Siembra** | Cuando plantas por primera vez. Es como "empezar una nueva camada" de tu cultivo. |
+| **Resiembra** | Cuando reemplazas plantas que se murieron. Ejemplo: sembraste 1000 plantas, se murieron 50, entonces haces resiembra de 50. |
+| **Cosecha** | Cuando recoges lo que creció. Ejemplo: "recogí 200 kg de café". |
+| **Arroba** | Una medida de peso para café: **1 arroba = 12.5 kg**. Si vendes 4 arrobas, son 50 kg. |
+| **Saco** | Otra medida para café: **1 saco = 70 kg**. |
+| **Hectárea (ha)** | Una medida de terreno: 1 hectárea = 10,000 m² (aproximadamente 1.5 canchas de fútbol). Se usa para comparar qué tan productiva es tu tierra. |
+| **ROI** | "¿Cuánto me devuelve cada peso que invierto?" Si inviertes $100 y recuperas $130, tu ROI es 30%. Si es negativo, estás perdiendo dinero. |
+| **Balance** | La resta simple: **lo que vendí menos lo que gasté**. Si es positivo, ganaste. Si es negativo, perdiste. |
+| **Margen** | "De cada $100 que vendo, ¿cuánto me queda de ganancia?" Si tu margen es 25%, de cada $100 vendidos te quedan $25. |
+| **Destino** | Qué pasó con tu cosecha: la **Vendiste**, la **Almacenaste** (la guardaste), o fue una **Pérdida** (se dañó o la regalaste). |
+| **Alerta** | Un aviso automático cuando algo no está bien. Ejemplo: "Llevas 60 días sin vender" o "Tus gastos se duplicaron". |
+
+---
+
+## Flujo básico: el orden que la app espera
+
+Piensa en esto como una cadena:
+
+```
+1. Definir tu cultivo (qué manejas)
+      ↓
+2. Registrar la siembra (cuántas plantas pusiste)
+      ↓
+3. Anotar gastos (qué invertiste: insumos, mano de obra...)
+      ↓
+4. Registrar cosecha (qué recogiste)
+      ↓
+5. Registrar venta (a quién le vendiste y cuánto)
+```
+
+**No tienes que hacer todo de golpe.** La tarjeta "Tu próximo paso" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Si ya hiciste todo, la tarjeta desaparece sola.
+
+---
+
+## ¿Por dónde empiezo? Depende de tu situación
+
+### Caso A — "Ya tengo la finca funcionando, solo quiero controlar las cuentas"
+
+Este es el caso más común. Ya tienes café, plátano o lo que sea plantado y produciendo.
+
+1. **Entra a Cultivos** (menú ⋮). Verás Café, Plátano y Otro predefinidos.
+   - Edítalos y ponles **fase "Producción"** (porque ya están dando frutos).
+   - Si sabes cuántas hectáreas tienes y cuántas plantas, ponlo. Si no, lo puedes dejar en blanco por ahora.
+
+2. **En Registrar**, anota tus gastos del mes: fertilizante, pago de trabajadores, semillas, etc. Ponle la categoría que más se parezca.
+
+3. **Cuando coseches**, entra a Cosechas (menú ⋮) y registra cuánto recogiste y qué hiciste con ello (vendido, almacenado, o si se perdió).
+
+4. **Cuando vendas**, vuelve a Registrar y pon un **Ingreso** con el dinero que te pagaron.
+
+5. **Mira el Resumen.** Ahí verás si estás ganando o perdiendo. Las alertas te avisan si algo necesita atención.
+
+> **Ejemplo real:** Juan tiene 2 hectáreas de café en producción.
+> - En Cultivos, pone: Café, Producción, Perenne, 2 ha, 3000 plantas.
+> - En Registrar, pone un gasto de $500,000 en Fertilizante.
+> - En Cosechas, registra: 4 arrobas (50 kg), Vendido.
+> - En Registrar, pone un ingreso de $750,000 por la venta.
+> - En Resumen ve: Balance +$250,000, Margen 33%, ROI 50%.
+
+### Caso B — "Estoy empezando un cultivo nuevo desde cero"
+
+Acabas de sembrar algo y quieres llevar la cuenta desde el inicio.
+
+1. **En Cultivos**, crea tu cultivo (o edita el que está) y ponle **fase "Establecimiento"**. Elige si es Anual o Perenne.
+
+2. **En Siembras** (menú ⋮), registra la siembra: cuántas plantas pusiste, en qué área.
+
+3. **Registra los gastos** de la siembra: semillas, mano de obra, abono. Puedes vincular el costo directamente en la pantalla de Siembras.
+
+4. **Mientras esté en Establecimiento**, la app NO te marca pérdidas aunque gastes dinero. Es normal: estás invirtiendo en construir tu cultivo, no estás perdiendo.
+
+5. **Cuando pase a Producción**, sigue el flujo del Caso A: cosechas y ventas.
+
+> **Ejemplo real:** María plantó 500 plátanos nuevos.
+> - En Cultivos: Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas.
+> - En Siembras: Siembra inicial, 500 plantas, 0.5 ha, costo $200,000.
+> - Gasta $150,000 en fertilizante y $100,000 en mano de obra.
+> - La app muestra: "Inversión en establecimiento: $450,000". No dice "pérdida" — es una inversión.
+> - Cuando el plátano empiece a dar fruto y María registre cosechas, el ROI empieza a subir.
+
+---
+
+## Unidades de medida para la cosecha
+
+Cuando registres una cosecha o una venta, la app te pide una **unidad**:
+
+| Unidad | Cuánto pesa | Cuándo se usa |
 |---|---|---|
-| Quiero definir los cultivos de mi finca | **Cultivos** (menú ⋮ arriba a la derecha) | Nombre, fase, ciclo, unidad preferida, área (ha), plantas vivas, costo del establecimiento (opcional) |
-| Voy a sembrar o resembrar | **Siembras** (menú ⋮) | Tipo (siembra/resiembra), plantas, área, bajas y motivo |
-| Recogí producción | **Cosechas** (menú ⋮) | Cantidad, unidad, destino de la cosecha |
-| Compré insumos, pagué mano de obra… | **Registrar** (pestaña central) | Gasto → categoría, cultivo, monto, fecha (opcional: cantidad, proveedor) |
-| Vendí café/plátano… | **Registrar** | Ingreso → categoría de venta, cultivo, monto, fecha (opcional: cantidad y precio por kg) |
-| Quiero ver el resumen | **Resumen** (primera pestaña) | Autocompletado: ingresos, gastos, balance e indicadores |
+| **Kilogramos (kg)** | 1 kg | Para todo: café, plátano, verduras |
+| **Arroba** | 12.5 kg | Principalmente para café en Colombia |
+| **Saco** | 70 kg | Para café en sacos |
+| **Racimos** | (no se pesa) | Para plátano |
+| **Cajones** | (varía) | Para frutas o verduras en cajones |
 
-El orden recomendado por la app es siempre: **cultivo → siembra (si aplica) → gastos →
-cosecha → venta**. La tarjeta **"Tu próximo paso"** del Resumen te dice cuál registrar.
+**La app convierte todo a kilogramos** para hacer comparaciones. Si pones 2 arrobas, la app sabe que son 25 kg.
 
----
-
-## 4. Primeros pasos según tu caso
-
-### Caso A — Ya tengo los cultivos sembrados (finca establecida)
-
-1. En **Cultivos**, revisa Café y Plátano: ajústales la **fase a "Producción"** y,
-   si conoces el dato, el **área (ha)** y las **plantas vivas**.
-2. En **Registrar**, anota los **gastos** del mes (insumos, mano de obra).
-3. Cuando recojas, registra la **cosecha** con su destino.
-4. Cuando vendas, registra el **ingreso** de la venta.
-5. Revisa el **Resumen**: balance e indicadores empiezan a cobrar sentido.
-
-### Caso B — Voy a sembrar algo nuevo (plantío joven)
-
-1. En **Cultivos**, crea tu cultivo (o edita el default) con fase
-   **"Establecimiento"** y ciclo **"Anual"** o **"Perenne"**.
-2. En **Siembras**, registra la **siembra inicial**: cantidad de plantas y área.
-3. Registra los **gastos** de la siembra e insumos (puedes vincular su costo en la
-   misma pantalla de Siembras).
-4. Mientras el cultivo está en establecimiento, la app **no** te marcará pérdidas:
-   es inversión, no producción aún.
-5. Cuando esté en producción, sigue el flujo de cosechas y ventas (Caso A).
+> **Consejo:** Usa la unidad con la que trabajes normalmente. Si siempre vendes café por arrobas, pon "arroba" como unidad preferida del cultivo (en Cultivos → editar).
 
 ---
 
-## 5. Ejemplos por cultivo
+## El panel "Por hectárea": para qué sirve
 
-- **Café (perenne, producción):** vendes por arrobas o sacos. Una cosecha de
-  "2 arrobas" equivale a **25 kg** (1 arroba = 12.5 kg); un saco = **70 kg**.
-- **Plátano (perenne, producción):** cosechas en racimos. Registra cantidad en
-  "racimos" y la venta con cantidad en racimos o kg.
-- **Verduras (anual, establecimiento):** cada siembra es un ciclo propio: siembra
-  → gastos → cosecha → venta → nueva siembra.
+Si registras el **área** de tu cultivo en hectáreas, la app puede calcular cuánto produce **cada hectárea**. Esto es útil para comparar parcelas de diferente tamaño.
 
-💡 Usa la **unidad preferida** del cultivo para cosechas y ventas; la app convierte
-todo a kg para comparar.
+**Ejemplo:** Tienes dos parcelas:
+- Parcela A: 3 ha, vende $9,000,000 → $3,000,000 por ha
+- Parcela B: 1 ha, vende $5,000,000 → **$5,000,000 por ha**
 
----
+La Parcela B gana más **por hectárea**, aunque la A vende más en total. El panel te muestra esta comparación justa.
 
-## 6. Glosario
+**Indicadores que verás:**
 
-- **Plantines**: plantas jóvenes del cultivo en establecimiento.
-- **Área (hectáreas)**: superficie del cultivo; se usa para indicadores por hectárea.
-- **Plantas vivas**: total de plantas vigentes (siembra − bajas + resiembras).
-- **Arroba**: unidad de café = **12.5 kg**.
-- **Saco**: unidad = **70 kg**.
-- **Destino de cosecha**: vendido / almacenado / pérdida.
-- **ROI**: cuánto recuperas por peso invertido: `(Ingresos − Gastos) ÷ Gastos`.
-  Negativo = el cultivo gasta más de lo que recupera.
-- **Balance**: `Ingresos − Gastos` del período. Positivo = ganancia; negativo = pérdida.
-- **Sincronizar**: guarda tus datos en la nube (Supabase) para que estén en cualquier
-  dispositivo y con respaldo.
-- **Alerta**: aviso automático en el Resumen (sin ventas, precios bajos, pérdidas…).
-- **Tu próximo paso**: tarjeta derivada de tus datos que te dice qué registrar primero.
+| Indicador | Qué te dice |
+|---|---|
+| **Rendimiento (kg/ha)** | Cuántos kilos produce cada hectárea |
+| **Ventas por ha** | Cuánto dinero genera cada hectárea |
+| **Gastos por ha** | Cuánto cuesta producir en cada hectárea |
+| **Margen por ha** | Si cada hectárea deja ganancia (positivo = sí) |
 
 ---
 
-## 7. Sincronización y respaldo
+## Recuperar la inversión del establecimiento
 
-- Tu información se guarda **localmente** en el dispositivo y se **sincroniza con la
-  nube** al entrar (botón de sincronizar en la barra superior).
-- Cada cuenta tiene sus propios datos: tus cultivos, cosechas y movimientos no se
-  comparten con otros dispositivos ni cuentas.
-- Respaldos: desde **Configuración** puedes exportar reportes (PDF/Excel).
-- Para entrar en otro dispositivo, inicia sesión con la misma cuenta.
+Cuando editas un cultivo, puedes poner un **"Costo del establecimiento"**: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial).
 
-## 8. ¿Qué significa por hectárea?
+La app calcula:
 
-El panel **"Por hectárea"** del Resumen normaliza tus datos por superficie, para que
-puedas comparar cultivos y parcelas de tamaños distintos con la misma regla:
+- **% recuperado**: Cuánto de esa inversión ya recuperaste con tus ventas.
+  - 0% = apenas empezaste
+  - 50% = llevas la mitad
+  - 100% = ya la pagaste completamente
+- **Se pagaría en N años**: Un estimado basado en tu margen promedio real.
 
-| Indicador | Cómo se calcula | Qué te dice |
+> **No es una pérdida, es una inversión.** Si inviertes $1,000,000 en plantar café y aún no vendes, no perdiste $1,000,000 — invertiste $1,000,000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.
+
+---
+
+## Las alertas: qué significan y qué hacer
+
+Las alertas aparecen en el Resumen cuando algo necesita tu atención. Cada una tiene un **problema** y una **sugerencia**:
+
+| Alerta | Qué significa | Qué hacer |
 |---|---|---|
-| **Rendimiento (kg/ha)** | Cosechas del período ÷ área del cultivo | Cuánto produce tu tierra (estándar del sector cafetero) |
-| **Ventas por ha** | Ingresos del período ÷ área | Cuánto dinero genera cada hectárea |
-| **Gastos por ha** | Gastos del período ÷ área | Cuánto cuesta producir cada hectárea |
-| **Margen por ha** | Ventas − gastos, por hectárea | Si cada hectárea deja dinero (positivo = sí) |
+| **"Gasto X casi se duplicó"** | Un gasto subió mucho comparado con tu promedio | Revisa si fue algo puntual o si es tendencia |
+| **"Gastos pero cero ventas"** | Gastaste dinero pero no vendiste nada | Cuando vendas, regístralo como ingreso |
+| **"Sin ventas en X días"** | Llevas tiempo sin registrar una venta | Registra la última venta que hiciste |
+| **"X meses seguidos con pérdidas"** | Gastas más de lo que ganas hace varios meses | Revisa tus costos fijos (mano de obra, fertilizante) |
+| **"Ventas por debajo de tu promedio"** | Estás vendiendo más barato que antes | Compara precios con otros compradores |
+| **"Vendiste más de lo que cosechaste"** | Tus ventas superan lo que registraste como cosecha | Revisa si tienes inventario o si te faltó registrar cosechas |
+| **"Ventas sin kilos registrados"** | Vendiste pero no pusiste cuántos kilos | Editas esas ventas y pon la cantidad para que el reporte sea confiable |
 
-> ¿Por qué normalizar? Una parcela de 3 ha que vende $9M no compite con otra de 1 ha
-> que vende $5M: por hectárea, la segunda gana. Dividir por área hace la comparación
-> justa.
+---
 
-**Necesitas registrar el área del cultivo** (en Cultivos → editar) para que el panel
-aparezca. Sin área, la app solo te lo recuerda: no inventa números.
+## Errores comunes (y cómo corregirlos)
 
-## 9. ¿Cómo se recupera la inversión del establecimiento?
+| Error | Solución |
+|---|---|
+| **Puse un monto incorrecto** | Ve a Historial, busca el registro, edítalo o elimínalo |
+| **No asigné cultivo a un gasto** | En Historial aparece un aviso "X registros sin cultivo". Pulsa "Asignar cultivo ahora" y elige a qué cultivo pertenece |
+| **Confundí gasto con ingreso** | Edítalo y cambia el tipo de "Gasto" a "Ingreso" (o viceversa) |
+| **Quiero cambiar la moneda** | Ve a Configuración y selecciona tu moneda (COP, USD, EUR). Los montos se convierten automáticamente |
+| **No veo el panel "Por hectárea"** | Necesitas registrar el área del cultivo. En Cultivos → editar → pon las hectáreas |
 
-Al editar un cultivo puedes registrar el **costo del establecimiento**: lo invertido
-en sembrar y levantar el cultivo (plantines, mano de obra, fertilización inicial…).
-Con ese dato y tu margen acumulado (ventas − gastos del cultivo), la app calcula:
+---
 
-- **% recuperado**: margen acumulado ÷ inversión. 100% = ya la pagaste.
-- **Se pagaría en N años (aprox.)**: inversión ÷ margen anual promedio *medido*.
-  Es un promedio de tus datos reales, no una promesa de cosecha.
-- **Pendiente de recuperarse**: cuando aún no hay cosechas ni margen medido; no se
-  muestra ningún número inventado.
+## Glosario rápido
 
-💡 **No es pérdida: es inversión.** Mientras el cultivo está en establecimiento, los
-gastos no son perder dinero: son el costo de sembrar tu activo. El % recuperado
-empieza a subir cuando el cultivo entra en producción y empiezas a registrar cosechas
-y ventas.
+| Término | Definición |
+|---|---|
+| **Plantines** | Plantas jóvenes, todavía no producen |
+| **Área** | Cuánto terreno ocupa el cultivo (en hectáreas) |
+| **Plantas vivas** | Las plantas que siguen activas (sembradas − muertas + resiembras) |
+| **ROI** | Retorno de inversión: cuánto recuperas por cada peso invertido |
+| **Balance** | Ingresos − Gastos. Positivo = ganancia, negativo = pérdida |
+| **Margen** | Porcentaje de ganancia sobre tus ventas |
+| **Sincronizar** | Guardar tus datos en la nube para tenerlos en cualquier dispositivo |
+| **Alerta** | Aviso automático cuando algo necesita atención |
+| **Tu próximo paso** | Tarjeta que te guía sobre qué registrar siguiente |
 
-## 10. Consejo final
+---
 
-Empieza pequeño: un cultivo, un gasto, una venta. La app aprende de tu registro.
-Registrar 5 minutos por semana vale más que un mes perfecto que no llegaste a empezar.
+## Consejo final
+
+**Empieza con una cosa sola.** Crea un cultivo, registra un gasto, haz una venta. No necesitas llenar todo de golpe.
+
+5 minutos por semana registrando datos vale más que un mes perfecto que nunca empezaste.
+
+La app aprende de lo que tú le dices. Si le das pocos datos, te da poca información. Si le das más, te da más.
