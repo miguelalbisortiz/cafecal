@@ -254,13 +254,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCommonTitle => 'Common mistakes (and how to fix them)';
 
   @override
-  String get helpCommonMistake => 'Wrong amount';
+  String get helpCommonAmount => 'I entered the wrong amount';
 
   @override
-  String get helpCommonFix => 'I entered the wrong amount';
-
-  @override
-  String get helpCommonFix2 => 'Go to History, find the record, edit or delete it';
+  String get helpCommonAmountFix => 'Go to History, find the record, edit or delete it';
 
   @override
   String get helpCommonAssigned => 'I did not assign a crop to an expense';
@@ -273,6 +270,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpCommonTypeFix => 'Open the record and switch the type from Expense to Income (or the other way)';
+
+  @override
+  String get helpCommonCurrency => 'I want to change the currency';
+
+  @override
+  String get helpCommonCurrencyFix => 'Go to Settings and select the currency (COP, USD, EUR). Amounts convert automatically';
 
   @override
   String get helpCommonArea => 'I cannot see the \"Per hectare\" panel';

@@ -581,23 +581,17 @@ abstract class AppLocalizations {
   /// **'Errores comunes (y cómo corregirlos)'**
   String get helpCommonTitle;
 
-  /// No description provided for @helpCommonMistake.
-  ///
-  /// In es, this message translates to:
-  /// **'Miseria en el monto'**
-  String get helpCommonMistake;
-
-  /// No description provided for @helpCommonFix.
+  /// No description provided for @helpCommonAmount.
   ///
   /// In es, this message translates to:
   /// **'Puse un monto incorrecto'**
-  String get helpCommonFix;
+  String get helpCommonAmount;
 
-  /// No description provided for @helpCommonFix2.
+  /// No description provided for @helpCommonAmountFix.
   ///
   /// In es, this message translates to:
   /// **'Ve a Historial, busca el registro, edítalo o elimínalo'**
-  String get helpCommonFix2;
+  String get helpCommonAmountFix;
 
   /// No description provided for @helpCommonAssigned.
   ///
@@ -622,6 +616,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Abre el registro y cambia el tipo de Gasto a Ingreso (o al revés)'**
   String get helpCommonTypeFix;
+
+  /// No description provided for @helpCommonCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'Quiero cambiar la moneda'**
+  String get helpCommonCurrency;
+
+  /// No description provided for @helpCommonCurrencyFix.
+  ///
+  /// In es, this message translates to:
+  /// **'Ve a Configuración y selecciona la moneda (COP, USD, EUR). Los montos se convierten automáticamente'**
+  String get helpCommonCurrencyFix;
 
   /// No description provided for @helpCommonArea.
   ///
