@@ -1,38 +1,36 @@
-# 2026-09-08 — Fix H1: aislamiento de datos locales por usuario
+# 2026-09-08 — Fixes de auditoría: H1, H5, H3, H2
 
 ## Summary
 
-Implementación del hallazgo **H1 (MEDIA)** de la auditoría de seguridad: los datos locales dejaban de cruzarse entre cuentas. Antes, `LocalStore` usaba claves fijas (`transactions_v1`, …) y si la sesión expiraba sin logout o entraba otra cuenta en el mismo dispositivo, la cuenta B veía los datos de A (incluso cambios sin sincronizar). Ahora cada usuario tiene su namespace y al hacer login la app recarga SOLO sus datos.
+Cierre de los 4 fixes de seguridad aprobados. H1 (aislamiento local por usuario) se desplegó primero en su propia iteración (`4a8c125`/`d8a1716`, 144/144). Esta sesión añadió y desplegó H5 (CSV anti-inyección de fórmulas), H3 (validación mínima de credenciales) y H2 (init de AuthProvider cableado). Suite final **150/150**, analyze limpio, HTTP 200.
 
 ## What happened
 
-- `LocalStore` acepta `uid` → claves `transactions_v1_<uid>`, etc. Sin uid usa las legacy (compatibilidad con tests).
-- **Migración idempotente** en `create(uid:)` y `bindUser()`: copia la clave legacy a su namespace solo si no existe la namespaced; borra la legacy. No pisa nada.
-- `clearAll()` (logout) borra solo las claves del uid activo.
-- `SupabaseService.currentUserId` nuevo; `main()` crea el store con el uid de la sesión persistida.
-- `AuthProvider.signIn/signUp` → `bindUser(uid)` + `reloadFromCache()` (vía callback `onUserChanged` en `MiCafetalApp`); `signOut` → clearAll + `bindUser(null)`.
-- `TransactionProvider.reloadFromCache()` recarga txn/crops/settings/harvests/sowings del namespace activo.
+- **H5 CSV injection**: `_neutralizeFormula()` antepone `'` a celdas que arrancan con `=`, `+`, `@` o `-` no numérico (OWASP). El `line()` del balance template acepta `formulaCols` para preservar las fórmulas internas (`=SUM(B5:B10)`, `=B11-B17-B23`). Los números negativos (`-1000,00`) no se tocan.
+- **H3 validación cliente**: `AuthProvider._validateCredentials` (regex email + mínimo 6 chars) antes de llamar a Supabase en `signIn`/`signUp`; error amigable sin viaje de red.
+- **H2 init cableado**: `auth.init()` invocado al crear el provider en `MiCafetalApp` (restaura namespace persistido + reload).
+- Tests: +3 en `test/excel_export_service_test.dart` (H5), nuevo `test/auth_provider_test.dart` (3, H3).
 
 ## State
 
 | Item | Status |
 |---|---|
-| Tests | **144/144 verdes** (7 nuevos en `test/local_store_test.dart`) |
+| Tests | **150/150 verdes** |
 | analyze | limpio |
-| gh-pages | `d8a1716`, HTTP 200 |
-| main | `4a8c125` |
+| gh-pages | `6802f27`, HTTP 200 |
+| main | `dd7279c` (0600f37 código + dd7279c docs) |
 
 ## Key decisions (no revertir)
 
-- Aislamiento por **namespace** (no "clear on uid change"): no pierde el cache local de cada cuenta; migración legacy automática preserva datos existentes.
-- `bindUser(null)` después del `signOut` para que la siguiente sesión arranque limpia.
-- H5 (CSV anti-fórmula), H3 (validación cliente) y H2 (init muerto): NO incluidos (fuera del alcance aprobado).
+- La neutralización H5 es selectiva: NO neutraliza fórmulas internas del template ni números negativos — solo celdas de entrada no numérica con prefijos peligrosos.
+- H3 es validación de UX, no defensa de seguridad: la auth real sigue en Supabase.
+- H2: `init()` ya no es no-op y se llama en el arranque de la app.
 
 ## Pending
 
-- [ ] H5 (prefijo `'` en CSV), H3 (validación email/password), H2 (init) si el usuario los pide en otra iteración.
-- [ ] Verificación manual en producción: entrar con la cuenta real → migrar claves legacy → ver datos intactos; confirmar que una segunda cuenta no ve nada.
+- [ ] Verificación manual en producción: cuenta real → migración legacy → datos intactos; cuenta B no ve nada de A.
+- [ ] H4 (cifrado) descartado por decisión previa.
 
 ## Files
 
-`lib/services/local_store.dart`, `lib/services/supabase_service.dart`, `lib/providers/auth_provider.dart`, `lib/providers/transaction_provider.dart`, `lib/main.dart`, `test/local_store_test.dart`, `docs/plans/2026-09-08-fix-h1-aislamiento-local.plan.md`
+`lib/services/excel_export_service.dart`, `lib/providers/auth_provider.dart`, `lib/main.dart`, `test/excel_export_service_test.dart`, `test/auth_provider_test.dart`, `docs/plans/2026-09-08-fix-h1-aislamiento-local.plan.md`
