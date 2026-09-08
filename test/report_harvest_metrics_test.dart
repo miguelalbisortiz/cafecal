@@ -114,6 +114,72 @@ void main() {
       expect(cafe.harvestedKg, 10);
     });
   });
+
+  group('por hectárea y amortización', () {
+    Transaction income(double a, {bool deleted = false}) => Transaction(
+          id: 'i$a',
+          type: TransactionType.income,
+          category: 'Venta de café',
+          amount: a,
+          date: DateTime(2026, 5, 1),
+          createdAt: DateTime(2026, 5, 1),
+          deleted: deleted,
+        );
+
+    Transaction expense(double a) => Transaction(
+          id: 'e$a',
+          type: TransactionType.expense,
+          category: 'Recogida',
+          amount: a,
+          date: DateTime(2026, 5, 1),
+          createdAt: DateTime(2026, 5, 1),
+        );
+
+    test('revenuePerHa suma ingresos ÷ área', () {
+      final txs = [income(3000000), income(2500000)];
+      expect(metrics.revenuePerHa(txs, 2.0), 2750000);
+    });
+
+    test('revenuePerHa ignora gastos y eliminados, null sin área', () {
+      final txs = [income(3000000, deleted: true), expense(999000)];
+      expect(metrics.revenuePerHa(txs, 2.0), isNull); // sin ingresos válidos → null
+      expect(metrics.revenuePerHa([income(1000)], null), isNull);
+      expect(metrics.revenuePerHa([income(1000)], 0), isNull);
+    });
+
+    test('costPerHa suma gastos ÷ área', () {
+      final txs = [expense(700000), expense(450000)];
+      expect(metrics.costPerHa(txs, 2.0), 575000);
+    });
+
+    test('costPerHa ignora ingresos, null sin área', () {
+      final txs = [income(1000), expense(999000)];
+      expect(metrics.costPerHa(txs, 2.0), 499500);
+      expect(metrics.costPerHa(txs, null), isNull);
+    });
+
+    test('marginPerHa resta ingresos − gastos, null si no hay dato', () {
+      expect(metrics.marginPerHa(2750000, 575000), 2175000);
+      expect(metrics.marginPerHa(null, null), isNull);
+      expect(metrics.marginPerHa(2750000, null), 2750000);
+      expect(metrics.marginPerHa(null, 575000), -575000);
+    });
+
+    test('recoveryRate = margen ÷ inversión', () {
+      expect(metrics.recoveryRate(8000000, 3600000), closeTo(0.45, 0.001));
+      expect(metrics.recoveryRate(null, 3600000), isNull);
+      expect(metrics.recoveryRate(8000000, null), isNull);
+      expect(metrics.recoveryRate(0, 3600000), isNull);
+    });
+
+    test('breakevenYears = inversión ÷ margen anual promedio medido', () {
+      expect(metrics.breakevenYears(8000000, 2500000), closeTo(3.2, 0.001));
+      expect(metrics.breakevenYears(8000000, 0), isNull);
+      expect(metrics.breakevenYears(8000000, -100), isNull);
+      expect(metrics.breakevenYears(null, 2500000), isNull);
+      expect(metrics.breakevenYears(0, 2500000), isNull);
+    });
+  });
 }
 
 Transaction txn({required double amount, required String? harvestId}) {

@@ -42,7 +42,7 @@ solo registras gastos, cosechas y ventas.
 
 | Situación | Pantalla | Qué pide |
 |---|---|---|
-| Quiero definir los cultivos de mi finca | **Cultivos** (menú ⋮ arriba a la derecha) | Nombre, fase, ciclo, unidad preferida, área (ha), plantas vivas |
+| Quiero definir los cultivos de mi finca | **Cultivos** (menú ⋮ arriba a la derecha) | Nombre, fase, ciclo, unidad preferida, área (ha), plantas vivas, costo del establecimiento (opcional) |
 | Voy a sembrar o resembrar | **Siembras** (menú ⋮) | Tipo (siembra/resiembra), plantas, área, bajas y motivo |
 | Recogí producción | **Cosechas** (menú ⋮) | Cantidad, unidad, destino de la cosecha |
 | Compré insumos, pagué mano de obra… | **Registrar** (pestaña central) | Gasto → categoría, cultivo, monto, fecha (opcional: cantidad, proveedor) |
@@ -114,11 +114,48 @@ todo a kg para comparar.
 
 - Tu información se guarda **localmente** en el dispositivo y se **sincroniza con la
   nube** al entrar (botón de sincronizar en la barra superior).
-- Modo invitado (demo): puedes explorar la app con datos de ejemplo; no se
-  sincronizan con tu cuenta.
+- Cada cuenta tiene sus propios datos: tus cultivos, cosechas y movimientos no se
+  comparten con otros dispositivos ni cuentas.
 - Respaldos: desde **Configuración** puedes exportar reportes (PDF/Excel).
+- Para entrar en otro dispositivo, inicia sesión con la misma cuenta.
 
-## 8. Consejo final
+## 8. ¿Qué significa por hectárea?
+
+El panel **"Por hectárea"** del Resumen normaliza tus datos por superficie, para que
+puedas comparar cultivos y parcelas de tamaños distintos con la misma regla:
+
+| Indicador | Cómo se calcula | Qué te dice |
+|---|---|---|
+| **Rendimiento (kg/ha)** | Cosechas del período ÷ área del cultivo | Cuánto produce tu tierra (estándar del sector cafetero) |
+| **Ventas por ha** | Ingresos del período ÷ área | Cuánto dinero genera cada hectárea |
+| **Gastos por ha** | Gastos del período ÷ área | Cuánto cuesta producir cada hectárea |
+| **Margen por ha** | Ventas − gastos, por hectárea | Si cada hectárea deja dinero (positivo = sí) |
+
+> ¿Por qué normalizar? Una parcela de 3 ha que vende $9M no compite con otra de 1 ha
+> que vende $5M: por hectárea, la segunda gana. Dividir por área hace la comparación
+> justa.
+
+**Necesitas registrar el área del cultivo** (en Cultivos → editar) para que el panel
+aparezca. Sin área, la app solo te lo recuerda: no inventa números.
+
+## 9. ¿Cómo se recupera la inversión del establecimiento?
+
+Al editar un cultivo puedes registrar el **costo del establecimiento**: lo invertido
+en sembrar y levantar el cultivo (plantines, mano de obra, fertilización inicial…).
+Con ese dato y tu margen acumulado (ventas − gastos del cultivo), la app calcula:
+
+- **% recuperado**: margen acumulado ÷ inversión. 100% = ya la pagaste.
+- **Se pagaría en N años (aprox.)**: inversión ÷ margen anual promedio *medido*.
+  Es un promedio de tus datos reales, no una promesa de cosecha.
+- **Pendiente de recuperarse**: cuando aún no hay cosechas ni margen medido; no se
+  muestra ningún número inventado.
+
+💡 **No es pérdida: es inversión.** Mientras el cultivo está en establecimiento, los
+gastos no son perder dinero: son el costo de sembrar tu activo. El % recuperado
+empieza a subir cuando el cultivo entra en producción y empiezas a registrar cosechas
+y ventas.
+
+## 10. Consejo final
 
 Empieza pequeño: un cultivo, un gasto, una venta. La app aprende de tu registro.
 Registrar 5 minutos por semana vale más que un mes perfecto que no llegaste a empezar.

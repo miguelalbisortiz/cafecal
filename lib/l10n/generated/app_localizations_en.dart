@@ -155,6 +155,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpGlossaryFinance => 'View financial glossary';
 
   @override
+  String get helpPerHaTitle => 'What does per-hectare mean?';
+
+  @override
+  String get helpPerHaIntro => 'Normalizing per hectare makes your data comparable: you can tell whether one plot outperforms another even when their sizes differ.';
+
+  @override
+  String get helpPerHaTitleYield => 'Yield (kg/ha)';
+
+  @override
+  String get helpPerHaYield => 'Harvests in the period ÷ crop area. The same standard as your exports.';
+
+  @override
+  String get helpPerHaTitleVentas => 'Sales per ha';
+
+  @override
+  String get helpPerHaRevenue => 'Income in the period ÷ area. How much money your land produces.';
+
+  @override
+  String get helpPerHaTitleGastos => 'Expenses per ha';
+
+  @override
+  String get helpPerHaCost => 'Expenses in the period ÷ area. How much each hectare costs to produce.';
+
+  @override
+  String get helpPerHaTitleMargen => 'Margin per ha';
+
+  @override
+  String get helpPerHaMargin => 'Sales − expenses, per hectare. Positive = the hectare leaves profit.';
+
+  @override
+  String get helpPerHaWhy => 'Why normalize? A 3 ha plot selling \$9M does not compete with a 1 ha plot selling \$5M: per hectare, the second one wins. The panel divides by area so you compare by the same rule.';
+
+  @override
+  String get helpPaybackTitle => 'How is the establishment investment recovered?';
+
+  @override
+  String get helpPaybackIntro => 'When editing a crop you can record the Establishment cost: what you invested in planting and raising the crop (seedlings, labor, initial fertilization…).';
+
+  @override
+  String get helpPaybackTitlePercent => '% recovered';
+
+  @override
+  String get helpPaybackPercent => 'The app divides the crop\'s accumulated margin (sales − expenses) by that investment. 100% = you have paid it off.';
+
+  @override
+  String get helpPaybackTitleYears => 'Payback in N years (approx.)';
+
+  @override
+  String get helpPaybackYears => 'Average of the measured annual margin. It is an average of your real data, not a harvest promise.';
+
+  @override
+  String get helpPaybackTitleNotLoss => 'It is not a loss: it is an investment';
+
+  @override
+  String get helpPaybackNotLoss => 'While the crop is in establishment, spending is not losing: it is the cost of planting your asset.';
+
+  @override
   String get syncTooltip => 'Sync';
 
   @override
@@ -216,6 +273,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livePlantsLabel => 'Live plants';
+
+  @override
+  String get establishmentCostLabel => 'Establishment cost (\$)';
 
   @override
   String get editCropTitle => 'Edit crop';
@@ -369,6 +429,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportNoHarvestData => 'No harvest data in this period.';
+
+  @override
+  String get perHaSection => 'Per hectare';
+
+  @override
+  String get perHaNoAreaHint => 'Set the area of your crops (edit the crop) to see their per-hectare performance: normalized yield, income and expenses.';
+
+  @override
+  String get perHaYieldLabel => 'Yield';
+
+  @override
+  String get perHaRevenueLabel => 'Sales per ha';
+
+  @override
+  String get perHaCostLabel => 'Expenses per ha';
+
+  @override
+  String get perHaMarginLabel => 'Margin per ha';
+
+  @override
+  String get perHaInvestmentLabel => 'Establishment investment';
+
+  @override
+  String get perHaRecoveredLabel => 'Recovered';
+
+  @override
+  String get perHaRecoveryPending => 'Pending recovery';
+
+  @override
+  String get perHaPaybackLabel => 'Payback in';
+
+  @override
+  String perHaPaybackYears(String years) {
+    return '$years years (approx.)';
+  }
 
   @override
   String get monthJan => 'January';

@@ -18,6 +18,7 @@ import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
 import '../utils/format.dart';
+import '../widgets/per_hectare_panel.dart';
 import '../widgets/terminology_guide.dart';
 
 enum _PeriodMode { month, year, yearToDate }
@@ -338,6 +339,13 @@ class _ReportScreenState extends State<ReportScreen> {
             _builtHarvestCard(context, tx, l10n),
             const SizedBox(height: 20),
             _builtSoldVsHarvestedCard(context, tx, l10n),
+            const SizedBox(height: 20),
+            PerHectarePanel(
+              crops: tx.crops,
+              periodTransactions: _recordsFor(tx),
+              periodHarvests: _periodHarvests(tx),
+              allTransactions: tx.transactions,
+            ),
             const SizedBox(height: 20),
             _builtRecommendationsCard(context, tx, l10n),
             const SizedBox(height: 20),

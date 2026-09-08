@@ -155,6 +155,63 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpGlossaryFinance => 'Ver glosario financiero';
 
   @override
+  String get helpPerHaTitle => '¿Qué significa por hectárea?';
+
+  @override
+  String get helpPerHaIntro => 'Normalizar por hectárea convierte tus datos en comparables: así sabes si una parcela rinde más que otra aunque sus tamaños sean distintos.';
+
+  @override
+  String get helpPerHaTitleYield => 'Rendimiento (kg/ha)';
+
+  @override
+  String get helpPerHaYield => 'Cosechas del período ÷ área del cultivo. El mismo estándar de tus exportaciones.';
+
+  @override
+  String get helpPerHaTitleVentas => 'Ventas por ha';
+
+  @override
+  String get helpPerHaRevenue => 'Ingresos del período ÷ área. Cuánto dinero produce tu tierra.';
+
+  @override
+  String get helpPerHaTitleGastos => 'Gastos por ha';
+
+  @override
+  String get helpPerHaCost => 'Gastos del período ÷ área. Lo que cuesta producir cada hectárea.';
+
+  @override
+  String get helpPerHaTitleMargen => 'Margen por ha';
+
+  @override
+  String get helpPerHaMargin => 'Ventas − gastos, por hectárea. Positivo = la hectárea deja dinero.';
+
+  @override
+  String get helpPerHaWhy => '¿Por qué normalizar? Una parcela de 3 ha que vende \$9M no compite con otra de 1 ha que vende \$5M: por hectárea, la segunda gana. El panel divide por área para que compares con la misma regla.';
+
+  @override
+  String get helpPaybackTitle => '¿Cómo se recupera la inversión del establecimiento?';
+
+  @override
+  String get helpPaybackIntro => 'Al editar un cultivo puedes registrar el Costo del establecimiento: lo invertido en sembrar y levantar el cultivo (plantines, mano de obra, fertilización inicial…).';
+
+  @override
+  String get helpPaybackTitlePercent => '% recuperado';
+
+  @override
+  String get helpPaybackPercent => 'La app divide el margen acumulado del cultivo (ventas − gastos) entre esa inversión. 100% = ya la pagaste.';
+
+  @override
+  String get helpPaybackTitleYears => 'Se pagaría en N años (aprox.)';
+
+  @override
+  String get helpPaybackYears => 'Promedio del margen anual medido. Es un promedio de tus datos reales, no una promesa de cosecha.';
+
+  @override
+  String get helpPaybackTitleNotLoss => 'No es pérdida: es inversión';
+
+  @override
+  String get helpPaybackNotLoss => 'Mientras el cultivo está en establecimiento, gastar no es perder: es el costo de sembrar tu activo.';
+
+  @override
   String get syncTooltip => 'Sincronizar';
 
   @override
@@ -216,6 +273,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get livePlantsLabel => 'Plantas vivas';
+
+  @override
+  String get establishmentCostLabel => 'Costo del establecimiento (\$)';
 
   @override
   String get editCropTitle => 'Editar cultivo';
@@ -369,6 +429,41 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get reportNoHarvestData => 'Sin datos de cosechas en el período.';
+
+  @override
+  String get perHaSection => 'Por hectárea';
+
+  @override
+  String get perHaNoAreaHint => 'Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.';
+
+  @override
+  String get perHaYieldLabel => 'Rendimiento';
+
+  @override
+  String get perHaRevenueLabel => 'Ventas por ha';
+
+  @override
+  String get perHaCostLabel => 'Gastos por ha';
+
+  @override
+  String get perHaMarginLabel => 'Margen por ha';
+
+  @override
+  String get perHaInvestmentLabel => 'Inversión del establecimiento';
+
+  @override
+  String get perHaRecoveredLabel => 'Recuperado';
+
+  @override
+  String get perHaRecoveryPending => 'Pendiente de recuperarse';
+
+  @override
+  String get perHaPaybackLabel => 'Se pagaría en';
+
+  @override
+  String perHaPaybackYears(String years) {
+    return '$years años (aprox.)';
+  }
 
   @override
   String get monthJan => 'Enero';

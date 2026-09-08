@@ -24,6 +24,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   String? _defaultUnit;
   final _areaController = TextEditingController();
   final _plantsController = TextEditingController();
+  final _establishmentController = TextEditingController();
   String? _error;
 
   static const _unitOptions = ['kg', 'arroba', 'saco', 'racimo', 'cajon'];
@@ -41,6 +42,9 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       _defaultUnit = c.defaultUnit;
       if (c.areaHa != null) _areaController.text = c.areaHa.toString();
       if (c.livePlants != null) _plantsController.text = c.livePlants.toString();
+      if (c.establishmentCost != null) {
+        _establishmentController.text = c.establishmentCost.toString();
+      }
     }
   }
 
@@ -49,6 +53,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     _nameController.dispose();
     _areaController.dispose();
     _plantsController.dispose();
+    _establishmentController.dispose();
     super.dispose();
   }
 
@@ -70,6 +75,9 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     final area = areaText.isEmpty ? null : double.tryParse(areaText);
     final plantsText = _plantsController.text.trim();
     final plants = plantsText.isEmpty ? null : int.tryParse(plantsText);
+    final estText = _establishmentController.text.trim().replaceAll(',', '.');
+    final establishmentCost =
+        estText.isEmpty ? null : double.tryParse(estText);
     Navigator.pop(context, CropFormData(
       name: n,
       icon: _icon,
@@ -79,6 +87,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       defaultUnit: _defaultUnit,
       areaHa: area,
       livePlants: plants,
+      establishmentCost: establishmentCost,
     ));
   }
 
@@ -201,6 +210,17 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _establishmentController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.establishmentCostLabel,
+                prefixIcon: const Icon(Icons.savings_outlined),
+                border: const OutlineInputBorder(),
+              ),
+            ),
           ],
         ),
       ),
@@ -224,6 +244,7 @@ class CropFormData {
   final String? defaultUnit;
   final double? areaHa;
   final int? livePlants;
+  final double? establishmentCost;
 
   const CropFormData({
     required this.name,
@@ -234,5 +255,6 @@ class CropFormData {
     this.defaultUnit,
     this.areaHa,
     this.livePlants,
+    this.establishmentCost,
   });
 }

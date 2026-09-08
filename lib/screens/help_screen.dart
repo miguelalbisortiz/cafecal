@@ -111,6 +111,51 @@ class HelpScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              _Section(title: l10n.helpPerHaTitle),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.helpPerHaIntro,
+                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                    const SizedBox(height: 12),
+                    _DefList(items: [
+                      (l10n.helpPerHaTitleYield, l10n.helpPerHaYield),
+                      (l10n.helpPerHaTitleVentas, l10n.helpPerHaRevenue),
+                      (l10n.helpPerHaTitleGastos, l10n.helpPerHaCost),
+                      (l10n.helpPerHaTitleMargen, l10n.helpPerHaMargin),
+                    ]),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.helpPerHaWhy,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.35,
+                        fontStyle: FontStyle.italic,
+                        color: scheme.onSurface.withOpacity(0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              _Section(title: l10n.helpPaybackTitle),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.helpPaybackIntro,
+                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                    const SizedBox(height: 12),
+                    _DefList(items: [
+                      (l10n.helpPaybackTitlePercent, l10n.helpPaybackPercent),
+                      (l10n.helpPaybackTitleYears, l10n.helpPaybackYears),
+                      (l10n.helpPaybackTitleNotLoss, l10n.helpPaybackNotLoss),
+                    ]),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               _Section(title: l10n.helpGlossaryTitle),
               _Card(
                 child: Column(
@@ -205,6 +250,42 @@ class _WhereTable extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _DefList extends StatelessWidget {
+  final List<(String, String)> items;
+
+  const _DefList({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        for (final (title, body) in items)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(
+                  body,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.35,
+                    color: scheme.onSurface.withOpacity(0.8),
                   ),
                 ),
               ],
