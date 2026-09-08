@@ -59,17 +59,13 @@ Además, el **menú ⋮** (arriba a la derecha) tiene:
 
 Piensa en esto como una cadena:
 
-```
-1. Definir tu cultivo (qué manejas)
-      ↓
-2. Registrar la siembra (cuántas plantas pusiste)
-      ↓
-3. Anotar gastos (qué invertiste: insumos, mano de obra...)
-      ↓
-4. Registrar cosecha (qué recogiste)
-      ↓
-5. Registrar venta (a quién le vendiste y cuánto)
-```
+| Paso | Qué haces |
+|---|---|
+| 1. **Definir el cultivo** | Decirle a la app qué manejas (café, plátano...) |
+| 2. **Registrar la siembra** | Anotar cuántas plantas pusiste |
+| 3. **Anotar gastos** | Decirle qué invertiste (insumos, mano de obra...) |
+| 4. **Registrar cosecha** | Anotar qué recogiste |
+| 5. **Registrar venta** | Anotar a quién le vendiste y cuánto |
 
 **No tienes que hacer todo de golpe.** La tarjeta "Tu próximo paso" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Si ya hiciste todo, la tarjeta desaparece sola.
 
@@ -93,12 +89,15 @@ Este es el caso más común. Ya tienes café, plátano o lo que sea plantado y p
 
 5. **Mira el Resumen.** Ahí verás si estás ganando o perdiendo. Las alertas te avisan si algo necesita atención.
 
-> **Ejemplo real:** Juan tiene 2 hectáreas de café en producción.
-> - En Cultivos, pone: Café, Producción, Perenne, 2 ha, 3000 plantas.
-> - En Registrar, pone un gasto de $500,000 en Fertilizante.
-> - En Cosechas, registra: 4 arrobas (50 kg), Vendido.
-> - En Registrar, pone un ingreso de $750,000 por la venta.
-> - En Resumen ve: Balance +$250,000, Margen 33%, ROI 50%.
+> **Ejemplo real — Juan tiene 2 hectáreas de café en producción:**
+
+| En dónde | Qué pone |
+|---|---|
+| **Cultivos** | Café, Producción, Perenne, 2 ha, 3000 plantas |
+| **Registrar** | Gasto de $500,000 en Fertilizante |
+| **Cosechas** | 4 arrobas (50 kg), Vendido |
+| **Registrar** | Ingreso de $750,000 por la venta |
+| **Resumen** | Balance +$250,000, Margen 33%, ROI 50% |
 
 ### Caso B — "Estoy empezando un cultivo nuevo desde cero"
 
@@ -114,12 +113,15 @@ Acabas de sembrar algo y quieres llevar la cuenta desde el inicio.
 
 5. **Cuando pase a Producción**, sigue el flujo del Caso A: cosechas y ventas.
 
-> **Ejemplo real:** María plantó 500 plátanos nuevos.
-> - En Cultivos: Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas.
-> - En Siembras: Siembra inicial, 500 plantas, 0.5 ha, costo $200,000.
-> - Gasta $150,000 en fertilizante y $100,000 en mano de obra.
-> - La app muestra: "Inversión en establecimiento: $450,000". No dice "pérdida" — es una inversión.
-> - Cuando el plátano empiece a dar fruto y María registre cosechas, el ROI empieza a subir.
+> **Ejemplo real — María plantó 500 plátanos nuevos:**
+
+| En dónde | Qué pone |
+|---|---|
+| **Cultivos** | Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas |
+| **Siembras** | Siembra inicial, 500 plantas, 0.5 ha, costo $200,000 |
+| **Registrar** | Gasto de $150,000 en fertilizante |
+| **Registrar** | Gasto de $100,000 en mano de obra |
+| **Resumen** | "Inversión en establecimiento: $450,000" — no dice "pérdida", es una inversión |
 
 ---
 
@@ -146,8 +148,11 @@ Cuando registres una cosecha o una venta, la app te pide una **unidad**:
 Si registras el **área** de tu cultivo en hectáreas, la app puede calcular cuánto produce **cada hectárea**. Esto es útil para comparar parcelas de diferente tamaño.
 
 **Ejemplo:** Tienes dos parcelas:
-- Parcela A: 3 ha, vende $9,000,000 → $3,000,000 por ha
-- Parcela B: 1 ha, vende $5,000,000 → **$5,000,000 por ha**
+
+| Parcela | Tamaño | Vende | Por hectárea |
+|---|---|---|---|
+| A | 3 ha | $9,000,000 | $3,000,000 |
+| B | 1 ha | $5,000,000 | **$5,000,000** |
 
 La Parcela B gana más **por hectárea**, aunque la A vende más en total. El panel te muestra esta comparación justa.
 
@@ -168,11 +173,10 @@ Cuando editas un cultivo, puedes poner un **"Costo del establecimiento"**: todo 
 
 La app calcula:
 
-- **% recuperado**: Cuánto de esa inversión ya recuperaste con tus ventas.
-  - 0% = apenas empezaste
-  - 50% = llevas la mitad
-  - 100% = ya la pagaste completamente
-- **Se pagaría en N años**: Un estimado basado en tu margen promedio real.
+| Indicador | Cómo se lee |
+|---|---|
+| **% recuperado** | 0% = apenas empezaste · 50% = llevas la mitad · 100% = ya lo pagaste completamente |
+| **Se pagaría en N años** | Un estimado basado en tu margen promedio real |
 
 > **No es una pérdida, es una inversión.** Si inviertes $1,000,000 en plantar café y aún no vendes, no perdiste $1,000,000 — invertiste $1,000,000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.
 
