@@ -615,5 +615,11 @@
     "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }
   },
   "alertRecentlyPlantedMessage": "Registraste una siembra o resiembra de {crop} el {date}. Verifica que el número de plantas vivas actualizado del cultivo coincida con el conteo real.",
-  "alertRecentlyPlantedSuggestion": "Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra."
+  "alertRecentlyPlantedSuggestion": "Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.",
+  "alertMissingQtyTitle": "Tienes ventas sin kilos registrados",
+  "@alertMissingQtyMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "alertMissingQtyMessage": "El problema: en los últimos 90 días registraste {count} ventas sin la cantidad vendida. Sin ese dato, la app no puede calcular tu precio por kilo ni tu rentabilidad.",
+  "alertMissingQtySuggestion": "Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables."
 }

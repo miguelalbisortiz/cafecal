@@ -481,5 +481,11 @@
     "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }
   },
   "alertRecentlyPlantedMessage": "You recorded a planting or replanting of {crop} on {date}. Check that the crop's updated live-plant count matches the real count.",
-  "alertRecentlyPlantedSuggestion": "Edit the crop to adjust its live plants if the count changed after planting."
+  "alertRecentlyPlantedSuggestion": "Edit the crop to adjust its live plants if the count changed after planting.",
+  "alertMissingQtyTitle": "You have sales without recorded kilos",
+  "@alertMissingQtyMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "alertMissingQtyMessage": "The problem: in the last 90 days you recorded {count} sales without the sold quantity. Without that figure, the app cannot calculate your price per kilo or your profitability.",
+  "alertMissingQtySuggestion": "Edit those sales and enter the kilos sold. That way your price and profitability reports become reliable."
 }
