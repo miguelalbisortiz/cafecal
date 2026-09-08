@@ -31,6 +31,11 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> signIn(String email, String password) async {
     _setLoading(true);
     try {
+      final validationError = _validateCredentials(email, password);
+      if (validationError != null) {
+        _error = validationError;
+        return false;
+      }
       await SupabaseService.instance.signIn(email.trim(), password);
       await _bindCurrentUser();
       _error = null;
@@ -46,6 +51,11 @@ class AuthProvider extends ChangeNotifier {
   Future<SignUpResult> signUp(String email, String password) async {
     _setLoading(true);
     try {
+      final validationError = _validateCredentials(email, password);
+      if (validationError != null) {
+        _error = validationError;
+        return SignUpResult.failure;
+      }
       final sessionCreated =
           await SupabaseService.instance.signUp(email.trim(), password);
       await _bindCurrentUser();
@@ -59,6 +69,19 @@ class AuthProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  /// Validación mínima en el cliente (H3): evita un viaje a Supabase con
+  /// credenciales claramente inválidas. No es defensa de seguridad.
+  String? _validateCredentials(String email, String password) {
+    final pattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!pattern.hasMatch(email.trim())) {
+      return 'Formato de correo inválido.';
+    }
+    if (password.length < 6) {
+      return 'La contraseña debe tener al menos 6 caracteres.';
+    }
+    return null;
   }
 
   /// Envía el correo de recuperación de contraseña. Devuelve `true` si

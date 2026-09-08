@@ -191,5 +191,64 @@ void main() {
       final csv = utf8.decode(bytes);
       expect(csv, contains('0,00'));
     });
+
+    test('farmName malicioso (=) se neutraliza y las fórmulas internas siguen',
+        () {
+      final bytes = service.buildBalanceTemplate(
+        settings: const FarmSettings(
+            farmName: '=HYPERLINK("http://evil.com")', currency: 'COP'),
+        transactions: const [],
+        year: 2026,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      );
+      final csv = utf8.decode(bytes);
+      // La celda que arranca con el nombre queda con comilla simple.
+      expect(csv, contains("'=HYPERLINK("));
+      // Ninguna celda arranca con un '=' desnudo.
+      expect(RegExp(r'(^|;)=HYPERLINK').hasMatch(csv), isFalse);
+      // Las fórmulas internas del template siguen funcionales.
+      expect(csv, contains('=SUM(B5:B10)'));
+      expect(csv, contains('=B11-B17-B23'));
+    });
+
+    test('farmName con prefijos + y @ también se neutraliza', () {
+      for (final evil in ['+cmd|whoami', '@SUM(1)']) {
+        final bytes = service.buildBalanceTemplate(
+          settings: FarmSettings(farmName: evil, currency: 'COP'),
+          transactions: const [],
+          year: 2026,
+          periodName: 'Septiembre 2026',
+          l10n: _es,
+        );
+        final csv = utf8.decode(bytes);
+        expect(csv, contains("'$evil"));
+      }
+    });
+
+    test('guion seguido de letra se neutraliza; un número negativo no', () {
+      final evilBytes = service.buildBalanceTemplate(
+        settings: const FarmSettings(farmName: '-cmd /e', currency: 'COP'),
+        transactions: const [],
+        year: 2026,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      );
+      expect(utf8.decode(evilBytes), contains("'-cmd"));
+
+      final negBytes = service.buildBalanceTemplate(
+        settings: _settings,
+        transactions: [
+          _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 9, 3)),
+          _txn(type: TransactionType.expense, amount: 2000, date: DateTime(2026, 9, 5)),
+        ],
+        year: 2026,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      );
+      final csv = utf8.decode(negBytes);
+      expect(csv, contains('-1000,00'));
+      expect(csv.contains("'-1000,00"), isFalse);
+    });
   });
 }
