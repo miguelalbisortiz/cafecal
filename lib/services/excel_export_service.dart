@@ -141,9 +141,18 @@ class ExcelExportService {
     final utilidad = incomes - expenses;
 
     final buf = StringBuffer();
-    String cell(String s) => s.replaceAll(';', ',').replaceAll('\r\n', ' ');
-    void line(List<String> cols) =>
-        buf.write('${cols.map(cell).join(';')}\r\n');
+    String cell(String s, {bool formula = false}) {
+      var out = s.replaceAll(';', ',').replaceAll('\r\n', ' ');
+      if (!formula) out = _neutralizeFormula(out);
+      return out;
+    }
+
+    // Evita inyección de fórmulas (H5): Excel ejecuta celdas que arrancan
+    // con = + @ (y con - si no es un número). Las fórmulas internas del
+    // template se marcan con formula:true y se preservan.
+    void line(List<String> cols, {Set<int> formulaCols = const {}}) => buf
+        .write('${cols.asMap().entries.map((e) => cell(e.value,
+                formula: formulaCols.contains(e.key))).join(';')}\r\n');
 
     line([l10n.balanceTemplateTitle(periodName)]);
     line([
@@ -157,13 +166,13 @@ class ExcelExportService {
     line([l10n.balanceRowMachinery]);
     line([l10n.balanceRowLand]);
     line([l10n.balanceRowOtherAssets]);
-    line([l10n.balanceTotalAssets, '=SUM(B5:B10)']);
+    line([l10n.balanceTotalAssets, '=SUM(B5:B10)'], formulaCols: {1});
     line([]);
     line([l10n.balanceLiabilitiesTitle]);
     line([l10n.balanceRowLoans]);
     line([l10n.balanceRowPayables]);
     line([l10n.balanceRowTaxes]);
-    line([l10n.balanceTotalLiabilities, '=SUM(B14:B16)']);
+    line([l10n.balanceTotalLiabilities, '=SUM(B14:B16)'], formulaCols: {1});
     line([]);
     line([l10n.balanceEquityTitle]);
     line([l10n.balanceRowCapital]);
@@ -172,12 +181,10 @@ class ExcelExportService {
       l10n.balanceRowNetIncome(year),
       _decimal(utilidad),
     ]);
-    line([l10n.balanceTotalEquity, '=SUM(B20:B22)']);
+    line([l10n.balanceTotalEquity, '=SUM(B20:B22)'], formulaCols: {1});
     line([]);
-    line([
-      l10n.balanceCheckLabel,
-      l10n.balanceCheckFormula,
-    ]);
+    line([l10n.balanceCheckLabel, l10n.balanceCheckFormula],
+        formulaCols: {1});
     line([]);
     line([l10n.balanceNote]);
     return Uint8List.fromList(
@@ -557,4 +564,21 @@ class _CropTotalRow {
   double incomes = 0;
 
   _CropTotalRow({required this.name});
+}
+
+/// Antepone una comilla simple cuando la celda arranca con un disparador de
+/// fórmula de Excel (=, +, @ o un `-` no numérico) para impedir inyección CSV.
+String _neutralizeFormula(String s) {
+  if (s.isEmpty) return s;
+  final first = s[0];
+  final looksLikeNumber = first == '-' &&
+      s.length > 1 &&
+      (s.codeUnitAt(1) >= 0x30 && s.codeUnitAt(1) <= 0x39 || s[1] == '.');
+  if (first == '=' ||
+      first == '+' ||
+      first == '@' ||
+      (first == '-' && !looksLikeNumber)) {
+    return "'$s";
+  }
+  return s;
 }

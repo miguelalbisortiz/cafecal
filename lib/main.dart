@@ -33,10 +33,15 @@ class MiCafetalApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AuthProvider(
-            store,
-            onUserChanged: () => txProvider.reloadFromCache(),
-          ),
+          create: (_) {
+            final auth = AuthProvider(
+              store,
+              onUserChanged: () => txProvider.reloadFromCache(),
+            );
+            // Restaura el namespace de la sesión persistida (H1/H2).
+            auth.init();
+            return auth;
+          },
         ),
         ChangeNotifierProvider(create: (_) => txProvider),
         ChangeNotifierProvider(
