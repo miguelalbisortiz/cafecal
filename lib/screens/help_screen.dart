@@ -211,10 +211,11 @@ class HelpScreen extends StatelessWidget {
               _Section(title: l10n.helpCommonTitle),
               _Card(
                 child: _DefList(items: [
-                  (l10n.helpCommonMistake, l10n.helpCommonFix),
-                  (l10n.helpCommonFix2, l10n.helpCommonAssignedFix),
-                  (l10n.helpCommonAssigned, l10n.helpCommonTypeFix),
-                  (l10n.helpCommonType, l10n.helpCommonAreaFix),
+                  (l10n.helpCommonAmount, l10n.helpCommonAmountFix),
+                  (l10n.helpCommonAssigned, l10n.helpCommonAssignedFix),
+                  (l10n.helpCommonType, l10n.helpCommonTypeFix),
+                  (l10n.helpCommonCurrency, l10n.helpCommonCurrencyFix),
+                  (l10n.helpCommonArea, l10n.helpCommonAreaFix),
                 ]),
               ),
               const SizedBox(height: 24),

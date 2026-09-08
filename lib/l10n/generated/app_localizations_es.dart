@@ -254,13 +254,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCommonTitle => 'Errores comunes (y cómo corregirlos)';
 
   @override
-  String get helpCommonMistake => 'Miseria en el monto';
+  String get helpCommonAmount => 'Puse un monto incorrecto';
 
   @override
-  String get helpCommonFix => 'Puse un monto incorrecto';
-
-  @override
-  String get helpCommonFix2 => 'Ve a Historial, busca el registro, edítalo o elimínalo';
+  String get helpCommonAmountFix => 'Ve a Historial, busca el registro, edítalo o elimínalo';
 
   @override
   String get helpCommonAssigned => 'No le asigné cultivo a un gasto';
@@ -273,6 +270,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpCommonTypeFix => 'Abre el registro y cambia el tipo de Gasto a Ingreso (o al revés)';
+
+  @override
+  String get helpCommonCurrency => 'Quiero cambiar la moneda';
+
+  @override
+  String get helpCommonCurrencyFix => 'Ve a Configuración y selecciona la moneda (COP, USD, EUR). Los montos se convierten automáticamente';
 
   @override
   String get helpCommonArea => 'No veo el panel \"Por hectárea\"';
