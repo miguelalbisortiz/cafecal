@@ -13,6 +13,7 @@ class Crop {
   final String? defaultUnit;
   final double? areaHa;
   final int? livePlants;
+  final double? establishmentCost;
 
   const Crop({
     required this.id,
@@ -25,6 +26,7 @@ class Crop {
     this.defaultUnit,
     this.areaHa,
     this.livePlants,
+    this.establishmentCost,
   });
 
   Crop copyWith({
@@ -38,6 +40,7 @@ class Crop {
     String? defaultUnit,
     double? areaHa,
     int? livePlants,
+    double? establishmentCost,
   }) {
     return Crop(
       id: id ?? this.id,
@@ -50,6 +53,7 @@ class Crop {
       defaultUnit: defaultUnit ?? this.defaultUnit,
       areaHa: areaHa ?? this.areaHa,
       livePlants: livePlants ?? this.livePlants,
+      establishmentCost: establishmentCost ?? this.establishmentCost,
     );
   }
 
@@ -64,6 +68,7 @@ class Crop {
         'default_unit': defaultUnit,
         'area_ha': areaHa,
         'live_plants': livePlants,
+        'establishment_cost': establishmentCost,
       };
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -84,6 +89,7 @@ class Crop {
       defaultUnit: json['default_unit'] as String?,
       areaHa: (json['area_ha'] as num?)?.toDouble(),
       livePlants: (json['live_plants'] as num?)?.toInt(),
+      establishmentCost: (json['establishment_cost'] as num?)?.toDouble(),
     );
   }
 }

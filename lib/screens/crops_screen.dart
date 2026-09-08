@@ -60,6 +60,7 @@ class CropsScreen extends StatelessWidget {
       defaultUnit: form.defaultUnit,
       areaHa: form.areaHa,
       livePlants: form.livePlants,
+      establishmentCost: form.establishmentCost,
     ));
   }
 
@@ -80,6 +81,7 @@ class CropsScreen extends StatelessWidget {
       defaultUnit: form.defaultUnit,
       areaHa: form.areaHa,
       livePlants: form.livePlants,
+      establishmentCost: form.establishmentCost,
     ));
   }
 

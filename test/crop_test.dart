@@ -23,6 +23,7 @@ void main() {
         areaHa: 1.5,
         livePlants: 3000,
         pendingSync: true,
+        establishmentCost: 8000000,
       );
       final fromJson = Crop.fromJson(c.toJson());
       expect(fromJson.phase, CropPhase.establecimiento);
@@ -31,6 +32,17 @@ void main() {
       expect(fromJson.areaHa, 1.5);
       expect(fromJson.livePlants, 3000);
       expect(fromJson.pendingSync, true);
+      expect(fromJson.establishmentCost, 8000000);
+    });
+
+    test('establece key establishment_cost en populate', () {
+      const c = Crop(id: 'cafe', name: 'Café', establishmentCost: 12000000);
+      expect(c.toJson()['establishment_cost'], 12000000);
+    });
+
+    test('establishmentCost null cuando JSON antiguo no lo trae', () {
+      final c = Crop.fromJson({'id': 'x', 'name': 'Café'});
+      expect(c.establishmentCost, isNull);
     });
   });
 }
