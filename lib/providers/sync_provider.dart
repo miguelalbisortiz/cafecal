@@ -117,6 +117,7 @@ class SyncProvider extends ChangeNotifier {
       'default_unit': c.defaultUnit,
       'area_ha': c.areaHa,
       'live_plants': c.livePlants,
+      'establishment_cost': c.establishmentCost,
     }, onConflict: 'id');
   }
 
@@ -242,6 +243,7 @@ class SyncProvider extends ChangeNotifier {
       'default_unit': row['default_unit'] as String?,
       'area_ha': (row['area_ha'] as num?)?.toDouble(),
       'live_plants': (row['live_plants'] as num?)?.toInt(),
+      'establishment_cost': (row['establishment_cost'] as num?)?.toDouble(),
     });
   }
 

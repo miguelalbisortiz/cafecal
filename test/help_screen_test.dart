@@ -31,6 +31,10 @@ void main() {
     expect(find.text(l10n.helpCaseATitle), findsOneWidget);
     expect(find.text(l10n.helpCaseBTitle), findsOneWidget);
     expect(find.text(l10n.helpUnitsTitle), findsOneWidget);
+    expect(find.text(l10n.helpPerHaTitle), findsOneWidget);
+    expect(find.text(l10n.helpPerHaTitleYield), findsOneWidget);
+    expect(find.text(l10n.helpPaybackTitle), findsOneWidget);
+    expect(find.text(l10n.helpPaybackTitleNotLoss), findsOneWidget);
     expect(find.text(l10n.helpGlossaryTitle), findsOneWidget);
 
     // La tabla de "dónde entro cada dato" usa las pantallas reales.

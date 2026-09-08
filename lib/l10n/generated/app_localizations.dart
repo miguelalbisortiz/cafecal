@@ -383,6 +383,120 @@ abstract class AppLocalizations {
   /// **'Ver glosario financiero'**
   String get helpGlossaryFinance;
 
+  /// No description provided for @helpPerHaTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué significa por hectárea?'**
+  String get helpPerHaTitle;
+
+  /// No description provided for @helpPerHaIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Normalizar por hectárea convierte tus datos en comparables: así sabes si una parcela rinde más que otra aunque sus tamaños sean distintos.'**
+  String get helpPerHaIntro;
+
+  /// No description provided for @helpPerHaTitleYield.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento (kg/ha)'**
+  String get helpPerHaTitleYield;
+
+  /// No description provided for @helpPerHaYield.
+  ///
+  /// In es, this message translates to:
+  /// **'Cosechas del período ÷ área del cultivo. El mismo estándar de tus exportaciones.'**
+  String get helpPerHaYield;
+
+  /// No description provided for @helpPerHaTitleVentas.
+  ///
+  /// In es, this message translates to:
+  /// **'Ventas por ha'**
+  String get helpPerHaTitleVentas;
+
+  /// No description provided for @helpPerHaRevenue.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos del período ÷ área. Cuánto dinero produce tu tierra.'**
+  String get helpPerHaRevenue;
+
+  /// No description provided for @helpPerHaTitleGastos.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos por ha'**
+  String get helpPerHaTitleGastos;
+
+  /// No description provided for @helpPerHaCost.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos del período ÷ área. Lo que cuesta producir cada hectárea.'**
+  String get helpPerHaCost;
+
+  /// No description provided for @helpPerHaTitleMargen.
+  ///
+  /// In es, this message translates to:
+  /// **'Margen por ha'**
+  String get helpPerHaTitleMargen;
+
+  /// No description provided for @helpPerHaMargin.
+  ///
+  /// In es, this message translates to:
+  /// **'Ventas − gastos, por hectárea. Positivo = la hectárea deja dinero.'**
+  String get helpPerHaMargin;
+
+  /// No description provided for @helpPerHaWhy.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Por qué normalizar? Una parcela de 3 ha que vende \$9M no compite con otra de 1 ha que vende \$5M: por hectárea, la segunda gana. El panel divide por área para que compares con la misma regla.'**
+  String get helpPerHaWhy;
+
+  /// No description provided for @helpPaybackTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cómo se recupera la inversión del establecimiento?'**
+  String get helpPaybackTitle;
+
+  /// No description provided for @helpPaybackIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Al editar un cultivo puedes registrar el Costo del establecimiento: lo invertido en sembrar y levantar el cultivo (plantines, mano de obra, fertilización inicial…).'**
+  String get helpPaybackIntro;
+
+  /// No description provided for @helpPaybackTitlePercent.
+  ///
+  /// In es, this message translates to:
+  /// **'% recuperado'**
+  String get helpPaybackTitlePercent;
+
+  /// No description provided for @helpPaybackPercent.
+  ///
+  /// In es, this message translates to:
+  /// **'La app divide el margen acumulado del cultivo (ventas − gastos) entre esa inversión. 100% = ya la pagaste.'**
+  String get helpPaybackPercent;
+
+  /// No description provided for @helpPaybackTitleYears.
+  ///
+  /// In es, this message translates to:
+  /// **'Se pagaría en N años (aprox.)'**
+  String get helpPaybackTitleYears;
+
+  /// No description provided for @helpPaybackYears.
+  ///
+  /// In es, this message translates to:
+  /// **'Promedio del margen anual medido. Es un promedio de tus datos reales, no una promesa de cosecha.'**
+  String get helpPaybackYears;
+
+  /// No description provided for @helpPaybackTitleNotLoss.
+  ///
+  /// In es, this message translates to:
+  /// **'No es pérdida: es inversión'**
+  String get helpPaybackTitleNotLoss;
+
+  /// No description provided for @helpPaybackNotLoss.
+  ///
+  /// In es, this message translates to:
+  /// **'Mientras el cultivo está en establecimiento, gastar no es perder: es el costo de sembrar tu activo.'**
+  String get helpPaybackNotLoss;
+
   /// No description provided for @syncTooltip.
   ///
   /// In es, this message translates to:
@@ -508,6 +622,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Plantas vivas'**
   String get livePlantsLabel;
+
+  /// No description provided for @establishmentCostLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo del establecimiento (\$)'**
+  String get establishmentCostLabel;
 
   /// No description provided for @editCropTitle.
   ///
@@ -814,6 +934,72 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sin datos de cosechas en el período.'**
   String get reportNoHarvestData;
+
+  /// No description provided for @perHaSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Por hectárea'**
+  String get perHaSection;
+
+  /// No description provided for @perHaNoAreaHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.'**
+  String get perHaNoAreaHint;
+
+  /// No description provided for @perHaYieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento'**
+  String get perHaYieldLabel;
+
+  /// No description provided for @perHaRevenueLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Ventas por ha'**
+  String get perHaRevenueLabel;
+
+  /// No description provided for @perHaCostLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos por ha'**
+  String get perHaCostLabel;
+
+  /// No description provided for @perHaMarginLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Margen por ha'**
+  String get perHaMarginLabel;
+
+  /// No description provided for @perHaInvestmentLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Inversión del establecimiento'**
+  String get perHaInvestmentLabel;
+
+  /// No description provided for @perHaRecoveredLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Recuperado'**
+  String get perHaRecoveredLabel;
+
+  /// No description provided for @perHaRecoveryPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente de recuperarse'**
+  String get perHaRecoveryPending;
+
+  /// No description provided for @perHaPaybackLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Se pagaría en'**
+  String get perHaPaybackLabel;
+
+  /// Tiempo estimado para recuperar la inversión del establecimiento
+  ///
+  /// In es, this message translates to:
+  /// **'{years} años (aprox.)'**
+  String perHaPaybackYears(String years);
 
   /// No description provided for @monthJan.
   ///

@@ -111,6 +111,52 @@ class ReportHarvestMetrics {
     return kg > 0 ? kg / livePlants : null;
   }
 
+  /// Ingresos del cultivo por hectárea. Solo si [areaHa] > 0 y hay ingresos
+  /// no eliminados; si no, null (la UI oculta, nunca muestra 0).
+  double? revenuePerHa(List<Transaction> txs, double? areaHa) {
+    if (areaHa == null || areaHa <= 0) return null;
+    double total = 0;
+    for (final t in txs) {
+      if (t.deleted || t.type.isExpense) continue;
+      total += t.amount;
+    }
+    return total > 0 ? total / areaHa : null;
+  }
+
+  /// Gastos del cultivo por hectárea. Mismas reglas que [revenuePerHa].
+  double? costPerHa(List<Transaction> txs, double? areaHa) {
+    if (areaHa == null || areaHa <= 0) return null;
+    double total = 0;
+    for (final t in txs) {
+      if (t.deleted || !t.type.isExpense) continue;
+      total += t.amount;
+    }
+    return total > 0 ? total / areaHa : null;
+  }
+
+  /// Margen por ha (ingresos − gastos), null si no hay ningún dato.
+  double? marginPerHa(double? revenue, double? cost) {
+    if (revenue == null && cost == null) return null;
+    return (revenue ?? 0) - (cost ?? 0);
+  }
+
+  /// % de la inversión del establecimiento ya recuperada (margen ÷ inversión).
+  /// Solo si [establishmentCost] > 0 y hay margen; si no, null.
+  double? recoveryRate(double? establishmentCost, double? margin) {
+    if (establishmentCost == null || establishmentCost <= 0) return null;
+    if (margin == null) return null;
+    return margin / establishmentCost;
+  }
+
+  /// Años estimados para pagar la inversión: inversión ÷ margen anual promedio
+  /// MEDIDO. No es predicción de producción: es una división de datos medidos,
+  /// por eso se presenta siempre como "aprox.".
+  double? breakevenYears(double? establishmentCost, double avgAnnualMargin) {
+    if (establishmentCost == null || establishmentCost <= 0) return null;
+    if (avgAnnualMargin <= 0) return null;
+    return establishmentCost / avgAnnualMargin;
+  }
+
   /// Venta vs cosecha por cultivo en kg (últimos 12 meses, para coherencia
   /// con la Regla de conciliación). Devuelve solo cultivos con al menos una
   /// venta o cosecha en el período.
