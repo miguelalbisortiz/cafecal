@@ -365,6 +365,144 @@ abstract class AppLocalizations {
   /// **'Puedes usar kilogramos (kg), arrobas (1 arroba = 12.5 kg, común para café en Colombia) o sacos (1 saco = 70 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.'**
   String get helpUnitsBody;
 
+  /// No description provided for @helpUnitsTableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Equivalencias'**
+  String get helpUnitsTableTitle;
+
+  /// No description provided for @helpUnitsKgRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Kilogramo (kg)'**
+  String get helpUnitsKgRow;
+
+  /// No description provided for @helpUnitsKgRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad base. Todo se convierte a kg.'**
+  String get helpUnitsKgRowDesc;
+
+  /// No description provided for @helpUnitsArrobaRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Arroba'**
+  String get helpUnitsArrobaRow;
+
+  /// No description provided for @helpUnitsArrobaRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'12.5 kg. Común para café en Colombia.'**
+  String get helpUnitsArrobaRowDesc;
+
+  /// No description provided for @helpUnitsSacoRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Saco'**
+  String get helpUnitsSacoRow;
+
+  /// No description provided for @helpUnitsSacoRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'70 kg. Para café en sacos.'**
+  String get helpUnitsSacoRowDesc;
+
+  /// No description provided for @helpUnitsRacimoRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Racimo'**
+  String get helpUnitsRacimoRow;
+
+  /// No description provided for @helpUnitsRacimoRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Para plátano. No se pesa.'**
+  String get helpUnitsRacimoRowDesc;
+
+  /// No description provided for @helpUnitsCajonRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Cajón'**
+  String get helpUnitsCajonRow;
+
+  /// No description provided for @helpUnitsCajonRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Para frutas y verduras. Su peso varía.'**
+  String get helpUnitsCajonRowDesc;
+
+  /// No description provided for @helpExampleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cómo se ve en la práctica? Ejemplos con números'**
+  String get helpExampleTitle;
+
+  /// No description provided for @helpCaseAExampleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Caso A — café en producción (2 ha, 3000 plantas)'**
+  String get helpCaseAExampleTitle;
+
+  /// No description provided for @helpCaseAEx1.
+  ///
+  /// In es, this message translates to:
+  /// **'Café, Producción, Perenne, 2 ha, 3000 plantas'**
+  String get helpCaseAEx1;
+
+  /// No description provided for @helpCaseAEx2.
+  ///
+  /// In es, this message translates to:
+  /// **'Gasto de \$500,000 en Fertilizante'**
+  String get helpCaseAEx2;
+
+  /// No description provided for @helpCaseAEx3.
+  ///
+  /// In es, this message translates to:
+  /// **'4 arrobas (50 kg), Vendido'**
+  String get helpCaseAEx3;
+
+  /// No description provided for @helpCaseAEx4.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingreso de \$750,000 por la venta'**
+  String get helpCaseAEx4;
+
+  /// No description provided for @helpCaseAEx5.
+  ///
+  /// In es, this message translates to:
+  /// **'Balance +\$250,000 · Margen 33% · ROI 50%'**
+  String get helpCaseAEx5;
+
+  /// No description provided for @helpCaseBExampleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Caso B — plátano nuevo (500 plantas en 0.5 ha)'**
+  String get helpCaseBExampleTitle;
+
+  /// No description provided for @helpCaseBEx1.
+  ///
+  /// In es, this message translates to:
+  /// **'Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas'**
+  String get helpCaseBEx1;
+
+  /// No description provided for @helpCaseBEx2.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembra inicial, 500 plantas, 0.5 ha, costo \$200,000'**
+  String get helpCaseBEx2;
+
+  /// No description provided for @helpCaseBEx3.
+  ///
+  /// In es, this message translates to:
+  /// **'\$100,000 de mano de obra y \$150,000 de fertilizante'**
+  String get helpCaseBEx3;
+
+  /// No description provided for @helpCaseBEx4.
+  ///
+  /// In es, this message translates to:
+  /// **'Inversión \$450,000. No dice pérdida: es inversión hasta que produzca.'**
+  String get helpCaseBEx4;
+
   /// No description provided for @helpGlossaryTitle.
   ///
   /// In es, this message translates to:

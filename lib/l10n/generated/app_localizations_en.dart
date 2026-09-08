@@ -146,6 +146,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitsBody => 'Use kg, or arroba (12.5 kg) and bag (70 kg) for coffee. The app converts everything to kg for comparison.';
 
   @override
+  String get helpUnitsTableTitle => 'Equivalences';
+
+  @override
+  String get helpUnitsKgRow => 'Kilogram (kg)';
+
+  @override
+  String get helpUnitsKgRowDesc => 'Base unit. Everything is converted to kg.';
+
+  @override
+  String get helpUnitsArrobaRow => 'Arroba';
+
+  @override
+  String get helpUnitsArrobaRowDesc => '12.5 kg. Common for coffee in Colombia.';
+
+  @override
+  String get helpUnitsSacoRow => 'Bag (saco)';
+
+  @override
+  String get helpUnitsSacoRowDesc => '70 kg. For coffee in bags.';
+
+  @override
+  String get helpUnitsRacimoRow => 'Bunch';
+
+  @override
+  String get helpUnitsRacimoRowDesc => 'For plantain. Not weighed.';
+
+  @override
+  String get helpUnitsCajonRow => 'Crate';
+
+  @override
+  String get helpUnitsCajonRowDesc => 'For fruits and vegetables. Weight varies.';
+
+  @override
+  String get helpExampleTitle => 'What does it look like in practice? Examples with numbers';
+
+  @override
+  String get helpCaseAExampleTitle => 'Case A — coffee in production (2 ha, 3000 plants)';
+
+  @override
+  String get helpCaseAEx1 => 'Coffee, Production, Perennial, 2 ha, 3000 plants';
+
+  @override
+  String get helpCaseAEx2 => '\$500,000 expense on Fertilizer';
+
+  @override
+  String get helpCaseAEx3 => '4 arrobas (50 kg), Sold';
+
+  @override
+  String get helpCaseAEx4 => '\$750,000 income from the sale';
+
+  @override
+  String get helpCaseAEx5 => 'Balance +\$250,000 · Margin 33% · ROI 50%';
+
+  @override
+  String get helpCaseBExampleTitle => 'Case B — new plantain (500 plants on 0.5 ha)';
+
+  @override
+  String get helpCaseBEx1 => 'Plantain, Establishment, Perennial, 0.5 ha, 500 plants';
+
+  @override
+  String get helpCaseBEx2 => 'Initial planting, 500 plants, 0.5 ha, cost \$200,000';
+
+  @override
+  String get helpCaseBEx3 => '\$100,000 labor and \$150,000 fertilizer';
+
+  @override
+  String get helpCaseBEx4 => 'Investment \$450,000. It does not say loss: it is an investment until it produces.';
+
+  @override
   String get helpGlossaryTitle => 'Glossary';
 
   @override

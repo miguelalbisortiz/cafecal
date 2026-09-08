@@ -100,26 +100,58 @@ class HelpScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _Section(title: l10n.helpCaseTitle),
               _Card(
-                child: _StepsCard(
-                  title: l10n.helpCaseATitle,
-                  steps: [
-                    l10n.helpCaseA1,
-                    l10n.helpCaseA2,
-                    l10n.helpCaseA3,
-                    l10n.helpCaseA4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StepsCard(
+                      title: l10n.helpCaseATitle,
+                      steps: [
+                        l10n.helpCaseA1,
+                        l10n.helpCaseA2,
+                        l10n.helpCaseA3,
+                        l10n.helpCaseA4,
+                      ],
+                      endNote: l10n.helpCaseAEnd,
+                    ),
+                    _CaseExample(
+                      title: l10n.helpCaseAExampleTitle,
+                      rows: [
+                        (l10n.menuCrops,
+                            l10n.helpCaseAEx1),
+                        ('${l10n.tabRegister} — ${l10n.expenseTypeLabel}',
+                            l10n.helpCaseAEx2),
+                        (l10n.menuHarvests, l10n.helpCaseAEx3),
+                        ('${l10n.tabRegister} — ${l10n.incomeTypeLabel}',
+                            l10n.helpCaseAEx4),
+                        (l10n.tabOverview, l10n.helpCaseAEx5),
+                      ],
+                    ),
                   ],
-                  endNote: l10n.helpCaseAEnd,
                 ),
               ),
               const SizedBox(height: 12),
               _Card(
-                child: _StepsCard(
-                  title: l10n.helpCaseBTitle,
-                  steps: [
-                    l10n.helpCaseB1,
-                    l10n.helpCaseB2,
-                    l10n.helpCaseB3,
-                    l10n.helpCaseB4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StepsCard(
+                      title: l10n.helpCaseBTitle,
+                      steps: [
+                        l10n.helpCaseB1,
+                        l10n.helpCaseB2,
+                        l10n.helpCaseB3,
+                        l10n.helpCaseB4,
+                      ],
+                    ),
+                    _CaseExample(
+                      title: l10n.helpCaseBExampleTitle,
+                      rows: [
+                        (l10n.menuCrops, l10n.helpCaseBEx1),
+                        (l10n.menuSowings, l10n.helpCaseBEx2),
+                        (l10n.tabRegister, l10n.helpCaseBEx3),
+                        (l10n.tabOverview, l10n.helpCaseBEx4),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -141,6 +173,20 @@ class HelpScreen extends StatelessWidget {
                         _UnitChip(l10n.unitSaco),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.helpUnitsTableTitle,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    _MiniTable(rows: [
+                      (l10n.helpUnitsKgRow, l10n.helpUnitsKgRowDesc),
+                      (l10n.helpUnitsArrobaRow, l10n.helpUnitsArrobaRowDesc),
+                      (l10n.helpUnitsSacoRow, l10n.helpUnitsSacoRowDesc),
+                      (l10n.helpUnitsRacimoRow, l10n.helpUnitsRacimoRowDesc),
+                      (l10n.helpUnitsCajonRow, l10n.helpUnitsCajonRowDesc),
+                    ]),
                   ],
                 ),
               ),
@@ -337,6 +383,95 @@ class _DefList extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Tabla compacta con 2 columnas (título + descripción) separadas por una raya.
+class _MiniTable extends StatelessWidget {
+  final List<(String, String)> rows;
+
+  const _MiniTable({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: scheme.outlineVariant.withOpacity(0.4)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withOpacity(0.4),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 7),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    child: Text(
+                      rows[i].$1,
+                      style: const TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      rows[i].$2,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.3,
+                        color: scheme.onSurface.withOpacity(0.8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Ejemplo con números de un caso: título + lista "dónde → qué poner".
+class _CaseExample extends StatelessWidget {
+  final String title;
+  final List<(String, String)> rows;
+
+  const _CaseExample({required this.title, required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Divider(color: scheme.outlineVariant.withOpacity(0.4)),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: scheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _DefList(items: rows),
+        ],
+      ),
     );
   }
 }
