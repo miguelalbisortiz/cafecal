@@ -26,6 +26,17 @@ class TransactionProvider extends ChangeNotifier {
     _sowings = _store.loadSowings();
   }
 
+  /// Recarga todo el estado desde el namespace activo del store. Se invoca
+  /// tras un cambio de usuario (login) para no exponer datos de otra cuenta.
+  Future<void> reloadFromCache() async {
+    _transactions = _store.loadTransactions();
+    _crops = _store.loadCrops();
+    _settings = _store.loadSettings();
+    _harvests = _store.loadHarvests();
+    _sowings = _store.loadSowings();
+    notifyListeners();
+  }
+
   List<Transaction> get transactions => _transactions;
   List<Crop> get crops => _crops;
   FarmSettings get settings => _settings;
