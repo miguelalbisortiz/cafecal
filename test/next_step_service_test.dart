@@ -35,6 +35,61 @@ Transaction _txn(
 void main() {
   const year = 2026;
 
+  group('needsOnboarding — gate de bienvenida', () {
+    test('sin cultivos exige onboarding', () {
+      expect(needsOnboarding(const [], const []), isTrue);
+    });
+
+    test('cultivo en producción NO exige onboarding (finca establecida)', () {
+      expect(
+        needsOnboarding([_crop('cafe', phase: CropPhase.produccion)], const []),
+        isFalse,
+      );
+    });
+
+    test('cultivo joven sin siembra exige onboarding', () {
+      expect(
+        needsOnboarding(
+            [_crop('cafe', phase: CropPhase.establecimiento)], const []),
+        isTrue,
+      );
+    });
+
+    test('cultivo joven con siembra inicial NO exige onboarding', () {
+      expect(
+        needsOnboarding(
+          [_crop('cafe', phase: CropPhase.establecimiento)],
+          [_sowing('s1', cropId: 'cafe')],
+        ),
+        isFalse,
+      );
+    });
+
+    test('resiembra suelta no cubre la siembra inicial (gate sigue activo)', () {
+      expect(
+        needsOnboarding(
+          [_crop('cafe', phase: CropPhase.establecimiento)],
+          [_sowing('s1', cropId: 'cafe', kind: SowingKind.resiembra)],
+        ),
+        isTrue,
+      );
+    });
+
+    test('al menos un cultivo listo desbloquea aunque otro esté en establecimiento',
+        () {
+      expect(
+        needsOnboarding(
+          [
+            _crop('cafe', phase: CropPhase.produccion),
+            _crop('tomate', phase: CropPhase.establecimiento),
+          ],
+          const [],
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('nextStepFor — reglas en orden', () {
     test('sin cultivos sugiere crear el primer cultivo', () {
       final step = nextStepFor(
@@ -47,40 +102,15 @@ void main() {
       expect(step?.type, NextStepType.crop);
     });
 
-    test('solo cultivos por defecto sin tocar y sin datos sugiere configurar el cultivo', () {
+    test('cuenta vacía (crops pre-cargados) sin datos sugiere el cultivo', () {
       final step = nextStepFor(
-        crops: defaultCrops,
+        crops: [_crop('cafe')],
         sowings: const [],
         harvests: const [],
         transactions: const [],
         year: year,
       );
-      expect(step?.type, NextStepType.crop);
-    });
-
-    test('solo defaults pero con gastos ya no pide el cultivo (siguen reglas 3-5)', () {
-      final step = nextStepFor(
-        crops: defaultCrops,
-        sowings: const [],
-        harvests: const [],
-        transactions: [_txn('e1', category: 'cosecha')],
-        year: year,
-      );
-      expect(step?.type, NextStepType.harvest);
-    });
-
-    test('demo (defaults + ventas y gastos, sin cosechas) sugiere cosecha, no siembra', () {
-      final step = nextStepFor(
-        crops: defaultCrops,
-        sowings: const [],
-        harvests: const [],
-        transactions: [
-          _txn('e1', category: 'cosecha'),
-          _txn('i1', type: TransactionType.income, category: 'Venta de café'),
-        ],
-        year: year,
-      );
-      expect(step?.type, NextStepType.harvest);
+      expect(step?.type, NextStepType.expenses);
     });
 
     test('establecimiento sin siembra propia sugiere sembrar ese cultivo', () {

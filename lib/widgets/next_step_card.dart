@@ -35,19 +35,10 @@ class NextStepCard extends StatelessWidget {
     if (step == null) return const SizedBox.shrink();
 
     final scheme = Theme.of(context).colorScheme;
-    final hasOnlyDefaultCrops = tx.crops.length == 3 && tx.crops.every((c) => {
-          'café',
-          'plátano',
-          'otro',
-        }.contains(c.name.trim().toLowerCase()));
     final (title, subtitle) = switch (step.type) {
       NextStepType.crop => (
-          hasOnlyDefaultCrops
-              ? l10n.nextStepCropSetupTitle
-              : l10n.nextStepCropTitle,
-          hasOnlyDefaultCrops
-              ? l10n.nextStepCropSetupSubtitle
-              : l10n.nextStepCropSubtitle,
+          l10n.nextStepCropTitle,
+          l10n.nextStepCropSubtitle,
         ),
       NextStepType.sowing => (
           l10n.nextStepSowingTitle(_cropName(tx, l10n, step.cropId!)),

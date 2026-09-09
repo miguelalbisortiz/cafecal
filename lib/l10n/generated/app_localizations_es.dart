@@ -71,6 +71,51 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nextStepGuideLink => 'Ver guía completa';
 
   @override
+  String get welcomeTitle => 'Bienvenido, configura tu finca';
+
+  @override
+  String get welcomeSubtitle => 'Cuéntanos cómo está tu finca hoy para arrancar con la guía adecuada:';
+
+  @override
+  String get welcomeExistingTitle => 'Ya tengo plantas produciendo';
+
+  @override
+  String get welcomeExistingSubtitle => 'Café, plátano u otro cultivo que ya se da en mi finca y estoy manejando.';
+
+  @override
+  String get welcomeExistingAction => 'Agregar cultivos existentes';
+
+  @override
+  String get welcomeNewTitle => 'Quisiera empezar algo nuevo';
+
+  @override
+  String get welcomeNewSubtitle => 'Voy a sembrar ahora o ya sembré hace poco. La app registra la siembra y crea el cultivo.';
+
+  @override
+  String get welcomeNewAction => 'Registrar mis siembras';
+
+  @override
+  String get welcomeHint => 'No importa cuál elijas primero: ambas te guían bien y la app crea todo lo necesario automáticamente.';
+
+  @override
+  String get onboardingCropAddedTitle => 'Cultivo agregado';
+
+  @override
+  String get onboardingAnother => 'Agregar otro';
+
+  @override
+  String get onboardingAnotherPrompt => 'Cultivo agregado. ¿Registrar otro cultivo que ya tienes sembrado en tu finca?';
+
+  @override
+  String get onboardingDone => 'Entrar, terminé';
+
+  @override
+  String get sowingNewCropOption => '+ Crear nuevo cultivo…';
+
+  @override
+  String get sowingNewCropTitle => 'Nuevo cultivo';
+
+  @override
   String get helpTitle => 'Ayuda';
 
   @override
