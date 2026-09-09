@@ -33,16 +33,10 @@ class NextStep {
 
 const Set<String> _saleCategories = {'venta_cafe', 'venta_platano', 'venta_otro'};
 
-/// True mientras el usuario no haya configurado su finca: necesita al menos 1
-/// cultivo que ya produzca o con siembra de tipo siembra registrada.
-bool needsOnboarding(List<Crop> crops, List<Sowing> sowings) {
-  if (crops.isEmpty) return true;
-  final ready = crops.any((c) =>
-      c.phase == CropPhase.produccion ||
-      sowings.any(
-          (s) => s.cropId == c.id && s.kind == SowingKind.siembra));
-  return !ready;
-}
+/// True mientras la finca esté vacía (0 cultivos y 0 siembras): el usuario aún
+/// no eligió su primer paso. Cualquier cultivo o siembra la desbloquea.
+bool needsOnboarding(List<Crop> crops, List<Sowing> sowings) =>
+    crops.isEmpty && sowings.isEmpty;
 
 /// Deriva EL siguiente paso que el usuario debe completar, según el estado
 /// actual de sus datos. Reglas en orden de prioridad:

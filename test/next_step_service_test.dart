@@ -35,27 +35,34 @@ Transaction _txn(
 void main() {
   const year = 2026;
 
-  group('needsOnboarding — gate de bienvenida', () {
-    test('sin cultivos exige onboarding', () {
+  group('needsOnboarding — gate de primer paso', () {
+    test('sin cultivos y sin siembras exige elegir un primer paso', () {
       expect(needsOnboarding(const [], const []), isTrue);
     });
 
-    test('cultivo en producción NO exige onboarding (finca establecida)', () {
+    test('un cultivo desbloquea (aunque no esté en producción)', () {
+      expect(
+        needsOnboarding([_crop('cafe', phase: CropPhase.establecimiento)],
+            const []),
+        isFalse,
+      );
+    });
+
+    test('una siembra sin cultivos desbloquea', () {
+      expect(
+        needsOnboarding(const [], [_sowing('s1', cropId: null)]),
+        isFalse,
+      );
+    });
+
+    test('cualquier cultivo con siembras vacías desbloquea', () {
       expect(
         needsOnboarding([_crop('cafe', phase: CropPhase.produccion)], const []),
         isFalse,
       );
     });
 
-    test('cultivo joven sin siembra exige onboarding', () {
-      expect(
-        needsOnboarding(
-            [_crop('cafe', phase: CropPhase.establecimiento)], const []),
-        isTrue,
-      );
-    });
-
-    test('cultivo joven con siembra inicial NO exige onboarding', () {
+    test('cultivo joven con siembra desbloquea', () {
       expect(
         needsOnboarding(
           [_crop('cafe', phase: CropPhase.establecimiento)],
@@ -65,25 +72,11 @@ void main() {
       );
     });
 
-    test('resiembra suelta no cubre la siembra inicial (gate sigue activo)', () {
+    test('la resiembra sola ya no mantiene el gate (basta un cultivo)', () {
       expect(
         needsOnboarding(
           [_crop('cafe', phase: CropPhase.establecimiento)],
           [_sowing('s1', cropId: 'cafe', kind: SowingKind.resiembra)],
-        ),
-        isTrue,
-      );
-    });
-
-    test('al menos un cultivo listo desbloquea aunque otro esté en establecimiento',
-        () {
-      expect(
-        needsOnboarding(
-          [
-            _crop('cafe', phase: CropPhase.produccion),
-            _crop('tomate', phase: CropPhase.establecimiento),
-          ],
-          const [],
         ),
         isFalse,
       );

@@ -48,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final sync = context.watch<SyncProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final tx = context.watch<TransactionProvider>();
+    final onboarding = needsOnboarding(tx.crops, tx.sowings);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -88,10 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (v == 'help') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpScreen()));
                 },
                 itemBuilder: (_) => [
-                  PopupMenuItem(value: 'report', child: Text(l10n.menuReport)),
-                  PopupMenuItem(value: 'crops', child: Text(l10n.menuCrops)),
-                  PopupMenuItem(value: 'sowings', child: Text(l10n.menuSowings)),
-                  PopupMenuItem(value: 'harvests', child: Text(l10n.menuHarvests)),
+                  if (!onboarding) ...[
+                    PopupMenuItem(value: 'report', child: Text(l10n.menuReport)),
+                    PopupMenuItem(value: 'crops', child: Text(l10n.menuCrops)),
+                    PopupMenuItem(value: 'sowings', child: Text(l10n.menuSowings)),
+                    PopupMenuItem(value: 'harvests', child: Text(l10n.menuHarvests)),
+                  ],
                   PopupMenuItem(value: 'help', child: Text(l10n.menuHelp)),
                   PopupMenuItem(value: 'settings', child: Text(l10n.menuSettings)),
                   const PopupMenuDivider(),
@@ -100,38 +104,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          body: wide
-              ? Row(
-                  children: [
-                    NavigationRail(
-                      selectedIndex: _tab,
-                      onDestinationSelected: (i) =>
-                          setState(() => _tab = i),
-                      labelType: NavigationRailLabelType.all,
-                      destinations: [
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.dashboard_outlined),
-                          selectedIcon: const Icon(Icons.dashboard),
-                          label: Text(l10n.tabOverview),
+          body: onboarding
+              ? _buildOnboarding()
+              : wide
+                  ? Row(
+                      children: [
+                        NavigationRail(
+                          selectedIndex: _tab,
+                          onDestinationSelected: (i) =>
+                              setState(() => _tab = i),
+                          labelType: NavigationRailLabelType.all,
+                          destinations: [
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.dashboard_outlined),
+                              selectedIcon: const Icon(Icons.dashboard),
+                              label: Text(l10n.tabOverview),
+                            ),
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.add_circle_outline),
+                              selectedIcon: const Icon(Icons.add_circle),
+                              label: Text(l10n.tabRegister),
+                            ),
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.history_outlined),
+                              selectedIcon: const Icon(Icons.history),
+                              label: Text(l10n.tabHistory),
+                            ),
+                          ],
                         ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.add_circle_outline),
-                          selectedIcon: const Icon(Icons.add_circle),
-                          label: Text(l10n.tabRegister),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.history_outlined),
-                          selectedIcon: const Icon(Icons.history),
-                          label: Text(l10n.tabHistory),
-                        ),
+                        const VerticalDivider(width: 1, thickness: 1),
+                        Expanded(child: _body()),
                       ],
-                    ),
-                    const VerticalDivider(width: 1, thickness: 1),
-                    Expanded(child: _body()),
-                  ],
-                )
-              : _body(),
-          bottomNavigationBar: wide
+                    )
+                  : _body(),
+          bottomNavigationBar: (wide || onboarding)
               ? null
               : NavigationBar(
                   selectedIndex: _tab,
@@ -165,6 +171,18 @@ class _HomeScreenState extends State<HomeScreen> {
         2 => const MovementsScreen(),
         _ => _buildDashboard(),
       };
+
+  /// Vista única del onboarding: las dos cards de primer paso y nada más.
+  Widget _buildOnboarding() {
+    return WelcomeOnboardingCard(
+      onRegisterCrop: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CropsScreen()),
+      ),
+      onRegisterSowing: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SowingScreen()),
+      ),
+    );
+  }
 
   /// Abre la pestaña Registrar, prefijando Gasto/Ingreso si el próximo paso lo
   /// requiere. El prefijo se descarta tras montarse la pantalla para no
@@ -244,25 +262,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          if (needsOnboarding(tx.crops, tx.sowings))
-            WelcomeOnboardingCard(
-              onExistingFarm: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CropsScreen()),
-              ),
-              onNewSowing: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SowingScreen()),
-              ),
-              onOpenGuide: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const HelpScreen()),
-              ),
-            )
-          else
-            NextStepCard(
-              onAction: _onNextStep,
-              onOpenGuide: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const HelpScreen()),
-              ),
+          NextStepCard(
+            onAction: _onNextStep,
+            onOpenGuide: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HelpScreen()),
             ),
+          ),
           AlertsBanner(alerts: alerts.bySeverity),
           _SectionHeader(title: l10n.sectionThisMonth),
           const SizedBox(height: 12),
