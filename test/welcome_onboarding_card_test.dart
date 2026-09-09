@@ -31,7 +31,9 @@ void main() {
 
     expect(find.text(l10n.welcomeTitle), findsOneWidget);
     expect(find.text(l10n.welcomeExistingTitle), findsOneWidget);
+    expect(find.text(l10n.welcomeExistingBadge), findsOneWidget);
     expect(find.text(l10n.welcomeNewTitle), findsOneWidget);
+    expect(find.text(l10n.welcomeNewBadge), findsOneWidget);
     expect(find.text(l10n.welcomeHint), findsOneWidget);
   });
 

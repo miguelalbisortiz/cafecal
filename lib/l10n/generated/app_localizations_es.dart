@@ -80,7 +80,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get welcomeExistingTitle => 'Registrar cultivo';
 
   @override
-  String get welcomeExistingSubtitle => 'Empezá por crear el primer cultivo de tu finca (café u otro).';
+  String get welcomeExistingBadge => 'Situación: ya está plantado';
+
+  @override
+  String get welcomeExistingSubtitle => 'Las plantas ya están en mi finca; quiero llevar sus cuentas.';
 
   @override
   String get welcomeExistingAction => 'Registrar cultivo';
@@ -89,7 +92,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get welcomeNewTitle => 'Registrar siembra';
 
   @override
-  String get welcomeNewSubtitle => 'Empezá registrando la siembra y la app crea el cultivo automáticamente.';
+  String get welcomeNewBadge => 'Situación: vas a plantar ahora';
+
+  @override
+  String get welcomeNewSubtitle => 'Todavía no sembré; voy a sembrar hoy o en estos días.';
 
   @override
   String get welcomeNewAction => 'Registrar siembra';

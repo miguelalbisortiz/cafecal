@@ -59,6 +59,7 @@ class WelcomeOnboardingCard extends StatelessWidget {
                 context: context,
                 icon: Icons.spa_outlined,
                 title: l10n.welcomeNewTitle,
+                badge: l10n.welcomeNewBadge,
                 subtitle: l10n.welcomeNewSubtitle,
                 onTap: onRegisterSowing,
               ),
@@ -67,6 +68,7 @@ class WelcomeOnboardingCard extends StatelessWidget {
                 context: context,
                 icon: Icons.grass_outlined,
                 title: l10n.welcomeExistingTitle,
+                badge: l10n.welcomeExistingBadge,
                 subtitle: l10n.welcomeExistingSubtitle,
                 onTap: onRegisterCrop,
               ),
@@ -103,6 +105,7 @@ class WelcomeOnboardingCard extends StatelessWidget {
     required BuildContext context,
     required IconData icon,
     required String title,
+    required String badge,
     required String subtitle,
     required VoidCallback onTap,
   }) {
@@ -139,6 +142,23 @@ class WelcomeOnboardingCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: scheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badge,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: scheme.onSecondaryContainer,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
