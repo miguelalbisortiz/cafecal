@@ -215,6 +215,96 @@ abstract class AppLocalizations {
   /// **'Ver guía completa'**
   String get nextStepGuideLink;
 
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Bienvenido, configura tu finca'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuéntanos cómo está tu finca hoy para arrancar con la guía adecuada:'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @welcomeExistingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tengo plantas produciendo'**
+  String get welcomeExistingTitle;
+
+  /// No description provided for @welcomeExistingSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Café, plátano u otro cultivo que ya se da en mi finca y estoy manejando.'**
+  String get welcomeExistingSubtitle;
+
+  /// No description provided for @welcomeExistingAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar cultivos existentes'**
+  String get welcomeExistingAction;
+
+  /// No description provided for @welcomeNewTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Quisiera empezar algo nuevo'**
+  String get welcomeNewTitle;
+
+  /// No description provided for @welcomeNewSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Voy a sembrar ahora o ya sembré hace poco. La app registra la siembra y crea el cultivo.'**
+  String get welcomeNewSubtitle;
+
+  /// No description provided for @welcomeNewAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar mis siembras'**
+  String get welcomeNewAction;
+
+  /// No description provided for @welcomeHint.
+  ///
+  /// In es, this message translates to:
+  /// **'No importa cuál elijas primero: ambas te guían bien y la app crea todo lo necesario automáticamente.'**
+  String get welcomeHint;
+
+  /// No description provided for @onboardingCropAddedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultivo agregado'**
+  String get onboardingCropAddedTitle;
+
+  /// No description provided for @onboardingAnother.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar otro'**
+  String get onboardingAnother;
+
+  /// No description provided for @onboardingAnotherPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultivo agregado. ¿Registrar otro cultivo que ya tienes sembrado en tu finca?'**
+  String get onboardingAnotherPrompt;
+
+  /// No description provided for @onboardingDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar, terminé'**
+  String get onboardingDone;
+
+  /// No description provided for @sowingNewCropOption.
+  ///
+  /// In es, this message translates to:
+  /// **'+ Crear nuevo cultivo…'**
+  String get sowingNewCropOption;
+
+  /// No description provided for @sowingNewCropTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo cultivo'**
+  String get sowingNewCropTitle;
+
   /// No description provided for @helpTitle.
   ///
   /// In es, this message translates to:

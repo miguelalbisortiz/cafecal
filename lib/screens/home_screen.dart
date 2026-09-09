@@ -15,6 +15,7 @@ import '../widgets/category_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/next_step_card.dart';
 import '../widgets/summary_card.dart';
+import '../widgets/welcome_onboarding_card.dart';
 import 'movements_screen.dart';
 import 'register_screen.dart';
 import 'report_screen.dart';
@@ -243,12 +244,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          NextStepCard(
-            onAction: _onNextStep,
-            onOpenGuide: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const HelpScreen()),
+          if (needsOnboarding(tx.crops, tx.sowings))
+            WelcomeOnboardingCard(
+              onExistingFarm: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CropsScreen()),
+              ),
+              onNewSowing: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SowingScreen()),
+              ),
+              onOpenGuide: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HelpScreen()),
+              ),
+            )
+          else
+            NextStepCard(
+              onAction: _onNextStep,
+              onOpenGuide: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HelpScreen()),
+              ),
             ),
-          ),
           AlertsBanner(alerts: alerts.bySeverity),
           _SectionHeader(title: l10n.sectionThisMonth),
           const SizedBox(height: 12),

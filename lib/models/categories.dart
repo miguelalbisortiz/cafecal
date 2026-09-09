@@ -26,12 +26,23 @@ class IncomeCategory {
   });
 }
 
+/// Clave de la categoría de gasto generada por el flujo de siembra: al
+/// registrar una siembra con costo, la pantalla crea un gasto vinculado
+/// bajo esta categoría (única vía de entrada: no se elige manualmente en el
+/// editor de gastos porque el costo nace de la propia siembra).
+const String kExpenseCategorySowing = 'siembra';
+
+/// Clave de la categoría de gasto de recolección. Es la contraparte de
+/// [kExpenseCategorySowing] para el flujo de cosecha: se registra de forma
+/// manual y puede vincularse a una cosecha concreta desde el editor de gastos.
+const String kExpenseCategoryHarvest = 'cosecha';
+
 const List<ExpenseCategory> expenseCategories = [
-  ExpenseCategory(key: 'siembra', name: 'Siembra', icon: '🌱', color: '#2E7D32'),
+  ExpenseCategory(key: kExpenseCategorySowing, name: 'Siembra', icon: '🌱', color: '#2E7D32'),
   ExpenseCategory(key: 'semillas_insumos', name: 'Semillas e insumos', icon: '🌾', color: '#7CB342'),
   ExpenseCategory(key: 'fertilizante', name: 'Fertilizante', icon: '🧪', color: '#43A047'),
   ExpenseCategory(key: 'mano_obra', name: 'Mano de obra', icon: '👷', color: '#1E88E5'),
-  ExpenseCategory(key: 'cosecha', name: 'Cosecha y recolección', icon: '🧺', color: '#F57F17'),
+  ExpenseCategory(key: kExpenseCategoryHarvest, name: 'Cosecha y recolección', icon: '🧺', color: '#F57F17'),
   ExpenseCategory(key: 'plagas', name: 'Control plagas', icon: '🐛', color: '#E53935'),
   ExpenseCategory(key: 'riego', name: 'Riego', icon: '💧', color: '#00ACC1'),
   ExpenseCategory(key: 'empaque', name: 'Empacado y comercialización', icon: '🛍️', color: '#5E35B1'),

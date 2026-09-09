@@ -71,6 +71,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextStepGuideLink => 'View full guide';
 
   @override
+  String get welcomeTitle => 'Welcome, set up your farm';
+
+  @override
+  String get welcomeSubtitle => 'Tell us how your farm looks today so we can guide you:';
+
+  @override
+  String get welcomeExistingTitle => 'I already have plants producing';
+
+  @override
+  String get welcomeExistingSubtitle => 'Coffee, plantain or another crop already growing on my farm that I manage.';
+
+  @override
+  String get welcomeExistingAction => 'Add existing crops';
+
+  @override
+  String get welcomeNewTitle => 'I want to start something new';
+
+  @override
+  String get welcomeNewSubtitle => 'I\'m planting now or planted recently. The app records the planting and creates the crop.';
+
+  @override
+  String get welcomeNewAction => 'Record my plantings';
+
+  @override
+  String get welcomeHint => 'It doesn\'t matter which you choose first: both guide you well and the app creates everything it needs automatically.';
+
+  @override
+  String get onboardingCropAddedTitle => 'Crop added';
+
+  @override
+  String get onboardingAnother => 'Add another';
+
+  @override
+  String get onboardingAnotherPrompt => 'Crop added. Do you want to register another crop already planted on your farm?';
+
+  @override
+  String get onboardingDone => 'Enter, I\'m done';
+
+  @override
+  String get sowingNewCropOption => '+ Create new crop…';
+
+  @override
+  String get sowingNewCropTitle => 'New crop';
+
+  @override
   String get helpTitle => 'Help';
 
   @override

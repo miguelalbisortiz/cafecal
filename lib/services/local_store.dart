@@ -90,7 +90,7 @@ class LocalStore {
 
   List<Crop> loadCrops() {
     final raw = _prefs.getString(_key(_kCrops));
-    if (raw == null || raw.isEmpty) return List.of(defaultCrops);
+    if (raw == null || raw.isEmpty) return [];
     try {
       final list = jsonDecode(raw) as List<dynamic>;
       final seen = <String>{};
@@ -99,7 +99,7 @@ class LocalStore {
           .where((c) => seen.add(c.name.trim().toLowerCase()))
           .toList();
     } catch (_) {
-      return List.of(defaultCrops);
+      return [];
     }
   }
 
