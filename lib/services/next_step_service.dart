@@ -33,23 +33,15 @@ class NextStep {
 
 const Set<String> _saleCategories = {'venta_cafe', 'venta_platano', 'venta_otro'};
 
-/// True si el cultivo conserva exactamente los valores por defecto con los que
-/// la app siembra los cultivos (sin que el usuario los haya configurado).
-bool _isUntouchedDefault(Crop c) =>
-    c.phase == CropPhase.produccion &&
-    c.cycle == CropCycle.perenne &&
-    c.defaultUnit == null &&
-    c.areaHa == null &&
-    c.livePlants == null;
-
-/// True si la lista son solo los 3 cultivos por defecto (Café, Plátano, Otro)
-/// intactos — el usuario aún no configura nada propio.
-bool _onlyUntouchedDefaults(List<Crop> crops) {
-  if (crops.length != defaultCrops.length) return false;
-  final names = {'café', 'plátano', 'otro'};
-  return crops.every(
-    (c) => names.contains(c.name.trim().toLowerCase()) && _isUntouchedDefault(c),
-  );
+/// True mientras el usuario no haya configurado su finca: necesita al menos 1
+/// cultivo que ya produzca o con siembra de tipo siembra registrada.
+bool needsOnboarding(List<Crop> crops, List<Sowing> sowings) {
+  if (crops.isEmpty) return true;
+  final ready = crops.any((c) =>
+      c.phase == CropPhase.produccion ||
+      sowings.any(
+          (s) => s.cropId == c.id && s.kind == SowingKind.siembra));
+  return !ready;
 }
 
 /// Deriva EL siguiente paso que el usuario debe completar, según el estado
@@ -77,7 +69,7 @@ NextStep? nextStepFor({
   final hasAnyData = sowings.isNotEmpty ||
       harvests.isNotEmpty ||
       transactions.any((t) => !t.deleted);
-  if ((crops.isEmpty || _onlyUntouchedDefaults(crops)) && !hasAnyData) {
+  if (crops.isEmpty && !hasAnyData) {
     return const NextStep(type: NextStepType.crop);
   }
 

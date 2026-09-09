@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'generated/app_localizations.dart';
+import '../models/categories.dart';
 
 /// Devuelve las traducciones para un código de idioma ('es' o 'en').
 /// Se usa fuera del árbol de widgets (providers, servicios, tests).
@@ -35,11 +36,11 @@ extension L10nMonths on AppLocalizations {
 
 extension L10nCategories on AppLocalizations {
   String expenseCategory(String key) => switch (key) {
-        'siembra' => catSiembra,
+        kExpenseCategorySowing => catSiembra,
         'semillas_insumos' => catSemillasInsumos,
         'fertilizante' => catFertilizante,
         'mano_obra' => catManoObra,
-        'cosecha' => catCosecha,
+        kExpenseCategoryHarvest => catCosecha,
         'plagas' => catPlagas,
         'riego' => catRiego,
         'empaque' => catEmpaque,

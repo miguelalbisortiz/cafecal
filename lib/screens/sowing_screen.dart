@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
+import '../models/categories.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../widgets/new_crop_dialog.dart';
 
 class SowingScreen extends StatelessWidget {
   const SowingScreen({super.key});
@@ -143,6 +145,8 @@ class _SowingForm extends StatefulWidget {
 }
 
 class _SowingFormState extends State<_SowingForm> {
+  static const _newCropOption = '__new__';
+
   final _formKey = GlobalKey<FormState>();
   final _plantsController = TextEditingController();
   final _areaController = TextEditingController();
@@ -150,6 +154,7 @@ class _SowingFormState extends State<_SowingForm> {
   final _reasonController = TextEditingController();
   final _costController = TextEditingController();
 
+  late final Map<String, String> _cropNames = Map.of(widget.cropNames);
   String? _cropId;
   DateTime _date = DateTime.now();
   SowingKind _kind = SowingKind.siembra;
@@ -166,8 +171,8 @@ class _SowingFormState extends State<_SowingForm> {
       if (s.areaHa != null) _areaController.text = s.areaHa.toString();
       if (s.lostPlants != null) _lostController.text = s.lostPlants.toString();
       if (s.reason != null) _reasonController.text = s.reason!;
-    } else if (widget.cropNames.isNotEmpty) {
-      _cropId = widget.cropNames.keys.first;
+    } else if (_cropNames.isNotEmpty) {
+      _cropId = _cropNames.keys.first;
     }
   }
 
@@ -191,10 +196,45 @@ class _SowingFormState extends State<_SowingForm> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  Future<void> _onCropChanged(String? value) async {
+    if (value != _newCropOption) {
+      setState(() => _cropId = value);
+      return;
+    }
+    final tx = context.read<TransactionProvider>();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => NewCropDialog(
+        existingNames: tx.crops.map((c) => c.name).toList(),
+      ),
+    );
+    if (name == null || !mounted) return;
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    final matched = tx.crops
+        .where((c) => c.name.toLowerCase() == trimmed.toLowerCase())
+        .toList();
+    if (matched.isNotEmpty) {
+      setState(() {
+        final m = matched.first;
+        _cropId = m.id;
+        _cropNames[m.id] = '${m.icon} ${m.name}';
+      });
+      return;
+    }
+    final crop = await tx.addCrop(trimmed);
+    if (!mounted) return;
+    setState(() {
+      _cropId = crop.id;
+      _cropNames[crop.id] = '${crop.icon} ${crop.name}';
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final tx = context.read<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
+    if (_cropId == null) return;
     final plants = int.parse(_plantsController.text.trim());
     final areaText = _areaController.text.trim().replaceAll(',', '.');
     final area = _kind == SowingKind.siembra && areaText.isNotEmpty
@@ -235,14 +275,14 @@ class _SowingFormState extends State<_SowingForm> {
     }
 
     // Costo opcional: solo siembra inicial con costo > 0 → crea gasto vinculado.
-    if (_kind == SowingKind.siembra && widget.cropNames.isNotEmpty) {
+    if (_kind == SowingKind.siembra) {
       final costText = _costController.text.trim().replaceAll(',', '.');
       final cost = costText.isEmpty ? null : double.tryParse(costText);
       if (cost != null && cost > 0) {
-        final cropName = widget.cropNames[_cropId]?.trim() ?? '';
+        final cropName = _cropNames[_cropId]?.trim() ?? '';
         await tx.addTransaction(
           type: TransactionType.expense,
-          category: 'siembra',
+          category: kExpenseCategorySowing,
           cropId: _cropId,
           amount: cost,
           description:
@@ -272,19 +312,23 @@ class _SowingFormState extends State<_SowingForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DropdownButtonFormField<String>(
+              DropdownButtonFormField<String?>(
                 value: _cropId,
                 decoration: InputDecoration(
                   labelText: l10n.cropFieldLabel,
                   border: const OutlineInputBorder(),
                 ),
-                items: widget.cropNames.entries
-                    .map((e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value),
-                        ))
-                    .toList(),
-                onChanged: (v) => setState(() => _cropId = v),
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: _newCropOption,
+                    child: Text(l10n.sowingNewCropOption),
+                  ),
+                  ..._cropNames.entries.map((e) => DropdownMenuItem<String?>(
+                        value: e.key,
+                        child: Text(e.value),
+                      )),
+                ],
+                onChanged: (v) => _onCropChanged(v),
               ),
               const SizedBox(height: 12),
               SegmentedButton<SowingKind>(

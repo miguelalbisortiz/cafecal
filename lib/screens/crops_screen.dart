@@ -42,26 +42,52 @@ class CropsScreen extends StatelessWidget {
 
   Future<void> _createCrop(BuildContext context) async {
     final tx = context.read<TransactionProvider>();
-    final form = await showDialog<CropFormData>(
-      context: context,
-      builder: (_) => CropEditorDialog(
-        existingNames: tx.crops.map((c) => c.name).toList(),
-      ),
-    );
-    if (form == null || !context.mounted) return;
-    final crop = await tx.addCrop(
-      form.name,
-      icon: form.icon,
-      color: form.color,
-    );
-    await tx.updateCrop(crop.copyWith(
-      phase: form.phase,
-      cycle: form.cycle,
-      defaultUnit: form.defaultUnit,
-      areaHa: form.areaHa,
-      livePlants: form.livePlants,
-      establishmentCost: form.establishmentCost,
-    ));
+    final l10n = AppLocalizations.of(context)!;
+    final wasEmpty = tx.crops.isEmpty;
+    var keepAdding = true;
+    while (keepAdding) {
+      if (!context.mounted) return;
+      final form = await showDialog<CropFormData>(
+        context: context,
+        builder: (_) => CropEditorDialog(
+          existingNames: tx.crops.map((c) => c.name).toList(),
+        ),
+      );
+      if (form == null || !context.mounted) return;
+      final crop = await tx.addCrop(
+        form.name,
+        icon: form.icon,
+        color: form.color,
+      );
+      await tx.updateCrop(crop.copyWith(
+        phase: form.phase,
+        cycle: form.cycle,
+        defaultUnit: form.defaultUnit,
+        areaHa: form.areaHa,
+        livePlants: form.livePlants,
+        establishmentCost: form.establishmentCost,
+      ));
+      if (!wasEmpty || !context.mounted) return;
+      // Primer cultivo: el onboarding invita a agregar varios existentes.
+      keepAdding = await showDialog<bool>(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text(l10n.onboardingCropAddedTitle),
+              content: Text(l10n.onboardingAnotherPrompt),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(l10n.onboardingAnother),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l10n.onboardingDone),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    }
   }
 
   Future<void> _editCrop(BuildContext context, TransactionProvider tx,

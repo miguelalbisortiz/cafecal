@@ -46,11 +46,11 @@ void main() {
 
   final l10n = stringsFor('es');
 
-  testWidgets('cuenta nueva (solo cultivos por defecto) guía a configurar el cultivo', (tester) async {
+  testWidgets('cuenta nueva (sin cultivos) guía a crear el primer cultivo', (tester) async {
     final provider = await makeProvider();
     await pumpCard(tester, provider);
 
-    expect(find.text(l10n.nextStepCropSetupTitle), findsOneWidget);
+    expect(find.text(l10n.nextStepCropTitle), findsOneWidget);
     expect(find.text(l10n.nextStepAction), findsOneWidget);
   });
 
@@ -64,7 +64,7 @@ void main() {
       amount: 50000,
     );
     await tester.pump();
-    expect(find.text(l10n.nextStepCropSetupTitle), findsNothing);
+    expect(find.text(l10n.nextStepCropTitle), findsNothing);
     expect(find.text(l10n.nextStepHarvestTitle), findsOneWidget);
 
     await provider.addHarvest(

@@ -61,16 +61,20 @@ void main() {
     // La fila del gasto sin cultivo aparece con su descripción.
     expect(find.textContaining('Abono'), findsOneWidget);
 
-    // Abre el selector y elige Café.
+    // Abre el selector y crea un cultivo nuevo (ya no hay precargados).
     await tester.tap(find.byType(DropdownButtonFormField<String?>));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('☕ Café').last);
+    await tester.tap(find.text('Nuevo cultivo…').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Café');
+    await tester.tap(find.text('Agregar'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Guardar cambios'));
     await tester.pumpAndSettle();
 
-    expect(provider.transactions.single.cropId, 'cafe');
+    expect(provider.transactions.single.cropId, isNotNull);
+    expect(provider.crops.single.name, 'Café');
   });
 
   testWidgets('muestra estado vacío cuando no hay registros sin cultivo',

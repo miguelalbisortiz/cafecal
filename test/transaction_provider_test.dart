@@ -101,7 +101,7 @@ void main() {
       ]);
 
       expect(provider.crops.map((c) => c.name).toSet(),
-          containsAll(['Café', 'Plátano', 'Otro', 'Caña']));
+          containsAll(['Café', 'Caña']));
     });
 
     test('loadCrops deduplica registrarizados preexistentes', () async {
