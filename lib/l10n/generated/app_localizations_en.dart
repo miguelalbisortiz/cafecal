@@ -71,31 +71,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextStepGuideLink => 'View full guide';
 
   @override
-  String get welcomeTitle => 'Welcome, set up your farm';
+  String get welcomeTitle => 'Welcome';
 
   @override
-  String get welcomeSubtitle => 'Tell us how your farm looks today so we can guide you:';
+  String get welcomeSubtitle => 'Choose how you want to start using the app:';
 
   @override
-  String get welcomeExistingTitle => 'I already have plants producing';
+  String get welcomeExistingTitle => 'Register a crop';
 
   @override
-  String get welcomeExistingSubtitle => 'Coffee, plantain or another crop already growing on my farm that I manage.';
+  String get welcomeExistingSubtitle => 'Start by creating the first crop of your farm (coffee or another).';
 
   @override
-  String get welcomeExistingAction => 'Add existing crops';
+  String get welcomeExistingAction => 'Register crop';
 
   @override
-  String get welcomeNewTitle => 'I want to start something new';
+  String get welcomeNewTitle => 'Register a planting';
 
   @override
-  String get welcomeNewSubtitle => 'I\'m planting now or planted recently. The app records the planting and creates the crop.';
+  String get welcomeNewSubtitle => 'Start by recording the planting and the app creates the crop automatically.';
 
   @override
-  String get welcomeNewAction => 'Record my plantings';
+  String get welcomeNewAction => 'Register planting';
 
   @override
-  String get welcomeHint => 'It doesn\'t matter which you choose first: both guide you well and the app creates everything it needs automatically.';
+  String get welcomeHint => 'Whichever you choose first: both guide you well and the app creates everything it needs automatically.';
 
   @override
   String get onboardingCropAddedTitle => 'Crop added';
