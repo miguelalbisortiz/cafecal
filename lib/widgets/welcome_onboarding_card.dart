@@ -2,24 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../l10n/generated/app_localizations.dart';
 
-/// Tarjeta de bienvenida que se muestra hasta que la finca queda configurada
-/// (gate `needsOnboarding` en next_step_service). Ofrece los dos caminos de
-/// entrada: "ya tengo plantas produciendo" o "quiero empezar algo nuevo".
+/// Vista de bienvenida que se muestra hasta que la finca queda configurada
+/// (gate `needsOnboarding` en next_step_service). Es el primer paso obligado:
+/// elegir registrar una siembra o registrar un cultivo. Mientras no se elija
+/// ninguno, el resto de la app no se muestra.
 class WelcomeOnboardingCard extends StatelessWidget {
-  /// Abrir la gestión de cultivos para registrar los que ya existen.
-  final VoidCallback onExistingFarm;
+  /// Abrir el registro de cultivos para crear el primero.
+  final VoidCallback onRegisterCrop;
 
   /// Abrir el registro de siembras (puede crear cultivos nuevos al vuelo).
-  final VoidCallback onNewSowing;
-
-  /// Abrir la guía (sección Ayuda).
-  final VoidCallback onOpenGuide;
+  final VoidCallback onRegisterSowing;
 
   const WelcomeOnboardingCard({
     super.key,
-    required this.onExistingFarm,
-    required this.onNewSowing,
-    required this.onOpenGuide,
+    required this.onRegisterCrop,
+    required this.onRegisterSowing,
   });
 
   @override
@@ -27,135 +24,138 @@ class WelcomeOnboardingCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.welcomeTitle,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: scheme.onPrimaryContainer,
-            ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 24),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: scheme.primaryContainer,
+            borderRadius: BorderRadius.circular(20),
           ),
-          const SizedBox(height: 4),
-          Text(
-            l10n.welcomeSubtitle,
-            style: TextStyle(
-              fontSize: 13,
-              color: scheme.onPrimaryContainer.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _optionCard(
-            context: context,
-            icon: Icons.grass_outlined,
-            title: l10n.welcomeExistingTitle,
-            subtitle: l10n.welcomeExistingSubtitle,
-            actionLabel: l10n.welcomeExistingAction,
-            onPressed: onExistingFarm,
-          ),
-          const SizedBox(height: 8),
-          _optionCard(
-            context: context,
-            icon: Icons.spa_outlined,
-            title: l10n.welcomeNewTitle,
-            subtitle: l10n.welcomeNewSubtitle,
-            actionLabel: l10n.welcomeNewAction,
-            onPressed: onNewSowing,
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: onOpenGuide,
-              icon: const Icon(Icons.menu_book_outlined, size: 14),
-              label: Text(l10n.nextStepGuideLink),
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                foregroundColor: scheme.onPrimaryContainer,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.lightbulb_outline,
-                  size: 16, color: scheme.onPrimaryContainer.withOpacity(0.7)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  l10n.welcomeHint,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: scheme.onPrimaryContainer.withOpacity(0.75),
-                  ),
+              Text(
+                l10n.welcomeTitle,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: scheme.onPrimaryContainer,
                 ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.welcomeSubtitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: scheme.onPrimaryContainer.withOpacity(0.85),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _choiceCard(
+                context: context,
+                icon: Icons.spa_outlined,
+                title: l10n.welcomeNewTitle,
+                subtitle: l10n.welcomeNewSubtitle,
+                onTap: onRegisterSowing,
+              ),
+              const SizedBox(height: 12),
+              _choiceCard(
+                context: context,
+                icon: Icons.grass_outlined,
+                title: l10n.welcomeExistingTitle,
+                subtitle: l10n.welcomeExistingSubtitle,
+                onTap: onRegisterCrop,
+              ),
+              const SizedBox(height: 14),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 16,
+                    color: scheme.onPrimaryContainer.withOpacity(0.7),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.welcomeHint,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            scheme.onPrimaryContainer.withOpacity(0.75),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _optionCard({
+  Widget _choiceCard({
     required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
-    required String actionLabel,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
   }) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: scheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.7),
-                  ),
-                ),
-              ],
-            ),
+    return Material(
+      color: scheme.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: scheme.outlineVariant),
           ),
-          const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: onPressed,
-            child: Text(actionLabel),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 28, color: scheme.primary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: scheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: scheme.primary),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

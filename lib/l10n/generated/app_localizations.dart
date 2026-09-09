@@ -218,49 +218,49 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeTitle.
   ///
   /// In es, this message translates to:
-  /// **'Bienvenido, configura tu finca'**
+  /// **'Bienvenido'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Cuéntanos cómo está tu finca hoy para arrancar con la guía adecuada:'**
+  /// **'Elegí cómo querés empezar a usar la app:'**
   String get welcomeSubtitle;
 
   /// No description provided for @welcomeExistingTitle.
   ///
   /// In es, this message translates to:
-  /// **'Ya tengo plantas produciendo'**
+  /// **'Registrar cultivo'**
   String get welcomeExistingTitle;
 
   /// No description provided for @welcomeExistingSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Café, plátano u otro cultivo que ya se da en mi finca y estoy manejando.'**
+  /// **'Empezá por crear el primer cultivo de tu finca (café u otro).'**
   String get welcomeExistingSubtitle;
 
   /// No description provided for @welcomeExistingAction.
   ///
   /// In es, this message translates to:
-  /// **'Agregar cultivos existentes'**
+  /// **'Registrar cultivo'**
   String get welcomeExistingAction;
 
   /// No description provided for @welcomeNewTitle.
   ///
   /// In es, this message translates to:
-  /// **'Quisiera empezar algo nuevo'**
+  /// **'Registrar siembra'**
   String get welcomeNewTitle;
 
   /// No description provided for @welcomeNewSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Voy a sembrar ahora o ya sembré hace poco. La app registra la siembra y crea el cultivo.'**
+  /// **'Empezá registrando la siembra y la app crea el cultivo automáticamente.'**
   String get welcomeNewSubtitle;
 
   /// No description provided for @welcomeNewAction.
   ///
   /// In es, this message translates to:
-  /// **'Registrar mis siembras'**
+  /// **'Registrar siembra'**
   String get welcomeNewAction;
 
   /// No description provided for @welcomeHint.

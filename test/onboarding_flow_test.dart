@@ -13,10 +13,12 @@ import 'package:mi_cafetal/screens/home_screen.dart';
 import 'package:mi_cafetal/screens/sowing_screen.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/widgets/next_step_card.dart';
+import 'package:mi_cafetal/widgets/summary_card.dart';
 import 'package:mi_cafetal/widgets/welcome_onboarding_card.dart';
 
-/// Smoke E2E del onboarding: cuenta nueva ve las dos cards de bienvenida,
-/// registra su finca por cualquiera de los dos caminos y el gate desaparece.
+/// Smoke E2E del onboarding: cuenta nueva ve solo las dos cards de primer paso
+/// (siembra/cultivo), sin restos de la app; al completar cualquiera de los dos
+/// caminos se desbloquea el dashboard completo.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -46,32 +48,65 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-      'camino A: finca existente en producción quita la bienvenida',
+  testWidgets('finca vacía: solo las dos cards, sin resumen ni pestañas',
       (tester) async {
     final (tx, auth) = await makeProviders();
 
     await pumpHome(tester, tx, auth);
 
-    // Cuenta nueva: la card de bienvenida es visible.
+    // Lo único visible: las dos cards de primer paso.
     expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
+    expect(find.text('Registrar siembra'), findsOneWidget);
+    expect(find.text('Registrar cultivo'), findsOneWidget);
     expect(find.byType(NextStepCard), findsNothing);
 
-    // Entra por "ya tengo plantas produciendo" → gestión de cultivos.
-    await tester.tap(find.text('Agregar cultivos existentes'));
+    // Nada del resto de la app: sin resumen, sin pestañas Registrar/Historial.
+    expect(find.byType(SummaryCard), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.text('Registrar'), findsNothing);
+    expect(find.text('Historial'), findsNothing);
+  });
+
+  testWidgets('volver sin completar el primer paso mantiene bloqueado',
+      (tester) async {
+    final (tx, auth) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+    expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
+
+    // Entra al registro de cultivos y vuelve sin crear nada.
+    await tester.tap(find.text('Registrar cultivo'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CropsScreen), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    // Sigue bloqueado: solo las cards.
+    expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
+    expect(find.byType(SummaryCard), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
+  });
+
+  testWidgets('camino A: registrar el primer cultivo desbloquea la app',
+      (tester) async {
+    final (tx, auth) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+    expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
+
+    // Card "registrar cultivo" → gestión de cultivos.
+    await tester.tap(find.text('Registrar cultivo'));
     await tester.pumpAndSettle();
     expect(find.byType(CropsScreen), findsOneWidget);
 
-    // Crea el primer cultivo (default: producción, perenne).
+    // Crea el primer cultivo.
     await tester.tap(find.text('+ Nueva variedad…'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Café');
     await tester.tap(find.text('Agregar'));
     await tester.pumpAndSettle();
 
-    // El onboarding invita a agregar otro cultivo existente.
     expect(find.text('Cultivo agregado'), findsOneWidget);
-    expect(find.text('Agregar otro'), findsOneWidget);
     await tester.tap(find.text('Entrar, terminé'));
     await tester.pumpAndSettle();
 
@@ -80,19 +115,21 @@ void main() {
     // Vuelve al dashboard: el gate ya está satisfecho.
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
+
     expect(find.byType(WelcomeOnboardingCard), findsNothing);
     expect(find.byType(NextStepCard), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
   });
 
-  testWidgets('camino B: siembra crea cultivo nuevo y quita la bienvenida',
+  testWidgets('camino B: registrar la siembra desbloquea la app',
       (tester) async {
     final (tx, auth) = await makeProviders();
 
     await pumpHome(tester, tx, auth);
     expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
 
-    // Entra por "quisiera empezar algo nuevo" → registro de siembras.
-    await tester.tap(find.text('Registrar mis siembras'));
+    // Card "registrar siembra" → registro de siembras.
+    await tester.tap(find.text('Registrar siembra'));
     await tester.pumpAndSettle();
     expect(find.byType(SowingScreen), findsOneWidget);
 
@@ -123,7 +160,9 @@ void main() {
     // Vuelve al dashboard: el gate ya está satisfecho.
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
+
     expect(find.byType(WelcomeOnboardingCard), findsNothing);
     expect(find.byType(NextStepCard), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
   });
 }
