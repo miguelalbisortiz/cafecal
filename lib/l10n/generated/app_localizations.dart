@@ -233,10 +233,16 @@ abstract class AppLocalizations {
   /// **'Registrar cultivo'**
   String get welcomeExistingTitle;
 
+  /// No description provided for @welcomeExistingBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Situación: ya está plantado'**
+  String get welcomeExistingBadge;
+
   /// No description provided for @welcomeExistingSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Empezá por crear el primer cultivo de tu finca (café u otro).'**
+  /// **'Las plantas ya están en mi finca; quiero llevar sus cuentas.'**
   String get welcomeExistingSubtitle;
 
   /// No description provided for @welcomeExistingAction.
@@ -251,10 +257,16 @@ abstract class AppLocalizations {
   /// **'Registrar siembra'**
   String get welcomeNewTitle;
 
+  /// No description provided for @welcomeNewBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Situación: vas a plantar ahora'**
+  String get welcomeNewBadge;
+
   /// No description provided for @welcomeNewSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Empezá registrando la siembra y la app crea el cultivo automáticamente.'**
+  /// **'Todavía no sembré; voy a sembrar hoy o en estos días.'**
   String get welcomeNewSubtitle;
 
   /// No description provided for @welcomeNewAction.

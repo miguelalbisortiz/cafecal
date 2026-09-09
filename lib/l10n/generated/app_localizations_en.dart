@@ -80,7 +80,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeExistingTitle => 'Register a crop';
 
   @override
-  String get welcomeExistingSubtitle => 'Start by creating the first crop of your farm (coffee or another).';
+  String get welcomeExistingBadge => 'Situation: already planted';
+
+  @override
+  String get welcomeExistingSubtitle => 'The plants are already on my farm; I want to keep their accounts.';
 
   @override
   String get welcomeExistingAction => 'Register crop';
@@ -89,7 +92,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeNewTitle => 'Register a planting';
 
   @override
-  String get welcomeNewSubtitle => 'Start by recording the planting and the app creates the crop automatically.';
+  String get welcomeNewBadge => 'Situation: you\'re planting now';
+
+  @override
+  String get welcomeNewSubtitle => 'I haven\'t planted yet; I\'ll plant today or in the coming days.';
 
   @override
   String get welcomeNewAction => 'Register planting';
