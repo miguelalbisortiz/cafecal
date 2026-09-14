@@ -60,6 +60,9 @@ class AuthProvider extends ChangeNotifier {
           await SupabaseService.instance.signUp(email.trim(), password);
       await _bindCurrentUser();
       _error = null;
+      if (sessionCreated) {
+        notifyListeners();
+      }
       return sessionCreated
           ? SignUpResult.success
           : SignUpResult.emailConfirmationRequired;

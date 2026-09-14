@@ -34,7 +34,14 @@ class _AuthScreenState extends State<AuthScreen> {
       final result =
           await auth.signUp(_emailController.text, _passwordController.text);
       if (!mounted) return;
-      if (result == SignUpResult.emailConfirmationRequired) {
+      if (result == SignUpResult.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.authCreatedMsg),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else if (result == SignUpResult.emailConfirmationRequired) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.authCreatedMsg),
@@ -60,7 +67,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _recoverPassword() async {
     final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
+    if (email.isEmpty || !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.authInvalidEmail)),
       );
@@ -72,6 +79,7 @@ class _AuthScreenState extends State<AuthScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(ok ? l10n.authResetSent : (auth.error ?? l10n.authSignInError)),
+        duration: const Duration(seconds: 5),
       ),
     );
   }
@@ -125,9 +133,15 @@ class _AuthScreenState extends State<AuthScreen> {
                           prefixIcon: const Icon(Icons.mail_outline),
                           border: const OutlineInputBorder(),
                         ),
-                        validator: (v) => v != null && v.contains('@')
-                            ? null
-                            : l10n.authInvalidEmail,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return l10n.authInvalidEmail;
+                          }
+                          final pattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                          return pattern.hasMatch(v.trim())
+                              ? null
+                              : l10n.authInvalidEmail;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
