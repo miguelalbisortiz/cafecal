@@ -461,6 +461,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get phaseHelp => 'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.';
 
   @override
+  String get helpUnit => 'En qué unidad vendés tu cosecha: kg, arroba (≈12.5 kg), saco (≈70 kg café), racimo (plátano) o cajón.';
+
+  @override
+  String get helpCycle => 'Perenne = vive muchos años (café, plátano). Anual = se siembra y cosecha en el mismo año (tomate, maíz).';
+
+  @override
+  String get helpArea => '1 hectárea = 10.000 metros² (≈ 1 campo de fútbol). Si no sabés, dejalo en blanco.';
+
+  @override
+  String get helpPlants => 'Cuántas plantas tenés de este cultivo. Si no sabés exacto, aproximá.';
+
+  @override
+  String get helpEstablishment => 'Cuánto te costó plantar este cultivo la primera vez (plantas, terreno, siembra).';
+
+  @override
   String get areaHaLabel => 'Área (hectáreas)';
 
   @override
@@ -491,16 +506,28 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingKindResiembra => 'Resiembra';
 
   @override
+  String get helpSowingKind => 'Siembra = plantás por primera vez. Resiembra = reemplazás plantas muertas o dañadas.';
+
+  @override
   String get sowingPlantsLabel => 'Número de plantas';
 
   @override
+  String get helpSowingPlants => 'Cuántas plantás en esta siembra. Si no sabés exacto, aproximá.';
+
+  @override
   String get sowingLostPlantsLabel => 'Plantas perdidas (bajas)';
+
+  @override
+  String get helpSowingLostPlants => 'Cuántas plantas se murieron o perdieron (plagas, clima, etc.).';
 
   @override
   String get sowingReasonLabel => 'Motivo (opcional)';
 
   @override
   String get sowingAreaLabel => 'Área (hectáreas, opcional)';
+
+  @override
+  String get helpSowingArea => '1 hectárea = 10.000 metros² (≈ 1 campo de fútbol).';
 
   @override
   String get sowingCostLabel => 'Costo (opcional)';

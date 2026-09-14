@@ -461,6 +461,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phaseHelp => 'Establishment = young plantation that does not produce yet (seedlings). The app will not flag losses in this stage.';
 
   @override
+  String get helpUnit => 'What unit do you sell in: kg, arroba (≈12.5 kg), bag (≈70 kg coffee), bunch (plantain) or crate?';
+
+  @override
+  String get helpCycle => 'Perennial = lives many years (coffee, plantain). Annual = planted and harvested in the same year (tomato, corn).';
+
+  @override
+  String get helpArea => '1 hectare = 10,000 m² (≈ 1 soccer field). Leave blank if unsure.';
+
+  @override
+  String get helpPlants => 'How many plants of this crop do you have. Approximate if unsure.';
+
+  @override
+  String get helpEstablishment => 'How much it cost to plant this crop the first time (plants, land, planting).';
+
+  @override
   String get areaHaLabel => 'Area (hectares)';
 
   @override
@@ -491,16 +506,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingKindResiembra => 'Replanting';
 
   @override
+  String get helpSowingKind => 'Planting = first time planting. Replanting = replacing dead or damaged plants.';
+
+  @override
   String get sowingPlantsLabel => 'Number of plants';
 
   @override
+  String get helpSowingPlants => 'How many plants are you putting in. Approximate if unsure.';
+
+  @override
   String get sowingLostPlantsLabel => 'Lost plants (losses)';
+
+  @override
+  String get helpSowingLostPlants => 'How many plants died or were lost (pests, weather, etc.).';
 
   @override
   String get sowingReasonLabel => 'Reason (optional)';
 
   @override
   String get sowingAreaLabel => 'Area (hectares, optional)';
+
+  @override
+  String get helpSowingArea => '1 hectare = 10,000 m² (≈ 1 soccer field).';
 
   @override
   String get sowingCostLabel => 'Cost (optional)';

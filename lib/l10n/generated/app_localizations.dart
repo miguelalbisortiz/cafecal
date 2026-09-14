@@ -995,6 +995,36 @@ abstract class AppLocalizations {
   /// **'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.'**
   String get phaseHelp;
 
+  /// No description provided for @helpUnit.
+  ///
+  /// In es, this message translates to:
+  /// **'En qué unidad vendés tu cosecha: kg, arroba (≈12.5 kg), saco (≈70 kg café), racimo (plátano) o cajón.'**
+  String get helpUnit;
+
+  /// No description provided for @helpCycle.
+  ///
+  /// In es, this message translates to:
+  /// **'Perenne = vive muchos años (café, plátano). Anual = se siembra y cosecha en el mismo año (tomate, maíz).'**
+  String get helpCycle;
+
+  /// No description provided for @helpArea.
+  ///
+  /// In es, this message translates to:
+  /// **'1 hectárea = 10.000 metros² (≈ 1 campo de fútbol). Si no sabés, dejalo en blanco.'**
+  String get helpArea;
+
+  /// No description provided for @helpPlants.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántas plantas tenés de este cultivo. Si no sabés exacto, aproximá.'**
+  String get helpPlants;
+
+  /// No description provided for @helpEstablishment.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuánto te costó plantar este cultivo la primera vez (plantas, terreno, siembra).'**
+  String get helpEstablishment;
+
   /// No description provided for @areaHaLabel.
   ///
   /// In es, this message translates to:
@@ -1055,17 +1085,35 @@ abstract class AppLocalizations {
   /// **'Resiembra'**
   String get sowingKindResiembra;
 
+  /// No description provided for @helpSowingKind.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembra = plantás por primera vez. Resiembra = reemplazás plantas muertas o dañadas.'**
+  String get helpSowingKind;
+
   /// No description provided for @sowingPlantsLabel.
   ///
   /// In es, this message translates to:
   /// **'Número de plantas'**
   String get sowingPlantsLabel;
 
+  /// No description provided for @helpSowingPlants.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántas plantás en esta siembra. Si no sabés exacto, aproximá.'**
+  String get helpSowingPlants;
+
   /// No description provided for @sowingLostPlantsLabel.
   ///
   /// In es, this message translates to:
   /// **'Plantas perdidas (bajas)'**
   String get sowingLostPlantsLabel;
+
+  /// No description provided for @helpSowingLostPlants.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántas plantas se murieron o perdieron (plagas, clima, etc.).'**
+  String get helpSowingLostPlants;
 
   /// No description provided for @sowingReasonLabel.
   ///
@@ -1078,6 +1126,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Área (hectáreas, opcional)'**
   String get sowingAreaLabel;
+
+  /// No description provided for @helpSowingArea.
+  ///
+  /// In es, this message translates to:
+  /// **'1 hectárea = 10.000 metros² (≈ 1 campo de fútbol).'**
+  String get helpSowingArea;
 
   /// No description provided for @sowingCostLabel.
   ///
