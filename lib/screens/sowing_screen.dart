@@ -345,6 +345,15 @@ class _SowingFormState extends State<_SowingForm> {
                 selected: {_kind},
                 onSelectionChanged: (s) => setState(() => _kind = s.first),
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  l10n.helpSowingKind,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
               InkWell(
                 onTap: _pickDate,
@@ -364,9 +373,8 @@ class _SowingFormState extends State<_SowingForm> {
                 controller: _plantsController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: _kind == SowingKind.siembra
-                      ? l10n.sowingPlantsLabel
-                      : l10n.sowingPlantsLabel,
+                  labelText: l10n.sowingPlantsLabel,
+                  helperText: l10n.helpSowingPlants,
                   prefixIcon: const Icon(Icons.park_outlined),
                   border: const OutlineInputBorder(),
                 ),
@@ -383,6 +391,7 @@ class _SowingFormState extends State<_SowingForm> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.sowingLostPlantsLabel,
+                    helperText: l10n.helpSowingLostPlants,
                     prefixIcon: const Icon(Icons.trending_down),
                     border: const OutlineInputBorder(),
                   ),
@@ -404,6 +413,7 @@ class _SowingFormState extends State<_SowingForm> {
                       const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: l10n.sowingAreaLabel,
+                    helperText: l10n.helpSowingArea,
                     prefixIcon: const Icon(Icons.square_foot_outlined),
                     border: const OutlineInputBorder(),
                   ),
