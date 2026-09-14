@@ -203,6 +203,15 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> deleteCrop(String id) async {
     _crops = _crops.where((c) => c.id != id).toList();
     await _store.saveCrops(_crops);
+    // B1-B3: limpiar datos vinculados al cultivo eliminado
+    _sowings = _sowings.where((s) => s.cropId != id).toList();
+    await _store.saveSowings(_sowings);
+    _harvests = _harvests.where((h) => h.cropId != id).toList();
+    await _store.saveHarvests(_harvests);
+    _transactions = _transactions
+        .map((t) => t.cropId == id ? t.copyWith(cropId: null, pendingSync: true) : t)
+        .toList();
+    await _store.saveTransactions(_transactions);
     notifyListeners();
   }
 
@@ -243,6 +252,13 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> deleteHarvest(String id) async {
     _harvests = _harvests.where((h) => h.id != id).toList();
     await _store.saveHarvests(_harvests);
+    // B4: desvincular transacciones que referencian esta cosecha
+    _transactions = _transactions
+        .map((t) => t.harvestId == id
+            ? t.copyWith(harvestId: null, pendingSync: true)
+            : t)
+        .toList();
+    await _store.saveTransactions(_transactions);
     notifyListeners();
   }
 
@@ -289,6 +305,13 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> deleteSowing(String id) async {
     _sowings = _sowings.where((s) => s.id != id).toList();
     await _store.saveSowings(_sowings);
+    // B5: desvincular transacciones que referencian esta siembra
+    _transactions = _transactions
+        .map((t) => t.sowingId == id
+            ? t.copyWith(sowingId: null, pendingSync: true)
+            : t)
+        .toList();
+    await _store.saveTransactions(_transactions);
     await _recomputeCropsFromSowings();
     notifyListeners();
   }
