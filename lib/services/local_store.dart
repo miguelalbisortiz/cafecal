@@ -57,12 +57,13 @@ class LocalStore {
 
   Future<void> _migrateLegacyIfNeeded() async {
     if (_uid == null) return;
-    for (final base in _allKeys) {
-      final raw = _prefs.getString(base);
-      if (raw == null || raw.isEmpty) continue;
-      if (_prefs.getString(_key(base)) != null) continue;
-      await _prefs.setString(_key(base), raw);
-      await _prefs.remove(base);
+    final settingsKey = _key(_kSettings);
+    if (_prefs.getString(settingsKey) == null) {
+      final raw = _prefs.getString(_kSettings);
+      if (raw != null && raw.isNotEmpty) {
+        await _prefs.setString(settingsKey, raw);
+        await _prefs.remove(_kSettings);
+      }
     }
   }
 

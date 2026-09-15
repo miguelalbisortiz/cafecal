@@ -77,20 +77,21 @@ void main() {
       expect(prefs.getString('transactions_v1_user-A'), isNull);
     });
 
-    test('migra las claves legacy al primer bind con uid y borra el legacy',
+    test('migra solo settings desde legacy, no datos de negocio',
         () async {
       SharedPreferences.setMockInitialValues({
+        'settings_v1': '{"currency":"USD"}',
         'transactions_v1': '[${_txnJson('old', 777)}]',
       });
       final prefs = await SharedPreferences.getInstance();
       final store = await LocalStore.create(uid: 'user-A');
 
-      final txns = store.loadTransactions();
-      expect(txns, hasLength(1));
-      expect(txns.single.id, 'old');
-      expect(txns.single.amount, 777);
-      expect(prefs.getString('transactions_v1_user-A'), isNotNull);
-      expect(prefs.getString('transactions_v1'), isNull);
+      // Settings migrados
+      expect(prefs.getString('settings_v1_user-A'), isNotNull);
+      expect(prefs.getString('settings_v1'), isNull);
+
+      // Datos de negocio NO migrados (cada usuario empieza limpio)
+      expect(store.loadTransactions(), isEmpty);
     });
 
     test('no migra si el uid ya tiene datos (no pisa nada)', () async {
