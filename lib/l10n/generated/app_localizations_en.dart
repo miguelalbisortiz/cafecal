@@ -536,10 +536,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingCostHint => 'If you record a cost, a linked expense is created for this planting.';
 
   @override
-  String get helpUnitShort => 'Sale unit';
+  String get helpUnitShort => 'Unit you harvest or sell this crop in.';
 
   @override
   String get helpCropCurrencyShort => 'Currency for this crop. Linked expenses and incomes use this currency.';
+
+  @override
+  String get helpCropCurrency => 'All expenses and incomes you record linked to this crop will use this currency. If you have crops in COP and others in USD, each keeps its own currency.';
 
   @override
   String get helpCycleShort => 'Perennial or annual';

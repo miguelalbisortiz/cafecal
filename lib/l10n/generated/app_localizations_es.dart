@@ -536,10 +536,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingCostHint => 'Si registras un costo, se crea un gasto vinculado a esta siembra.';
 
   @override
-  String get helpUnitShort => 'Unidad de venta';
+  String get helpUnitShort => 'Unidad con la que cosechás o vendés este cultivo.';
 
   @override
   String get helpCropCurrencyShort => 'Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.';
+
+  @override
+  String get helpCropCurrency => 'Todos los gastos e ingresos que registres vinculados a este cultivo usarán esta moneda. Si tenés cultivos en COP y otros en USD, cada uno mantiene su moneda.';
 
   @override
   String get helpCycleShort => 'Perenne o anual';
