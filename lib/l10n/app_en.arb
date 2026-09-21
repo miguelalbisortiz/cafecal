@@ -186,6 +186,7 @@
   "sowingCostLabel": "Cost (optional)",
   "sowingCostHint": "If you record a cost, a linked expense is created for this planting.",
   "helpUnitShort": "Sale unit",
+  "helpCropCurrencyShort": "Currency for this crop. Linked expenses and incomes use this currency.",
   "helpCycleShort": "Perennial or annual",
   "phaseHelpShort": "Crop phase",
   "helpAreaShort": "Optional, in ha",
@@ -398,6 +399,32 @@
 
   "farmNameLabel": "Farm name",
   "currencyLabel": "Currency",
+  "currencyDisplayLabel": "Report currency",
+  "currencyDisplayHelper": "Currency for report summaries. Each record keeps its original currency.",
+  "@currencyDisplayHelper": {
+    "description": "Helper text for the display currency setting"
+  },
+  "currencyMixedHint": "Showing in {count} currencies",
+  "@currencyMixedHint": {
+    "description": "Hint when transactions have mixed currencies",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyConvertedTotal": "Total in {currency}: {amount}",
+  "@currencyConvertedTotal": {
+    "description": "Total converted to display currency",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "languageLabel": "Language",
   "languageSpanish": "Español",
   "languageEnglish": "English",

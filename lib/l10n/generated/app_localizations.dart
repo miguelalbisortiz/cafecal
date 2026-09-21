@@ -1151,6 +1151,12 @@ abstract class AppLocalizations {
   /// **'Unidad de venta'**
   String get helpUnitShort;
 
+  /// No description provided for @helpCropCurrencyShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.'**
+  String get helpCropCurrencyShort;
+
   /// No description provided for @helpCycleShort.
   ///
   /// In es, this message translates to:
@@ -2332,6 +2338,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Moneda'**
   String get currencyLabel;
+
+  /// No description provided for @currencyDisplayLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda de reportes'**
+  String get currencyDisplayLabel;
+
+  /// Helper text for the display currency setting
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda en que se resumen los reportes. Cada registro conserva su moneda original.'**
+  String get currencyDisplayHelper;
+
+  /// Hint when transactions have mixed currencies
+  ///
+  /// In es, this message translates to:
+  /// **'Se muestra en {count} monedas'**
+  String currencyMixedHint(int count);
+
+  /// Total converted to display currency
+  ///
+  /// In es, this message translates to:
+  /// **'Total en {currency}: {amount}'**
+  String currencyConvertedTotal(String currency, String amount);
 
   /// No description provided for @languageLabel.
   ///

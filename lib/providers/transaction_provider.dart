@@ -94,6 +94,26 @@ class TransactionProvider extends ChangeNotifier {
     return sum;
   }
 
+  /// Suma montos agrupados por moneda para un tipo dado.
+  Map<String, double> sumByCurrency(TransactionType type,
+      {int? year, int? month}) {
+    final result = <String, double>{};
+    for (final t in _transactions) {
+      if (t.deleted || t.type != type) continue;
+      if (year != null && t.date.year != year) continue;
+      if (month != null && (t.date.year != year || t.date.month != month)) {
+        continue;
+      }
+      result[t.currency] = (result[t.currency] ?? 0) + t.amount;
+    }
+    return result;
+  }
+
+  /// Número de monedas distintas en un conjunto de transacciones.
+  int currencyCount(List<Transaction> transactions) {
+    return transactions.where((t) => !t.deleted).map((t) => t.currency).toSet().length;
+  }
+
   List<Transaction> where(
       {TransactionType? type,
       String? category,
@@ -176,12 +196,16 @@ class TransactionProvider extends ChangeNotifier {
 
   // ---- Crops ----
 
-  Future<Crop> addCrop(String name, {String icon = '🌱', String color = '#2E7D32'}) async {
+  Future<Crop> addCrop(String name,
+      {String icon = '🌱',
+      String color = '#2E7D32',
+      String? currency}) async {
     final crop = Crop(
       id: _uuid.v4(),
       name: name,
       icon: icon,
       color: color,
+      currency: currency,
       pendingSync: true,
     );
     _crops = [..._crops, crop];

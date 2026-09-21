@@ -12,6 +12,12 @@ class SummaryCard extends StatelessWidget {
   /// para resaltar el dato clave (el resultado del período).
   final bool highlighted;
 
+  /// Moneda para formatear el monto. Si es null usa la de settings.
+  final String? currency;
+
+  /// Locale para formatear. Si es null usa la de settings.
+  final String? locale;
+
   const SummaryCard({
     super.key,
     required this.label,
@@ -19,7 +25,16 @@ class SummaryCard extends StatelessWidget {
     required this.color,
     required this.icon,
     this.highlighted = false,
+    this.currency,
+    this.locale,
   });
+
+  String _displayValue(BuildContext context) {
+    if (currency != null) {
+      return formatCompactExplicit(value, currency: currency!, locale: locale ?? 'es_CO');
+    }
+    return formatCompact(context, value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +96,7 @@ class SummaryCard extends StatelessWidget {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                formatCompact(context, value),
+                _displayValue(context),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

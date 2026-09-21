@@ -9,6 +9,7 @@ import '../providers/auth_provider.dart';
 import '../providers/sync_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
+import '../models/currencies.dart';
 import '../services/next_step_service.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/category_breakdown.dart';
@@ -297,6 +298,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final yearBalance = yearIncomes - yearExpenses;
     final monthLabel = '${l10n.monthFull[month - 1]} $year';
 
+    // Monedas efectivas por período
+    final monthCurrency = _effectiveCurrency(
+        tx.sumByCurrency(TransactionType.income, year: year, month: month),
+        tx.sumByCurrency(TransactionType.expense, year: year, month: month));
+    final yearCurrency = _effectiveCurrency(
+        tx.sumByCurrency(TransactionType.income, year: year),
+        tx.sumByCurrency(TransactionType.expense, year: year));
+    final hasMixedMonth = monthCurrency == null;
+    final hasMixedYear = yearCurrency == null;
+    final effectiveMonthCurrency = monthCurrency ?? tx.settings.currency;
+    final effectiveYearCurrency = yearCurrency ?? tx.settings.currency;
+
     return RefreshIndicator(
       onRefresh: () => context.read<SyncProvider>().sync(),
       child: Center(
@@ -327,13 +340,29 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           AlertsBanner(alerts: alerts.bySeverity),
+          if (hasMixedMonth)
+            _MixedCurrencyBanner(
+              currencies: {
+                ...tx.sumByCurrency(TransactionType.income, year: year, month: month).keys,
+                ...tx.sumByCurrency(TransactionType.expense, year: year, month: month).keys,
+              },
+            ),
           _SectionHeader(title: l10n.sectionThisMonth),
           const SizedBox(height: 12),
-          _threeCards(l10n, monthIncomes, monthExpenses, monthBalance),
+          _threeCards(l10n, monthIncomes, monthExpenses, monthBalance,
+              effectiveMonthCurrency, tx.settings.locale),
           const SizedBox(height: 24),
+          if (hasMixedYear)
+            _MixedCurrencyBanner(
+              currencies: {
+                ...tx.sumByCurrency(TransactionType.income, year: year).keys,
+                ...tx.sumByCurrency(TransactionType.expense, year: year).keys,
+              },
+            ),
           _SectionHeader(title: l10n.sectionInYear(year)),
           const SizedBox(height: 12),
-          _threeCards(l10n, yearIncomes, yearExpenses, yearBalance),
+          _threeCards(l10n, yearIncomes, yearExpenses, yearBalance,
+              effectiveYearCurrency, tx.settings.locale),
           const SizedBox(height: 24),
           Card(
             child: Padding(
@@ -374,8 +403,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _threeCards(
-      AppLocalizations l10n, double incomes, double expenses, double balance) {
+  /// Si todas las transacciones del período son una moneda → esa moneda.
+  /// Si hay mixtas → null (el caller usa settings.currency como fallback).
+  String? _effectiveCurrency(
+      Map<String, double> incomeByCur, Map<String, double> expenseByCur) {
+    final all = {...incomeByCur.keys, ...expenseByCur.keys};
+    if (all.length == 1) return all.first;
+    if (all.isEmpty) return null;
+    return null;
+  }
+
+  Widget _threeCards(AppLocalizations l10n, double incomes, double expenses,
+      double balance, String currency, String locale) {
     final scheme = Theme.of(context).colorScheme;
     final noData = incomes == 0 && expenses == 0;
     final positive = scheme.primary;
@@ -388,6 +427,8 @@ class _HomeScreenState extends State<HomeScreen> {
             value: incomes,
             color: positive,
             icon: Icons.trending_up,
+            currency: currency,
+            locale: locale,
           ),
         ),
         const SizedBox(width: 10),
@@ -397,6 +438,8 @@ class _HomeScreenState extends State<HomeScreen> {
             value: expenses,
             color: negative,
             icon: Icons.trending_down,
+            currency: currency,
+            locale: locale,
           ),
         ),
         const SizedBox(width: 10),
@@ -415,6 +458,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 : balance >= 0
                     ? Icons.savings
                     : Icons.warning_amber,
+            currency: currency,
+            locale: locale,
           ),
         ),
       ],
@@ -460,6 +505,45 @@ class _PeriodChip extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: scheme.onSecondaryContainer,
         ),
+      ),
+    );
+  }
+}
+
+class _MixedCurrencyBanner extends StatelessWidget {
+  final Set<String> currencies;
+
+  const _MixedCurrencyBanner({required this.currencies});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final labels = currencies.map((c) {
+      final info = currencyInfo(c);
+      return '${info.symbol} ${info.code}';
+    }).join(', ');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, size: 16, color: scheme.tertiary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${l10n.currencyMixedHint(currencies.length)}: $labels',
+              style: TextStyle(
+                fontSize: 12,
+                color: scheme.onTertiaryContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

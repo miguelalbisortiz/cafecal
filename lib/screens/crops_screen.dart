@@ -58,6 +58,7 @@ class CropsScreen extends StatelessWidget {
         form.name,
         icon: form.icon,
         color: form.color,
+        currency: form.currency,
       );
       await tx.updateCrop(crop.copyWith(
         phase: form.phase,
@@ -66,6 +67,7 @@ class CropsScreen extends StatelessWidget {
         areaHa: form.areaHa,
         livePlants: form.livePlants,
         establishmentCost: form.establishmentCost,
+        currency: form.currency,
       ));
       if (!wasEmpty || !context.mounted) return;
       // Primer cultivo: el onboarding invita a agregar varios existentes.

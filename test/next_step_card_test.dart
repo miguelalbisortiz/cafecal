@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
-import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/local_store.dart';
@@ -54,7 +53,7 @@ void main() {
     expect(find.text(l10n.nextStepAction), findsOneWidget);
   });
 
-  testWidgets('avanza gastos → cosecha → venta → se oculta', (tester) async {
+  testWidgets('al registrar un gasto la tarjeta se oculta', (tester) async {
     final provider = await makeProvider();
     await pumpCard(tester, provider);
 
@@ -65,24 +64,7 @@ void main() {
     );
     await tester.pump();
     expect(find.text(l10n.nextStepCropTitle), findsNothing);
-    expect(find.text(l10n.nextStepHarvestTitle), findsOneWidget);
-
-    await provider.addHarvest(
-      amount: 100,
-      unit: 'kg',
-      date: DateTime.now(),
-      destination: HarvestDestination.almacenado,
-    );
-    await tester.pump();
-    expect(find.text(l10n.nextStepSaleTitle), findsOneWidget);
-
-    await provider.addTransaction(
-      type: TransactionType.income,
-      category: 'venta_cafe',
-      amount: 120000,
-    );
-    await tester.pump();
-    expect(find.text(l10n.nextStepTitle), findsNothing);
+    expect(find.text(l10n.nextStepHarvestTitle), findsNothing);
     expect(find.text(l10n.nextStepAction), findsNothing);
   });
 
