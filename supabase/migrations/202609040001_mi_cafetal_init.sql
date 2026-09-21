@@ -99,12 +99,6 @@ begin
   insert into public.settings (user_id, farm_name)
   values (new.id, coalesce(new.raw_user_meta_data->>'full_name', 'Mi Cafetal'))
   on conflict (user_id) do nothing;
-
-  insert into public.crops (user_id, name, icon, color)
-  values
-    (new.id, 'Café', '☕', '#6D4C41'),
-    (new.id, 'Plátano', '🍌', '#F9A825')
-  on conflict do nothing;
   return new;
 end;
 $$;

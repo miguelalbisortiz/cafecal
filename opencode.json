@@ -16,7 +16,7 @@
     },
     "compaction": {
         "auto": true,
-        "tail_turns": 2
+        "tail_turns": 4
     },
     "plugin": [
         "opencode-vibeguard",
