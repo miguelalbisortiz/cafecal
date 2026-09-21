@@ -194,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitsTitle => 'Units';
 
   @override
-  String get helpUnitsBody => 'Use kg, or arroba (12.5 kg) and bag (70 kg) for coffee. The app converts everything to kg for comparison.';
+  String get helpUnitsBody => 'Use kg, pounds (lb), arroba (12.5 kg), bag (70 kg) or load (27.2 kg). The app converts everything to kg for comparison.';
 
   @override
   String get helpUnitsTableTitle => 'Equivalences';
@@ -216,6 +216,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpUnitsSacoRowDesc => '70 kg. For coffee in bags.';
+
+  @override
+  String get helpUnitsCargaRow => 'Load (carga)';
+
+  @override
+  String get helpUnitsCargaRowDesc => '27.2 kg (60 lbs). Colombian coffee unit.';
+
+  @override
+  String get helpUnitsLbRow => 'Pound (lb)';
+
+  @override
+  String get helpUnitsLbRowDesc => '0.45 kg. Common in some countries.';
 
   @override
   String get helpUnitsRacimoRow => 'Bunch';
@@ -461,7 +473,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phaseHelp => 'Establishment = young plantation that does not produce yet (seedlings). The app will not flag losses in this stage.';
 
   @override
-  String get helpUnit => 'What unit do you sell in: kg, arroba (≈12.5 kg), bag (≈70 kg coffee), bunch (plantain) or crate?';
+  String get helpUnit => 'What unit do you sell in: kg, lb, arroba (≈12.5 kg), bag (≈70 kg), load (≈27.2 kg), bunch (plantain) or crate?';
 
   @override
   String get helpCycle => 'Perennial = lives many years (coffee, plantain). Annual = planted and harvested in the same year (tomato, corn).';
@@ -934,6 +946,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitSaco => 'Bags (70 kg)';
+
+  @override
+  String get unitLb => 'Pounds (lb)';
+
+  @override
+  String get unitCarga => 'Loads (27.2 kg)';
 
   @override
   String get clientFieldLabel => 'Client / buyer (optional)';

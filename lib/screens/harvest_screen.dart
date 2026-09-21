@@ -225,8 +225,10 @@ class _HarvestFormState extends State<_HarvestForm> {
 
   String _unitLabel(String key, AppLocalizations l10n) => switch (key) {
         'kg' => l10n.unitKg,
+        'lb' => l10n.unitLb,
         'arroba' => l10n.unitArroba,
         'saco' => l10n.unitSaco,
+        'carga' => l10n.unitCarga,
         'racimo' => l10n.unitRacimo,
         'cajon' => l10n.unitCajon,
         _ => key,
@@ -301,7 +303,7 @@ class _HarvestFormState extends State<_HarvestForm> {
                   labelText: l10n.harvestUnitLabel,
                   border: const OutlineInputBorder(),
                 ),
-                items: const ['kg', 'arroba', 'saco', 'racimo', 'cajon']
+                items: const ['kg', 'lb', 'arroba', 'saco', 'carga', 'racimo', 'cajon']
                     .map((u) => DropdownMenuItem(
                           value: u,
                           child: Text(_unitLabel(u, l10n)),
