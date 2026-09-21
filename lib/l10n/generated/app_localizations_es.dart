@@ -987,6 +987,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get excelColProvider => 'Proveedor';
 
   @override
+  String get excelColCurrency => 'Moneda';
+
+  @override
   String get topClientsTitle => 'Principales compradores';
 
   @override

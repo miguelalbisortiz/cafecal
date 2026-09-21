@@ -98,7 +98,8 @@ void main() {
       final rows = excel.tables['Resumen']!.rows;
       final resultRow = rows.firstWhere(
           (r) => (cv(r[0])?.toString() ?? '').contains('RESULTADO'));
-      expect(cv(resultRow[1]).toString(), contains('\$3000'));
+      // Balance is now a DoubleCellValue in column[2]
+      expect(cv(resultRow[2]), 3000.0);
     });
 
     test('crops sheet tiene ROI correcto y excluye borrados', () {
@@ -124,11 +125,12 @@ void main() {
       final expRow = rows.firstWhere(
           (r) => (cv(r[1])?.toString() ?? '') == 'Gasto');
       expect(cv(expRow[0]).toString(), contains('2026-09'));
-      expect(cv(expRow[5]), -2000.0);
+      // Column shifted: date(0) type(1) cat(2) desc(3) crop(4) currency(5) amount(6)
+      expect(cv(expRow[6]), -2000.0);
 
       final incRow = rows.firstWhere(
           (r) => (cv(r[1])?.toString() ?? '') == 'Ingreso');
-      expect(cv(incRow[5]), 5000.0);
+      expect(cv(incRow[6]), 5000.0);
     });
   });
 

@@ -126,7 +126,44 @@ class PdfExportService {
           bold: bold,
         ),
         margin: const pw.EdgeInsets.all(32),
+        footer: (context) => pw.Container(
+          padding: const pw.EdgeInsets.only(top: 8),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              top: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+            ),
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(
+                'Mi Cafetal',
+                style: const pw.TextStyle(
+                    fontSize: 8, color: PdfColors.grey500),
+              ),
+              pw.Text(
+                '${context.pageNumber} / ${context.pagesCount}',
+                style: const pw.TextStyle(
+                    fontSize: 8, color: PdfColors.grey500),
+              ),
+            ],
+          ),
+        ),
         build: (context) => [
+          // ── Branding: ícono café + línea decorativa ──
+          pw.Row(
+            children: [
+              pw.Text('☕', style: const pw.TextStyle(fontSize: 22)),
+              pw.SizedBox(width: 8),
+              pw.Expanded(
+                child: pw.Container(
+                  height: 2,
+                  color: PdfColors.brown600,
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 12),
           pw.Text(
             settings.farmName,
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20),
@@ -147,8 +184,44 @@ class PdfExportService {
             style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
           ),
           pw.SizedBox(height: 16),
-          _statementRow(l10n.pdfIncomesHeader, formatPdfMoney(incomes, currency),
-              bold: true, valueColor: _pdfPositive),
+
+          // ── 3 Cards de resumen ──
+          pw.Row(
+            children: [
+              pw.Expanded(
+                child: _summaryCard(
+                  label: l10n.pdfIncomesHeader,
+                  amount: formatPdfMoney(incomes, currency),
+                  color: _pdfPositive,
+                  bgColor: _pdfPositiveSoft,
+                ),
+              ),
+              pw.SizedBox(width: 8),
+              pw.Expanded(
+                child: _summaryCard(
+                  label: l10n.pdfExpensesHeader,
+                  amount: formatPdfMoney(-expenses, currency),
+                  color: _pdfNegative,
+                  bgColor: _pdfNegativeSoft,
+                ),
+              ),
+              pw.SizedBox(width: 8),
+              pw.Expanded(
+                child: _summaryCard(
+                  label: l10n.resultPeriodLabel,
+                  amount: formatPdfMoney(balance, currency),
+                  color: resultColor,
+                  bgColor: balance < 0
+                      ? _pdfNegativeSoft
+                      : _pdfPositiveSoft,
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 18),
+
+          // ── Detalle de ingresos ──
+          _sectionHeader(l10n.pdfIncomesHeader, _pdfPositive),
           if (incomeTotals.isEmpty)
             _statementRow(l10n.pdfNoIncomeSub, '',
                 small: true, valueColor: PdfColors.grey700),
@@ -159,9 +232,10 @@ class PdfExportService {
                 small: true,
                 valueColor: _pdfPositive,
               )),
-          _statementRow(l10n.pdfExpensesHeader,
-              formatPdfMoney(-expenses, currency),
-              bold: true, valueColor: _pdfNegative),
+          pw.SizedBox(height: 6),
+
+          // ── Detalle de gastos ──
+          _sectionHeader(l10n.pdfExpensesHeader, _pdfNegative),
           if (expenseTotals.isEmpty)
             _statementRow(l10n.pdfNoExpensesSub, '',
                 small: true, valueColor: PdfColors.grey700),
@@ -232,6 +306,68 @@ class PdfExportService {
     if (total <= 0) return '—';
     final v = part / total * 100;
     return v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
+  }
+
+  /// Card de resumen con fondo coloreado — Ingresos / Gastos / Resultado.
+  pw.Widget _summaryCard({
+    required String label,
+    required String amount,
+    required PdfColor color,
+    required PdfColor bgColor,
+  }) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: pw.BoxDecoration(
+        color: bgColor,
+        borderRadius: pw.BorderRadius.circular(6),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: 8,
+              fontWeight: pw.FontWeight.bold,
+              color: color,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            amount,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Header de sección con línea de color debajo.
+  pw.Widget _sectionHeader(String label, PdfColor color) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 6),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 11,
+              color: color,
+            ),
+          ),
+          pw.Container(
+            height: 1.5,
+            color: color,
+          ),
+        ],
+      ),
+    );
   }
 
   Map<String, double> _groupTotals(List<Transaction> list) {
@@ -323,30 +459,67 @@ class PdfExportService {
 
   pw.Widget _cropTable(pw.Context context, Iterable<Transaction> source,
       List<Crop> crops, String currency, AppLocalizations l10n) {
-    return pw.TableHelper.fromTextArray(
-      headers: [
-        l10n.pdfColCrop,
-        l10n.pdfColMov,
-        l10n.pdfColExpenses,
-        l10n.pdfColIncomes,
-        l10n.pdfColResult,
-        l10n.pdfColRoi,
-      ],
-      data: _cropRows(context, source, crops, currency, l10n),
-      border: pw.TableBorder.all(color: PdfColors.grey400),
-      headerStyle: pw.TextStyle(
-        fontWeight: pw.FontWeight.bold,
-        color: PdfColors.white,
-      ),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.brown600),
-      cellAlignments: {
-        0: pw.Alignment.centerLeft,
-        1: pw.Alignment.centerRight,
-        2: pw.Alignment.centerRight,
-        3: pw.Alignment.centerRight,
-        4: pw.Alignment.centerRight,
-        5: pw.Alignment.centerRight,
+    final data = _cropRows(context, source, crops, currency, l10n);
+    if (data.isEmpty) return pw.SizedBox.shrink();
+
+    final headerStyle = pw.TextStyle(
+      fontWeight: pw.FontWeight.bold,
+      color: PdfColors.white,
+      fontSize: 9,
+    );
+    const cellStyle = pw.TextStyle(fontSize: 9);
+    final headers = [
+      l10n.pdfColCrop, l10n.pdfColMov, l10n.pdfColExpenses,
+      l10n.pdfColIncomes, l10n.pdfColResult, l10n.pdfColRoi,
+    ];
+
+    return pw.Table(
+      columnWidths: {
+        0: const pw.FlexColumnWidth(2.5),
+        1: const pw.FlexColumnWidth(1),
+        2: const pw.FlexColumnWidth(2),
+        3: const pw.FlexColumnWidth(2),
+        4: const pw.FlexColumnWidth(2),
+        5: const pw.FlexColumnWidth(1.2),
       },
+      border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+      children: [
+        // Header row
+        pw.TableRow(
+          decoration: const pw.BoxDecoration(color: PdfColors.brown600),
+          children: headers
+              .map((h) => pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 5),
+                    child: pw.Text(h, style: headerStyle),
+                  ))
+              .toList(),
+        ),
+        // Data rows with ROI-based coloring
+        ...data.map((cells) {
+          final roiText = cells[5];
+          final roiNum = roiText == '—'
+              ? 0.0
+              : (double.tryParse(roiText.replaceAll('%', '')) ?? 0);
+          PdfColor? rowBg;
+          if (roiNum > 0) {
+            rowBg = const PdfColor.fromInt(0xFFF1F8E9); // verde suave
+          } else if (roiNum < 0) {
+            rowBg = const PdfColor.fromInt(0xFFFFF3E0); // naranja suave
+          }
+          return pw.TableRow(
+            decoration:
+                rowBg != null ? pw.BoxDecoration(color: rowBg) : null,
+            children: List.generate(cells.length, (i) {
+              return pw.Padding(
+                padding:
+                    const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: pw.Text(cells[i], style: cellStyle),
+              );
+            }),
+          );
+        }),
+      ],
     );
   }
 
