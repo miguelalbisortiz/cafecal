@@ -1,20 +1,10 @@
-# Última sesión: 2026-09-14
-
-## Archivo: `2026-09-14-help-text-auth-fixes-audit.md`
+# 2026-09-20 — Reporte semanal ISO + métrica de cargas
 
 ## Resumen ejecutivo
-- Help text contextual en formularios de cultivos y siembras
-- Auth fixes (validator, signup redirect, password recovery)
-- Auditoría completa: 6 bugs críticos, 5 medios, 5 menores
-- Fixes B1-B5: cascade delete + desvinculación de transacciones
-- 162/162 tests verdes
-- Deploy: `59a938e`
+- Análisis de tabla de control papel vs. app (95% de cobertura pre-existente)
+- **Métrica de cargas**: 1 carga = 60 lbs = 27.2 kg, mostrada en tarjeta de cosechas del reporte cuando hay café
+- **Reporte semanal ISO**: nuevo período Lun-Dom con navegación ← →, filtrado completo, exportación PDF/CSV
+- **170/170 tests verdes**, analyze limpio, HTTP 200, main + gh-pages en `91495b8`
 
-## Commits de la sesión
-- `973ba32` feat: contextual help text
-- `a0b76bf` fix: auth validator, signup redirect
-- `beed241` fix: critical data integrity
-
-## Pendiente
-- Bugs medios (B7-B11), menores (B12-B16)
-- Feature: CropEditorDialog variedad/notas
+## Archivos
+- `docs/sessions/2026-09-20-reporte-semanal-cargas.md` — detalle completo
