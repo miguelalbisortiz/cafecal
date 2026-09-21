@@ -11,17 +11,19 @@ import '../models/farm_alert.dart';
 import '../models/harvest.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
+import '../models/units.dart';
 import '../services/alert_service.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
 import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
+import '../services/week_utils.dart';
 import '../utils/format.dart';
 import '../widgets/per_hectare_panel.dart';
 import '../widgets/terminology_guide.dart';
 
-enum _PeriodMode { month, year, yearToDate }
+enum _PeriodMode { week, month, year, yearToDate }
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -33,6 +35,7 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen> {
   late int _year;
   late int _month;
+  late int _week;
   _PeriodMode _mode = _PeriodMode.month;
   bool _exporting = false;
   bool _exportingExcel = false;
@@ -44,6 +47,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final now = DateTime.now();
     _year = now.year;
     _month = now.month;
+    _week = currentWeekNumber(now);
   }
 
   @override
@@ -91,6 +95,8 @@ class _ReportScreenState extends State<ReportScreen> {
             SegmentedButton<_PeriodMode>(
               segments: [
                 ButtonSegment(
+                    value: _PeriodMode.week, label: Text(l10n.segWeek)),
+                ButtonSegment(
                     value: _PeriodMode.month, label: Text(l10n.segMonth)),
                 ButtonSegment(
                     value: _PeriodMode.year, label: Text(l10n.segYear)),
@@ -106,6 +112,37 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
+                if (_mode == _PeriodMode.week) ...[
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: () => setState(() {
+                      _week--;
+                      if (_week < 1) {
+                        _week = 52;
+                        _year--;
+                      }
+                    }),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        l10n.reportChipWeek(_week),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () => setState(() {
+                      _week++;
+                      final maxWeek = currentWeekNumber(DateTime(_year, 12, 28));
+                      if (_week > maxWeek) {
+                        _week = 1;
+                        _year++;
+                      }
+                    }),
+                  ),
+                ],
                 if (_mode == _PeriodMode.month) ...[
                   Expanded(
                     child: DropdownButtonFormField<int>(
@@ -402,6 +439,14 @@ class _ReportScreenState extends State<ReportScreen> {
     final inYear = tx.transactions
         .where((t) => !t.deleted && t.date.year == _year);
     switch (_mode) {
+      case _PeriodMode.week:
+        final range = weekRange(_year, _week);
+        return tx.transactions
+            .where((t) =>
+                !t.deleted &&
+                !t.date.isBefore(range.start) &&
+                !t.date.isAfter(range.end))
+            .toList();
       case _PeriodMode.month:
         return inYear.where((t) => t.date.month == _month).toList();
       case _PeriodMode.year:
@@ -416,6 +461,21 @@ class _ReportScreenState extends State<ReportScreen> {
 
   // Registros del mes anterior para la comparaciÃ³n de tendencia mensual.
   List<Transaction> _previousMonthRecords(TransactionProvider tx) {
+    if (_mode == _PeriodMode.week) {
+      int prevWeek = _week - 1;
+      int prevYear = _year;
+      if (prevWeek < 1) {
+        prevWeek = 52;
+        prevYear--;
+      }
+      final range = weekRange(prevYear, prevWeek);
+      return tx.transactions
+          .where((t) =>
+              !t.deleted &&
+              !t.date.isBefore(range.start) &&
+              !t.date.isAfter(range.end))
+          .toList();
+    }
     if (_mode != _PeriodMode.month) return const [];
     final prevYear = _month == 1 ? _year - 1 : _year;
     final prevMonth = _month == 1 ? 12 : _month - 1;
@@ -434,6 +494,8 @@ class _ReportScreenState extends State<ReportScreen> {
       };
 
   String _periodLabel(AppLocalizations l10n) => switch (_mode) {
+        _PeriodMode.week =>
+          l10n.reportPeriodWeek(_week, _year),
         _PeriodMode.month =>
           l10n.reportPeriodMonth(l10n.monthFull[_month - 1], _year),
         _PeriodMode.year => l10n.yearLabel(_year),
@@ -441,6 +503,7 @@ class _ReportScreenState extends State<ReportScreen> {
       };
 
   String _periodChipLabel(AppLocalizations l10n) => switch (_mode) {
+        _PeriodMode.week => l10n.reportChipWeek(_week),
         _PeriodMode.month => l10n.reportChipMonth(l10n.monthFull[_month - 1], _year),
         _PeriodMode.year => '$_year',
         _PeriodMode.yearToDate => l10n.reportChipYtd(_year),
@@ -477,6 +540,10 @@ class _ReportScreenState extends State<ReportScreen> {
 
   List<Harvest> _periodHarvests(TransactionProvider tx) {
     return tx.harvests.where((h) {
+      if (_mode == _PeriodMode.week) {
+        final range = weekRange(_year, _week);
+        return !h.date.isBefore(range.start) && !h.date.isAfter(range.end);
+      }
       if (_mode == _PeriodMode.month) {
         return h.date.year == _year && h.date.month == _month;
       }
@@ -529,6 +596,32 @@ class _ReportScreenState extends State<ReportScreen> {
                     extra: '${_numKg(c.kg)} kg',
                     color: scheme.primary,
                   )),
+              // Métrica de cargas para café
+              if (byCrop.any((c) =>
+                  c.name.toLowerCase().contains('café') ||
+                  c.name.toLowerCase().contains('cafe'))) ...[
+                const SizedBox(height: 6),
+                _harvestLine(
+                  label: '☕ ${l10n.harvestCargasLabel}',
+                  value: '${_numKg(byCrop
+                      .where((c) =>
+                          c.name.toLowerCase().contains('café') ||
+                          c.name.toLowerCase().contains('cafe'))
+                      .fold<double>(0, (a, c) => a + c.kg))} kg → ${kgToCargas(byCrop
+                      .where((c) =>
+                          c.name.toLowerCase().contains('café') ||
+                          c.name.toLowerCase().contains('cafe'))
+                      .fold<double>(0, (a, c) => a + c.kg))} ${l10n.harvestCargasLabel}',
+                  color: scheme.primary,
+                  bold: true,
+                ),
+                Text(
+                  l10n.harvestCargasNote,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
               const SizedBox(height: 8),
               Text(
                 l10n.reportHarvestDestinations,
@@ -761,8 +854,11 @@ class _ReportScreenState extends State<ReportScreen> {
         transactions: tx.transactions,
         crops: tx.crops,
         year: _year,
-        month: _mode == _PeriodMode.month ? _month : null,
+        month: _mode == _PeriodMode.month
+            ? _month
+            : (_mode == _PeriodMode.week ? _week : null),
         period: switch (_mode) {
+          _PeriodMode.week => ReportPeriod.week,
           _PeriodMode.month => ReportPeriod.month,
           _PeriodMode.year => ReportPeriod.year,
           _PeriodMode.yearToDate => ReportPeriod.yearToDate,
@@ -808,8 +904,11 @@ class _ReportScreenState extends State<ReportScreen> {
         transactions: tx.transactions,
         crops: tx.crops,
         year: _year,
-        month: _mode == _PeriodMode.month ? _month : null,
+        month: _mode == _PeriodMode.month
+            ? _month
+            : (_mode == _PeriodMode.week ? _week : null),
         period: switch (_mode) {
+          _PeriodMode.week => ReportPeriod.week,
           _PeriodMode.month => ReportPeriod.month,
           _PeriodMode.year => ReportPeriod.year,
           _PeriodMode.yearToDate => ReportPeriod.yearToDate,

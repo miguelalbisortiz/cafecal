@@ -15,6 +15,7 @@ import 'alert_service.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
+import 'week_utils.dart';
 
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
 /// con Excel) manteniendo la misma lógica de cálculo que el PDF.
@@ -40,6 +41,13 @@ class ExcelExportService {
 
     final now = DateTime.now();
     final periodTx = switch (period) {
+      ReportPeriod.week => () {
+        final range = weekRange(year, month ?? 1);
+        return active
+            .where((t) =>
+                !t.date.isBefore(range.start) && !t.date.isAfter(range.end))
+            .toList();
+      }(),
       ReportPeriod.month => active
           .where(
               (t) => t.date.year == year && t.date.month == (month ?? now.month))
@@ -57,6 +65,13 @@ class ExcelExportService {
     final balance = incomes - expenses;
 
     final periodHarvests = switch (period) {
+      ReportPeriod.week => () {
+        final range = weekRange(year, month ?? 1);
+        return harvests
+            .where((h) =>
+                !h.date.isBefore(range.start) && !h.date.isAfter(range.end))
+            .toList();
+      }(),
       ReportPeriod.month => harvests
           .where((h) =>
               h.date.year == year && h.date.month == (month ?? now.month))

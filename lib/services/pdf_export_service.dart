@@ -16,8 +16,9 @@ import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
+import 'week_utils.dart';
 
-enum ReportPeriod { month, year, yearToDate }
+enum ReportPeriod { week, month, year, yearToDate }
 
 const _pdfPositive = PdfColor.fromInt(0xFF1F5E3F);
 const _pdfPositiveSoft = PdfColor.fromInt(0xFFE7F0EA);
@@ -59,6 +60,13 @@ class PdfExportService {
 
     final now = DateTime.now();
     final periodTx = switch (period) {
+      ReportPeriod.week => () {
+        final range = weekRange(year, month ?? 1);
+        return active
+            .where((t) =>
+                !t.date.isBefore(range.start) && !t.date.isAfter(range.end))
+            .toList();
+      }(),
       ReportPeriod.month => active
           .where((t) => t.date.year == year && t.date.month == (month ?? now.month))
           .toList(),
@@ -75,6 +83,13 @@ class PdfExportService {
     final balance = incomes - expenses;
 
     final periodHarvests = switch (period) {
+      ReportPeriod.week => () {
+        final range = weekRange(year, month ?? 1);
+        return harvests
+            .where((h) =>
+                !h.date.isBefore(range.start) && !h.date.isAfter(range.end))
+            .toList();
+      }(),
       ReportPeriod.month => harvests
           .where((h) =>
               h.date.year == year && h.date.month == (month ?? now.month))

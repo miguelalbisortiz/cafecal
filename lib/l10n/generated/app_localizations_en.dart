@@ -1031,6 +1031,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get segWeek => 'Week';
+
+  @override
+  String reportPeriodWeek(int week, int year) {
+    return 'Week $week, $year';
+  }
+
+  @override
+  String reportChipWeek(int week) {
+    return 'W$week';
+  }
+
+  @override
+  String get harvestCargasLabel => 'loads';
+
+  @override
+  String get harvestCargasNote => '1 load ≈ 60 lbs ≈ 27.2 kg';
+
+  @override
   String get incomeStatementTitle => 'Income statement';
 
   @override
