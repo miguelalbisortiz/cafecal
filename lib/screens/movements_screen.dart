@@ -298,6 +298,13 @@ class _MovementsScreenState extends State<MovementsScreen> {
               ),
             ),
             IconButton(
+              tooltip: l10n.edit,
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => RegisterScreen(editing: t),
+              )),
+            ),
+            IconButton(
               tooltip: l10n.delete,
               icon: const Icon(Icons.delete_outline, size: 20),
               onPressed: () => _confirmDelete(t),

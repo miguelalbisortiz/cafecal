@@ -536,6 +536,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingCostHint => 'If you record a cost, a linked expense is created for this planting.';
 
   @override
+  String get helpUnitShort => 'Sale unit';
+
+  @override
+  String get helpCycleShort => 'Perennial or annual';
+
+  @override
+  String get phaseHelpShort => 'Crop phase';
+
+  @override
+  String get helpAreaShort => 'Optional, in ha';
+
+  @override
+  String get helpPlantsShort => 'Approximate';
+
+  @override
+  String get helpEstablishmentShort => 'Initial cost';
+
+  @override
+  String get helpSowingPlantsShort => 'Approximate';
+
+  @override
+  String get helpSowingLostPlantsShort => 'Dead or damaged';
+
+  @override
+  String get helpSowingAreaShort => 'In hectares';
+
+  @override
+  String get sowingCostHintShort => 'Creates linked expense';
+
+  @override
   String get plantsInvalid => 'Enter a valid number of plants';
 
   @override
@@ -958,6 +988,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get edit => 'Edit';
 
   @override
   String get add => 'Add';

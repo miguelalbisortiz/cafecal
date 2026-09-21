@@ -124,7 +124,11 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               value: _defaultUnit,
               decoration: InputDecoration(
                 labelText: l10n.defaultUnitLabel,
-                helperText: l10n.helpUnit,
+                helperText: l10n.helpUnitShort,
+                suffixIcon: Tooltip(
+                  message: l10n.helpUnit,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
                 border: const OutlineInputBorder(),
               ),
               items: [
@@ -144,7 +148,11 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               value: _cycle,
               decoration: InputDecoration(
                 labelText: l10n.cycleLabel,
-                helperText: l10n.helpCycle,
+                helperText: l10n.helpCycleShort,
+                suffixIcon: Tooltip(
+                  message: l10n.helpCycle,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
                 border: const OutlineInputBorder(),
               ),
               items: [
@@ -171,7 +179,11 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 value: _phase,
                 decoration: InputDecoration(
                   labelText: l10n.phaseLabel,
-                  helperText: l10n.phaseHelp,
+                  helperText: l10n.phaseHelpShort,
+                  suffixIcon: Tooltip(
+                    message: l10n.phaseHelp,
+                    child: const Icon(Icons.info_outline, size: 20),
+                  ),
                   border: const OutlineInputBorder(),
                 ),
                 items: [
@@ -198,8 +210,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: l10n.areaHaLabel,
-                helperText: l10n.helpArea,
+                helperText: l10n.helpAreaShort,
                 prefixIcon: const Icon(Icons.square_foot_outlined),
+                suffixIcon: Tooltip(
+                  message: l10n.helpArea,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -209,8 +225,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: l10n.livePlantsLabel,
-                helperText: l10n.helpPlants,
+                helperText: l10n.helpPlantsShort,
                 prefixIcon: const Icon(Icons.park_outlined),
+                suffixIcon: Tooltip(
+                  message: l10n.helpPlants,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -221,8 +241,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: l10n.establishmentCostLabel,
-                helperText: l10n.helpEstablishment,
+                helperText: l10n.helpEstablishmentShort,
                 prefixIcon: const Icon(Icons.savings_outlined),
+                suffixIcon: Tooltip(
+                  message: l10n.helpEstablishment,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
                 border: const OutlineInputBorder(),
               ),
             ),

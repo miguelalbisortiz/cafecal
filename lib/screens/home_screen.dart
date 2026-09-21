@@ -91,15 +91,73 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 itemBuilder: (_) => [
                   if (!onboarding) ...[
-                    PopupMenuItem(value: 'report', child: Text(l10n.menuReport)),
-                    PopupMenuItem(value: 'crops', child: Text(l10n.menuCrops)),
-                    PopupMenuItem(value: 'sowings', child: Text(l10n.menuSowings)),
-                    PopupMenuItem(value: 'harvests', child: Text(l10n.menuHarvests)),
+                    PopupMenuItem(
+                      value: 'report',
+                      child: ListTile(
+                        leading: const Icon(Icons.bar_chart_outlined),
+                        title: Text(l10n.menuReport),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'crops',
+                      child: ListTile(
+                        leading: const Icon(Icons.grass_outlined),
+                        title: Text(l10n.menuCrops),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'sowings',
+                      child: ListTile(
+                        leading: const Icon(Icons.eco_outlined),
+                        title: Text(l10n.menuSowings),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'harvests',
+                      child: ListTile(
+                        leading: const Icon(Icons.agriculture_outlined),
+                        title: Text(l10n.menuHarvests),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const PopupMenuDivider(),
                   ],
-                  PopupMenuItem(value: 'help', child: Text(l10n.menuHelp)),
-                  PopupMenuItem(value: 'settings', child: Text(l10n.menuSettings)),
+                  PopupMenuItem(
+                    value: 'settings',
+                    child: ListTile(
+                      leading: const Icon(Icons.settings_outlined),
+                      title: Text(l10n.menuSettings),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'help',
+                    child: ListTile(
+                      leading: const Icon(Icons.help_outline),
+                      title: Text(l10n.menuHelp),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                   const PopupMenuDivider(),
-                  PopupMenuItem(value: 'logout', child: Text(l10n.menuLogout)),
+                  PopupMenuItem(
+                    value: 'logout',
+                    child: ListTile(
+                      leading: const Icon(Icons.logout_outlined),
+                      title: Text(l10n.menuLogout),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 ],
               ),
             ],
