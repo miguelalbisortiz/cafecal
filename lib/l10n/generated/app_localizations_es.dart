@@ -536,6 +536,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingCostHint => 'Si registras un costo, se crea un gasto vinculado a esta siembra.';
 
   @override
+  String get helpUnitShort => 'Unidad de venta';
+
+  @override
+  String get helpCycleShort => 'Perenne o anual';
+
+  @override
+  String get phaseHelpShort => 'Fase del cultivo';
+
+  @override
+  String get helpAreaShort => 'Opcional, en ha';
+
+  @override
+  String get helpPlantsShort => 'Aproximado';
+
+  @override
+  String get helpEstablishmentShort => 'Costo inicial';
+
+  @override
+  String get helpSowingPlantsShort => 'Aproximado';
+
+  @override
+  String get helpSowingLostPlantsShort => 'Muertas o dañadas';
+
+  @override
+  String get helpSowingAreaShort => 'En hectáreas';
+
+  @override
+  String get sowingCostHintShort => 'Crea gasto vinculado';
+
+  @override
   String get plantsInvalid => 'Ingresa un número de plantas válido';
 
   @override
@@ -958,6 +988,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get delete => 'Eliminar';
+
+  @override
+  String get edit => 'Editar';
 
   @override
   String get add => 'Agregar';

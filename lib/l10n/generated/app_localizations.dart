@@ -1145,6 +1145,66 @@ abstract class AppLocalizations {
   /// **'Si registras un costo, se crea un gasto vinculado a esta siembra.'**
   String get sowingCostHint;
 
+  /// No description provided for @helpUnitShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad de venta'**
+  String get helpUnitShort;
+
+  /// No description provided for @helpCycleShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Perenne o anual'**
+  String get helpCycleShort;
+
+  /// No description provided for @phaseHelpShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Fase del cultivo'**
+  String get phaseHelpShort;
+
+  /// No description provided for @helpAreaShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional, en ha'**
+  String get helpAreaShort;
+
+  /// No description provided for @helpPlantsShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Aproximado'**
+  String get helpPlantsShort;
+
+  /// No description provided for @helpEstablishmentShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo inicial'**
+  String get helpEstablishmentShort;
+
+  /// No description provided for @helpSowingPlantsShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Aproximado'**
+  String get helpSowingPlantsShort;
+
+  /// No description provided for @helpSowingLostPlantsShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Muertas o dañadas'**
+  String get helpSowingLostPlantsShort;
+
+  /// No description provided for @helpSowingAreaShort.
+  ///
+  /// In es, this message translates to:
+  /// **'En hectáreas'**
+  String get helpSowingAreaShort;
+
+  /// No description provided for @sowingCostHintShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea gasto vinculado'**
+  String get sowingCostHintShort;
+
   /// No description provided for @plantsInvalid.
   ///
   /// In es, this message translates to:
@@ -1984,6 +2044,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Eliminar'**
   String get delete;
+
+  /// No description provided for @edit.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar'**
+  String get edit;
 
   /// No description provided for @add.
   ///

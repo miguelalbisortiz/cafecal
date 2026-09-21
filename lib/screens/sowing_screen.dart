@@ -374,8 +374,12 @@ class _SowingFormState extends State<_SowingForm> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: l10n.sowingPlantsLabel,
-                  helperText: l10n.helpSowingPlants,
+                  helperText: l10n.helpSowingPlantsShort,
                   prefixIcon: const Icon(Icons.park_outlined),
+                  suffixIcon: Tooltip(
+                    message: l10n.helpSowingPlants,
+                    child: const Icon(Icons.info_outline, size: 20),
+                  ),
                   border: const OutlineInputBorder(),
                 ),
                 validator: (v) {
@@ -391,8 +395,12 @@ class _SowingFormState extends State<_SowingForm> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.sowingLostPlantsLabel,
-                    helperText: l10n.helpSowingLostPlants,
+                    helperText: l10n.helpSowingLostPlantsShort,
                     prefixIcon: const Icon(Icons.trending_down),
+                    suffixIcon: Tooltip(
+                      message: l10n.helpSowingLostPlants,
+                      child: const Icon(Icons.info_outline, size: 20),
+                    ),
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -413,8 +421,12 @@ class _SowingFormState extends State<_SowingForm> {
                       const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: l10n.sowingAreaLabel,
-                    helperText: l10n.helpSowingArea,
+                    helperText: l10n.helpSowingAreaShort,
                     prefixIcon: const Icon(Icons.square_foot_outlined),
+                    suffixIcon: Tooltip(
+                      message: l10n.helpSowingArea,
+                      child: const Icon(Icons.info_outline, size: 20),
+                    ),
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -425,8 +437,12 @@ class _SowingFormState extends State<_SowingForm> {
                       const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: l10n.sowingCostLabel,
-                    helperText: l10n.sowingCostHint,
+                    helperText: l10n.sowingCostHintShort,
                     prefixIcon: const Icon(Icons.attach_money),
+                    suffixIcon: Tooltip(
+                      message: l10n.sowingCostHint,
+                      child: const Icon(Icons.info_outline, size: 20),
+                    ),
                     border: const OutlineInputBorder(),
                   ),
                 ),
