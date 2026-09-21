@@ -352,6 +352,7 @@
   "excelColPricePerUnit": "Precio por unidad",
   "excelColClient": "Cliente",
   "excelColProvider": "Proveedor",
+  "excelColCurrency": "Moneda",
   "topClientsTitle": "Principales compradores",
   "topProvidersTitle": "Principales proveedores",
   "recordSaved": "Registro guardado",

@@ -2039,6 +2039,12 @@ abstract class AppLocalizations {
   /// **'Proveedor'**
   String get excelColProvider;
 
+  /// No description provided for @excelColCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda'**
+  String get excelColCurrency;
+
   /// No description provided for @topClientsTitle.
   ///
   /// In es, this message translates to:

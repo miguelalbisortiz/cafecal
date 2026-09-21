@@ -20,6 +20,13 @@ import 'week_utils.dart';
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
 /// con Excel) manteniendo la misma lógica de cálculo que el PDF.
 class ExcelExportService {
+  // Colores para headers y formatos condicionales (usando ExcelColor)
+  static final _excelBrown = ExcelColor.fromHexString('FF6D4C41');
+  static final _excelGreenSoft = ExcelColor.fromHexString('FFE8F5E9');
+  static final _excelRedSoft = ExcelColor.fromHexString('FFFFF3E0');
+  static final _excelWhite = ExcelColor.white;
+  static final _excelGreen = ExcelColor.fromHexString('FF1F5E3F');
+  static final _excelRed = ExcelColor.fromHexString('FFB3261E');
   /// Genera un XLSX con 3 hojas: Resumen, Por cultivo y Movimientos.
   /// Devuelve los bytes listos para guardar/compartir. Puro Dart (sin binding).
   List<int> buildReport({
@@ -111,7 +118,7 @@ class ExcelExportService {
         ratio: ratio);
 
     _cropsSheet(excel[l10n.excelSheetCrops],
-        periodTx: periodTx, crops: crops, l10n: l10n);
+        periodTx: periodTx, crops: crops, currency: currency, l10n: l10n);
 
     _movementsSheet(excel[l10n.excelSheetMovements],
         periodTx: periodTx,
@@ -208,6 +215,68 @@ class ExcelExportService {
 
   String _decimal(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
 
+  // ── Helpers de estilo ──
+
+  void _styleHeaderRow(Sheet sheet, int rowIdx, int colCount, ExcelColor bgColor) {
+    for (var c = 0; c < colCount; c++) {
+      final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: c, rowIndex: rowIdx));
+      cell.cellStyle = CellStyle(
+        backgroundColorHex: bgColor,
+        fontColorHex: _excelWhite,
+        bold: true,
+        fontSize: 11,
+      );
+    }
+  }
+
+  void _applyCurrencyFormat(
+      Sheet sheet, String currency, int col, int fromRow, int toRow) {
+    final info = currencyInfo(currency);
+    final decimals = info.decimals;
+    final fmt = decimals > 0
+        ? '#,##0.${'0' * decimals}'
+        : '#,##0';
+    final numFmt = NumFormat.custom(formatCode: fmt);
+    for (var r = fromRow; r <= toRow; r++) {
+      final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: col, rowIndex: r));
+      if (cell.value is DoubleCellValue || cell.value is IntCellValue) {
+        cell.cellStyle = CellStyle(numberFormat: numFmt);
+      }
+    }
+  }
+
+  void _applyConditionalColor(Sheet sheet, int col, int fromRow, int toRow) {
+    for (var r = fromRow; r <= toRow; r++) {
+      final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: col, rowIndex: r));
+      final val = cell.value;
+      if (val is DoubleCellValue) {
+        cell.cellStyle = CellStyle(
+          fontColorHex: val.value >= 0 ? _excelGreen : _excelRed,
+          bold: true,
+          fontSize: 10,
+        );
+      }
+    }
+  }
+
+  void _styleTableHeader(Sheet sheet, int rowIdx, int colCount) {
+    for (var c = 0; c < colCount; c++) {
+      final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: c, rowIndex: rowIdx));
+      cell.cellStyle = CellStyle(
+        backgroundColorHex: _excelBrown,
+        fontColorHex: _excelWhite,
+        bold: true,
+        fontSize: 10,
+      );
+    }
+  }
+
+  // ── Fin helpers ──
+
   void _summarySheet(
     Sheet sheet, {
     required FarmSettings settings,
@@ -232,10 +301,13 @@ class ExcelExportService {
     ]);
     row([null, null, null]);
 
+    // ── Header de ingresos ──
     row([
       TextCellValue(l10n.pdfIncomesHeader),
-      IntCellValue(incomes.round()),
+      null,
+      DoubleCellValue(incomes),
     ]);
+    _styleHeaderRow(sheet, 4, 3, _excelBrown);
     for (final e in incomeTotals.entries) {
       row([
         TextCellValue('    ${l10n.incomeCategory(e.key)}'),
@@ -244,10 +316,13 @@ class ExcelExportService {
       ]);
     }
     row([null, null, null]);
+    // ── Header de gastos ──
     row([
       TextCellValue(l10n.pdfExpensesHeader),
-      IntCellValue(-expenses.round()),
+      null,
+      DoubleCellValue(-expenses),
     ]);
+    _styleHeaderRow(sheet, 4 + incomeTotals.length + 1, 3, _excelBrown);
     for (final e in expenseTotals.entries) {
       row([
         TextCellValue('    ${l10n.expenseCategory(e.key)}'),
@@ -256,28 +331,43 @@ class ExcelExportService {
       ]);
     }
     row([null, null, null]);
+    // ── Resultado ──
     row([
       TextCellValue(l10n.resultPeriodLabel),
-      TextCellValue(_money(balance, currency)),
+      null,
+      DoubleCellValue(balance),
     ]);
+    final resultRowIdx = 5 + incomeTotals.length + 1 + expenseTotals.length + 1;
+    _styleHeaderRow(sheet, resultRowIdx, 3,
+        balance >= 0 ? _excelGreenSoft : _excelRedSoft);
+
     row([
       TextCellValue(l10n.marginLabel),
       TextCellValue(margen != null ? _pctOf(margen, 1) : '—'),
+      null,
     ]);
     row([
       TextCellValue(l10n.ratioLabel),
       TextCellValue(ratio != null ? _pctOf(ratio, 1) : '—'),
+      null,
     ]);
 
+    // Formato de moneda en columna C
+    _applyCurrencyFormat(sheet, currency, 2, 4, 4 + incomeTotals.length);
+    _applyCurrencyFormat(sheet, currency, 2,
+        6 + incomeTotals.length, 6 + incomeTotals.length + expenseTotals.length);
+    _applyCurrencyFormat(sheet, currency, 2, resultRowIdx, resultRowIdx);
+
     sheet.setColumnWidth(0, 42);
-    sheet.setColumnWidth(1, 20);
-    sheet.setColumnWidth(2, 20);
+    sheet.setColumnWidth(1, 14);
+    sheet.setColumnWidth(2, 22);
   }
 
   void _cropsSheet(
     Sheet sheet, {
     required List<Transaction> periodTx,
     required List<Crop> crops,
+    required String currency,
     required AppLocalizations l10n,
   }) {
     sheet.appendRow([
@@ -288,6 +378,7 @@ class ExcelExportService {
       TextCellValue(l10n.pdfColResult),
       TextCellValue(l10n.pdfColRoi),
     ]);
+    _styleTableHeader(sheet, 0, 6);
     final nameById = {for (final c in crops) c.id: c.name};
     final totals = <String?, _CropTotalRow>{
       null: _CropTotalRow(name: l10n.cropUnspecified),
@@ -309,6 +400,8 @@ class ExcelExportService {
         row.incomes += t.amount;
       }
     }
+    final startRow = 1;
+    var r = startRow;
     for (final row in totals.values.where(
         (r) => r.expenses > 0 || r.incomes > 0)) {
       final roi = row.expenses <= 0
@@ -322,7 +415,24 @@ class ExcelExportService {
         DoubleCellValue(row.incomes - row.expenses),
         TextCellValue(roi),
       ]);
+      // Colorear fila por ROI
+      final roiNum = roi == '—' ? 0.0 : double.tryParse(roi.replaceAll('%', '')) ?? 0;
+      if (roiNum != 0) {
+        final bgColor = roiNum > 0 ? _excelGreenSoft : _excelRedSoft;
+        for (var c = 0; c < 6; c++) {
+          sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r))
+              .cellStyle = CellStyle(backgroundColorHex: bgColor);
+        }
+      }
+      r++;
     }
+    // Formato de moneda en columnas de montos
+    _applyCurrencyFormat(sheet, currency, 2, startRow, r - 1);
+    _applyCurrencyFormat(sheet, currency, 3, startRow, r - 1);
+    _applyCurrencyFormat(sheet, currency, 4, startRow, r - 1);
+    // Color condicional en columna resultado
+    _applyConditionalColor(sheet, 4, startRow, r - 1);
+
     for (var i = 0; i < 6; i++) {
       sheet.setColumnWidth(
           i, i == 0 ? 24 : (i == 5 ? 12 : 16));
@@ -342,6 +452,7 @@ class ExcelExportService {
       TextCellValue(l10n.pdfColCategory),
       TextCellValue(l10n.pdfColDescription),
       TextCellValue(l10n.pdfColCrop),
+      TextCellValue(l10n.excelColCurrency),
       TextCellValue(l10n.pdfColAmount),
       TextCellValue(l10n.excelColQty),
       TextCellValue(l10n.excelColUnit),
@@ -349,7 +460,10 @@ class ExcelExportService {
       TextCellValue(l10n.excelColClient),
       TextCellValue(l10n.excelColProvider),
     ]);
+    _styleTableHeader(sheet, 0, 12);
     final nameById = {for (final c in crops) c.id: c.name};
+    final startRow = 1;
+    var r = startRow;
     for (final t in periodTx) {
       final cropName = t.cropId == null
           ? l10n.cropUnspecified
@@ -361,8 +475,12 @@ class ExcelExportService {
           ? null
           : switch (t.unit!) {
               'kg' => TextCellValue(l10n.unitKg),
+              'lb' => TextCellValue(l10n.unitLb),
               'arroba' => TextCellValue(l10n.unitArroba),
               'saco' => TextCellValue(l10n.unitSaco),
+              'carga' => TextCellValue(l10n.unitCarga),
+              'racimo' => TextCellValue(l10n.unitRacimo),
+              'cajon' => TextCellValue(l10n.unitCajon),
               _ => TextCellValue(t.unit!),
             };
       sheet.appendRow([
@@ -375,6 +493,7 @@ class ExcelExportService {
                 : l10n.incomeCategory(t.category)),
         TextCellValue(t.description),
         TextCellValue(cropName),
+        TextCellValue(t.currency),
         DoubleCellValue(t.type.isExpense ? -t.amount : t.amount),
         t.quantity == null ? null : DoubleCellValue(t.quantity!),
         unitLabel,
@@ -382,9 +501,21 @@ class ExcelExportService {
         t.client == null ? null : TextCellValue(t.client!),
         t.provider == null ? null : TextCellValue(t.provider!),
       ]);
+      // Color condicional en columna monto
+      final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r));
+      final isExp = t.type.isExpense;
+      cell.cellStyle = CellStyle(
+        fontColorHex: isExp ? _excelRed : _excelGreen,
+        bold: true,
+      );
+      r++;
     }
-    for (var i = 0; i < 11; i++) {
-      sheet.setColumnWidth(i, i == 3 ? 40 : 18);
+    // Formato de moneda en columna monto
+    _applyCurrencyFormat(sheet, currency, 6, startRow, r - 1);
+
+    for (var i = 0; i < 12; i++) {
+      sheet.setColumnWidth(i, i == 3 ? 40 : (i == 5 ? 10 : 18));
     }
   }
 
@@ -555,11 +686,6 @@ class ExcelExportService {
     return v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
   }
 
-  String _money(double value, String currency) {
-    final info = currencyInfo(currency);
-    final s = '${info.symbol}${value.abs().toStringAsFixed(info.decimals)}';
-    return value < 0 ? '($s)' : s;
-  }
 
   Map<String, double> _groupTotals(List<Transaction> list) {
     final totals = <String, double>{};
