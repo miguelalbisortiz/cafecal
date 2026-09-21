@@ -124,47 +124,6 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               ),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _defaultUnit,
-              decoration: InputDecoration(
-                labelText: l10n.defaultUnitLabel,
-                helperText: l10n.helpUnitShort,
-                suffixIcon: Tooltip(
-                  message: l10n.helpUnit,
-                  child: const Icon(Icons.info_outline, size: 20),
-                ),
-                border: const OutlineInputBorder(),
-              ),
-              items: [
-                DropdownMenuItem<String>(
-                  value: null,
-                  child: Text(l10n.defaultUnitNone),
-                ),
-                ..._unitOptions.map((u) => DropdownMenuItem<String>(
-                      value: u,
-                      child: Text(_unitLabel(u, l10n)),
-                    )),
-              ],
-              onChanged: (v) => setState(() => _defaultUnit = v),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _currency,
-              decoration: InputDecoration(
-                labelText: l10n.currencyLabel,
-                helperText: l10n.helpCropCurrencyShort,
-                prefixIcon: const Icon(Icons.monetization_on_outlined),
-                border: const OutlineInputBorder(),
-              ),
-              items: supportedCurrencies
-                  .map((c) => DropdownMenuItem(
-                        value: c.code,
-                        child: Text('${c.symbol} ${c.name} (${c.code})'),
-                      ))
-                  .toList(),
-              onChanged: (v) => setState(() => _currency = v ?? 'COP'),
-            ),
-            const SizedBox(height: 12),
             DropdownButtonFormField<CropCycle>(
               value: _cycle,
               decoration: InputDecoration(
@@ -193,7 +152,6 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 }
               }),
             ),
-            // Fase se oculta para cultivos anuales (solo aplica a perennes).
             if (_cycle == CropCycle.perenne) ...[
               const SizedBox(height: 12),
               DropdownButtonFormField<CropPhase>(
@@ -224,6 +182,30 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 onChanged: (v) => setState(() => _phase = v ?? CropPhase.produccion),
               ),
             ],
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _defaultUnit,
+              decoration: InputDecoration(
+                labelText: l10n.defaultUnitLabel,
+                helperText: l10n.helpUnitShort,
+                suffixIcon: Tooltip(
+                  message: l10n.helpUnit,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                DropdownMenuItem<String>(
+                  value: null,
+                  child: Text(l10n.defaultUnitNone),
+                ),
+                ..._unitOptions.map((u) => DropdownMenuItem<String>(
+                      value: u,
+                      child: Text(_unitLabel(u, l10n)),
+                    )),
+              ],
+              onChanged: (v) => setState(() => _defaultUnit = v),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _areaController,
@@ -270,6 +252,27 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 ),
                 border: const OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _currency,
+              decoration: InputDecoration(
+                labelText: l10n.currencyLabel,
+                helperText: l10n.helpCropCurrencyShort,
+                prefixIcon: const Icon(Icons.monetization_on_outlined),
+                suffixIcon: Tooltip(
+                  message: l10n.helpCropCurrency,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
+                border: const OutlineInputBorder(),
+              ),
+              items: supportedCurrencies
+                  .map((c) => DropdownMenuItem(
+                        value: c.code,
+                        child: Text('${c.symbol} ${c.name} (${c.code})'),
+                      ))
+                  .toList(),
+              onChanged: (v) => setState(() => _currency = v ?? 'COP'),
             ),
           ],
         ),

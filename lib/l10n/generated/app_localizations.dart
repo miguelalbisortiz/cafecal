@@ -1148,7 +1148,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpUnitShort.
   ///
   /// In es, this message translates to:
-  /// **'Unidad de venta'**
+  /// **'Unidad con la que cosechás o vendés este cultivo.'**
   String get helpUnitShort;
 
   /// No description provided for @helpCropCurrencyShort.
@@ -1156,6 +1156,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.'**
   String get helpCropCurrencyShort;
+
+  /// No description provided for @helpCropCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos los gastos e ingresos que registres vinculados a este cultivo usarán esta moneda. Si tenés cultivos en COP y otros en USD, cada uno mantiene su moneda.'**
+  String get helpCropCurrency;
 
   /// No description provided for @helpCycleShort.
   ///
