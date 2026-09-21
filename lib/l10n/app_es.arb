@@ -391,6 +391,17 @@
     "placeholders": { "year": { "type": "int" } }
   },
   "reportChipYtd": "{year} · a la fecha",
+  "segWeek": "Semana",
+  "@reportPeriodWeek": {
+    "placeholders": { "week": { "type": "int" }, "year": { "type": "int" } }
+  },
+  "reportPeriodWeek": "Semana {week}, {year}",
+  "@reportChipWeek": {
+    "placeholders": { "week": { "type": "int" } }
+  },
+  "reportChipWeek": "Sem {week}",
+  "harvestCargasLabel": "cargas",
+  "harvestCargasNote": "1 carga ≈ 60 lbs ≈ 27.2 kg",
   "incomeStatementTitle": "Estado de resultados",
   "noIncomePeriod": "Sin ingresos en este período",
   "operatingExpensesLabel": "Gastos operacionales",

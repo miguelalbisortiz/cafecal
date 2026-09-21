@@ -2099,6 +2099,36 @@ abstract class AppLocalizations {
   /// **'{year} · a la fecha'**
   String reportChipYtd(int year);
 
+  /// No description provided for @segWeek.
+  ///
+  /// In es, this message translates to:
+  /// **'Semana'**
+  String get segWeek;
+
+  /// No description provided for @reportPeriodWeek.
+  ///
+  /// In es, this message translates to:
+  /// **'Semana {week}, {year}'**
+  String reportPeriodWeek(int week, int year);
+
+  /// No description provided for @reportChipWeek.
+  ///
+  /// In es, this message translates to:
+  /// **'Sem {week}'**
+  String reportChipWeek(int week);
+
+  /// No description provided for @harvestCargasLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'cargas'**
+  String get harvestCargasLabel;
+
+  /// No description provided for @harvestCargasNote.
+  ///
+  /// In es, this message translates to:
+  /// **'1 carga ≈ 60 lbs ≈ 27.2 kg'**
+  String get harvestCargasNote;
+
   /// No description provided for @incomeStatementTitle.
   ///
   /// In es, this message translates to:
