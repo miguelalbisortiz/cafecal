@@ -41,6 +41,7 @@ class _ReportScreenState extends State<ReportScreen> {
   bool _exporting = false;
   bool _exportingExcel = false;
   bool _exportingBalance = false;
+  String _effectiveCurrency = 'COP';
 
   @override
   void initState() {
@@ -61,6 +62,13 @@ class _ReportScreenState extends State<ReportScreen> {
     final inYear = tx.transactions
         .where((t) => !t.deleted && t.date.year == _year)
         .toList();
+
+    // Detectar moneda efectiva del período
+    final currenciesInPeriod = records.map((t) => t.currency).toSet();
+    _effectiveCurrency = currenciesInPeriod.length == 1
+        ? currenciesInPeriod.first
+        : tx.settings.currency;
+
     final insights = const ReportInsightsService().build(
       now: DateTime.now(),
       current: records,
@@ -69,7 +77,7 @@ class _ReportScreenState extends State<ReportScreen> {
       year: _year,
       month: _mode == _PeriodMode.month ? _month : null,
       l10n: l10n,
-      money: (v) => formatMoney(context, v),
+      money: (v) => formatMoneyFor(context, v, currency: _effectiveCurrency),
     );
     final expenses = records
         .where((t) => t.type.isExpense)
@@ -324,7 +332,10 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
 
             const SizedBox(height: 20),
-            _TopAccountsCard(records: records, l10n: l10n),
+            _TopAccountsCard(
+                records: records,
+                l10n: l10n,
+                effectiveCurrency: _effectiveCurrency),
             const SizedBox(height: 20),
             Card(
               child: Padding(
@@ -356,7 +367,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     ..._cropRows(tx, l10n).map((row) => _CropBreakdownTile(
                           row: row,
                           l10n: l10n,
-                          currency: tx.settings.currency,
+                          currency: row.currency,
                           locale: tx.settings.locale,
                           scheme: Theme.of(context).colorScheme,
                         )),
@@ -535,13 +546,15 @@ class _ReportScreenState extends State<ReportScreen> {
       null: _CropRow(name: l10n.cropUnspecified),
     };
     for (final c in tx.crops) {
-      totals.putIfAbsent(c.id, () => _CropRow(name: c.name));
+      totals.putIfAbsent(c.id, () => _CropRow(
+          name: c.name, currency: c.currency ?? 'COP'));
     }
     for (final t in _recordsFor(tx)) {
       final row = totals.putIfAbsent(t.cropId, () => _CropRow(
           name: t.cropId == null
               ? l10n.cropUnspecified
-              : (nameById[t.cropId] ?? t.cropId!)));
+              : (nameById[t.cropId] ?? t.cropId!),
+          currency: t.currency));
       row.count++;
       if (t.type.isExpense) {
         row.expenses += t.amount;
@@ -660,7 +673,8 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(height: 8),
                 _harvestLine(
                   label: l10n.reportPickupCostPerKg,
-                  value: formatMoney(context, pickupKg),
+                  value: formatMoneyFor(context, pickupKg,
+                      currency: _effectiveCurrency),
                   bold: true,
                 ),
               ],
@@ -1021,7 +1035,7 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
           Text(
-            _accounting(context, tx, value),
+            _accounting(context, tx, value, currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -1053,7 +1067,8 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            _accounting(context, tx, row.isExpense ? -row.amount : row.amount),
+            _accounting(context, tx, row.isExpense ? -row.amount : row.amount,
+                currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -1098,7 +1113,7 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
           Text(
-            _accounting(context, tx, balance),
+            _accounting(context, tx, balance, currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.bold,
@@ -1144,9 +1159,10 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  String _accounting(BuildContext context, TransactionProvider tx, double value) {
+  String _accounting(BuildContext context, TransactionProvider tx, double value,
+      {String? currency}) {
     final s = formatAmount(value.abs(),
-        currency: tx.settings.currency, locale: tx.settings.locale);
+        currency: currency ?? tx.settings.currency, locale: tx.settings.locale);
     return value < 0 ? '($s)' : s;
   }
 
@@ -1214,8 +1230,13 @@ class _CategoryRow {
 class _TopAccountsCard extends StatelessWidget {
   final List<Transaction> records;
   final AppLocalizations l10n;
+  final String effectiveCurrency;
 
-  const _TopAccountsCard({required this.records, required this.l10n});
+  const _TopAccountsCard({
+    required this.records,
+    required this.l10n,
+    required this.effectiveCurrency,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1272,7 +1293,8 @@ class _TopAccountsCard extends StatelessWidget {
               ),
             ),
             Text(
-              formatMoney(context, e.value.amount),
+              formatMoneyFor(context, e.value.amount,
+                  currency: effectiveCurrency),
               style: const TextStyle(
                   fontSize: 13, fontWeight: FontWeight.w600),
             ),
@@ -1285,11 +1307,12 @@ class _TopAccountsCard extends StatelessWidget {
 
 class _CropRow {
   final String name;
+  String currency;
   double expenses = 0;
   double incomes = 0;
   int count = 0;
 
-  _CropRow({required this.name});
+  _CropRow({required this.name, this.currency = 'COP'});
 
   double get net => incomes - expenses;
   double get roi => expenses <= 0 ? 0 : (incomes - expenses) / expenses;

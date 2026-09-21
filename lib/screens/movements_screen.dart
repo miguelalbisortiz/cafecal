@@ -290,7 +290,8 @@ class _MovementsScreenState extends State<MovementsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              formatMoney(context, isExpense ? -t.amount : t.amount),
+              formatMoneyFor(context, isExpense ? -t.amount : t.amount,
+                  currency: t.currency),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -319,7 +320,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   }
 
   Future<void> _confirmDelete(Transaction t) async {
-    final amountText = formatMoney(context, t.amount);
+    final amountText = formatMoneyFor(context, t.amount, currency: t.currency);
     final l10n = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
       context: context,
