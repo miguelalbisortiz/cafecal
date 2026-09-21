@@ -194,7 +194,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpUnitsTitle => '¿Qué unidad uso?';
 
   @override
-  String get helpUnitsBody => 'Puedes usar kilogramos (kg), arrobas (1 arroba = 12.5 kg, común para café en Colombia) o sacos (1 saco = 70 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.';
+  String get helpUnitsBody => 'Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos (1 saco = 70 kg) o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.';
 
   @override
   String get helpUnitsTableTitle => 'Equivalencias';
@@ -216,6 +216,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpUnitsSacoRowDesc => '70 kg. Para café en sacos.';
+
+  @override
+  String get helpUnitsCargaRow => 'Carga';
+
+  @override
+  String get helpUnitsCargaRowDesc => '27.2 kg (60 lbs). Unidad cafetera colombiana.';
+
+  @override
+  String get helpUnitsLbRow => 'Libra (lb)';
+
+  @override
+  String get helpUnitsLbRowDesc => '0.45 kg. Común en algunos países.';
 
   @override
   String get helpUnitsRacimoRow => 'Racimo';
@@ -461,7 +473,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get phaseHelp => 'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.';
 
   @override
-  String get helpUnit => 'En qué unidad vendés tu cosecha: kg, arroba (≈12.5 kg), saco (≈70 kg café), racimo (plátano) o cajón.';
+  String get helpUnit => 'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco (≈70 kg café), carga (≈27.2 kg), racimo (plátano) o cajón.';
 
   @override
   String get helpCycle => 'Perenne = vive muchos años (café, plátano). Anual = se siembra y cosecha en el mismo año (tomate, maíz).';
@@ -934,6 +946,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unitSaco => 'Sacos (70 kg)';
+
+  @override
+  String get unitLb => 'Libras (lb)';
+
+  @override
+  String get unitCarga => 'Cargas (27.2 kg)';
 
   @override
   String get clientFieldLabel => 'Cliente / comprador (opcional)';

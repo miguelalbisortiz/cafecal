@@ -424,8 +424,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               items: [
                 DropdownMenuItem(value: 'kg', child: Text(l10n.unitKg)),
+                DropdownMenuItem(value: 'lb', child: Text(l10n.unitLb)),
                 DropdownMenuItem(value: 'arroba', child: Text(l10n.unitArroba)),
                 DropdownMenuItem(value: 'saco', child: Text(l10n.unitSaco)),
+                DropdownMenuItem(value: 'carga', child: Text(l10n.unitCarga)),
                 DropdownMenuItem(value: 'racimo', child: Text(l10n.unitRacimo)),
                 DropdownMenuItem(value: 'cajon', child: Text(l10n.unitCajon)),
               ],

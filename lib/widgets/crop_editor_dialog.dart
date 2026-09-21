@@ -29,7 +29,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   final _establishmentController = TextEditingController();
   String? _error;
 
-  static const _unitOptions = ['kg', 'arroba', 'saco', 'racimo', 'cajon'];
+  static const _unitOptions = ['kg', 'lb', 'arroba', 'saco', 'carga', 'racimo', 'cajon'];
 
   @override
   void initState() {

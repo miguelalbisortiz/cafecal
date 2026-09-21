@@ -464,7 +464,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpUnitsBody.
   ///
   /// In es, this message translates to:
-  /// **'Puedes usar kilogramos (kg), arrobas (1 arroba = 12.5 kg, común para café en Colombia) o sacos (1 saco = 70 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.'**
+  /// **'Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos (1 saco = 70 kg) o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.'**
   String get helpUnitsBody;
 
   /// No description provided for @helpUnitsTableTitle.
@@ -508,6 +508,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'70 kg. Para café en sacos.'**
   String get helpUnitsSacoRowDesc;
+
+  /// No description provided for @helpUnitsCargaRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Carga'**
+  String get helpUnitsCargaRow;
+
+  /// No description provided for @helpUnitsCargaRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'27.2 kg (60 lbs). Unidad cafetera colombiana.'**
+  String get helpUnitsCargaRowDesc;
+
+  /// No description provided for @helpUnitsLbRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Libra (lb)'**
+  String get helpUnitsLbRow;
+
+  /// No description provided for @helpUnitsLbRowDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'0.45 kg. Común en algunos países.'**
+  String get helpUnitsLbRowDesc;
 
   /// No description provided for @helpUnitsRacimoRow.
   ///
@@ -998,7 +1022,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpUnit.
   ///
   /// In es, this message translates to:
-  /// **'En qué unidad vendés tu cosecha: kg, arroba (≈12.5 kg), saco (≈70 kg café), racimo (plátano) o cajón.'**
+  /// **'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco (≈70 kg café), carga (≈27.2 kg), racimo (plátano) o cajón.'**
   String get helpUnit;
 
   /// No description provided for @helpCycle.
@@ -1936,6 +1960,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sacos (70 kg)'**
   String get unitSaco;
+
+  /// No description provided for @unitLb.
+  ///
+  /// In es, this message translates to:
+  /// **'Libras (lb)'**
+  String get unitLb;
+
+  /// No description provided for @unitCarga.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargas (27.2 kg)'**
+  String get unitCarga;
 
   /// No description provided for @clientFieldLabel.
   ///

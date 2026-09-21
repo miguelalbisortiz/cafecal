@@ -1,7 +1,9 @@
 double unitToKg(String? unit) {
   return switch (unit) {
+    'lb' => 0.453592,
     'arroba' => 12.5,
     'saco' => 70,
+    'carga' => 27.2155,
     _ => 1,
   };
 }
