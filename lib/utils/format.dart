@@ -11,6 +11,15 @@ String formatMoney(BuildContext context, double value, {int? decimals}) {
       currency: tx.settings.currency, locale: tx.settings.locale, decimals: decimals);
 }
 
+/// Formato de moneda con moneda explícita (para cuando la transacción
+/// tiene su propia moneda distinta a la de ajustes).
+String formatMoneyFor(BuildContext context, double value,
+    {required String currency, int? decimals}) {
+  final tx = context.read<TransactionProvider>();
+  return formatAmount(value,
+      currency: currency, locale: tx.settings.locale, decimals: decimals);
+}
+
 /// Formato de moneda sin contexto — usado por PDF/HTML export.
 /// Sin [decimals] usa los decimales naturales de la moneda (COP 0, PEN 2…).
 String formatAmount(double value,
