@@ -1,10 +1,10 @@
-# 2026-09-20 — Reporte semanal ISO + métrica de cargas
+# 2026-09-20 — Menú mejorado, edit visible, helper tooltip
 
 ## Resumen ejecutivo
-- Análisis de tabla de control papel vs. app (95% de cobertura pre-existente)
-- **Métrica de cargas**: 1 carga = 60 lbs = 27.2 kg, mostrada en tarjeta de cosechas del reporte cuando hay café
-- **Reporte semanal ISO**: nuevo período Lun-Dom con navegación ← →, filtrado completo, exportación PDF/CSV
-- **170/170 tests verdes**, analyze limpio, HTTP 200, main + gh-pages en `91495b8`
+- **Menú de tres puntos** reordenado + íconos (📊 Reporte → 🌱 Cultivos → 🌱 Siembras → 🧺 Cosechas → ⚙️ Config → ❓ Ayuda → 🚪 Salir)
+- **Edición visible** en historial: ✏️ junto al 🗑️ en cada fila (1 toque para editar)
+- **Helper corto + tooltip ℹ️** en 10 campos de formularios (cultivo + siembra)
+- **170/170 tests verdes**, analyze limpio, HTTP 200
 
 ## Archivos
-- `docs/sessions/2026-09-20-reporte-semanal-cargas.md` — detalle completo
+- `docs/sessions/2026-09-20-menu-edit-helper-tooltip.md` — detalle completo
