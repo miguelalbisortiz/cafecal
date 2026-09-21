@@ -28,6 +28,17 @@ String formatAmount(double value,
 String formatCompact(BuildContext context, double value) {
   final tx = context.read<TransactionProvider>();
   final symbol = currencyInfo(tx.settings.currency).symbol;
+  return _formatCompactWith(value, symbol);
+}
+
+/// Formato compacto con moneda explícita (para dashboards con moneda mixta).
+String formatCompactExplicit(double value,
+    {required String currency, required String locale}) {
+  final symbol = currencyInfo(currency).symbol;
+  return _formatCompactWith(value, symbol);
+}
+
+String _formatCompactWith(double value, String symbol) {
   final sign = value < 0 ? '-' : '';
   final abs = value.abs();
 

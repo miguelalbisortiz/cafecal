@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/currencies.dart';
 import '../providers/transaction_provider.dart';
-import '../services/currency_rates_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,9 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _threshold;
   String _currency = 'COP';
   String _language = 'es';
-  bool _converting = false;
-
-  final _rates = CurrencyRatesService();
 
   @override
   void initState() {
@@ -47,28 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _save() async {
     final tx = context.read<TransactionProvider>();
-    final current = tx.settings.currency;
     final l10n = AppLocalizations.of(context)!;
-
-    if (_currency != current) {
-      setState(() => _converting = true);
-      try {
-        final factor =
-            await _rates.fetchRate(current, _currency);
-        await tx.convertAllToCurrency(_currency, factor);
-      } catch (_) {
-        if (!mounted) return;
-        setState(() => _currency = current);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.rateErrorMsg),
-          ),
-        );
-        return;
-      } finally {
-        if (mounted) setState(() => _converting = false);
-      }
-    }
 
     final thresholdText = _threshold.text.trim().replaceAll(',', '.');
     final threshold =
@@ -85,9 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_currency != current
-            ? l10n.currencyChangedMsg(_currency)
-            : l10n.settingsSavedMsg),
+        content: Text(l10n.settingsSavedMsg),
       ),
     );
   }
@@ -114,7 +87,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           DropdownButtonFormField<String>(
             value: _currency,
             decoration: InputDecoration(
-              labelText: l10n.currencyLabel,
+              labelText: l10n.currencyDisplayLabel,
+              helperText: l10n.currencyDisplayHelper,
               border: const OutlineInputBorder(),
             ),
             items: supportedCurrencies
@@ -150,15 +124,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: _converting ? null : _save,
-            icon: _converting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save),
-            label: Text(_converting ? l10n.converting : l10n.saveButton),
+            onPressed: _save,
+            icon: const Icon(Icons.save),
+            label: Text(l10n.saveButton),
           ),
         ],
         ),

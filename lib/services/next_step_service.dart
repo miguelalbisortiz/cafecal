@@ -14,10 +14,10 @@ enum NextStepType {
   /// Registrar los primeros gastos del año.
   expenses,
 
-  /// Registrar la primera cosecha.
+  /// Registrar la primera cosecha (ya no se usa en la guía).
   harvest,
 
-  /// Registrar la venta de la cosecha.
+  /// Registrar la venta de la cosecha (ya no se usa en la guía).
   sale,
 }
 
@@ -30,8 +30,6 @@ class NextStep {
 
   const NextStep({required this.type, this.cropId});
 }
-
-const Set<String> _saleCategories = {'venta_cafe', 'venta_platano', 'venta_otro'};
 
 /// True mientras la finca esté vacía (0 cultivos y 0 siembras): el usuario aún
 /// no eligió su primer paso. Cualquier cultivo o siembra la desbloquea.
@@ -63,6 +61,13 @@ NextStep? nextStepFor({
   final hasAnyData = sowings.isNotEmpty ||
       harvests.isNotEmpty ||
       transactions.any((t) => !t.deleted);
+
+  // La tarjeta solo guía los primeros pasos: crear cultivo y registrar el
+  // primer gasto/ingreso. Una vez que el usuario tiene transacciones, la
+  // tarjeta desaparece para no estorbar.
+  final hasTransactions = transactions.any((t) => !t.deleted);
+  if (hasTransactions) return null;
+
   if (crops.isEmpty && !hasAnyData) {
     return const NextStep(type: NextStepType.crop);
   }
@@ -75,27 +80,6 @@ NextStep? nextStepFor({
     return NextStep(type: NextStepType.sowing, cropId: youngCrop.id);
   }
 
-  final hasExpenses = transactions.any(
-    (t) => !t.deleted && t.type.isExpense && t.date.year == year,
-  );
-  if (!hasExpenses) {
-    return const NextStep(type: NextStepType.expenses);
-  }
-
-  if (harvests.isEmpty) {
-    return const NextStep(type: NextStepType.harvest);
-  }
-
-  final hasSales = transactions.any(
-    (t) =>
-        !t.deleted &&
-        !t.type.isExpense &&
-        _saleCategories.contains(t.category) &&
-        t.date.year == year,
-  );
-  if (!hasSales) {
-    return const NextStep(type: NextStepType.sale);
-  }
-
-  return null;
+  // Sin gastos del año → invita a registrar el primer gasto.
+  return const NextStep(type: NextStepType.expenses);
 }

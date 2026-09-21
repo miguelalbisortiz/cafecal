@@ -12,6 +12,7 @@ import '../models/harvest.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
+import '../models/currencies.dart';
 import '../services/alert_service.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
@@ -81,6 +82,16 @@ class _ReportScreenState extends State<ReportScreen> {
     final expenseRows = _categoryRows(tx, TransactionType.expense, l10n);
     final margen = incomes > 0 ? (balance / incomes) * 100 : null;
     final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
+
+    // Monedas mixtas: desglose por moneda
+    final expenseByCurrency = tx.sumByCurrency(TransactionType.expense,
+        year: _mode == _PeriodMode.year || _mode == _PeriodMode.yearToDate ? _year : null,
+        month: _mode == _PeriodMode.month ? _month : null);
+    final incomeByCurrency = tx.sumByCurrency(TransactionType.income,
+        year: _mode == _PeriodMode.year || _mode == _PeriodMode.yearToDate ? _year : null,
+        month: _mode == _PeriodMode.month ? _month : null);
+    final allCurrencies = {...expenseByCurrency.keys, ...incomeByCurrency.keys};
+    final isMixedCurrency = allCurrencies.length > 1;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.menuReport)),
@@ -296,8 +307,17 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                     _metricLine(
                       l10n.ratioLabel,
-                      ratio != null ? '${_pct(ratio)}%' : 'â€”',
+                      ratio != null ? '${_pct(ratio)}%' : 'â€"',
                     ),
+                    if (isMixedCurrency) ...[
+                      const SizedBox(height: 12),
+                      _CurrencyBreakdown(
+                        expenseByCurrency: expenseByCurrency,
+                        incomeByCurrency: incomeByCurrency,
+                        l10n: l10n,
+                        locale: tx.settings.locale,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1396,6 +1416,92 @@ class _CropBreakdownTile extends StatelessWidget {
               color: valueColor,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CurrencyBreakdown extends StatelessWidget {
+  final Map<String, double> expenseByCurrency;
+  final Map<String, double> incomeByCurrency;
+  final AppLocalizations l10n;
+  final String locale;
+
+  const _CurrencyBreakdown({
+    required this.expenseByCurrency,
+    required this.incomeByCurrency,
+    required this.l10n,
+    required this.locale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final allCurrencies = {...expenseByCurrency.keys, ...incomeByCurrency.keys}
+      .toList()
+      ..sort();
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.monetization_on_outlined,
+                  size: 16, color: scheme.primary),
+              const SizedBox(width: 6),
+              Text(
+                l10n.currencyMixedHint(allCurrencies.length),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: scheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final cur in allCurrencies) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    currencyInfo(cur).code,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                if (expenseByCurrency.containsKey(cur))
+                  Text(
+                    formatAmount(-expenseByCurrency[cur]!,
+                        currency: cur, locale: locale),
+                    style: TextStyle(
+                        fontSize: 12, color: scheme.error),
+                  ),
+                if (expenseByCurrency.containsKey(cur) &&
+                    incomeByCurrency.containsKey(cur))
+                  const SizedBox(width: 12),
+                if (incomeByCurrency.containsKey(cur))
+                  Text(
+                    formatAmount(incomeByCurrency[cur]!,
+                        currency: cur, locale: locale),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w600),
+                  ),
+              ],
+            ),
+            if (cur != allCurrencies.last)
+              const SizedBox(height: 4),
+          ],
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
+import '../models/currencies.dart';
 
 /// Editor de cultivo (crear y editar). Permite configurar fase/ciclo, unidad
 /// preferida, área y plantas vivas. Al confirmar devuelve los valores editados.
@@ -22,6 +23,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   CropPhase _phase = CropPhase.produccion;
   CropCycle _cycle = CropCycle.perenne;
   String? _defaultUnit;
+  String _currency = 'COP';
   final _areaController = TextEditingController();
   final _plantsController = TextEditingController();
   final _establishmentController = TextEditingController();
@@ -40,6 +42,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       _phase = c.phase;
       _cycle = c.cycle;
       _defaultUnit = c.defaultUnit;
+      _currency = c.currency ?? 'COP';
       if (c.areaHa != null) _areaController.text = c.areaHa.toString();
       if (c.livePlants != null) _plantsController.text = c.livePlants.toString();
       if (c.establishmentCost != null) {
@@ -88,6 +91,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       areaHa: area,
       livePlants: plants,
       establishmentCost: establishmentCost,
+      currency: _currency,
     ));
   }
 
@@ -142,6 +146,23 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                     )),
               ],
               onChanged: (v) => setState(() => _defaultUnit = v),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _currency,
+              decoration: InputDecoration(
+                labelText: l10n.currencyLabel,
+                helperText: l10n.helpCropCurrencyShort,
+                prefixIcon: const Icon(Icons.monetization_on_outlined),
+                border: const OutlineInputBorder(),
+              ),
+              items: supportedCurrencies
+                  .map((c) => DropdownMenuItem(
+                        value: c.code,
+                        child: Text('${c.symbol} ${c.name} (${c.code})'),
+                      ))
+                  .toList(),
+              onChanged: (v) => setState(() => _currency = v ?? 'COP'),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<CropCycle>(
@@ -274,6 +295,7 @@ class CropFormData {
   final double? areaHa;
   final int? livePlants;
   final double? establishmentCost;
+  final String currency;
 
   const CropFormData({
     required this.name,
@@ -285,5 +307,6 @@ class CropFormData {
     this.areaHa,
     this.livePlants,
     this.establishmentCost,
+    this.currency = 'COP',
   });
 }

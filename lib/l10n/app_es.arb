@@ -186,6 +186,7 @@
   "sowingCostLabel": "Costo (opcional)",
   "sowingCostHint": "Si registras un costo, se crea un gasto vinculado a esta siembra.",
   "helpUnitShort": "Unidad de venta",
+  "helpCropCurrencyShort": "Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.",
   "helpCycleShort": "Perenne o anual",
   "phaseHelpShort": "Fase del cultivo",
   "helpAreaShort": "Opcional, en ha",
@@ -452,6 +453,32 @@
 
   "farmNameLabel": "Nombre de la finca",
   "currencyLabel": "Moneda",
+  "currencyDisplayLabel": "Moneda de reportes",
+  "currencyDisplayHelper": "Moneda en que se resumen los reportes. Cada registro conserva su moneda original.",
+  "@currencyDisplayHelper": {
+    "description": "Helper text for the display currency setting"
+  },
+  "currencyMixedHint": "Se muestra en {count} monedas",
+  "@currencyMixedHint": {
+    "description": "Hint when transactions have mixed currencies",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyConvertedTotal": "Total en {currency}: {amount}",
+  "@currencyConvertedTotal": {
+    "description": "Total converted to display currency",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "languageLabel": "Idioma",
   "languageSpanish": "Español",
   "languageEnglish": "English",

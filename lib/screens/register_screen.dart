@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../models/categories.dart';
+import '../models/currencies.dart';
 import '../models/harvest.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
@@ -38,6 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _cropId;
   String? _unit;
   String? _harvestId;
+  String _currency = 'COP';
   DateTime _date = DateTime.now();
 
   static const _saleCategories = {
@@ -60,6 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _cropId = e.cropId;
       _date = e.date;
       _unit = e.unit;
+      _currency = e.currency;
       _harvestId = e.harvestId;
       if (e.quantity != null) {
         _quantityController.text = (e.quantity! % 1 == 0)
@@ -76,6 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (last != null && provider.crops.any((c) => c.id == last)) {
         _cropId = last;
       }
+      _currency = provider.settings.currency;
       if (widget.initialType != null) {
         _type = widget.initialType!;
       }
@@ -113,7 +117,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _cropId = matched.first.id);
       return;
     }
-    final crop = await tx.addCrop(n);
+    final crop = await tx.addCrop(n, currency: _currency);
     if (!mounted) return;
     setState(() => _cropId = crop.id);
   }
@@ -157,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         type: _type,
         category: _category ?? 'otro',
         amount: amount,
-        currency: editing.currency,
+        currency: _currency,
         description: _descriptionController.text.trim(),
         date: _date,
         createdAt: editing.createdAt,
@@ -186,6 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       category: _category ?? 'otro',
       cropId: _cropId,
       amount: amount,
+      currency: _currency,
       description: _descriptionController.text.trim(),
       date: _date,
       quantity: quantity,
@@ -353,6 +358,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _cropId = v;
                   _unit = null;
                   _harvestId = null;
+                  // Auto-usa la moneda del cultivo seleccionado
+                  if (v != null) {
+                    final match = tx.crops.where((c) => c.id == v).toList();
+                    if (match.isNotEmpty && match.first.currency != null) {
+                      _currency = match.first.currency!;
+                    }
+                  }
                 });
               }
             },
@@ -439,7 +451,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               quantity: double.tryParse(
                   _quantityController.text.trim().replaceAll(',', '.')),
               unit: _unit,
-              currency: tx.settings.currency,
+              currency: _currency,
               locale: tx.settings.locale,
               l10n: l10n,
             ),
@@ -505,6 +517,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
               return null;
             },
             onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 12),
+
+          // Moneda
+          DropdownButtonFormField<String>(
+            value: _currency,
+            decoration: InputDecoration(
+              labelText: l10n.currencyLabel,
+              prefixIcon: const Icon(Icons.monetization_on_outlined),
+              border: const OutlineInputBorder(),
+            ),
+            items: supportedCurrencies
+                .map((c) => DropdownMenuItem(
+                      value: c.code,
+                      child: Text('${c.symbol} ${c.name} (${c.code})'),
+                    ))
+                .toList(),
+            onChanged: (v) => setState(() => _currency = v ?? 'COP'),
           ),
           const SizedBox(height: 16),
 

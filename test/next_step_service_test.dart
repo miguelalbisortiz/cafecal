@@ -167,7 +167,7 @@ void main() {
       expect(step?.type, NextStepType.expenses);
     });
 
-    test('con gastos del año y sin cosechas sugiere la primera cosecha', () {
+    test('con gastos del año → tarjeta se oculta (ya tiene datos)', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -175,10 +175,10 @@ void main() {
         transactions: [_txn('e1', category: 'cosecha')],
         year: year,
       );
-      expect(step?.type, NextStepType.harvest);
+      expect(step, isNull);
     });
 
-    test('con cosecha y sin ventas sugiere registrar la venta', () {
+    test('con cosecha y gastos → tarjeta se oculta', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -186,10 +186,10 @@ void main() {
         transactions: [_txn('e1', category: 'cosecha')],
         year: year,
       );
-      expect(step?.type, NextStepType.sale);
+      expect(step, isNull);
     });
 
-    test('gastos de otro año no cuentan como gastos del año', () {
+    test('gastos de otro año con algún txn activo → tarjeta se oculta', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -199,24 +199,11 @@ void main() {
         ],
         year: year,
       );
-      expect(step?.type, NextStepType.expenses);
-    });
-
-    test('venta registrada este año oculta la tarjeta', () {
-      final step = nextStepFor(
-        crops: [_crop('cafe', phase: CropPhase.produccion)],
-        sowings: const [],
-        harvests: [_harvest('h1', cropId: 'cafe')],
-        transactions: [
-          _txn('e1', category: 'cosecha'),
-          _txn('i1', type: TransactionType.income, category: 'venta_cafe'),
-        ],
-        year: year,
-      );
+      // Hay una transacción (aunque sea de otro año), la tarjeta desaparece
       expect(step, isNull);
     });
 
-    test('ventas de otro año no ocultan el paso de venta', () {
+    test('ventas de otro año con algún txn activo → tarjeta se oculta', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -230,10 +217,10 @@ void main() {
         ],
         year: year,
       );
-      expect(step?.type, NextStepType.sale);
+      expect(step, isNull);
     });
 
-    test('la siembra tiene prioridad sobre gastos y cosechas', () {
+    test('con transacciones y establecimiento sin siembra → tarjeta se oculta', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.establecimiento)],
         sowings: const [],
@@ -244,7 +231,7 @@ void main() {
         ],
         year: year,
       );
-      expect(step?.type, NextStepType.sowing);
+      expect(step, isNull);
     });
   });
 }

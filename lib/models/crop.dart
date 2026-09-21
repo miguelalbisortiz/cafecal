@@ -2,6 +2,8 @@ enum CropPhase { establecimiento, produccion, renovacion }
 
 enum CropCycle { perenne, anual }
 
+const _sentinel = Object();
+
 class Crop {
   final String id;
   final String name;
@@ -15,6 +17,10 @@ class Crop {
   final int? livePlants;
   final double? establishmentCost;
 
+  /// Moneda del cultivo — todos los gastos/ingresos vinculados heredan esta
+  /// moneda. Si es null, se usa la moneda de configuración.
+  final String? currency;
+
   const Crop({
     required this.id,
     required this.name,
@@ -27,6 +33,7 @@ class Crop {
     this.areaHa,
     this.livePlants,
     this.establishmentCost,
+    this.currency,
   });
 
   Crop copyWith({
@@ -41,6 +48,7 @@ class Crop {
     double? areaHa,
     int? livePlants,
     double? establishmentCost,
+    Object? currency = _sentinel,
   }) {
     return Crop(
       id: id ?? this.id,
@@ -54,6 +62,7 @@ class Crop {
       areaHa: areaHa ?? this.areaHa,
       livePlants: livePlants ?? this.livePlants,
       establishmentCost: establishmentCost ?? this.establishmentCost,
+      currency: currency == _sentinel ? this.currency : currency as String?,
     );
   }
 
@@ -69,6 +78,7 @@ class Crop {
         'area_ha': areaHa,
         'live_plants': livePlants,
         'establishment_cost': establishmentCost,
+        'currency': currency,
       };
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -90,6 +100,7 @@ class Crop {
       areaHa: (json['area_ha'] as num?)?.toDouble(),
       livePlants: (json['live_plants'] as num?)?.toInt(),
       establishmentCost: (json['establishment_cost'] as num?)?.toDouble(),
+      currency: json['currency'] as String?,
     );
   }
 }

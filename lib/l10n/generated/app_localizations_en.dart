@@ -539,6 +539,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitShort => 'Sale unit';
 
   @override
+  String get helpCropCurrencyShort => 'Currency for this crop. Linked expenses and incomes use this currency.';
+
+  @override
   String get helpCycleShort => 'Perennial or annual';
 
   @override
@@ -1164,6 +1167,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get currencyLabel => 'Currency';
+
+  @override
+  String get currencyDisplayLabel => 'Report currency';
+
+  @override
+  String get currencyDisplayHelper => 'Currency for report summaries. Each record keeps its original currency.';
+
+  @override
+  String currencyMixedHint(int count) {
+    return 'Showing in $count currencies';
+  }
+
+  @override
+  String currencyConvertedTotal(String currency, String amount) {
+    return 'Total in $currency: $amount';
+  }
 
   @override
   String get languageLabel => 'Language';
