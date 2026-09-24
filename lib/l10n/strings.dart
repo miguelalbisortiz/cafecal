@@ -43,6 +43,8 @@ extension L10nCategories on AppLocalizations {
         kExpenseCategoryHarvest => catCosecha,
         'plagas' => catPlagas,
         'riego' => catRiego,
+        'energia' => catEnergia,
+        'agua' => catAgua,
         'empaque' => catEmpaque,
         'transporte' => catTransporte,
         'equipo' => catEquipo,

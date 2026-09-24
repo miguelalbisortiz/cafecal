@@ -37,6 +37,22 @@ const String kExpenseCategorySowing = 'siembra';
 /// manual y puede vincularse a una cosecha concreta desde el editor de gastos.
 const String kExpenseCategoryHarvest = 'cosecha';
 
+/// Categorías de gasto que descuentan de la caja menor además de los
+/// jornales (mano de obra). Son los "gastos extras o misceláneos" de la
+/// planilla: energía, agua, imprevistos y arreglos. Insumos, abonos y
+/// fertilizantes NO están aquí (son inversión de producción).
+/// Ajustable: agregar una categoría a este set la hace descontar de caja.
+const Set<String> kCashBoxExtraCategories = {
+  'energia',
+  'agua',
+  'otro',
+  'mantenimiento',
+};
+
+/// ¿Este gasto descuenta de la caja menor? Jornales + extras.
+bool discountsCashBox(String category) =>
+    category == 'mano_obra' || kCashBoxExtraCategories.contains(category);
+
 const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: kExpenseCategorySowing, name: 'Siembra', icon: '🌱', color: '#2E7D32'),
   ExpenseCategory(key: 'semillas_insumos', name: 'Semillas e insumos', icon: '🌾', color: '#7CB342'),
@@ -45,6 +61,8 @@ const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: kExpenseCategoryHarvest, name: 'Cosecha y recolección', icon: '🧺', color: '#F57F17'),
   ExpenseCategory(key: 'plagas', name: 'Control plagas', icon: '🐛', color: '#E53935'),
   ExpenseCategory(key: 'riego', name: 'Riego', icon: '💧', color: '#00ACC1'),
+  ExpenseCategory(key: 'energia', name: 'Energía', icon: '⚡', color: '#FBC02D'),
+  ExpenseCategory(key: 'agua', name: 'Agua', icon: '🚿', color: '#039BE5'),
   ExpenseCategory(key: 'empaque', name: 'Empacado y comercialización', icon: '🛍️', color: '#5E35B1'),
   ExpenseCategory(key: 'transporte', name: 'Transporte', icon: '🚛', color: '#FB8C00'),
   ExpenseCategory(key: 'equipo', name: 'Equipo', icon: '🔧', color: '#8E24AA'),

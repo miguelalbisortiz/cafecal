@@ -16,6 +16,7 @@ import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
+import 'report_payroll_metrics.dart';
 import 'week_utils.dart';
 
 enum ReportPeriod { week, month, year, yearToDate }
@@ -287,6 +288,19 @@ class PdfExportService {
           pw.SizedBox(height: 20),
           _soldVsHarvestedSection(
               periodTx, periodHarvests, crops, sowings, currency, l10n),
+          pw.SizedBox(height: 20),
+          _payrollSection(periodTx, currency, l10n),
+          pw.SizedBox(height: 20),
+          _cashBoxSection(
+            periodTx,
+            settings.cajaMenorMensual,
+            period,
+            year,
+            month,
+            now,
+            currency,
+            l10n,
+          ),
           pw.SizedBox(height: 20),
           _recommendationsSection(
               periodTx, crops, harvests, sowings, l10n),
@@ -621,6 +635,8 @@ class PdfExportService {
         // Costo total por kg e indicadores por cultivo (producción).
         ..._perCropHarvestRows(byCrop, crops, periodHarvests, source.toList(),
             sowings, currency, l10n),
+        // Personal y kilos por cosecha (si se registraron).
+        ..._staffHarvestRows(periodHarvests, crops, l10n),
       ],
     );
   }
@@ -718,6 +734,201 @@ class PdfExportService {
             )),
       ],
     );
+  }
+
+  /// Sección "Nómina del período": tabla por trabajador (días, subtotal),
+  /// total de nómina y cantidad de empleados distintos.
+  /// Solo se muestra si hay gastos de mano de obra en el período.
+  pw.Widget _payrollSection(
+      Iterable<Transaction> source, String currency, AppLocalizations l10n) {
+    final summary = const ReportPayrollMetrics().payroll(source);
+    if (summary.isEmpty) return pw.SizedBox.shrink();
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          l10n.reportPayrollSection,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Table(
+          columnWidths: const {
+            0: pw.FlexColumnWidth(3),
+            1: pw.FlexColumnWidth(1.2),
+            2: pw.FlexColumnWidth(2),
+          },
+          border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+          children: [
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.brown600),
+              children: [
+                _payrollCell(l10n.reportPayrollWorker, _payrollHeaderStyle),
+                _payrollCell(l10n.reportPayrollDays, _payrollHeaderStyle),
+                _payrollCell(l10n.reportPayrollSubtotal, _payrollHeaderStyle),
+              ],
+            ),
+            for (final r in summary.rows)
+              pw.TableRow(
+                children: [
+                  _payrollCell(r.provider.isEmpty
+                      ? l10n.reportPayrollUnnamed
+                      : r.provider, _payrollCellStyle),
+                  _payrollCell(
+                      r.days > 0 ? _num(r.days) : '—', _payrollCellStyle),
+                  _payrollCell(
+                      formatPdfMoney(r.subtotal, currency), _payrollCellStyle),
+                ],
+              ),
+          ],
+        ),
+        pw.SizedBox(height: 4),
+        _statementRow(
+          l10n.reportPayrollTotal,
+          formatPdfMoney(summary.total, currency),
+          bold: true,
+        ),
+        _statementRow(
+          l10n.reportPayrollEmployees(summary.distinctEmployees),
+          '',
+          small: true,
+        ),
+      ],
+    );
+  }
+
+  static final _payrollHeaderStyle = pw.TextStyle(
+    fontWeight: pw.FontWeight.bold,
+    color: PdfColors.white,
+    fontSize: 9,
+  );
+  static const _payrollCellStyle = pw.TextStyle(fontSize: 9);
+
+  pw.Widget _payrollCell(String text, pw.TextStyle style) => pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: pw.Text(text, style: style),
+      );
+
+  /// Sección "Caja menor": una fila por mes del período con presupuesto,
+  /// jornales, extras, total y saldo. Solo con monto configurado
+  /// (el saldo no se acumula entre meses: cada mes reinicia).
+  pw.Widget _cashBoxSection(
+    Iterable<Transaction> source,
+    double? budget,
+    ReportPeriod period,
+    int year,
+    int? month,
+    DateTime now,
+    String currency,
+    AppLocalizations l10n,
+  ) {
+    final rows = const ReportPayrollMetrics().cashBoxByMonth(
+      periodTx: source,
+      budget: budget,
+      period: period,
+      year: year,
+      month: month,
+      now: now,
+    );
+    if (rows.isEmpty) return pw.SizedBox.shrink();
+    final multiYear = rows.map((r) => r.year).toSet().length > 1;
+
+    pw.Widget cell(String text, {PdfColor? color, bool bold = false}) =>
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: pw.Text(
+            text,
+            style: pw.TextStyle(
+              fontSize: 9,
+              color: color ?? PdfColors.black,
+              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+            ),
+          ),
+        );
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          l10n.cashBoxTitle,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Table(
+          columnWidths: const {
+            0: pw.FlexColumnWidth(1.8),
+            1: pw.FlexColumnWidth(1.6),
+            2: pw.FlexColumnWidth(1.4),
+            3: pw.FlexColumnWidth(1.4),
+            4: pw.FlexColumnWidth(1.4),
+            5: pw.FlexColumnWidth(1.5),
+          },
+          border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+          children: [
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.brown600),
+              children: [
+                cell(l10n.segMonth, color: PdfColors.white, bold: true),
+                cell(l10n.reportCashBoxBudget, color: PdfColors.white, bold: true),
+                cell(l10n.cashBoxLabor, color: PdfColors.white, bold: true),
+                cell(l10n.cashBoxExtras, color: PdfColors.white, bold: true),
+                cell(l10n.jornalTotalLabel, color: PdfColors.white, bold: true),
+                cell(l10n.reportCashBoxBalance,
+                    color: PdfColors.white, bold: true),
+              ],
+            ),
+            for (final r in rows)
+              pw.TableRow(
+                children: [
+                  cell(multiYear
+                      ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+                      : l10n.monthFull[r.month - 1]),
+                  cell(formatPdfMoney(r.budget, currency)),
+                  cell(formatPdfMoney(r.labor, currency)),
+                  cell(formatPdfMoney(r.extras, currency)),
+                  cell(formatPdfMoney(r.total, currency)),
+                  cell(
+                    formatPdfMoney(r.balance, currency),
+                    color: r.balance < 0 ? _pdfNegative : _pdfPositive,
+                    bold: true,
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Filas por cosecha con 👷 empleados y kilos equivalentes (si existen).
+  List<pw.Widget> _staffHarvestRows(
+      List<Harvest> harvests, List<Crop> crops, AppLocalizations l10n) {
+    final nameById = {for (final c in crops) c.id: c.name};
+    final withStaff = harvests
+        .where((h) => h.workers != null || h.equivalentKg != null)
+        .toList();
+    if (withStaff.isEmpty) return const [];
+    return [
+      pw.SizedBox(height: 4),
+      pw.Text(
+        l10n.reportHarvestStaff,
+        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+      ),
+      ...withStaff.map((h) {
+        final crop = h.cropId == null ? null : nameById[h.cropId];
+        final date =
+            '${h.date.day.toString().padLeft(2, '0')}/${h.date.month.toString().padLeft(2, '0')}/${h.date.year}';
+        final parts = <String>[
+          if (h.workers != null) '👷 ${l10n.harvestWorkersCount(h.workers!)}',
+          if (h.equivalentKg != null) '${_numKg(h.equivalentKg!)} kg',
+        ];
+        return _statementRow(
+          '    $date${crop != null ? ' · $crop' : ''}',
+          parts.join(' · '),
+          small: true,
+        );
+      }),
+    ];
   }
 
   pw.Widget _recommendationsSection(

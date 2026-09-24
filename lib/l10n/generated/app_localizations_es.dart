@@ -698,6 +698,70 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportNoHarvestData => 'Sin datos de cosechas en el período.';
 
   @override
+  String get harvestWorkersLabel => 'N° de empleados';
+
+  @override
+  String get harvestWorkersHint => 'Opcional. Personas que trabajaron en la cosecha.';
+
+  @override
+  String get harvestWorkersInvalid => 'Ingresa un entero mayor o igual a 0.';
+
+  @override
+  String harvestWorkersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count empleados',
+      one: '$count empleado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get harvestEquivalentKgLabel => '¿Cuántos kilos hacen?';
+
+  @override
+  String get harvestEquivalentKgHint => 'Opcional. Peso total de los racimos recolectados.';
+
+  @override
+  String get harvestEquivalentKgInvalid => 'Ingresa un número mayor que 0.';
+
+  @override
+  String get reportPayrollSection => 'Nómina del período';
+
+  @override
+  String get reportPayrollWorker => 'Trabajador';
+
+  @override
+  String get reportPayrollDays => 'Días';
+
+  @override
+  String get reportPayrollSubtotal => 'Subtotal';
+
+  @override
+  String get reportPayrollTotal => 'Total nómina';
+
+  @override
+  String reportPayrollEmployees(int count) {
+    return 'Empleados distintos: $count';
+  }
+
+  @override
+  String get reportPayrollUnnamed => 'Sin nombre';
+
+  @override
+  String get reportCashBoxBudget => 'Presupuesto';
+
+  @override
+  String get reportCashBoxBalance => 'Saldo';
+
+  @override
+  String get reportHarvestStaff => 'Personal y kilos';
+
+  @override
+  String get reportEquivalentKg => 'Kilos equivalentes';
+
+  @override
   String get perHaSection => 'Por hectárea';
 
   @override
@@ -1036,6 +1100,107 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cropsEmpty => 'Aún no hay cultivos. Agrega el primero.';
+
+  @override
+  String get menuWorkers => 'Trabajadores';
+
+  @override
+  String get workersEmpty => 'Aún no hay trabajadores. Agrega el primero.';
+
+  @override
+  String get workerNewOption => '+ Nuevo trabajador…';
+
+  @override
+  String get newWorkerDialogTitle => 'Nuevo trabajador';
+
+  @override
+  String get editWorkerTitle => 'Editar trabajador';
+
+  @override
+  String get workerNameLabel => 'Nombre';
+
+  @override
+  String get workerNameRequired => 'Escribe el nombre del trabajador.';
+
+  @override
+  String get workerDayRateLabel => 'Valor por día (opcional)';
+
+  @override
+  String get workerDayRateShort => 'Valor por día';
+
+  @override
+  String get helpWorkerDayRate => 'Se autocompleta al registrar un jornal. Déjalo vacío si prefieres escribirlo cada vez.';
+
+  @override
+  String get workerConfirmDelete => 'Eliminar trabajador';
+
+  @override
+  String get workerDeleted => 'Trabajador eliminado';
+
+  @override
+  String get workerWorkedIn => 'Trabajó en';
+
+  @override
+  String get workerNoJornales => 'Sin jornales registrados';
+
+  @override
+  String get workerNoRate => 'Sin valor por día';
+
+  @override
+  String get jornalSectionTitle => 'Jornal';
+
+  @override
+  String get jornalWorkerLabel => 'Trabajador';
+
+  @override
+  String get jornalWorkerHint => 'Crea tus trabajadores en el menú ⋮ o elige «Otro nombre».';
+
+  @override
+  String get jornalWorkerRequired => 'Elige el trabajador.';
+
+  @override
+  String get jornalOtherNameOption => 'Otro nombre…';
+
+  @override
+  String get jornalCreateOption => 'Crear trabajador…';
+
+  @override
+  String get jornalDaysLabel => 'Días trabajados';
+
+  @override
+  String get jornalDaysRequired => 'Ingresa los días (entero mayor que 0).';
+
+  @override
+  String get jornalRateRequired => 'Ingresa el valor por día.';
+
+  @override
+  String get jornalTotalLabel => 'Total';
+
+  @override
+  String get jornalTotalHint => 'Se calcula: días × valor por día.';
+
+  @override
+  String get cashBoxLabel => 'Caja menor mensual';
+
+  @override
+  String get cashBoxHelp => 'Monto de cada mes para jornales y extras. Se reinicia solo cada 1 de mes; lo que sobre no se acumula.';
+
+  @override
+  String get cashBoxTitle => 'Caja menor';
+
+  @override
+  String cashBoxOf(String used, String total) {
+    return '$used de $total';
+  }
+
+  @override
+  String get cashBoxRemaining => 'Restante';
+
+  @override
+  String get cashBoxLabor => 'Jornales';
+
+  @override
+  String get cashBoxExtras => 'Extras';
 
   @override
   String get segMonth => 'Mes';
@@ -1641,6 +1806,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get catRiego => 'Riego';
 
   @override
+  String get catEnergia => 'Energía';
+
+  @override
+  String get catAgua => 'Agua';
+
+  @override
   String get catEmpaque => 'Empacado y comercialización';
 
   @override
@@ -1724,4 +1895,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertMissingQtySuggestion => 'Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.';
+
+  @override
+  String alertCashBoxWarningTitle(String month, String percent) {
+    return 'La caja menor de $month está al $percent';
+  }
+
+  @override
+  String alertCashBoxWarningMessage(String used, String total, String remaining) {
+    return 'El problema: este mes llevas $used de $total en jornales y extras. Te quedan $remaining antes de agotarla.';
+  }
+
+  @override
+  String get alertCashBoxWarningSuggestion => 'Revisa los gastos extras y deja solo lo necesario hasta cerrar el mes.';
+
+  @override
+  String alertCashBoxDangerTitle(String month) {
+    return 'Caja menor agotada en $month';
+  }
+
+  @override
+  String alertCashBoxDangerMessage(String used, String total, String percent) {
+    return 'El problema: este mes llevas $used de $total en jornales y extras ($percent). Ya no queda presupuesto disponible.';
+  }
+
+  @override
+  String get alertCashBoxDangerSuggestion => 'Revisa los gastos extras y considera reducir trabajadores este mes.';
 }

@@ -117,7 +117,7 @@ void main() {
           isFalse);
     });
 
-    test('movements excluye borrados y monto negativo para gasto', () {
+    test('movements excluye borrados y monto negativo para gasto', () async {
       final rows = excel.tables['Movimientos']!.rows;
       // 1 header + 2 datos visibles
       expect(rows.length, 3);
@@ -131,6 +131,152 @@ void main() {
       final incRow = rows.firstWhere(
           (r) => (cv(r[1])?.toString() ?? '') == 'Ingreso');
       expect(cv(incRow[6]), 5000.0);
+    });
+  });
+
+  group('Resumen — secciones Nómina y Caja menor', () {
+    // Jornales de septiembre: Juan 8 días, María 6 días a $50.000/día.
+    // Extras: energía $100.000. Fertilizante NO descuenta de caja.
+    final laborTxns = [
+      Transaction(
+        id: 'j1',
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 400000,
+        quantity: 8,
+        unit: 'día',
+        pricePerUnit: 50000,
+        provider: 'Juan',
+        date: DateTime(2026, 9, 5),
+        createdAt: DateTime(2026, 9, 5),
+      ),
+      Transaction(
+        id: 'j2',
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 300000,
+        quantity: 6,
+        unit: 'día',
+        pricePerUnit: 50000,
+        provider: 'María',
+        date: DateTime(2026, 9, 10),
+        createdAt: DateTime(2026, 9, 10),
+      ),
+      Transaction(
+        id: 'e1',
+        type: TransactionType.expense,
+        category: 'energia',
+        amount: 100000,
+        date: DateTime(2026, 9, 12),
+        createdAt: DateTime(2026, 9, 12),
+      ),
+      Transaction(
+        id: 'f1',
+        type: TransactionType.expense,
+        category: 'fertilizante',
+        amount: 500000,
+        date: DateTime(2026, 9, 15),
+        createdAt: DateTime(2026, 9, 15),
+      ),
+    ];
+
+    List<List<Data?>> rowsWith({double? caja}) {
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: FarmSettings(
+            farmName: 'Finca Test', currency: 'COP', cajaMenorMensual: caja),
+        transactions: laborTxns,
+        crops: _crops,
+        year: 2026,
+        month: 9,
+        period: ReportPeriod.month,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      ));
+      return Excel.decodeBytes(bytes).tables['Resumen']!.rows;
+    }
+
+    test('nómina: trabajadores, días, subtotal, total y empleados distintos',
+        () {
+      final rows = rowsWith(caja: 800000);
+      bool has(String s) => rows.any((r) => r.any(
+          (c) => (cv(c)?.toString() ?? '').contains(s)));
+
+      expect(has('Nómina del período'), isTrue);
+      expect(has('Trabajador'), isTrue);
+      expect(has('Empleados distintos: 2'), isTrue);
+
+      final juan = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Juan');
+      expect(cv(juan[1]), 8.0, reason: 'días');
+      expect(cv(juan[2]), 400000.0, reason: 'subtotal');
+      final maria = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'María');
+      expect(cv(maria[1]), 6.0);
+      expect(cv(maria[2]), 300000.0);
+
+      final total = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Total nómina');
+      expect(cv(total[2]), 700000.0);
+    });
+
+    test('caja: fila del mes con presupuesto, jornales, extras y saldo', () {
+      final rows = rowsWith(caja: 800000);
+      bool has(String s) => rows.any((r) => r.any(
+          (c) => (cv(c)?.toString() ?? '').contains(s)));
+
+      expect(has('Caja menor'), isTrue);
+      expect(has('Presupuesto'), isTrue);
+      expect(has('Saldo'), isTrue);
+
+      final sep = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Septiembre');
+      expect(cv(sep[1]), 800000.0, reason: 'presupuesto');
+      expect(cv(sep[2]), 700000.0, reason: 'jornales');
+      expect(cv(sep[3]), 100000.0, reason: 'extras (energía)');
+      expect(cv(sep[4]), 800000.0, reason: 'total = jornales + extras');
+      expect(cv(sep[5]), 0.0,
+          reason: 'saldo; el fertilizante no descuenta');
+    });
+
+    test('sin presupuesto no se dibuja la sección de caja', () {
+      final rows = rowsWith(caja: null);
+      expect(
+          rows.any((r) => r.any(
+              (c) => (cv(c)?.toString() ?? '').contains('Caja menor'))),
+          isFalse);
+    });
+
+    test('sin gastos de mano de obra no se dibuja la sección de nómina', () {
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: const FarmSettings(
+            farmName: 'Finca Test', currency: 'COP', cajaMenorMensual: 800000),
+        transactions: [
+          Transaction(
+            id: 'e1',
+            type: TransactionType.expense,
+            category: 'energia',
+            amount: 100000,
+            date: DateTime(2026, 9, 12),
+            createdAt: DateTime(2026, 9, 12),
+          ),
+        ],
+        crops: _crops,
+        year: 2026,
+        month: 9,
+        period: ReportPeriod.month,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      ));
+      final rows = Excel.decodeBytes(bytes).tables['Resumen']!.rows;
+      expect(
+          rows.any((r) => r.any(
+              (c) => (cv(c)?.toString() ?? '').contains('Nómina del período'))),
+          isFalse);
+      // La caja sí se muestra (presupuesto configurado, mes con extras).
+      expect(
+          rows.any((r) => r.any(
+              (c) => (cv(c)?.toString() ?? '').contains('Caja menor'))),
+          isTrue);
     });
   });
 

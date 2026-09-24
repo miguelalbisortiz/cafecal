@@ -40,4 +40,38 @@ void main() {
     final same = original.copyWith();
     expect(same.lowPriceThresholdPerKg, 38000);
   });
+
+  group('cajaMenorMensual', () {
+    test('round-trip conserva el monto', () {
+      const original = FarmSettings(cajaMenorMensual: 800000);
+      final restored = FarmSettings.fromJson(original.toJson());
+      expect(restored.cajaMenorMensual, 800000);
+    });
+
+    test('sin monto el JSON no incluye la clave', () {
+      expect(
+          const FarmSettings()
+              .toJson()
+              .containsKey('caja_menor_mensual'),
+          isFalse);
+    });
+
+    test('fromJson retrocompatible: sin la clave queda en null', () {
+      final restored = FarmSettings.fromJson(const FarmSettings().toJson());
+      expect(restored.cajaMenorMensual, isNull);
+    });
+
+    test('copyWith puede limpiar el monto a null', () {
+      const original = FarmSettings(cajaMenorMensual: 800000);
+      final cleared = original.copyWith(cajaMenorMensual: null);
+      expect(cleared.cajaMenorMensual, isNull);
+      expect(cleared.farmName, original.farmName);
+    });
+
+    test('copyWith sin args conserva el monto', () {
+      const original = FarmSettings(cajaMenorMensual: 650000);
+      expect(original.copyWith().cajaMenorMensual, 650000);
+      expect(original.copyWith(farmName: 'Otra').cajaMenorMensual, 650000);
+    });
+  });
 }

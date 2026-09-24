@@ -15,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _farmName;
   late final TextEditingController _threshold;
+  late final TextEditingController _cajaMenor;
   String _currency = 'COP';
   String _language = 'es';
 
@@ -32,12 +33,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? s.lowPriceThresholdPerKg!.toInt().toString()
               : s.lowPriceThresholdPerKg.toString()),
     );
+    _cajaMenor = TextEditingController(
+      text: s.cajaMenorMensual == null
+          ? ''
+          : (s.cajaMenorMensual! % 1 == 0
+              ? s.cajaMenorMensual!.toInt().toString()
+              : s.cajaMenorMensual.toString()),
+    );
   }
 
   @override
   void dispose() {
     _farmName.dispose();
     _threshold.dispose();
+    _cajaMenor.dispose();
     super.dispose();
   }
 
@@ -48,6 +57,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final thresholdText = _threshold.text.trim().replaceAll(',', '.');
     final threshold =
         thresholdText.isEmpty ? null : double.tryParse(thresholdText);
+    final cajaText = _cajaMenor.text.trim().replaceAll(',', '.');
+    final caja = cajaText.isEmpty ? null : double.tryParse(cajaText);
 
     await tx.updateSettings(tx.settings.copyWith(
       farmName: _farmName.text.trim().isEmpty
@@ -56,6 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       currency: _currency,
       language: _language,
       lowPriceThresholdPerKg: threshold,
+      cajaMenorMensual: caja,
     ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -119,6 +131,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               labelText: l10n.lowPriceThresholdLabel,
               helperText: l10n.lowPriceThresholdHelper,
               prefixIcon: const Icon(Icons.trending_down),
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _cajaMenor,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.cashBoxLabel,
+              helperText: l10n.cashBoxHelp,
+              prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
               border: const OutlineInputBorder(),
             ),
           ),

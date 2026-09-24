@@ -7,6 +7,14 @@ class Harvest {
   final HarvestDestination destination;
   final bool pendingSync;
 
+  /// N° de empleados que participaron en esta cosecha (opcional).
+  /// Cumple el rubro "PRODUCCION SEMANAL # DE EMPLEADOS" de la planilla.
+  final int? workers;
+
+  /// Kilos que hacen los racimos recojidos (solo si [unit] == 'racimo').
+  /// El peso del racimo varía, por eso se registra por cosecha y no global.
+  final double? equivalentKg;
+
   const Harvest({
     required this.id,
     this.cropId,
@@ -15,6 +23,8 @@ class Harvest {
     this.unit = 'kg',
     this.destination = HarvestDestination.vendido,
     this.pendingSync = false,
+    this.workers,
+    this.equivalentKg,
   });
 
   Harvest copyWith({
@@ -25,6 +35,8 @@ class Harvest {
     String? unit,
     HarvestDestination? destination,
     bool? pendingSync,
+    Object? workers = _sentinel,
+    Object? equivalentKg = _sentinel,
   }) {
     return Harvest(
       id: id ?? this.id,
@@ -34,6 +46,10 @@ class Harvest {
       unit: unit ?? this.unit,
       destination: destination ?? this.destination,
       pendingSync: pendingSync ?? this.pendingSync,
+      workers: workers == _sentinel ? this.workers : workers as int?,
+      equivalentKg: equivalentKg == _sentinel
+          ? this.equivalentKg
+          : equivalentKg as double?,
     );
   }
 
@@ -45,6 +61,8 @@ class Harvest {
         'unit': unit,
         'destination': destination.name,
         'pending_sync': pendingSync,
+        if (workers != null) 'workers': workers,
+        if (equivalentKg != null) 'equivalent_kg': equivalentKg,
       };
 
   factory Harvest.fromJson(Map<String, dynamic> json) {
@@ -59,9 +77,13 @@ class Harvest {
         orElse: () => HarvestDestination.vendido,
       ),
       pendingSync: (json['pending_sync'] as bool?) ?? false,
+      workers: (json['workers'] as num?)?.toInt(),
+      equivalentKg: (json['equivalent_kg'] as num?)?.toDouble(),
     );
   }
 }
+
+const _sentinel = Object();
 
 enum HarvestDestination {
   vendido,

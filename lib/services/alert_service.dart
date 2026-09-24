@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
+import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/farm_alert.dart';
 import '../models/harvest.dart';
@@ -26,6 +27,7 @@ class AlertService {
     double? manualThresholdPerKg,
     List<Harvest> harvests = const [],
     List<Sowing> sowings = const [],
+    double? cajaMensual,
   }) {
     final now = _now ?? DateTime.now();
     final alerts = <FarmAlert>[];
@@ -40,6 +42,7 @@ class AlertService {
     _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts);
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
+    _checkCashBox(active, now, l10n, alerts, cajaMensual: cajaMensual);
 
     return alerts;
   }
@@ -459,6 +462,60 @@ class AlertService {
         title: l10n.alertMissingQtyTitle,
         message: l10n.alertMissingQtyMessage(count),
         suggestion: l10n.alertMissingQtySuggestion,
+      ));
+    }
+  }
+
+  // ---- Regla 10: caja menor del mes ≥80% (warning) / >100% (danger) ----
+
+  void _checkCashBox(List<Transaction> txns, DateTime now,
+      AppLocalizations l10n, List<FarmAlert> out,
+      {double? cajaMensual}) {
+    // Sin monto configurado (o inválido) la regla no se evalúa.
+    if (cajaMensual == null || cajaMensual <= 0) return;
+
+    // Solo el mes calendario vigente: el saldo no se acumula entre meses
+    // (reinicio automático al cambiar de mes). Descuentan jornales + extras.
+    final used = txns
+        .where((t) =>
+            t.type.isExpense &&
+            t.date.year == now.year &&
+            t.date.month == now.month &&
+            discountsCashBox(t.category))
+        .fold<double>(0, (a, t) => a + t.amount);
+    if (used <= 0) return;
+
+    final ratio = used / cajaMensual;
+    if (ratio < 0.8) return;
+
+    final month = l10n.monthFull[now.month - 1];
+    final percent = _percentage(ratio * 100);
+
+    if (ratio > 1.0) {
+      out.add(FarmAlert(
+        id: 'cash_box',
+        rule: AlertRule.cajaMenor,
+        severity: AlertSeverity.danger,
+        title: l10n.alertCashBoxDangerTitle(month),
+        message: l10n.alertCashBoxDangerMessage(
+          _money(used),
+          _money(cajaMensual),
+          percent,
+        ),
+        suggestion: l10n.alertCashBoxDangerSuggestion,
+      ));
+    } else {
+      out.add(FarmAlert(
+        id: 'cash_box',
+        rule: AlertRule.cajaMenor,
+        severity: AlertSeverity.warning,
+        title: l10n.alertCashBoxWarningTitle(month, percent),
+        message: l10n.alertCashBoxWarningMessage(
+          _money(used),
+          _money(cajaMensual),
+          _money(cajaMensual - used),
+        ),
+        suggestion: l10n.alertCashBoxWarningSuggestion,
       ));
     }
   }

@@ -240,6 +240,34 @@
   "reportNoRecommendations": "No recommendations for this period.",
   "reportNoHarvestData": "No harvest data in this period.",
 
+  "harvestWorkersLabel": "No. of workers",
+  "harvestWorkersHint": "Optional. People who worked on this harvest.",
+  "harvestWorkersInvalid": "Enter an integer greater than or equal to 0.",
+  "@harvestWorkersCount": {
+    "description": "Number of workers on a harvest",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "harvestWorkersCount": "{count, plural, one{{count} worker} other{{count} workers}}",
+  "harvestEquivalentKgLabel": "How many kilos does that make?",
+  "harvestEquivalentKgHint": "Optional. Total weight of the collected bunches.",
+  "harvestEquivalentKgInvalid": "Enter a number greater than 0.",
+
+  "reportPayrollSection": "Payroll of the period",
+  "reportPayrollWorker": "Worker",
+  "reportPayrollDays": "Days",
+  "reportPayrollSubtotal": "Subtotal",
+  "reportPayrollTotal": "Total payroll",
+  "@reportPayrollEmployees": {
+    "description": "Distinct workers with labor expenses in the period",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reportPayrollEmployees": "Distinct workers: {count}",
+  "reportPayrollUnnamed": "Unnamed",
+  "reportCashBoxBudget": "Budget",
+  "reportCashBoxBalance": "Balance",
+  "reportHarvestStaff": "Staff and kilos",
+  "reportEquivalentKg": "Equivalent kilos",
+
   "perHaSection": "Per hectare",
   "perHaNoAreaHint": "Set the area of your crops (edit the crop) to see their per-hectare performance: normalized yield, income and expenses.",
   "perHaYieldLabel": "Yield",
@@ -363,6 +391,42 @@
   "cropNameRequired": "Type the crop name.",
   "menuCrops": "Crops",
   "cropsEmpty": "No crops yet. Add the first one.",
+  "menuWorkers": "Workers",
+  "workersEmpty": "No workers yet. Add the first one.",
+  "workerNewOption": "+ New worker…",
+  "newWorkerDialogTitle": "New worker",
+  "editWorkerTitle": "Edit worker",
+  "workerNameLabel": "Name",
+  "workerNameRequired": "Type the worker's name.",
+  "workerDayRateLabel": "Day rate (optional)",
+  "workerDayRateShort": "Day rate",
+  "helpWorkerDayRate": "Autofilled when you record day labor. Leave blank if you prefer to type it each time.",
+  "workerConfirmDelete": "Delete worker",
+  "workerDeleted": "Worker deleted",
+  "workerWorkedIn": "Worked in",
+  "workerNoJornales": "No day-labor records yet",
+  "workerNoRate": "No day rate set",
+  "jornalSectionTitle": "Day labor",
+  "jornalWorkerLabel": "Worker",
+  "jornalWorkerHint": "Create your workers from the ⋮ menu, or pick “Other name”.",
+  "jornalWorkerRequired": "Choose the worker.",
+  "jornalOtherNameOption": "Other name…",
+  "jornalCreateOption": "Create worker…",
+  "jornalDaysLabel": "Days worked",
+  "jornalDaysRequired": "Enter the days (integer greater than 0).",
+  "jornalRateRequired": "Enter the day rate.",
+  "jornalTotalLabel": "Total",
+  "jornalTotalHint": "Calculated: days × day rate.",
+  "cashBoxLabel": "Monthly cash box",
+  "cashBoxHelp": "Monthly amount for day labor and extras. Resets on the 1st of each month; leftovers don't carry over.",
+  "cashBoxTitle": "Cash box",
+  "@cashBoxOf": {
+    "placeholders": { "used": { "type": "String" }, "total": { "type": "String" } }
+  },
+  "cashBoxOf": "{used} of {total}",
+  "cashBoxRemaining": "Remaining",
+  "cashBoxLabor": "Day labor",
+  "cashBoxExtras": "Extras",
 
   "segMonth": "Month",
   "segYear": "Year",
@@ -567,6 +631,8 @@
   "catCosecha": "Harvesting",
   "catPlagas": "Pest control",
   "catRiego": "Irrigation",
+  "catEnergia": "Energy",
+  "catAgua": "Water",
   "catEmpaque": "Packaging & sales",
   "catTransporte": "Transport",
   "catEquipo": "Equipment",
@@ -614,5 +680,32 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "alertMissingQtyMessage": "The problem: in the last 90 days you recorded {count} sales without the sold quantity. Without that figure, the app cannot calculate your price per kilo or your profitability.",
-  "alertMissingQtySuggestion": "Edit those sales and enter the kilos sold. That way your price and profitability reports become reliable."
+  "alertMissingQtySuggestion": "Edit those sales and enter the kilos sold. That way your price and profitability reports become reliable.",
+
+  "@alertCashBoxWarningTitle": {
+    "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }
+  },
+  "alertCashBoxWarningTitle": "The {month} cash box is at {percent}",
+  "@alertCashBoxWarningMessage": {
+    "placeholders": {
+      "used": { "type": "String" },
+      "total": { "type": "String" },
+      "remaining": { "type": "String" }
+    }
+  },
+  "alertCashBoxWarningMessage": "The problem: this month you have {used} of {total} in day labor and extras. You have {remaining} left before it runs out.",
+  "alertCashBoxWarningSuggestion": "Review extra expenses and keep only what's necessary until the month ends.",
+  "@alertCashBoxDangerTitle": {
+    "placeholders": { "month": { "type": "String" } }
+  },
+  "alertCashBoxDangerTitle": "Cash box exhausted in {month}",
+  "@alertCashBoxDangerMessage": {
+    "placeholders": {
+      "used": { "type": "String" },
+      "total": { "type": "String" },
+      "percent": { "type": "String" }
+    }
+  },
+  "alertCashBoxDangerMessage": "The problem: this month you have {used} of {total} in day labor and extras ({percent}). There is no budget left.",
+  "alertCashBoxDangerSuggestion": "Review extra expenses and consider reducing workers this month."
 }

@@ -15,6 +15,7 @@ import 'alert_service.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
+import 'report_payroll_metrics.dart';
 import 'week_utils.dart';
 
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
@@ -24,7 +25,7 @@ class ExcelExportService {
   static final _excelBrown = ExcelColor.fromHexString('FF6D4C41');
   static final _excelGreenSoft = ExcelColor.fromHexString('FFE8F5E9');
   static final _excelRedSoft = ExcelColor.fromHexString('FFFFF3E0');
-  static final _excelWhite = ExcelColor.white;
+  static const _excelWhite = ExcelColor.white;
   static final _excelGreen = ExcelColor.fromHexString('FF1F5E3F');
   static final _excelRed = ExcelColor.fromHexString('FFB3261E');
   /// Genera un XLSX con 3 hojas: Resumen, Por cultivo y Movimientos.
@@ -115,7 +116,11 @@ class ExcelExportService {
         expenseTotals: expenseTotals,
         balance: balance,
         margen: margen,
-        ratio: ratio);
+        ratio: ratio,
+        periodTx: periodTx,
+        period: period,
+        year: year,
+        month: month);
 
     _cropsSheet(excel[l10n.excelSheetCrops],
         periodTx: periodTx, crops: crops, currency: currency, l10n: l10n);
@@ -215,6 +220,10 @@ class ExcelExportService {
 
   String _decimal(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
 
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/${d.year}';
+
   // ── Helpers de estilo ──
 
   void _styleHeaderRow(Sheet sheet, int rowIdx, int colCount, ExcelColor bgColor) {
@@ -290,6 +299,10 @@ class ExcelExportService {
     required double balance,
     required double? margen,
     required double? ratio,
+    required List<Transaction> periodTx,
+    required ReportPeriod period,
+    required int year,
+    int? month,
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
 
@@ -358,9 +371,103 @@ class ExcelExportService {
         6 + incomeTotals.length, 6 + incomeTotals.length + expenseTotals.length);
     _applyCurrencyFormat(sheet, currency, 2, resultRowIdx, resultRowIdx);
 
+    // ── Nómina del período (solo con gastos de mano de obra) ──
+    final payroll = const ReportPayrollMetrics().payroll(periodTx);
+    if (!payroll.isEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.reportPayrollSection)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
+      row([
+        TextCellValue(l10n.reportPayrollWorker),
+        TextCellValue(l10n.reportPayrollDays),
+        TextCellValue(l10n.reportPayrollSubtotal),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+      final payrollFrom = sheet.maxRows;
+      for (final r in payroll.rows) {
+        row([
+          TextCellValue(
+              r.provider.isEmpty ? l10n.reportPayrollUnnamed : r.provider),
+          r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
+          DoubleCellValue(r.subtotal),
+        ]);
+      }
+      _applyCurrencyFormat(sheet, currency, 2, payrollFrom, sheet.maxRows - 1);
+      row([
+        TextCellValue(l10n.reportPayrollTotal),
+        null,
+        DoubleCellValue(payroll.total),
+      ]);
+      _applyCurrencyFormat(
+          sheet, currency, 2, sheet.maxRows - 1, sheet.maxRows - 1);
+      row([TextCellValue(
+          l10n.reportPayrollEmployees(payroll.distinctEmployees))]);
+    }
+
+    // ── Caja menor por mes (solo con monto configurado) ──
+    final cashRows = const ReportPayrollMetrics().cashBoxByMonth(
+      periodTx: periodTx,
+      budget: settings.cajaMenorMensual,
+      period: period,
+      year: year,
+      month: month,
+    );
+    if (cashRows.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.cashBoxTitle)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 6, _excelBrown);
+      row([
+        TextCellValue(l10n.segMonth),
+        TextCellValue(l10n.reportCashBoxBudget),
+        TextCellValue(l10n.cashBoxLabor),
+        TextCellValue(l10n.cashBoxExtras),
+        TextCellValue(l10n.jornalTotalLabel),
+        TextCellValue(l10n.reportCashBoxBalance),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 6);
+      final multiYear = cashRows.map((r) => r.year).toSet().length > 1;
+      final cashFrom = sheet.maxRows;
+      for (final r in cashRows) {
+        row([
+          TextCellValue(multiYear
+              ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+              : l10n.monthFull[r.month - 1]),
+          DoubleCellValue(r.budget),
+          DoubleCellValue(r.labor),
+          DoubleCellValue(r.extras),
+          DoubleCellValue(r.total),
+          DoubleCellValue(r.balance),
+        ]);
+      }
+      final cashTo = sheet.maxRows - 1;
+      for (var c = 1; c <= 5; c++) {
+        _applyCurrencyFormat(sheet, currency, c, cashFrom, cashTo);
+      }
+      // Saldo en verde/rojo conservando el formato numérico.
+      final info = currencyInfo(currency);
+      final fmt = info.decimals > 0 ? '#,##0.${'0' * info.decimals}' : '#,##0';
+      final numFmt = NumFormat.custom(formatCode: fmt);
+      for (var r = cashFrom; r <= cashTo; r++) {
+        final cell = sheet.cell(
+            CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r));
+        final val = cell.value;
+        if (val is DoubleCellValue) {
+          cell.cellStyle = CellStyle(
+            numberFormat: numFmt,
+            fontColorHex: val.value >= 0 ? _excelGreen : _excelRed,
+            bold: true,
+            fontSize: 10,
+          );
+        }
+      }
+    }
+
     sheet.setColumnWidth(0, 42);
-    sheet.setColumnWidth(1, 14);
+    sheet.setColumnWidth(1, 16);
     sheet.setColumnWidth(2, 22);
+    sheet.setColumnWidth(3, 14);
+    sheet.setColumnWidth(4, 14);
+    sheet.setColumnWidth(5, 16);
   }
 
   void _cropsSheet(
@@ -400,7 +507,7 @@ class ExcelExportService {
         row.incomes += t.amount;
       }
     }
-    final startRow = 1;
+    const startRow = 1;
     var r = startRow;
     for (final row in totals.values.where(
         (r) => r.expenses > 0 || r.incomes > 0)) {
@@ -462,7 +569,7 @@ class ExcelExportService {
     ]);
     _styleTableHeader(sheet, 0, 12);
     final nameById = {for (final c in crops) c.id: c.name};
-    final startRow = 1;
+    const startRow = 1;
     var r = startRow;
     for (final t in periodTx) {
       final cropName = t.cropId == null
@@ -624,6 +731,37 @@ class ExcelExportService {
           ]);
         }
       }
+    }
+
+    // Personal y kilos por cosecha (si se registraron).
+    final staffHarvests = periodHarvests
+        .where((h) => h.workers != null || h.equivalentKg != null)
+        .toList();
+    if (staffHarvests.isNotEmpty) {
+      row([null, null, null]);
+      row([
+        TextCellValue(l10n.reportHarvestStaff),
+        TextCellValue(l10n.harvestWorkersLabel),
+        TextCellValue(l10n.reportEquivalentKg),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+      for (final h in staffHarvests) {
+        final cropName = h.cropId == null
+            ? l10n.cropUnspecified
+            : (cropById[h.cropId]?.name ?? h.cropId!);
+        row([
+          TextCellValue(
+              '${_fmtDate(h.date)} · $cropName'),
+          h.workers != null
+              ? IntCellValue(h.workers!)
+              : TextCellValue('—'),
+          h.equivalentKg != null
+              ? DoubleCellValue(h.equivalentKg!)
+              : TextCellValue('—'),
+        ]);
+      }
+      _applyCurrencyFormat(sheet, currency, 2, sheet.maxRows - staffHarvests.length,
+          sheet.maxRows - 1);
     }
 
     // Vendido vs cosechado.

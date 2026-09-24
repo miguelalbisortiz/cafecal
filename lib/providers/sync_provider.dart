@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/crop.dart';
+import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
@@ -72,6 +73,10 @@ class SyncProvider extends ChangeNotifier {
     for (final s in _txProvider.sowings.where((s) => s.pendingSync)) {
       await _upsertRemoteSowing(supabase, s);
     }
+
+    for (final e in _txProvider.employees.where((e) => e.pendingSync)) {
+      await _upsertRemoteEmployee(supabase, e);
+    }
   }
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -133,6 +138,8 @@ class SyncProvider extends ChangeNotifier {
       'unit': h.unit,
       'destination': h.destination.name,
       'harvest_date': h.date.toIso8601String().substring(0, 10),
+      'workers': h.workers,
+      'equivalent_kg': h.equivalentKg,
     }, onConflict: 'id');
   }
 
@@ -152,6 +159,17 @@ class SyncProvider extends ChangeNotifier {
     }, onConflict: 'id');
   }
 
+  Future<void> _upsertRemoteEmployee(SupabaseService supabase, Employee e) async {
+    final user = supabase.client.auth.currentUser;
+    if (user == null) return;
+    await supabase.client.from('employees').upsert({
+      'id': e.id,
+      'user_id': user.id,
+      'name': e.name,
+      'day_rate': e.dayRate,
+    }, onConflict: 'id');
+  }
+
   Future<void> _pullRemote(SupabaseService supabase) async {
     final user = supabase.client.auth.currentUser;
     if (user == null) return;
@@ -168,6 +186,10 @@ class SyncProvider extends ChangeNotifier {
         .eq('user_id', user.id);
     final remoteSowings = await supabase.client
         .from('sowings')
+        .select()
+        .eq('user_id', user.id);
+    final remoteEmployees = await supabase.client
+        .from('employees')
         .select()
         .eq('user_id', user.id);
 
@@ -206,6 +228,15 @@ class SyncProvider extends ChangeNotifier {
         .toList();
     if (remoteSowingMapped.isNotEmpty) {
       _txProvider.mergeRemoteSowings(remoteSowingMapped);
+    }
+
+    final employeeLocalIds = _txProvider.employees.map((e) => e.id).toSet();
+    final remoteEmployeeMapped = (remoteEmployees as List)
+        .map((e) => _remoteToEmployee(e as Map<String, dynamic>))
+        .where((e) => !employeeLocalIds.contains(e.id))
+        .toList();
+    if (remoteEmployeeMapped.isNotEmpty) {
+      _txProvider.mergeRemoteEmployees(remoteEmployeeMapped);
     }
   }
 
@@ -257,6 +288,17 @@ class SyncProvider extends ChangeNotifier {
       'amount': (row['amount'] as num).toDouble(),
       'unit': (row['unit'] as String?) ?? 'kg',
       'destination': (row['destination'] as String?) ?? 'vendido',
+      'pending_sync': false,
+      'workers': (row['workers'] as num?)?.toInt(),
+      'equivalent_kg': (row['equivalent_kg'] as num?)?.toDouble(),
+    });
+  }
+
+  Employee _remoteToEmployee(Map<String, dynamic> row) {
+    return Employee.fromJson({
+      'id': row['id'] as String,
+      'name': row['name'] as String,
+      'day_rate': (row['day_rate'] as num?)?.toDouble(),
       'pending_sync': false,
     });
   }

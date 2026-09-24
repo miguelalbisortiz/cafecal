@@ -12,6 +12,7 @@ import '../models/transaction.dart';
 import '../models/currencies.dart';
 import '../services/next_step_service.dart';
 import '../widgets/alerts_banner.dart';
+import '../widgets/cash_box_card.dart';
 import '../widgets/category_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/next_step_card.dart';
@@ -24,6 +25,7 @@ import 'settings_screen.dart';
 import 'sowing_screen.dart';
 import 'harvest_screen.dart';
 import 'crops_screen.dart';
+import 'workers_screen.dart';
 import 'help_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -88,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (v == 'sowings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SowingScreen()));
                   if (v == 'harvests') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HarvestScreen()));
                   if (v == 'crops') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CropsScreen()));
+                  if (v == 'workers') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WorkersScreen()));
                   if (v == 'help') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpScreen()));
                 },
                 itemBuilder: (_) => [
@@ -125,6 +128,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ListTile(
                         leading: const Icon(Icons.agriculture_outlined),
                         title: Text(l10n.menuHarvests),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'workers',
+                      child: ListTile(
+                        leading: const Icon(Icons.people_outline),
+                        title: Text(l10n.menuWorkers),
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -351,6 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 12),
           _threeCards(l10n, monthIncomes, monthExpenses, monthBalance,
               effectiveMonthCurrency, tx.settings.locale),
+          // Caja menor del mes en curso (se oculta sin monto configurado).
+          const CashBoxCard(),
           const SizedBox(height: 24),
           if (hasMixedYear)
             _MixedCurrencyBanner(

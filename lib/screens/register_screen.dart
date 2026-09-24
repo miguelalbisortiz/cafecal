@@ -10,6 +10,7 @@ import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
 import '../widgets/new_crop_dialog.dart';
+import '../widgets/employee_editor_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Transaction? editing;
@@ -34,6 +35,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _clientController = TextEditingController();
   final _providerController = TextEditingController();
 
+  static const _jornalOtherOption = '__other__';
+  static const _jornalCreateOption = '__create__';
+
+  final _jornalOtherNameController = TextEditingController();
+  final _jornalDaysController = TextEditingController();
+  final _jornalRateController = TextEditingController();
+  String? _jornalWorkerValue;
+  int _jornalDropKey = 0;
+
   TransactionType _type = TransactionType.expense;
   String? _category;
   String? _cropId;
@@ -47,6 +57,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'venta_platano',
     'venta_otro',
   };
+
+  /// Gasto de mano de obra: activa el bloque jornal (trabajador + días ×
+  /// valor día) y bloquea el campo Monto (se calcula solo).
+  bool get _isJornal =>
+      _type == TransactionType.expense && _category == 'mano_obra';
 
   @override
   void initState() {
@@ -71,6 +86,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
       if (e.client != null) _clientController.text = e.client!;
       if (e.provider != null) _providerController.text = e.provider!;
+      // Jornal: restaurar trabajador, días y valor día desde el snapshot.
+      if (e.type == TransactionType.expense && e.category == 'mano_obra') {
+        if (e.quantity != null) {
+          _jornalDaysController.text = (e.quantity! % 1 == 0)
+              ? e.quantity!.toInt().toString()
+              : e.quantity!.toString();
+          // Los días viven en el bloque jornal, no en el campo de ventas.
+          _quantityController.clear();
+        }
+        final rate = e.pricePerUnit ??
+            ((e.quantity != null && e.quantity! > 0)
+                ? e.amount / e.quantity!
+                : null);
+        if (rate != null) {
+          _jornalRateController.text =
+              (rate % 1 == 0) ? rate.toInt().toString() : rate.toString();
+        }
+        final name = e.provider?.trim();
+        if (name != null && name.isNotEmpty) {
+          final tx = context.read<TransactionProvider>();
+          final match = tx.employees
+              .where((emp) => emp.name.toLowerCase() == name.toLowerCase())
+              .toList();
+          if (match.isNotEmpty) {
+            _jornalWorkerValue = match.first.id;
+          } else {
+            // El trabajador ya no está en la lista: conservar el nombre
+            // snapshot como "Otro nombre…" (sin romper el registro).
+            _jornalWorkerValue = _jornalOtherOption;
+            _jornalOtherNameController.text = name;
+          }
+        }
+      }
     } else {
       // Preselecciona el último cultivo usado para agilizar los gastos
       // recurrentes del mismo cultivo. Solo si aún existe.
@@ -93,6 +141,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _quantityController.dispose();
     _clientController.dispose();
     _providerController.dispose();
+    _jornalOtherNameController.dispose();
+    _jornalDaysController.dispose();
+    _jornalRateController.dispose();
     super.dispose();
   }
 
@@ -122,6 +173,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _cropId = crop.id);
   }
 
+  /// Reconstruye el campo Monto con días × valor por día cuando el bloque
+  /// jornal está completo. No toca el monto si faltan datos.
+  void _recalcJornalAmount() {
+    final days = double.tryParse(
+        _jornalDaysController.text.trim().replaceAll(',', '.'));
+    final rate = double.tryParse(
+        _jornalRateController.text.trim().replaceAll(',', '.'));
+    if (days == null || days <= 0 || rate == null || rate <= 0) return;
+    final total = days * rate;
+    final text = total % 1 == 0 ? total.toInt().toString() : total.toString();
+    if (_amountController.text != text) {
+      _amountController.text = text;
+    }
+  }
+
+  /// Abre el diálogo "Crear trabajador" desde el dropdown del bloque jornal.
+  Future<void> _createJornalWorker() async {
+    final tx = context.read<TransactionProvider>();
+    final form = await showDialog<EmployeeFormData>(
+      context: context,
+      builder: (_) => EmployeeEditorDialog(
+        existingNames: tx.employees.map((e) => e.name).toList(),
+      ),
+    );
+    if (!mounted) return;
+    if (form == null) {
+      // Reinicia el dropdown para no quedarse en "Crear trabajador…".
+      setState(() => _jornalDropKey++);
+      return;
+    }
+    final employee = await tx.addEmployee(form.name, dayRate: form.dayRate);
+    if (!mounted) return;
+    setState(() {
+      _jornalWorkerValue = employee.id;
+      _jornalDropKey++;
+      if (employee.dayRate != null) {
+        final r = employee.dayRate!;
+        _jornalRateController.text =
+            (r % 1 == 0) ? r.toInt().toString() : r.toString();
+      }
+      _recalcJornalAmount();
+    });
+  }
+
   Future<void> _pickDate() async {
     final l10n = AppLocalizations.of(context)!;
     final picked = await showDatePicker(
@@ -138,16 +233,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     final tx = context.read<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
-    final amount = double.parse(_amountController.text.replaceAll(',', '.'));
-    final qtyText = _quantityController.text.trim().replaceAll(',', '.');
-    final quantity = qtyText.isEmpty ? null : double.tryParse(qtyText);
     final isSale = _type == TransactionType.income &&
         _saleCategories.contains(_category);
-    final unit = (isSale && quantity != null) ? (_unit ?? 'kg') : null;
-    final client = isSale ? _clientController.text.trim() : null;
-    final provider = _type == TransactionType.expense
-        ? _providerController.text.trim()
-        : null;
+    double amount;
+    double? quantity;
+    String? unit;
+    double? pricePerUnit;
+    String? client;
+    String? provider;
+    if (_isJornal) {
+      // Bloque jornal: total = días × valor día (Monto es solo lectura).
+      final days = double.parse(
+          _jornalDaysController.text.trim().replaceAll(',', '.'));
+      final rate = double.parse(
+          _jornalRateController.text.trim().replaceAll(',', '.'));
+      amount = days * rate;
+      quantity = days;
+      unit = 'día';
+      pricePerUnit = rate;
+      final v = _jornalWorkerValue;
+      if (v == _jornalOtherOption) {
+        provider = _jornalOtherNameController.text.trim();
+      } else if (v != null) {
+        final match = tx.employees.where((e) => e.id == v).toList();
+        provider = match.isEmpty ? null : match.first.name;
+      } else {
+        provider = null;
+      }
+      client = null;
+    } else {
+      amount = double.parse(_amountController.text.replaceAll(',', '.'));
+      final qtyText = _quantityController.text.trim().replaceAll(',', '.');
+      quantity = qtyText.isEmpty ? null : double.tryParse(qtyText);
+      unit = (isSale && quantity != null) ? (_unit ?? 'kg') : null;
+      client = isSale ? _clientController.text.trim() : null;
+      provider = _type == TransactionType.expense
+          ? _providerController.text.trim()
+          : null;
+    }
     final harvestId = _type == TransactionType.expense ? _harvestId : null;
 
     final editing = widget.editing;
@@ -169,6 +292,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         pendingSync: true,
         quantity: quantity,
         unit: unit,
+        pricePerUnit: pricePerUnit,
         client: client,
         provider: provider,
         harvestId: harvestId,
@@ -195,6 +319,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       date: _date,
       quantity: quantity,
       unit: unit,
+      pricePerUnit: pricePerUnit,
       client: client,
       provider: provider,
       harvestId: harvestId,
@@ -215,8 +340,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _quantityController.clear();
     _clientController.clear();
     _providerController.clear();
+    _jornalOtherNameController.clear();
+    _jornalDaysController.clear();
+    _jornalRateController.clear();
     setState(() {
       _unit = (isSale && quantity != null) ? _unit : null;
+      _jornalWorkerValue = null;
     });
   }
 
@@ -460,19 +589,148 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 16),
           ],
 
-          // Proveedor (solo gastos)
+          // Proveedor / Jornal (solo gastos)
           if (_type == TransactionType.expense) ...[
-            _ProdSectionHeader(label: l10n.providerFieldLabel),
+            _ProdSectionHeader(
+                label:
+                    _isJornal ? l10n.jornalSectionTitle : l10n.providerFieldLabel),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _providerController,
-              decoration: InputDecoration(
-                labelText: l10n.providerFieldLabel,
-                prefixIcon: const Icon(Icons.storefront_outlined),
-                border: const OutlineInputBorder(),
+
+            if (_isJornal) ...[
+              // Trabajador (dropdown de la lista + Otro nombre… + Crear…)
+              DropdownButtonFormField<String>(
+                key: ValueKey('jornal-$_jornalWorkerValue-$_jornalDropKey'),
+                value: _jornalWorkerValue,
+                decoration: InputDecoration(
+                  labelText: l10n.jornalWorkerLabel,
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: const OutlineInputBorder(),
+                  hintText:
+                      tx.employees.isEmpty ? l10n.jornalWorkerHint : null,
+                ),
+                items: [
+                  ...tx.employees.map((e) => DropdownMenuItem<String>(
+                        value: e.id,
+                        child: Text(e.name),
+                      )),
+                  DropdownMenuItem<String>(
+                    value: _jornalOtherOption,
+                    child: Text(l10n.jornalOtherNameOption),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: _jornalCreateOption,
+                    child: Text(l10n.jornalCreateOption),
+                  ),
+                ],
+                validator: (v) {
+                  if (v == null) return l10n.jornalWorkerRequired;
+                  if (v == _jornalOtherOption &&
+                      _jornalOtherNameController.text.trim().isEmpty) {
+                    return l10n.workerNameRequired;
+                  }
+                  return null;
+                },
+                onChanged: (v) {
+                  if (v == _jornalCreateOption) {
+                    _createJornalWorker();
+                    return;
+                  }
+                  setState(() {
+                    _jornalWorkerValue = v;
+                    if (v != null &&
+                        v != _jornalOtherOption &&
+                        v != _jornalCreateOption) {
+                      final match = tx.employees
+                          .where((e) => e.id == v)
+                          .toList();
+                      if (match.isNotEmpty &&
+                          match.first.dayRate != null) {
+                        final r = match.first.dayRate!;
+                        _jornalRateController.text =
+                            (r % 1 == 0) ? r.toInt().toString() : r.toString();
+                      }
+                    }
+                    _recalcJornalAmount();
+                  });
+                },
               ),
-            ),
-            const SizedBox(height: 12),
+              if (_jornalWorkerValue == _jornalOtherOption) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _jornalOtherNameController,
+                  decoration: InputDecoration(
+                    labelText: l10n.workerNameLabel,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+              const SizedBox(height: 12),
+
+              // Días trabajados
+              TextFormField(
+                controller: _jornalDaysController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: l10n.jornalDaysLabel,
+                  prefixIcon: const Icon(Icons.today_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  final n = int.tryParse((v ?? '').trim());
+                  if (n == null || n <= 0) return l10n.jornalDaysRequired;
+                  return null;
+                },
+                onChanged: (_) => setState(_recalcJornalAmount),
+              ),
+              const SizedBox(height: 12),
+
+              // Valor por día (autocompletado desde la ficha)
+              TextFormField(
+                controller: _jornalRateController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.workerDayRateShort,
+                  prefixIcon: const Icon(Icons.payments_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  final n = double.tryParse(
+                      (v ?? '').trim().replaceAll(',', '.'));
+                  if (n == null || n <= 0) return l10n.jornalRateRequired;
+                  return null;
+                },
+                onChanged: (_) => setState(_recalcJornalAmount),
+              ),
+              const SizedBox(height: 8),
+
+              // Total = días × valor día (reflejado en el campo Monto)
+              _JornalTotalInfo(
+                days: double.tryParse(_jornalDaysController.text
+                    .trim()
+                    .replaceAll(',', '.')),
+                rate: double.tryParse(_jornalRateController.text
+                    .trim()
+                    .replaceAll(',', '.')),
+                currency: _currency,
+                locale: tx.settings.locale,
+                l10n: l10n,
+              ),
+              const SizedBox(height: 12),
+            ] else ...[
+              TextFormField(
+                controller: _providerController,
+                decoration: InputDecoration(
+                  labelText: l10n.providerFieldLabel,
+                  prefixIcon: const Icon(Icons.storefront_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
             // Vincular a cosecha (solo gastos): las cosechas recientes del
             // cultivo elegido, para asociar el pago de recogida.
             if (_cropId != null && _linkedHarvests(tx).isNotEmpty) ...[
@@ -504,16 +762,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 16),
           ],
 
-          // Monto
+          // Monto (solo lectura cuando el bloque jornal lo calcula)
           TextFormField(
             controller: _amountController,
+            readOnly: _isJornal,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: l10n.amountFieldLabel,
               prefixIcon: const Icon(Icons.attach_money),
               border: const OutlineInputBorder(),
+              suffixIcon: _isJornal
+                  ? Tooltip(
+                      message: l10n.jornalTotalHint,
+                      child: const Icon(Icons.lock_outline, size: 20),
+                    )
+                  : null,
             ),
             validator: (v) {
+              if (_isJornal) {
+                // El total lo defienden los validadores de días y valor día.
+                final days = int.tryParse(_jornalDaysController.text.trim());
+                final rate = double.tryParse(_jornalRateController.text
+                    .trim()
+                    .replaceAll(',', '.'));
+                if (days == null || days <= 0) return l10n.jornalDaysRequired;
+                if (rate == null || rate <= 0) {
+                  return l10n.jornalRateRequired;
+                }
+                return null;
+              }
               final n = double.tryParse((v ?? '').replaceAll(',', '.'));
               if (n == null || n <= 0) return l10n.amountInvalid;
               return null;
@@ -626,6 +903,67 @@ class _ProdSectionHeader extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+class _JornalTotalInfo extends StatelessWidget {
+  final double? days;
+  final double? rate;
+  final String currency;
+  final String locale;
+  final AppLocalizations l10n;
+
+  const _JornalTotalInfo({
+    required this.days,
+    required this.rate,
+    required this.currency,
+    required this.locale,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final d = days;
+    final r = rate;
+    if (d == null || d <= 0 || r == null || r <= 0) {
+      return Text(
+        l10n.jornalTotalHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      );
+    }
+    final total = d * r;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calculate_outlined, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                      text: '${l10n.jornalTotalLabel}: ',
+                      style: Theme.of(context).textTheme.bodyMedium),
+                  TextSpan(
+                    text: formatAmount(total,
+                        currency: currency, locale: locale),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
