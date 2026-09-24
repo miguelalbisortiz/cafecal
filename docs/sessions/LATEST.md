@@ -6,6 +6,13 @@
 - **Reportes**: secciones Nómina y Caja (PDF/Excel/pantalla); cosecha con N° empleados y kilos equivalentes
 - **214/214 tests verdes**, analyze limpio, HTTP 200
 - **Migración SQL aplicada** en Supabase el 2026-09-24 (`employees`, `caja_menor_mensual`, `workers`/`equivalent_kg` — verificado HTTP 200)
+- **Prueba manual en producción pasada** por el usuario ("ya esta bien lo probe")
+
+## Post-plan (mismo día)
+- **Desgloses de Excel** en la hoja Resumen (commit `main d8d0ba2` / `gh-pages 756ebab`, hash prod verificado):
+  - **Ingresos y gastos por mes**: tabla 12 filas + Total, solo en períodos año / año hasta hoy; Balance en verde/rojo
+  - **Gastos por categoría y cultivo**: cruce categoría × cultivo ordenado por monto, con "Sin especificar" para gastos sin cultivo; solo si hay gastos
+  - 3 claves l10n nuevas (es/en) + 4 tests nuevos → **218/218 tests**, analyze limpio
 
 ## Archivos
 - `docs/sessions/2026-09-24-caja-menor-trabajadores-jornales.md` — detalle completo
