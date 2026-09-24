@@ -1054,6 +1054,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excelColCurrency => 'Currency';
 
   @override
+  String get excelColBalance => 'Balance';
+
+  @override
+  String get excelMonthlyTitle => 'Income and expenses by month';
+
+  @override
+  String get excelCrossExpensesTitle => 'Expenses by category and crop';
+
+  @override
   String get topClientsTitle => 'Top buyers';
 
   @override

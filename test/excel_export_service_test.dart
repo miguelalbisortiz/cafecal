@@ -399,4 +399,163 @@ void main() {
       expect(csv.contains("'-1000,00"), isFalse);
     });
   });
+
+  group('Resumen — desgloses: mes a mes y categoría × cultivo', () {
+    List<List<Data?>> resumen({
+      required List<Transaction> txns,
+      required ReportPeriod period,
+      required int year,
+      int? month,
+    }) {
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: _settings,
+        transactions: txns,
+        crops: _crops,
+        year: year,
+        month: month,
+        period: period,
+        periodName: 'P',
+        l10n: _es,
+      ));
+      return Excel.decodeBytes(bytes).tables['Resumen']!.rows;
+    }
+
+    String t0(Data? cell) => cv(cell)?.toString() ?? '';
+
+    int rowIdx(List<List<Data?>> rows, String text) =>
+        rows.indexWhere((r) => t0(r[0]) == text);
+
+    test('año: 12 filas mensuales, totales por mes y fila Total cuadran', () {
+      final rows = resumen(
+        txns: [
+          _txn(
+              type: TransactionType.income,
+              amount: 5000,
+              date: DateTime(2026, 9, 3),
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.expense,
+              amount: 2000,
+              date: DateTime(2026, 9, 5),
+              category: 'fertilizante',
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.expense,
+              amount: 500,
+              date: DateTime(2026, 2, 1),
+              category: 'riego',
+              cropId: 'platano'),
+        ],
+        period: ReportPeriod.year,
+        year: 2026,
+      );
+
+      final t = rowIdx(rows, _es.excelMonthlyTitle);
+      expect(t, greaterThanOrEqualTo(0), reason: 'tabla mensual presente');
+      // Estructura: título (t), header (t+1), 12 meses (t+2..t+13), Total.
+      final months = rows.sublist(t + 2, t + 14);
+      expect(months.length, 12);
+      expect(t0(months[0][0]), _es.monthFull[0]); // Enero
+      expect(t0(months[11][0]), _es.monthFull[11]); // Diciembre
+      // Febrero: solo gasto 500.
+      expect(cv(months[1][1]), 0.0);
+      expect(cv(months[1][2]), 500.0);
+      expect(cv(months[1][3]), -500.0);
+      // Septiembre: 5000 − 2000 = 3000.
+      expect(cv(months[8][1]), 5000.0);
+      expect(cv(months[8][2]), 2000.0);
+      expect(cv(months[8][3]), 3000.0);
+      // Fila Total = resumen del período (5000 / 2500 / 2500).
+      final total = rows[t + 14];
+      expect(t0(total[0]), _es.jornalTotalLabel);
+      expect(cv(total[1]), 5000.0);
+      expect(cv(total[2]), 2500.0);
+      expect(cv(total[3]), 2500.0);
+      // Cuadra con la fila RESULTADO del estado.
+      final resultRow = rows.firstWhere(
+          (r) => t0(r[0]).contains('RESULTADO'),
+          orElse: () => <Data?>[]);
+      expect(t0(resultRow.isNotEmpty ? resultRow[0] : null), isNotEmpty);
+      expect(cv(resultRow[2]), cv(total[3]));
+    });
+
+    test('mes: no incluye la tabla mensual', () {
+      final rows = resumen(
+        txns: [
+          _txn(
+              type: TransactionType.income,
+              amount: 1000,
+              date: DateTime(2026, 9, 3)),
+        ],
+        period: ReportPeriod.month,
+        year: 2026,
+        month: 9,
+      );
+      expect(rowIdx(rows, _es.excelMonthlyTitle), -1);
+    });
+
+    test('categoría × cultivo: cruza gastos respetando orden y sin cultivo',
+        () {
+      final rows = resumen(
+        txns: [
+          _txn(
+              type: TransactionType.expense,
+              amount: 2000,
+              date: DateTime(2026, 9, 5),
+              category: 'fertilizante',
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.expense,
+              amount: 800,
+              date: DateTime(2026, 9, 6),
+              category: 'fertilizante'),
+          _txn(
+              type: TransactionType.expense,
+              amount: 300,
+              date: DateTime(2026, 9, 7),
+              category: 'riego',
+              cropId: 'platano'),
+        ],
+        period: ReportPeriod.month,
+        year: 2026,
+        month: 9,
+      );
+
+      final t = rowIdx(rows, _es.excelCrossExpensesTitle);
+      expect(t, greaterThanOrEqualTo(0), reason: 'cruce presente');
+      expect(t0(rows[t + 1][0]), _es.pdfColCategory);
+      expect(t0(rows[t + 1][1]), _es.pdfColCrop);
+      expect(t0(rows[t + 1][2]), _es.pdfColAmount);
+      // fertilizante totaliza 2800 → primero; dentro: Café 2000 > Sin
+      // especificar 800.
+      expect(t0(rows[t + 2][0]), _es.expenseCategory('fertilizante'));
+      expect(t0(rows[t + 2][1]), 'Café');
+      expect(cv(rows[t + 2][2]), 2000.0);
+      expect(t0(rows[t + 3][0]), _es.expenseCategory('fertilizante'));
+      expect(t0(rows[t + 3][1]), _es.cropUnspecified);
+      expect(cv(rows[t + 3][2]), 800.0);
+      // riego totaliza 300 → después.
+      expect(t0(rows[t + 4][0]), _es.expenseCategory('riego'));
+      expect(t0(rows[t + 4][1]), 'Plátano');
+      expect(cv(rows[t + 4][2]), 300.0);
+    });
+
+    test('solo ingresos: sin tabla de categoría × cultivo', () {
+      final rows = resumen(
+        txns: [
+          _txn(
+              type: TransactionType.income,
+              amount: 1500,
+              date: DateTime(2026, 9, 3),
+              cropId: 'cafe'),
+        ],
+        period: ReportPeriod.month,
+        year: 2026,
+        month: 9,
+      );
+      expect(rowIdx(rows, _es.excelCrossExpensesTitle), -1);
+      // El estado normal sigue presente.
+      expect(rows.any((r) => t0(r[0]).contains('RESULTADO')), isTrue);
+    });
+  });
 }

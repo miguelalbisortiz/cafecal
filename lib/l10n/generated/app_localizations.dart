@@ -2153,6 +2153,24 @@ abstract class AppLocalizations {
   /// **'Moneda'**
   String get excelColCurrency;
 
+  /// No description provided for @excelColBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'Balance'**
+  String get excelColBalance;
+
+  /// No description provided for @excelMonthlyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos y gastos por mes'**
+  String get excelMonthlyTitle;
+
+  /// No description provided for @excelCrossExpensesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos por categoría y cultivo'**
+  String get excelCrossExpensesTitle;
+
   /// No description provided for @topClientsTitle.
   ///
   /// In es, this message translates to:

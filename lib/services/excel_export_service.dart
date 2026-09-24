@@ -118,6 +118,7 @@ class ExcelExportService {
         margen: margen,
         ratio: ratio,
         periodTx: periodTx,
+        crops: crops,
         period: period,
         year: year,
         month: month);
@@ -300,6 +301,7 @@ class ExcelExportService {
     required double? margen,
     required double? ratio,
     required List<Transaction> periodTx,
+    required List<Crop> crops,
     required ReportPeriod period,
     required int year,
     int? month,
@@ -370,6 +372,130 @@ class ExcelExportService {
     _applyCurrencyFormat(sheet, currency, 2,
         6 + incomeTotals.length, 6 + incomeTotals.length + expenseTotals.length);
     _applyCurrencyFormat(sheet, currency, 2, resultRowIdx, resultRowIdx);
+
+    // ── Ingresos y gastos por mes (períodos multi-mes: anual/año hasta hoy) ──
+    if (period == ReportPeriod.year || period == ReportPeriod.yearToDate) {
+      final now = DateTime.now();
+      final lastMonth =
+          (period == ReportPeriod.year || year < now.year) ? 12 : now.month;
+      final incByMonth = List<double>.filled(lastMonth + 1, 0);
+      final expByMonth = List<double>.filled(lastMonth + 1, 0);
+      for (final t in periodTx) {
+        if (t.date.month < 1 || t.date.month > lastMonth) continue;
+        if (t.type.isExpense) {
+          expByMonth[t.date.month] += t.amount;
+        } else {
+          incByMonth[t.date.month] += t.amount;
+        }
+      }
+
+      row([null, null, null, null]);
+      row([TextCellValue(l10n.excelMonthlyTitle)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 4, _excelBrown);
+      row([
+        TextCellValue(l10n.segMonth),
+        TextCellValue(l10n.pdfIncomesHeader),
+        TextCellValue(l10n.pdfExpensesHeader),
+        TextCellValue(l10n.excelColBalance),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 4);
+      final monthFrom = sheet.maxRows;
+      for (var m = 1; m <= lastMonth; m++) {
+        row([
+          TextCellValue(l10n.monthFull[m - 1]),
+          DoubleCellValue(incByMonth[m]),
+          DoubleCellValue(expByMonth[m]),
+          DoubleCellValue(incByMonth[m] - expByMonth[m]),
+        ]);
+      }
+      row([
+        TextCellValue(l10n.jornalTotalLabel),
+        DoubleCellValue(incomes),
+        DoubleCellValue(expenses),
+        DoubleCellValue(balance),
+      ]);
+      final monthTo = sheet.maxRows - 1;
+      for (var c = 1; c <= 3; c++) {
+        _applyCurrencyFormat(sheet, currency, c, monthFrom, monthTo);
+      }
+      final mInfo = currencyInfo(currency);
+      final mFmt = mInfo.decimals > 0
+          ? '#,##0.${'0' * mInfo.decimals}'
+          : '#,##0';
+      final mNumFmt = NumFormat.custom(formatCode: mFmt);
+      // Balance por mes en verde/rojo conservando el formato numérico.
+      for (var r = monthFrom; r < monthTo; r++) {
+        final cell = sheet.cell(
+            CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r));
+        final val = cell.value;
+        if (val is DoubleCellValue) {
+          cell.cellStyle = CellStyle(
+            numberFormat: mNumFmt,
+            fontColorHex: val.value >= 0 ? _excelGreen : _excelRed,
+            bold: true,
+            fontSize: 10,
+          );
+        }
+      }
+      // Fila Total: fondo marrón + números con formato.
+      for (var c = 0; c < 4; c++) {
+        final cell = sheet.cell(
+            CellIndex.indexByColumnRow(columnIndex: c, rowIndex: monthTo));
+        cell.cellStyle = c == 0
+            ? CellStyle(
+                backgroundColorHex: _excelBrown,
+                fontColorHex: _excelWhite,
+                bold: true,
+                fontSize: 10,
+              )
+            : CellStyle(
+                backgroundColorHex: _excelBrown,
+                fontColorHex: _excelWhite,
+                bold: true,
+                fontSize: 10,
+                numberFormat: mNumFmt,
+              );
+      }
+    }
+
+    // ── Gastos por categoría y cultivo (cruce) ──
+    final expenseTx = periodTx.where((t) => t.type.isExpense).toList();
+    if (expenseTx.isNotEmpty) {
+      final nameById = {for (final c in crops) c.id: c.name};
+      final byCatCrop = <String, Map<String?, double>>{};
+      for (final t in expenseTx) {
+        final byCrop =
+            byCatCrop.putIfAbsent(t.category, () => <String?, double>{});
+        byCrop[t.cropId] = (byCrop[t.cropId] ?? 0) + t.amount;
+      }
+      row([null, null, null]);
+      row([TextCellValue(l10n.excelCrossExpensesTitle)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
+      row([
+        TextCellValue(l10n.pdfColCategory),
+        TextCellValue(l10n.pdfColCrop),
+        TextCellValue(l10n.pdfColAmount),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+      final crossFrom = sheet.maxRows;
+      // Categorías en el mismo orden (mayor a menor) del desglose superior.
+      for (final cat in expenseTotals.keys) {
+        final byCrop = byCatCrop[cat];
+        if (byCrop == null) continue;
+        final sorted = byCrop.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        for (final e in sorted) {
+          row([
+            TextCellValue(l10n.expenseCategory(cat)),
+            TextCellValue(e.key == null
+                ? l10n.cropUnspecified
+                : (nameById[e.key] ?? e.key!)),
+            DoubleCellValue(e.value),
+          ]);
+        }
+      }
+      _applyCurrencyFormat(sheet, currency, 2, crossFrom, sheet.maxRows - 1);
+    }
 
     // ── Nómina del período (solo con gastos de mano de obra) ──
     final payroll = const ReportPayrollMetrics().payroll(periodTx);
