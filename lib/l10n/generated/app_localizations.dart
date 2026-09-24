@@ -1469,6 +1469,114 @@ abstract class AppLocalizations {
   /// **'Sin datos de cosechas en el período.'**
   String get reportNoHarvestData;
 
+  /// No description provided for @harvestWorkersLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'N° de empleados'**
+  String get harvestWorkersLabel;
+
+  /// No description provided for @harvestWorkersHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Personas que trabajaron en la cosecha.'**
+  String get harvestWorkersHint;
+
+  /// No description provided for @harvestWorkersInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un entero mayor o igual a 0.'**
+  String get harvestWorkersInvalid;
+
+  /// Cantidad de trabajadores en una cosecha
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} empleado} other{{count} empleados}}'**
+  String harvestWorkersCount(int count);
+
+  /// No description provided for @harvestEquivalentKgLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cuántos kilos hacen?'**
+  String get harvestEquivalentKgLabel;
+
+  /// No description provided for @harvestEquivalentKgHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Peso total de los racimos recolectados.'**
+  String get harvestEquivalentKgHint;
+
+  /// No description provided for @harvestEquivalentKgInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un número mayor que 0.'**
+  String get harvestEquivalentKgInvalid;
+
+  /// No description provided for @reportPayrollSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Nómina del período'**
+  String get reportPayrollSection;
+
+  /// No description provided for @reportPayrollWorker.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajador'**
+  String get reportPayrollWorker;
+
+  /// No description provided for @reportPayrollDays.
+  ///
+  /// In es, this message translates to:
+  /// **'Días'**
+  String get reportPayrollDays;
+
+  /// No description provided for @reportPayrollSubtotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Subtotal'**
+  String get reportPayrollSubtotal;
+
+  /// No description provided for @reportPayrollTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total nómina'**
+  String get reportPayrollTotal;
+
+  /// Empleados distintos con gasto de mano de obra en el período
+  ///
+  /// In es, this message translates to:
+  /// **'Empleados distintos: {count}'**
+  String reportPayrollEmployees(int count);
+
+  /// No description provided for @reportPayrollUnnamed.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin nombre'**
+  String get reportPayrollUnnamed;
+
+  /// No description provided for @reportCashBoxBudget.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto'**
+  String get reportCashBoxBudget;
+
+  /// No description provided for @reportCashBoxBalance.
+  ///
+  /// In es, this message translates to:
+  /// **'Saldo'**
+  String get reportCashBoxBalance;
+
+  /// No description provided for @reportHarvestStaff.
+  ///
+  /// In es, this message translates to:
+  /// **'Personal y kilos'**
+  String get reportHarvestStaff;
+
+  /// No description provided for @reportEquivalentKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Kilos equivalentes'**
+  String get reportEquivalentKg;
+
   /// No description provided for @perHaSection.
   ///
   /// In es, this message translates to:
@@ -2140,6 +2248,204 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Aún no hay cultivos. Agrega el primero.'**
   String get cropsEmpty;
+
+  /// No description provided for @menuWorkers.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajadores'**
+  String get menuWorkers;
+
+  /// No description provided for @workersEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay trabajadores. Agrega el primero.'**
+  String get workersEmpty;
+
+  /// No description provided for @workerNewOption.
+  ///
+  /// In es, this message translates to:
+  /// **'+ Nuevo trabajador…'**
+  String get workerNewOption;
+
+  /// No description provided for @newWorkerDialogTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo trabajador'**
+  String get newWorkerDialogTitle;
+
+  /// No description provided for @editWorkerTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar trabajador'**
+  String get editWorkerTitle;
+
+  /// No description provided for @workerNameLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get workerNameLabel;
+
+  /// No description provided for @workerNameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe el nombre del trabajador.'**
+  String get workerNameRequired;
+
+  /// No description provided for @workerDayRateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Valor por día (opcional)'**
+  String get workerDayRateLabel;
+
+  /// No description provided for @workerDayRateShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Valor por día'**
+  String get workerDayRateShort;
+
+  /// No description provided for @helpWorkerDayRate.
+  ///
+  /// In es, this message translates to:
+  /// **'Se autocompleta al registrar un jornal. Déjalo vacío si prefieres escribirlo cada vez.'**
+  String get helpWorkerDayRate;
+
+  /// No description provided for @workerConfirmDelete.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar trabajador'**
+  String get workerConfirmDelete;
+
+  /// No description provided for @workerDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajador eliminado'**
+  String get workerDeleted;
+
+  /// No description provided for @workerWorkedIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajó en'**
+  String get workerWorkedIn;
+
+  /// No description provided for @workerNoJornales.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin jornales registrados'**
+  String get workerNoJornales;
+
+  /// No description provided for @workerNoRate.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin valor por día'**
+  String get workerNoRate;
+
+  /// No description provided for @jornalSectionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Jornal'**
+  String get jornalSectionTitle;
+
+  /// No description provided for @jornalWorkerLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajador'**
+  String get jornalWorkerLabel;
+
+  /// No description provided for @jornalWorkerHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea tus trabajadores en el menú ⋮ o elige «Otro nombre».'**
+  String get jornalWorkerHint;
+
+  /// No description provided for @jornalWorkerRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el trabajador.'**
+  String get jornalWorkerRequired;
+
+  /// No description provided for @jornalOtherNameOption.
+  ///
+  /// In es, this message translates to:
+  /// **'Otro nombre…'**
+  String get jornalOtherNameOption;
+
+  /// No description provided for @jornalCreateOption.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear trabajador…'**
+  String get jornalCreateOption;
+
+  /// No description provided for @jornalDaysLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Días trabajados'**
+  String get jornalDaysLabel;
+
+  /// No description provided for @jornalDaysRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa los días (entero mayor que 0).'**
+  String get jornalDaysRequired;
+
+  /// No description provided for @jornalRateRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa el valor por día.'**
+  String get jornalRateRequired;
+
+  /// No description provided for @jornalTotalLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get jornalTotalLabel;
+
+  /// No description provided for @jornalTotalHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Se calcula: días × valor por día.'**
+  String get jornalTotalHint;
+
+  /// No description provided for @cashBoxLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Caja menor mensual'**
+  String get cashBoxLabel;
+
+  /// No description provided for @cashBoxHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto de cada mes para jornales y extras. Se reinicia solo cada 1 de mes; lo que sobre no se acumula.'**
+  String get cashBoxHelp;
+
+  /// No description provided for @cashBoxTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Caja menor'**
+  String get cashBoxTitle;
+
+  /// No description provided for @cashBoxOf.
+  ///
+  /// In es, this message translates to:
+  /// **'{used} de {total}'**
+  String cashBoxOf(String used, String total);
+
+  /// No description provided for @cashBoxRemaining.
+  ///
+  /// In es, this message translates to:
+  /// **'Restante'**
+  String get cashBoxRemaining;
+
+  /// No description provided for @cashBoxLabor.
+  ///
+  /// In es, this message translates to:
+  /// **'Jornales'**
+  String get cashBoxLabor;
+
+  /// No description provided for @cashBoxExtras.
+  ///
+  /// In es, this message translates to:
+  /// **'Extras'**
+  String get cashBoxExtras;
 
   /// No description provided for @segMonth.
   ///
@@ -3119,6 +3425,18 @@ abstract class AppLocalizations {
   /// **'Riego'**
   String get catRiego;
 
+  /// No description provided for @catEnergia.
+  ///
+  /// In es, this message translates to:
+  /// **'Energía'**
+  String get catEnergia;
+
+  /// No description provided for @catAgua.
+  ///
+  /// In es, this message translates to:
+  /// **'Agua'**
+  String get catAgua;
+
   /// No description provided for @catEmpaque.
   ///
   /// In es, this message translates to:
@@ -3256,6 +3574,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.'**
   String get alertMissingQtySuggestion;
+
+  /// No description provided for @alertCashBoxWarningTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'La caja menor de {month} está al {percent}'**
+  String alertCashBoxWarningTitle(String month, String percent);
+
+  /// No description provided for @alertCashBoxWarningMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: este mes llevas {used} de {total} en jornales y extras. Te quedan {remaining} antes de agotarla.'**
+  String alertCashBoxWarningMessage(String used, String total, String remaining);
+
+  /// No description provided for @alertCashBoxWarningSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa los gastos extras y deja solo lo necesario hasta cerrar el mes.'**
+  String get alertCashBoxWarningSuggestion;
+
+  /// No description provided for @alertCashBoxDangerTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Caja menor agotada en {month}'**
+  String alertCashBoxDangerTitle(String month);
+
+  /// No description provided for @alertCashBoxDangerMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: este mes llevas {used} de {total} en jornales y extras ({percent}). Ya no queda presupuesto disponible.'**
+  String alertCashBoxDangerMessage(String used, String total, String percent);
+
+  /// No description provided for @alertCashBoxDangerSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa los gastos extras y considera reducir trabajadores este mes.'**
+  String get alertCashBoxDangerSuggestion;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

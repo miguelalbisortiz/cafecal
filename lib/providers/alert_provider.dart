@@ -33,6 +33,7 @@ class AlertProvider extends ChangeNotifier {
       manualThresholdPerKg: _transactions.settings.lowPriceThresholdPerKg,
       harvests: _transactions.harvests,
       sowings: _transactions.sowings,
+      cajaMensual: _transactions.settings.cajaMenorMensual,
     );
     notifyListeners();
   }

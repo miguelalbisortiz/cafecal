@@ -93,8 +93,11 @@ class HarvestScreen extends StatelessWidget {
                 '${h.date.month.toString().padLeft(2, '0')}/${h.date.year}',
             if (h.cropId != null) nameById[h.cropId] ?? h.cropId!,
             destinationLabel,
+            if (h.workers != null) '👷 ${l10n.harvestWorkersCount(h.workers!)}',
+            if (h.equivalentKg != null)
+              '≈ ${h.equivalentKg! % 1 == 0 ? h.equivalentKg!.toInt() : h.equivalentKg!} kg',
           ].join(' · '),
-          maxLines: 2,
+          maxLines: 3,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 12),
         ),
@@ -155,6 +158,8 @@ class _HarvestForm extends StatefulWidget {
 class _HarvestFormState extends State<_HarvestForm> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
+  final _workersController = TextEditingController();
+  final _equivalentKgController = TextEditingController();
 
   String? _cropId;
   DateTime _date = DateTime.now();
@@ -172,6 +177,12 @@ class _HarvestFormState extends State<_HarvestForm> {
       _destination = h.destination;
       _amountController.text =
           h.amount % 1 == 0 ? h.amount.toInt().toString() : h.amount.toString();
+      if (h.workers != null) _workersController.text = h.workers.toString();
+      if (h.equivalentKg != null) {
+        final eq = h.equivalentKg!;
+        _equivalentKgController.text =
+            eq % 1 == 0 ? eq.toInt().toString() : eq.toString();
+      }
     } else if (widget.crops.isNotEmpty) {
       _cropId = widget.crops.first.id;
       final defUnit = widget.crops.first.defaultUnit;
@@ -182,6 +193,8 @@ class _HarvestFormState extends State<_HarvestForm> {
   @override
   void dispose() {
     _amountController.dispose();
+    _workersController.dispose();
+    _equivalentKgController.dispose();
     super.dispose();
   }
 
@@ -201,6 +214,17 @@ class _HarvestFormState extends State<_HarvestForm> {
     final amountText = _amountController.text.trim().replaceAll(',', '.');
     final amount = double.tryParse(amountText);
 
+    // Opcionales: vacío → null. El validador ya garantiza enteros ≥ 0 y
+    // kilos > 0; aquí solo parseamos de nuevo.
+    int? workers;
+    final workersText = _workersController.text.trim();
+    if (workersText.isNotEmpty) workers = int.tryParse(workersText);
+    double? equivalentKg;
+    if (_unit == 'racimo') {
+      final eqText = _equivalentKgController.text.trim().replaceAll(',', '.');
+      if (eqText.isNotEmpty) equivalentKg = double.tryParse(eqText);
+    }
+
     final editing = widget.editing;
     if (editing != null) {
       await tx.updateHarvest(editing.copyWith(
@@ -209,6 +233,8 @@ class _HarvestFormState extends State<_HarvestForm> {
         amount: amount,
         unit: _unit,
         destination: _destination,
+        workers: workers,
+        equivalentKg: equivalentKg,
       ));
     } else {
       await tx.addHarvest(
@@ -217,6 +243,8 @@ class _HarvestFormState extends State<_HarvestForm> {
         amount: amount ?? 0,
         unit: _unit,
         destination: _destination,
+        workers: workers,
+        equivalentKg: equivalentKg,
       );
     }
     if (!mounted) return;
@@ -335,6 +363,47 @@ class _HarvestFormState extends State<_HarvestForm> {
                 onChanged: (v) =>
                     setState(() => _destination = v ?? HarvestDestination.vendido),
               ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _workersController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: l10n.harvestWorkersLabel,
+                  helperText: l10n.harvestWorkersHint,
+                  prefixIcon: const Icon(Icons.groups_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  final t = (v ?? '').trim();
+                  if (t.isEmpty) return null;
+                  final n = int.tryParse(t);
+                  if (n == null || n < 0) return l10n.harvestWorkersInvalid;
+                  return null;
+                },
+              ),
+              if (_unit == 'racimo') ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _equivalentKgController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: l10n.harvestEquivalentKgLabel,
+                    helperText: l10n.harvestEquivalentKgHint,
+                    prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (v) {
+                    final t = (v ?? '').trim().replaceAll(',', '.');
+                    if (t.isEmpty) return null;
+                    final n = double.tryParse(t);
+                    if (n == null || n <= 0) {
+                      return l10n.harvestEquivalentKgInvalid;
+                    }
+                    return null;
+                  },
+                ),
+              ],
             ],
           ),
         ),

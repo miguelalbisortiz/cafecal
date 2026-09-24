@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/crop.dart';
+import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
@@ -17,6 +18,7 @@ class TransactionProvider extends ChangeNotifier {
   FarmSettings _settings = const FarmSettings();
   List<Harvest> _harvests = [];
   List<Sowing> _sowings = [];
+  List<Employee> _employees = [];
 
   TransactionProvider(this._store) {
     _transactions = _store.loadTransactions();
@@ -24,6 +26,7 @@ class TransactionProvider extends ChangeNotifier {
     _settings = _store.loadSettings();
     _harvests = _store.loadHarvests();
     _sowings = _store.loadSowings();
+    _employees = _store.loadEmployees();
   }
 
   /// Recarga todo el estado desde el namespace activo del store. Se invoca
@@ -34,6 +37,7 @@ class TransactionProvider extends ChangeNotifier {
     _settings = _store.loadSettings();
     _harvests = _store.loadHarvests();
     _sowings = _store.loadSowings();
+    _employees = _store.loadEmployees();
     notifyListeners();
   }
 
@@ -42,6 +46,7 @@ class TransactionProvider extends ChangeNotifier {
   FarmSettings get settings => _settings;
   List<Harvest> get harvests => _harvests;
   List<Sowing> get sowings => _sowings;
+  List<Employee> get employees => _employees;
 
   List<Harvest> harvestsFor(String? cropId, {DateTime? from, DateTime? to}) {
     return _harvests.where((h) {
@@ -145,6 +150,7 @@ class TransactionProvider extends ChangeNotifier {
     String? currency,
     double? quantity,
     String? unit,
+    double? pricePerUnit,
     String? client,
     String? provider,
     String? harvestId,
@@ -163,6 +169,7 @@ class TransactionProvider extends ChangeNotifier {
       pendingSync: true,
       quantity: quantity,
       unit: unit,
+      pricePerUnit: pricePerUnit,
       client: client,
       provider: provider,
       harvestId: harvestId,
@@ -247,6 +254,8 @@ class TransactionProvider extends ChangeNotifier {
     required double amount,
     String unit = 'kg',
     HarvestDestination destination = HarvestDestination.vendido,
+    int? workers,
+    double? equivalentKg,
   }) async {
     final harvest = Harvest(
       id: _uuid.v4(),
@@ -256,6 +265,8 @@ class TransactionProvider extends ChangeNotifier {
       unit: unit,
       destination: destination,
       pendingSync: true,
+      workers: workers,
+      equivalentKg: equivalentKg,
     );
     _harvests = [..._harvests, harvest];
     await _store.saveHarvests(_harvests);
@@ -364,6 +375,39 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  // ---- Employees ----
+
+  Future<Employee> addEmployee(String name, {double? dayRate}) async {
+    final employee = Employee(
+      id: _uuid.v4(),
+      name: name.trim(),
+      dayRate: dayRate,
+      pendingSync: true,
+    );
+    _employees = [..._employees, employee];
+    await _store.saveEmployees(_employees);
+    notifyListeners();
+    return employee;
+  }
+
+  Future<void> updateEmployee(Employee updated) async {
+    final idx = _employees.indexWhere((e) => e.id == updated.id);
+    if (idx == -1) return;
+    final list = [..._employees];
+    list[idx] = updated.copyWith(pendingSync: true);
+    _employees = list;
+    await _store.saveEmployees(_employees);
+    notifyListeners();
+  }
+
+  /// Borra el trabajador de la lista. Los jornales históricos conservan el
+  /// nombre como snapshot en `transactions.provider` → no se tocan.
+  Future<void> deleteEmployee(String id) async {
+    _employees = _employees.where((e) => e.id != id).toList();
+    await _store.saveEmployees(_employees);
+    notifyListeners();
+  }
+
   // ---- Settings ----
 
   Future<void> updateSettings(FarmSettings settings) async {
@@ -415,10 +459,13 @@ class TransactionProvider extends ChangeNotifier {
         _harvests.map((h) => h.copyWith(pendingSync: false)).toList();
     _sowings =
         _sowings.map((s) => s.copyWith(pendingSync: false)).toList();
+    _employees =
+        _employees.map((e) => e.copyWith(pendingSync: false)).toList();
     await _store.saveTransactions(_transactions);
     await _store.saveCrops(_crops);
     await _store.saveHarvests(_harvests);
     await _store.saveSowings(_sowings);
+    await _store.saveEmployees(_employees);
     notifyListeners();
   }
 
@@ -466,6 +513,23 @@ class TransactionProvider extends ChangeNotifier {
       ...remoteSowings.where((s) => !existing.contains(s.id)),
     ];
     _store.saveSowings(_sowings);
+    notifyListeners();
+  }
+
+  void mergeRemoteEmployees(List<Employee> remoteEmployees) {
+    final existingIds = _employees.map((e) => e.id).toSet();
+    final existingNames = _employees
+        .map((e) => e.name.trim().toLowerCase())
+        .toSet();
+    _employees = [
+      ..._employees,
+      ...remoteEmployees.where(
+        (e) =>
+            !existingIds.contains(e.id) &&
+            !existingNames.contains(e.name.trim().toLowerCase()),
+      ),
+    ];
+    _store.saveEmployees(_employees);
     notifyListeners();
   }
 }

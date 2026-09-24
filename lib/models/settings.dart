@@ -14,6 +14,11 @@ class FarmSettings {
   /// `null` = desactivado (solo se compara contra el histórico propio).
   final double? lowPriceThresholdPerKg;
 
+  /// Monto de la caja menor destinado **cada mes** a jornales y gastos extras.
+  /// Se reinicia solo con el calendario (el saldo no se acumula al siguiente
+  /// mes). `null` = desactivado (sin widget de caja ni alerta).
+  final double? cajaMenorMensual;
+
   static const _sentinel = Object();
 
   const FarmSettings({
@@ -23,6 +28,7 @@ class FarmSettings {
     this.language = 'es',
     this.lastCropId,
     this.lowPriceThresholdPerKg,
+    this.cajaMenorMensual,
   });
 
   FarmSettings copyWith({
@@ -32,6 +38,7 @@ class FarmSettings {
     String? language,
     Object? lastCropId = _sentinel,
     Object? lowPriceThresholdPerKg = _sentinel,
+    Object? cajaMenorMensual = _sentinel,
   }) {
     return FarmSettings(
       farmName: farmName ?? this.farmName,
@@ -44,6 +51,9 @@ class FarmSettings {
       lowPriceThresholdPerKg: lowPriceThresholdPerKg == _sentinel
           ? this.lowPriceThresholdPerKg
           : lowPriceThresholdPerKg as double?,
+      cajaMenorMensual: cajaMenorMensual == _sentinel
+          ? this.cajaMenorMensual
+          : cajaMenorMensual as double?,
     );
   }
 
@@ -55,6 +65,8 @@ class FarmSettings {
         if (lastCropId != null) 'last_crop_id': lastCropId,
         if (lowPriceThresholdPerKg != null)
           'low_price_threshold_per_kg': lowPriceThresholdPerKg,
+        if (cajaMenorMensual != null)
+          'caja_menor_mensual': cajaMenorMensual,
       };
 
   factory FarmSettings.fromJson(Map<String, dynamic> json) {
@@ -66,6 +78,7 @@ class FarmSettings {
       lastCropId: (json['last_crop_id'] as String?),
       lowPriceThresholdPerKg:
           (json['low_price_threshold_per_kg'] as num?)?.toDouble(),
+      cajaMenorMensual: (json['caja_menor_mensual'] as num?)?.toDouble(),
     );
   }
 }

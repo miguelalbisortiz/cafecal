@@ -19,6 +19,7 @@ import '../services/pdf_export_service.dart';
 import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
+import '../services/report_payroll_metrics.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
 import '../widgets/per_hectare_panel.dart';
@@ -408,6 +409,10 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(height: 20),
             _builtSoldVsHarvestedCard(context, tx, l10n),
             const SizedBox(height: 20),
+            _builtPayrollCard(context, tx, l10n),
+            const SizedBox(height: 20),
+            _builtCashBoxCard(context, tx, l10n),
+            const SizedBox(height: 20),
             PerHectarePanel(
               crops: tx.crops,
               periodTransactions: _recordsFor(tx),
@@ -533,6 +538,19 @@ class _ReportScreenState extends State<ReportScreen> {
         _PeriodMode.yearToDate => l10n.reportPeriodYtd(_year),
       };
 
+  /// Equivalente del modo de pantalla al periodo de exportación.
+  ReportPeriod get _reportPeriod => switch (_mode) {
+        _PeriodMode.week => ReportPeriod.week,
+        _PeriodMode.month => ReportPeriod.month,
+        _PeriodMode.year => ReportPeriod.year,
+        _PeriodMode.yearToDate => ReportPeriod.yearToDate,
+      };
+
+  /// Mes (o número de semana en modo semana), como en la exportación PDF/Excel.
+  int? get _reportPeriodArg => _mode == _PeriodMode.month
+      ? _month
+      : (_mode == _PeriodMode.week ? _week : null);
+
   String _periodChipLabel(AppLocalizations l10n) => switch (_mode) {
         _PeriodMode.week => l10n.reportChipWeek(_week),
         _PeriodMode.month => l10n.reportChipMonth(l10n.monthFull[_month - 1], _year),
@@ -596,6 +614,10 @@ class _ReportScreenState extends State<ReportScreen> {
     final byCrop = metrics.totalsByCrop(harvests, tx.crops);
     final byDestination = metrics.totalsByDestination(harvests);
     final pickupKg = metrics.pickupCostPerKg(tx.transactions, harvests);
+    final staffHarvests = harvests
+        .where((h) => h.workers != null || h.equivalentKg != null)
+        .toList();
+    final nameById = {for (final c in tx.crops) c.id: c.name};
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -678,7 +700,147 @@ class _ReportScreenState extends State<ReportScreen> {
                   bold: true,
                 ),
               ],
+              // Personal y kilos por cosecha (si se registraron).
+              if (staffHarvests.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.reportHarvestStaff,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                ...staffHarvests.map((h) {
+                  final name = h.cropId == null
+                      ? l10n.cropUnspecified
+                      : (nameById[h.cropId] ?? h.cropId!);
+                  final parts = <String>[
+                    if (h.workers != null)
+                      '👷 ${l10n.harvestWorkersCount(h.workers!)}',
+                    if (h.equivalentKg != null)
+                      '≈ ${_numKg(h.equivalentKg!)} kg',
+                  ];
+                  return _harvestLine(
+                    label: '${_fmtDate(h.date)} · $name',
+                    value: parts.join(' · '),
+                    color: scheme.onSurfaceVariant,
+                  );
+                }),
+              ],
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _builtPayrollCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final summary = const ReportPayrollMetrics().payroll(_recordsFor(tx));
+    if (summary.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.reportPayrollSection,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...summary.rows.map((r) => _harvestLine(
+                  label: r.provider.isEmpty
+                      ? l10n.reportPayrollUnnamed
+                      : r.provider,
+                  extra: r.days > 0
+                      ? '${_num(r.days)} ${l10n.reportPayrollDays.toLowerCase()}'
+                      : null,
+                  value: formatMoneyFor(context, r.subtotal,
+                      currency: _effectiveCurrency),
+                )),
+            const Divider(height: 16),
+            _harvestLine(
+              label: l10n.reportPayrollTotal,
+              value: formatMoneyFor(context, summary.total,
+                  currency: _effectiveCurrency),
+              bold: true,
+            ),
+            _harvestLine(
+              label: l10n.reportPayrollEmployees(summary.distinctEmployees),
+              value: '',
+              color: scheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _builtCashBoxCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final rows = const ReportPayrollMetrics().cashBoxByMonth(
+      periodTx: _recordsFor(tx),
+      budget: tx.settings.cajaMenorMensual,
+      period: _reportPeriod,
+      year: _year,
+      month: _reportPeriodArg,
+    );
+    if (rows.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    final multiYear = rows.map((r) => r.year).toSet().length > 1;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.cashBoxTitle,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...rows.map((r) {
+              final monthLabel = multiYear
+                  ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+                  : l10n.monthFull[r.month - 1];
+              final negative = r.balance < 0;
+              String money(double v) =>
+                  formatMoneyFor(context, v, currency: _effectiveCurrency);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _harvestLine(
+                      label: monthLabel,
+                      extra: l10n.reportCashBoxBalance,
+                      value: money(r.balance),
+                      color: negative ? scheme.error : scheme.primary,
+                      bold: true,
+                    ),
+                    Text(
+                      '${l10n.reportCashBoxBudget} ${money(r.budget)}'
+                      ' · ${l10n.cashBoxLabor} ${money(r.labor)}'
+                      ' · ${l10n.cashBoxExtras} ${money(r.extras)}'
+                      ' · ${l10n.jornalTotalLabel} ${money(r.total)}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -827,6 +989,10 @@ class _ReportScreenState extends State<ReportScreen> {
   String _num(double v) => v % 1 == 0
       ? v.toStringAsFixed(0)
       : v.toStringAsFixed(2);
+
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
   String _numKg(double v) => v >= 100
       ? v.toStringAsFixed(0)

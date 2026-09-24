@@ -240,6 +240,34 @@
   "reportNoRecommendations": "No hay recomendaciones para este período.",
   "reportNoHarvestData": "Sin datos de cosechas en el período.",
 
+  "harvestWorkersLabel": "N° de empleados",
+  "harvestWorkersHint": "Opcional. Personas que trabajaron en la cosecha.",
+  "harvestWorkersInvalid": "Ingresa un entero mayor o igual a 0.",
+  "@harvestWorkersCount": {
+    "description": "Cantidad de trabajadores en una cosecha",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "harvestWorkersCount": "{count, plural, one{{count} empleado} other{{count} empleados}}",
+  "harvestEquivalentKgLabel": "¿Cuántos kilos hacen?",
+  "harvestEquivalentKgHint": "Opcional. Peso total de los racimos recolectados.",
+  "harvestEquivalentKgInvalid": "Ingresa un número mayor que 0.",
+
+  "reportPayrollSection": "Nómina del período",
+  "reportPayrollWorker": "Trabajador",
+  "reportPayrollDays": "Días",
+  "reportPayrollSubtotal": "Subtotal",
+  "reportPayrollTotal": "Total nómina",
+  "@reportPayrollEmployees": {
+    "description": "Empleados distintos con gasto de mano de obra en el período",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reportPayrollEmployees": "Empleados distintos: {count}",
+  "reportPayrollUnnamed": "Sin nombre",
+  "reportCashBoxBudget": "Presupuesto",
+  "reportCashBoxBalance": "Saldo",
+  "reportHarvestStaff": "Personal y kilos",
+  "reportEquivalentKg": "Kilos equivalentes",
+
   "perHaSection": "Por hectárea",
   "perHaNoAreaHint": "Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.",
   "perHaYieldLabel": "Rendimiento",
@@ -369,6 +397,42 @@
   "cropNameRequired": "Escribe el nombre del cultivo.",
   "menuCrops": "Cultivos",
   "cropsEmpty": "Aún no hay cultivos. Agrega el primero.",
+  "menuWorkers": "Trabajadores",
+  "workersEmpty": "Aún no hay trabajadores. Agrega el primero.",
+  "workerNewOption": "+ Nuevo trabajador…",
+  "newWorkerDialogTitle": "Nuevo trabajador",
+  "editWorkerTitle": "Editar trabajador",
+  "workerNameLabel": "Nombre",
+  "workerNameRequired": "Escribe el nombre del trabajador.",
+  "workerDayRateLabel": "Valor por día (opcional)",
+  "workerDayRateShort": "Valor por día",
+  "helpWorkerDayRate": "Se autocompleta al registrar un jornal. Déjalo vacío si prefieres escribirlo cada vez.",
+  "workerConfirmDelete": "Eliminar trabajador",
+  "workerDeleted": "Trabajador eliminado",
+  "workerWorkedIn": "Trabajó en",
+  "workerNoJornales": "Sin jornales registrados",
+  "workerNoRate": "Sin valor por día",
+  "jornalSectionTitle": "Jornal",
+  "jornalWorkerLabel": "Trabajador",
+  "jornalWorkerHint": "Crea tus trabajadores en el menú ⋮ o elige «Otro nombre».",
+  "jornalWorkerRequired": "Elige el trabajador.",
+  "jornalOtherNameOption": "Otro nombre…",
+  "jornalCreateOption": "Crear trabajador…",
+  "jornalDaysLabel": "Días trabajados",
+  "jornalDaysRequired": "Ingresa los días (entero mayor que 0).",
+  "jornalRateRequired": "Ingresa el valor por día.",
+  "jornalTotalLabel": "Total",
+  "jornalTotalHint": "Se calcula: días × valor por día.",
+  "cashBoxLabel": "Caja menor mensual",
+  "cashBoxHelp": "Monto de cada mes para jornales y extras. Se reinicia solo cada 1 de mes; lo que sobre no se acumula.",
+  "cashBoxTitle": "Caja menor",
+  "@cashBoxOf": {
+    "placeholders": { "used": { "type": "String" }, "total": { "type": "String" } }
+  },
+  "cashBoxOf": "{used} de {total}",
+  "cashBoxRemaining": "Restante",
+  "cashBoxLabor": "Jornales",
+  "cashBoxExtras": "Extras",
 
   "segMonth": "Mes",
   "segYear": "Año",
@@ -707,6 +771,8 @@
   "catCosecha": "Cosecha y recolección",
   "catPlagas": "Control plagas",
   "catRiego": "Riego",
+  "catEnergia": "Energía",
+  "catAgua": "Agua",
   "catEmpaque": "Empacado y comercialización",
   "catTransporte": "Transporte",
   "catEquipo": "Equipo",
@@ -754,5 +820,32 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "alertMissingQtyMessage": "El problema: en los últimos 90 días registraste {count} ventas sin la cantidad vendida. Sin ese dato, la app no puede calcular tu precio por kilo ni tu rentabilidad.",
-  "alertMissingQtySuggestion": "Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables."
+  "alertMissingQtySuggestion": "Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.",
+
+  "@alertCashBoxWarningTitle": {
+    "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }
+  },
+  "alertCashBoxWarningTitle": "La caja menor de {month} está al {percent}",
+  "@alertCashBoxWarningMessage": {
+    "placeholders": {
+      "used": { "type": "String" },
+      "total": { "type": "String" },
+      "remaining": { "type": "String" }
+    }
+  },
+  "alertCashBoxWarningMessage": "El problema: este mes llevas {used} de {total} en jornales y extras. Te quedan {remaining} antes de agotarla.",
+  "alertCashBoxWarningSuggestion": "Revisa los gastos extras y deja solo lo necesario hasta cerrar el mes.",
+  "@alertCashBoxDangerTitle": {
+    "placeholders": { "month": { "type": "String" } }
+  },
+  "alertCashBoxDangerTitle": "Caja menor agotada en {month}",
+  "@alertCashBoxDangerMessage": {
+    "placeholders": {
+      "used": { "type": "String" },
+      "total": { "type": "String" },
+      "percent": { "type": "String" }
+    }
+  },
+  "alertCashBoxDangerMessage": "El problema: este mes llevas {used} de {total} en jornales y extras ({percent}). Ya no queda presupuesto disponible.",
+  "alertCashBoxDangerSuggestion": "Revisa los gastos extras y considera reducir trabajadores este mes."
 }

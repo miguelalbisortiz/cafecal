@@ -611,4 +611,100 @@ void main() {
           alerts.where((a) => a.rule == AlertRule.missingQuantity), isEmpty);
     });
   });
+
+  group('Regla 10 — Caja menor', () {
+    test('≥80% dispara warning con cifras de usado/monto/%', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 400,
+            date: DateTime(2026, 6, 5), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 80,
+            date: DateTime(2026, 6, 10), category: 'energia'),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      final found = alerts.where((a) => a.rule == AlertRule.cajaMenor);
+      expect(found, isNotEmpty, reason: '480/600 = 80% debe avisar');
+      expect(found.first.severity, AlertSeverity.warning);
+      final detail = '${found.first.title} ${found.first.message}';
+      expect(detail, contains(r'$'), reason: 'debe citar montos');
+      expect(detail, contains('%'), reason: 'debe citar el porcentaje');
+      expect(found.first.suggestion, isNotEmpty);
+    });
+
+    test('>100% dispara danger con sugerencia de reducir trabajadores', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 700,
+            date: DateTime(2026, 6, 5), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      final found = alerts.where((a) => a.rule == AlertRule.cajaMenor);
+      expect(found, isNotEmpty, reason: '700/600 > 100% debe disparar');
+      expect(found.first.severity, AlertSeverity.danger);
+      expect(found.first.suggestion.toLowerCase(), contains('trabajadores'));
+      expect('${found.first.title} ${found.first.message}',
+          contains(r'$'));
+    });
+
+    test('sin monto configurado no evalúa la regla', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 5000,
+            date: DateTime(2026, 6, 5), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(
+          alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
+          reason: 'cajaMensual null = desactivado');
+    });
+
+    test('por debajo de 80% no dispara', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 400,
+            date: DateTime(2026, 6, 5), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      expect(alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
+          reason: '400/600 = 66% está dentro del presupuesto');
+    });
+
+    test('insumos y fertilizantes NO descuentan; los extras sí', () {
+      // 900 en producción (no descuenta) con presupuesto 600: sin alerta.
+      final produccion = [
+        _txn(type: TransactionType.expense, amount: 500,
+            date: DateTime(2026, 6, 5), category: 'fertilizante'),
+        _txn(type: TransactionType.expense, amount: 400,
+            date: DateTime(2026, 6, 6), category: 'semillas_insumos'),
+      ];
+      final sinCaja = AlertService(now: now)
+          .evaluate(produccion, _crops(), _es, cajaMensual: 600);
+      expect(
+          sinCaja.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
+          reason: 'insumos/fertilizante no son gastos de caja');
+
+      // 500 en extras con presupuesto 600 = 83%: sí alerta.
+      final extras = [
+        _txn(type: TransactionType.expense, amount: 300,
+            date: DateTime(2026, 6, 5), category: 'energia'),
+        _txn(type: TransactionType.expense, amount: 200,
+            date: DateTime(2026, 6, 8), category: 'agua'),
+      ];
+      final conCaja = AlertService(now: now)
+          .evaluate(extras, _crops(), _es, cajaMensual: 600);
+      expect(conCaja.any((a) => a.rule == AlertRule.cajaMenor), isTrue,
+          reason: 'energía/agua descuentan de la caja');
+    });
+
+    test('los gastos del mes anterior NO descuentan (reinicio por calendario)',
+        () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 700,
+            date: DateTime(2026, 5, 20), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      expect(alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
+          reason: 'mayo no puede agotar la caja de junio');
+    });
+  });
 }

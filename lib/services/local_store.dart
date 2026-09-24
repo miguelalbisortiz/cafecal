@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/crop.dart';
+import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
@@ -15,6 +16,7 @@ class LocalStore {
   static const _kSyncedAt = 'synced_at_v1';
   static const _kHarvests = 'harvests_v1';
   static const _kSowings = 'sowings_v1';
+  static const _kEmployees = 'employees_v1';
 
   static const _allKeys = [
     _kTransactions,
@@ -23,6 +25,7 @@ class LocalStore {
     _kSyncedAt,
     _kHarvests,
     _kSowings,
+    _kEmployees,
   ];
 
   final SharedPreferences _prefs;
@@ -147,6 +150,26 @@ class LocalStore {
   Future<void> saveSowings(List<Sowing> sowings) async {
     final raw = jsonEncode(sowings.map((s) => s.toJson()).toList());
     await _prefs.setString(_key(_kSowings), raw);
+  }
+
+  // ---- Employees ----
+
+  List<Employee> loadEmployees() {
+    final raw = _prefs.getString(_key(_kEmployees));
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list
+          .map((e) => Employee.fromJson((e as Map).cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveEmployees(List<Employee> employees) async {
+    final raw = jsonEncode(employees.map((e) => e.toJson()).toList());
+    await _prefs.setString(_key(_kEmployees), raw);
   }
 
   // ---- Settings ----
