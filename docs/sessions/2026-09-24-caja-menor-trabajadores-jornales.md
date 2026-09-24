@@ -72,6 +72,12 @@ la planilla física *"RECORDS DE FINCAS DE CAFÉ U OTROS 10 HECTÁREAS O MENOS"*
   comentado en `home_screen.dart`) — el pequeño agricultor produce y vende sin
   almacenar. Nada más cambia: reportes/alertas/sync de cosechas siguen activos
   y la pantalla se restaura descomentando el bloque.
+- **Post-plan (mismo día)**: **desgloses de Excel** en la hoja Resumen
+  (`main d8d0ba2` / `gh-pages 756ebab`): tabla **Ingresos y gastos por mes**
+  (12 filas + Total, solo período año/año-hasta-hoy; Balance verde/rojo) y
+  cruce **Gastos por categoría y cultivo** (ordenado por monto, gastos sin
+  cultivo van a "Sin especificar"; solo si hay gastos). 3 claves l10n nuevas
+  (es/en) + 4 tests → **218/218**, hash de prod verificado.
 
 ## Files
 
