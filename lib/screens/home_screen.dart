@@ -123,15 +123,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    PopupMenuItem(
-                      value: 'harvests',
-                      child: ListTile(
-                        leading: const Icon(Icons.agriculture_outlined),
-                        title: Text(l10n.menuHarvests),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
+                    // Cosechas oculta del menú (2026-09-24): el pequeño
+                    // agricultor produce y vende sin almacenar, no usa esta
+                    // pantalla. El resto de la feature sigue intacta (reportes,
+                    // alertas, sync). Para restaurar: descomentar el bloque.
+                    // PopupMenuItem(
+                    //   value: 'harvests',
+                    //   child: ListTile(
+                    //     leading: const Icon(Icons.agriculture_outlined),
+                    //     title: Text(l10n.menuHarvests),
+                    //     dense: true,
+                    //     contentPadding: EdgeInsets.zero,
+                    //   ),
+                    // ),
                     PopupMenuItem(
                       value: 'workers',
                       child: ListTile(
