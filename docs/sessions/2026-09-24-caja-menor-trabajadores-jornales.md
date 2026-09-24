@@ -54,7 +54,7 @@ la planilla física *"RECORDS DE FINCAS DE CAFÉ U OTROS 10 HECTÁREAS O MENOS"*
 | analyze | limpio |
 | main | ver `git log` |
 | gh-pages | ver `git log` (HTTP 200) |
-| Migración Supabase | **pendiente/manual**: debe aplicarse en el SQL Editor |
+| Migración Supabase | **aplicada y verificada** (2026-09-24, SQL Editor → `employees`, `caja_menor_mensual`, `workers`/`equivalent_kg` responden 200) |
 
 ## Key decisions (no revertir)
 
