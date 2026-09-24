@@ -68,6 +68,10 @@ la planilla física *"RECORDS DE FINCAS DE CAFÉ U OTROS 10 HECTÁREAS O MENOS"*
 - **Extras es una constante ajustable** (`kCashBoxExtraCategories`).
 - Recibos PDF, cuotas/nómina legal, saldo acumulado y vínculo `employee_id`
   quedan **fuera de alcance**.
+- **Post-plan (mismo día)**: ítem "Cosechas" **oculto del menú ⋮** (bloque
+  comentado en `home_screen.dart`) — el pequeño agricultor produce y vende sin
+  almacenar. Nada más cambia: reportes/alertas/sync de cosechas siguen activos
+  y la pantalla se restaura descomentando el bloque.
 
 ## Files
 
