@@ -51,10 +51,13 @@ class SyncProvider extends ChangeNotifier {
   }
 
   Future<void> _pushLocal(SupabaseService supabase) async {
-    final pending = _txProvider.pendingSync();
-    if (pending.isEmpty) return;
-
-    for (final t in pending) {
+    // Push COMPLETO en cada sync (upserts idempotentes y de volumen bajo):
+    // subir solo lo "pendiente" era una trampa — el bug histórico marcaba
+    // cosechas/siembras/trabajadores como sincronizados sin haberlos subido
+    // jamás (markAllSynced corría igual aunque el push se saltara entidades
+    // por no haber transacciones pendientes). Así cualquier dispositivo con
+    // copia local vuelve a llenar la cuenta en el próximo sync.
+    for (final t in _txProvider.transactions) {
       if (t.deleted) {
         await _deleteRemote(supabase, t.id);
       } else {
@@ -62,19 +65,19 @@ class SyncProvider extends ChangeNotifier {
       }
     }
 
-    for (final c in _txProvider.crops.where((c) => c.pendingSync)) {
+    for (final c in _txProvider.crops) {
       await _upsertRemoteCrop(supabase, c);
     }
 
-    for (final h in _txProvider.harvests.where((h) => h.pendingSync)) {
+    for (final h in _txProvider.harvests) {
       await _upsertRemoteHarvest(supabase, h);
     }
 
-    for (final s in _txProvider.sowings.where((s) => s.pendingSync)) {
+    for (final s in _txProvider.sowings) {
       await _upsertRemoteSowing(supabase, s);
     }
 
-    for (final e in _txProvider.employees.where((e) => e.pendingSync)) {
+    for (final e in _txProvider.employees) {
       await _upsertRemoteEmployee(supabase, e);
     }
   }
