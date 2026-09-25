@@ -221,43 +221,47 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
       TransactionProvider provider, AppLocalizations l10n) {
     final records =
         provider.where(type: widget.type, year: widget.year, month: widget.month);
+    final crops = provider.crops;
+    final isExpense = widget.type.isExpense;
     final totals = <String, double>{};
     for (final t in records) {
-      totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+      // Las ventas con cultivo se agrupan aparte (venta|<cropId>) para que
+      // el desglose muestre "Venta plátano" / "Venta café" como filas.
+      final key = isExpense ? t.category : incomeGroupKey(t.category, t.cropId);
+      totals[key] = (totals[key] ?? 0) + t.amount;
     }
 
     final rows = totals.entries.map((e) {
       final key = e.key;
-      final isExpense = widget.type.isExpense;
-      final icon = isExpense
-          ? (expenseCategories.firstWhere((c) => c.key == key,
-                  orElse: () => const ExpenseCategory(
-                      key: 'otro', name: 'Otro', icon: '📦', color: '#757575')))
-              .icon
-          : (incomeCategories.firstWhere((c) => c.key == key,
-                  orElse: () => const IncomeCategory(
-                      key: 'venta_otro',
-                      name: 'Venta otros',
-                      icon: '💰',
-                      color: '#2E7D32')))
-              .icon;
-      final color = isExpense
-          ? expenseCategories
-              .firstWhere((c) => c.key == key,
-                  orElse: () => const ExpenseCategory(
-                      key: 'otro', name: 'Otro', icon: '📦', color: '#757575'))
-              .color
-          : incomeCategories
-              .firstWhere((c) => c.key == key,
-                  orElse: () => const IncomeCategory(
-                      key: 'venta_otro',
-                      name: 'Venta otros',
-                      icon: '💰',
-                      color: '#2E7D32'))
-              .color;
-      final label = isExpense
-          ? l10n.expenseCategory(key)
-          : l10n.incomeCategory(key);
+      String icon;
+      String color;
+      String label;
+      if (isExpense) {
+        final cat = expenseCategories.firstWhere((c) => c.key == key,
+            orElse: () => const ExpenseCategory(
+                key: 'otro', name: 'Otro', icon: '📦', color: '#757575'));
+        icon = cat.icon;
+        color = cat.color;
+        label = l10n.expenseCategory(key);
+      } else {
+        final sep = key.indexOf('|');
+        if (sep != -1) {
+          // Grupo "Venta <cultivo>": toma icono y color del cultivo.
+          final crop = cropOf(crops, key.substring(sep + 1));
+          icon = crop?.icon ?? '💰';
+          color = crop?.color ?? '#2E7D32';
+        } else {
+          final cat = incomeCategories.firstWhere((c) => c.key == key,
+              orElse: () => const IncomeCategory(
+                  key: 'venta_otro',
+                  name: 'Venta otros',
+                  icon: '💰',
+                  color: '#2E7D32'));
+          icon = cat.icon;
+          color = cat.color;
+        }
+        label = l10n.incomeGroupLabel(key, crops);
+      }
       return _CategoryRow(
         label: label,
         icon: icon,

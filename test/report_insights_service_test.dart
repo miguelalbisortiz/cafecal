@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
+import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/report_insights_service.dart';
 
@@ -14,6 +15,7 @@ Transaction _txn({
   required double amount,
   required DateTime date,
   String category = 'otro',
+  String? cropId,
 }) {
   return Transaction(
     id: '${type.name}_${amount}_${date.millisecondsSinceEpoch}',
@@ -22,6 +24,7 @@ Transaction _txn({
     amount: amount,
     date: date,
     createdAt: DateTime(2026, 1, 1),
+    cropId: cropId,
   );
 }
 
@@ -124,6 +127,63 @@ void main() {
         _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe'),
+      ];
+      final insights = service.build(
+        now: now,
+        current: year.where((t) => t.date.month == 6).toList(),
+        previousMonth: const [],
+        yearRecords: year,
+        year: 2026,
+        month: 6,
+        l10n: _es,
+        money: _money,
+      );
+      expect(
+        insights.any((i) => i.text.contains('Vendes por montos menores')),
+        isTrue,
+      );
+    });
+
+    test('la mayor venta cita el cultivo (Venta Plátano ≠ Venta Café)', () {
+      final current = [
+        _txn(
+            type: TransactionType.income,
+            amount: 800,
+            date: DateTime(2026, 6, 1),
+            category: 'venta',
+            cropId: 'p1'),
+        _txn(
+            type: TransactionType.income,
+            amount: 300,
+            date: DateTime(2026, 6, 2),
+            category: 'venta',
+            cropId: 'c1'),
+      ];
+      final insights = service.build(
+        now: now,
+        current: current,
+        previousMonth: const [],
+        yearRecords: current,
+        year: 2026,
+        month: 6,
+        crops: const [
+          Crop(id: 'p1', name: 'Plátano'),
+          Crop(id: 'c1', name: 'Café'),
+        ],
+        l10n: _es,
+        money: _money,
+      );
+      final top = insights.firstWhere((i) => i.text.contains(r'$800'));
+      expect(top.text, contains('Venta Plátano'));
+    });
+
+    test('las ventas con la clave nueva cuentan para el promedio', () {
+      final year = [
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta'),
       ];
       final insights = service.build(
         now: now,

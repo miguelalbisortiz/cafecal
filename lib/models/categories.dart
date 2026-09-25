@@ -53,6 +53,18 @@ const Set<String> kCashBoxExtraCategories = {
 bool discountsCashBox(String category) =>
     category == 'mano_obra' || kCashBoxExtraCategories.contains(category);
 
+/// Clave de la categoría de ingreso "venta de cosecha". La etiqueta se
+/// completa con el nombre del cultivo elegido en el movimiento
+/// ("Venta plátano", "Venta café"…); sin cultivo se muestra "Venta".
+/// Antes cada cultivo tenía su propia clave fija (venta_cafe, …): esas
+/// claves legadas siguen mostrándose igual en los datos viejos.
+const String kIncomeCategorySale = 'venta';
+
+/// ¿La categoría de ingreso es una venta (cualquier época)?
+/// Cubre la clave nueva [kIncomeCategorySale] y las legadas venta_*.
+bool isSaleCategory(String category) =>
+    category == kIncomeCategorySale || category.startsWith('venta_');
+
 const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: kExpenseCategorySowing, name: 'Siembra', icon: '🌱', color: '#2E7D32'),
   ExpenseCategory(key: 'semillas_insumos', name: 'Semillas e insumos', icon: '🌾', color: '#7CB342'),
@@ -73,8 +85,12 @@ const List<ExpenseCategory> expenseCategories = [
 ];
 
 const List<IncomeCategory> incomeCategories = [
-  IncomeCategory(key: 'venta_cafe', name: 'Venta café', icon: '☕', color: '#6D4C41'),
-  IncomeCategory(key: 'venta_platano', name: 'Venta plátano', icon: '🍌', color: '#F9A825'),
+  IncomeCategory(key: kIncomeCategorySale, name: 'Venta', icon: '💰', color: '#2E7D32'),
   IncomeCategory(key: 'subvenciones', name: 'Subvenciones y apoyos', icon: '🤝', color: '#00897B'),
   IncomeCategory(key: 'venta_otro', name: 'Venta otros', icon: '💰', color: '#2E7D32'),
+  // Legadas: cada cultivo tenía su clave fija. Ya no se ofrecen al
+  // registrar (la venta nueva toma el nombre del cultivo del movimiento),
+  // pero se conservan para icono/color y etiqueta de los datos viejos.
+  IncomeCategory(key: 'venta_cafe', name: 'Venta café', icon: '☕', color: '#6D4C41'),
+  IncomeCategory(key: 'venta_platano', name: 'Venta plátano', icon: '🍌', color: '#F9A825'),
 ];

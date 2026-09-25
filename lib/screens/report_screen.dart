@@ -77,6 +77,7 @@ class _ReportScreenState extends State<ReportScreen> {
       yearRecords: inYear,
       year: _year,
       month: _mode == _PeriodMode.month ? _month : null,
+      crops: tx.crops,
       l10n: l10n,
       money: (v) => formatMoneyFor(context, v, currency: _effectiveCurrency),
     );
@@ -1339,12 +1340,14 @@ class _ReportScreenState extends State<ReportScreen> {
     final records = _recordsFor(tx).where((t) => t.type == type);
     final totals = <String, double>{};
     for (final t in records) {
-      totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+      // Ventas con cultivo: grupo aparte por cultivo (fila "Venta plátano").
+      final key = type.isExpense ? t.category : incomeGroupKey(t.category, t.cropId);
+      totals[key] = (totals[key] ?? 0) + t.amount;
     }
     return totals.entries.map((e) {
       final label = type.isExpense
           ? l10n.expenseCategory(e.key)
-          : l10n.incomeCategory(e.key);
+          : l10n.incomeGroupLabel(e.key, tx.crops);
       return _CategoryRow(
         label: label,
         amount: e.value,

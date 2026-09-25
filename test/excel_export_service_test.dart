@@ -557,5 +557,58 @@ void main() {
       // El estado normal sigue presente.
       expect(rows.any((r) => t0(r[0]).contains('RESULTADO')), isTrue);
     });
+
+    test('ingresos: cada venta con cultivo sale en su propia fila', () {
+      final rows = resumen(
+        txns: [
+          // category por defecto: 'venta' (la clave nueva).
+          _txn(
+              type: TransactionType.income,
+              amount: 3000,
+              date: DateTime(2026, 9, 3),
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.income,
+              amount: 1200,
+              date: DateTime(2026, 9, 4),
+              cropId: 'platano'),
+          // Legada: sigue siendo su propia fila ("Venta café").
+          _txn(
+              type: TransactionType.income,
+              amount: 700,
+              date: DateTime(2026, 9, 5),
+              category: 'venta_cafe'),
+          _txn(
+              type: TransactionType.income,
+              amount: 300,
+              date: DateTime(2026, 9, 6),
+              category: 'subvenciones'),
+          // Venta sin cultivo: "Venta" a secas.
+          _txn(
+              type: TransactionType.income,
+              amount: 200,
+              date: DateTime(2026, 9, 7)),
+        ],
+        period: ReportPeriod.month,
+        year: 2026,
+        month: 9,
+      );
+
+      final h = rows.indexWhere((r) => t0(r[0]) == _es.pdfIncomesHeader);
+      expect(h, greaterThanOrEqualTo(0), reason: 'estado de ingresos presente');
+      final lines = <String, double>{};
+      for (var i = h + 1; i < rows.length; i++) {
+        final raw = t0(rows[i][0]);
+        if (!raw.startsWith('    ')) break; // fin del bloque de ingresos
+        lines[raw.trim()] = (cv(rows[i][2]) as num).toDouble();
+      }
+      expect(lines.length, 5, reason: '5 filas: 2 ventas por cultivo + legada '
+          '+ subvenciones + venta sin cultivo');
+      expect(lines['Venta Café'], 3000.0);
+      expect(lines['Venta Plátano'], 1200.0);
+      expect(lines['Venta café'], 700.0); // legada, separada de "Venta Café"
+      expect(lines[_es.catSubvenciones], 300.0);
+      expect(lines[_es.catVenta], 200.0);
+    });
   });
 }

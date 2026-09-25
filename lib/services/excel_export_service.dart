@@ -325,7 +325,7 @@ class ExcelExportService {
     _styleHeaderRow(sheet, 4, 3, _excelBrown);
     for (final e in incomeTotals.entries) {
       row([
-        TextCellValue('    ${l10n.incomeCategory(e.key)}'),
+        TextCellValue('    ${l10n.incomeGroupLabel(e.key, crops)}'),
         TextCellValue(_pctOf(e.value, incomes)),
         DoubleCellValue(e.value),
       ]);
@@ -954,7 +954,10 @@ class ExcelExportService {
   Map<String, double> _groupTotals(List<Transaction> list) {
     final totals = <String, double>{};
     for (final t in list) {
-      totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+      // Las ventas con cultivo se agrupan aparte (venta|<cropId>): el
+      // desglose de ingresos muestra "Venta plátano" / "Venta café".
+      final key = incomeGroupKey(t.category, t.cropId);
+      totals[key] = (totals[key] ?? 0) + t.amount;
     }
     final entries = totals.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
