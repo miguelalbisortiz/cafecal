@@ -25,7 +25,23 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> init() async {
     await _bindCurrentUser();
+    _listenAuthChanges();
     notifyListeners();
+  }
+
+  /// Escucha cambios de sesión (expiración, refresh, login/logout): sin esto
+  /// la app podía quedar con una sesión muerta y el sync volvía temprano
+  /// "sin error" mientras el usuario seguía viendo la pantalla principal.
+  void _listenAuthChanges() {
+    if (!SupabaseService.instance.isConfigured) return;
+    try {
+      SupabaseService.instance.client.auth.onAuthStateChange.listen((_) {
+        _bindCurrentUser();
+        notifyListeners();
+      });
+    } catch (_) {
+      // Modo local sin backend: no hay sesión que escuchar.
+    }
   }
 
   Future<bool> signIn(String email, String password) async {
