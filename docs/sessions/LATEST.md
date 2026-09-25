@@ -14,5 +14,9 @@
   - **Gastos por categoría y cultivo**: cruce categoría × cultivo ordenado por monto, con "Sin especificar" para gastos sin cultivo; solo si hay gastos
   - 3 claves l10n nuevas (es/en) + 4 tests nuevos → **218/218 tests**, analyze limpio
 
+## Incidente 25 sep — onboarding reaparece (cuenta vacía)
+- Cuenta `prueba@gmail.com` vacía en local Y remoto; BD/RLS sanos (sonda 201/200). Causas: `_pushLocal` con return temprano (entidades no pendientes nunca subidas + `markAllSynced` falso) y sesión muerta silenciosa (sin listener de auth).
+- **Fix desplegado** `main 0c0b050` / `gh-pages 2526615`: push completo idempotente + `onAuthStateChange` → reenlace. Recuperación: cualquier dispositivo con copia local sube todo en el próximo sync. Detalle en el doc de sesión.
+
 ## Archivos
 - `docs/sessions/2026-09-24-caja-menor-trabajadores-jornales.md` — detalle completo

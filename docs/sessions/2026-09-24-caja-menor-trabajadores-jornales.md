@@ -79,6 +79,31 @@ la planilla física *"RECORDS DE FINCAS DE CAFÉ U OTROS 10 HECTÁREAS O MENOS"*
   cultivo van a "Sin especificar"; solo si hay gastos). 3 claves l10n nuevas
   (es/en) + 4 tests → **218/218**, hash de prod verificado.
 
+## Incidente 25 sep — onboarding reaparece / cuenta vacía
+
+- **Síntoma**: al reentrar pide elegir cultivo/siembra y el reporte mostraba
+  datos anteriores.
+- **Diagnóstico en vivo**: sesión `prueba@gmail.com` (uid `f409b97c…`) con
+  localStorage en `[]` **y** Supabase en 0 filas (crops/sowings/transactions/
+  employees/harvests). Sonda insert+delete con su token → 201/200: BD y RLS
+  sanos. `settings` solo tiene la fila del trigger (21 sep), nunca empujada.
+- **Causas de código confirmadas**:
+  1. `_pushLocal` con `return` temprano cuando no hay transacciones
+     pendientes → cosechas/siembras/trabajadores jamás se subían y
+     `markAllSynced` los marcaba como sincronizados (cuenta remota vacía
+     con "sync sin error").
+  2. Sin listener de `onAuthStateChange` → con sesión muerta el sync volvía
+     temprano sin subir nada y la app seguía en pantalla principal.
+- **Fix** (`main 0c0b050` / `gh-pages 2526615`, 218/218 + hash prod OK):
+  push COMPLETO idempotente en cada sync + reenlace de sesión/AuthGate al
+  cambiar el estado de auth.
+- **Migración legacy solo-settings es diseño H1** (test
+  `local_store_test.dart` lo exige: cada usuario arranca limpio) — no es bug.
+- **Pendientes conocidos**: `settings` nunca se sincroniza; borrado de
+  trabajadores/cosechas no se propaga (sin tumba → el pull los resucita);
+  recuperación depende de que algún dispositivo conserve copia local (prueba
+  del usuario en curso).
+
 ## Files
 
 `lib/models/employee.dart`, `lib/models/{settings,harvest,categories,farm_alert}.dart`,
