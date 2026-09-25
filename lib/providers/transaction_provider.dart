@@ -19,6 +19,7 @@ class TransactionProvider extends ChangeNotifier {
   List<Harvest> _harvests = [];
   List<Sowing> _sowings = [];
   List<Employee> _employees = [];
+  bool _settingsDirty = false;
 
   TransactionProvider(this._store) {
     _transactions = _store.loadTransactions();
@@ -27,6 +28,7 @@ class TransactionProvider extends ChangeNotifier {
     _harvests = _store.loadHarvests();
     _sowings = _store.loadSowings();
     _employees = _store.loadEmployees();
+    _settingsDirty = _store.loadSettingsDirty();
   }
 
   /// Recarga todo el estado desde el namespace activo del store. Se invoca
@@ -412,7 +414,30 @@ class TransactionProvider extends ChangeNotifier {
 
   Future<void> updateSettings(FarmSettings settings) async {
     _settings = settings;
+    _settingsDirty = true;
     await _store.saveSettings(settings);
+    await _store.saveSettingsDirty(true);
+    notifyListeners();
+  }
+
+  /// Ajustes con cambios locales aún no subidos.
+  bool get settingsDirty => _settingsDirty;
+
+  /// Subida correcta: ya no hay nada local pendiente.
+  Future<void> markSettingsSynced() async {
+    if (!_settingsDirty) return;
+    _settingsDirty = false;
+    await _store.saveSettingsDirty(false);
+    notifyListeners();
+  }
+
+  /// Aplica los ajustes remotos. Solo se llama cuando no hay cambios
+  /// locales pendientes, para que un dispositivo nuevo no pise la caja
+  /// menor configurada en otro.
+  void applyRemoteSettings(FarmSettings remote) {
+    if (_settingsDirty) return;
+    _settings = remote;
+    _store.saveSettings(remote);
     notifyListeners();
   }
 
@@ -448,19 +473,31 @@ class TransactionProvider extends ChangeNotifier {
   List<Transaction> pendingSync() =>
       _transactions.where((t) => t.pendingSync).toList();
 
-  Future<void> markAllSynced() async {
+  /// Marca como sincronizado todo lo que **sí** llegó al servidor.
+  ///
+  /// [skip] son los ids que fallaron al subir: conservan `pendingSync` y se
+  /// vuelven a intentar en el próximo sync. Sin esta lista, un fallo parcial
+  /// dejaba los registros locales en un estado inconsistente.
+  Future<void> markAllSynced({Set<String> skip = const {}}) async {
+    final failed = skip.contains;
+    // Los borrados que no llegaron se conservan: si se descartaran aquí,
+    // el pull los resucitaría desde el remoto.
     _transactions = _transactions
-        .where((t) => !t.deleted)
-        .map((t) => t.copyWith(pendingSync: false))
+        .where((t) => !t.deleted || failed(t.id))
+        .map((t) => failed(t.id) ? t : t.copyWith(pendingSync: false))
         .toList();
-    _crops =
-        _crops.map((c) => c.copyWith(pendingSync: false)).toList();
-    _harvests =
-        _harvests.map((h) => h.copyWith(pendingSync: false)).toList();
-    _sowings =
-        _sowings.map((s) => s.copyWith(pendingSync: false)).toList();
-    _employees =
-        _employees.map((e) => e.copyWith(pendingSync: false)).toList();
+    _crops = _crops
+        .map((c) => failed(c.id) ? c : c.copyWith(pendingSync: false))
+        .toList();
+    _harvests = _harvests
+        .map((h) => failed(h.id) ? h : h.copyWith(pendingSync: false))
+        .toList();
+    _sowings = _sowings
+        .map((s) => failed(s.id) ? s : s.copyWith(pendingSync: false))
+        .toList();
+    _employees = _employees
+        .map((e) => failed(e.id) ? e : e.copyWith(pendingSync: false))
+        .toList();
     await _store.saveTransactions(_transactions);
     await _store.saveCrops(_crops);
     await _store.saveHarvests(_harvests);

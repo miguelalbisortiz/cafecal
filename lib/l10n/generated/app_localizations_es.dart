@@ -419,6 +419,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get syncTooltip => 'Sincronizar';
 
   @override
+  String get syncFailed => 'No se pudo sincronizar';
+
+  @override
+  String get syncRetry => 'Reintentar';
+
+  @override
+  String get syncErrorTooltip => 'Hay datos sin sincronizar. Toca para ver el detalle';
+
+  @override
   String get menuReport => 'Reporte';
 
   @override

@@ -39,12 +39,58 @@ class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
   TransactionType? _registerInitialType;
 
+  /// Último error mostrado en pantalla: evita repetir el SnackBar en cada
+  /// notifyListeners del mismo fallo (los iconos se redibujan muchas veces).
+  String? _shownError;
+
+  late final SyncProvider _sync;
+
   @override
   void initState() {
     super.initState();
+    _sync = context.read<SyncProvider>();
+    _sync.addListener(_watchSync);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SyncProvider>().sync();
+      _sync.sync();
     });
+  }
+
+  @override
+  void dispose() {
+    // El provider es global: hay que soltar el listener al salir.
+    _sync.removeListener(_watchSync);
+    super.dispose();
+  }
+
+  /// Muestra el error de sync apenas termina la pasada (una sola vez).
+  void _watchSync() {
+    if (_sync.syncing || !_sync.hasError) return;
+    final error = _sync.lastSyncError ?? '';
+    if (error == _shownError) return;
+    _shownError = error;
+    _showSyncError(error);
+  }
+
+  void _showSyncError(String? detail) {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          content: Text(
+            detail == null || detail.isEmpty
+                ? l10n.syncFailed
+                : '${l10n.syncFailed}: $detail',
+          ),
+          action: SnackBarAction(
+            label: l10n.syncRetry,
+            textColor: Theme.of(context).colorScheme.onError,
+            onPressed: () => context.read<SyncProvider>().sync(),
+          ),
+        ),
+      );
   }
 
   @override
@@ -53,6 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     final tx = context.watch<TransactionProvider>();
     final onboarding = needsOnboarding(tx.crops, tx.sowings);
+
+    // Al recuperarse de un error, se olvida para que el siguiente vuelva a avisar.
+    if (!sync.hasError && _shownError != null) _shownError = null;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -75,6 +124,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
+                )
+              else if (sync.hasError)
+                IconButton(
+                  tooltip: l10n.syncErrorTooltip,
+                  icon: Icon(
+                    Icons.cloud_off,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  onPressed: () => _showSyncError(sync.lastSyncError),
                 )
               else
                 IconButton(
