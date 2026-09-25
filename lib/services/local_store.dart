@@ -17,6 +17,7 @@ class LocalStore {
   static const _kHarvests = 'harvests_v1';
   static const _kSowings = 'sowings_v1';
   static const _kEmployees = 'employees_v1';
+  static const _kSettingsDirty = 'settings_dirty_v1';
 
   static const _allKeys = [
     _kTransactions,
@@ -26,6 +27,7 @@ class LocalStore {
     _kHarvests,
     _kSowings,
     _kEmployees,
+    _kSettingsDirty,
   ];
 
   final SharedPreferences _prefs;
@@ -186,6 +188,17 @@ class LocalStore {
 
   Future<void> saveSettings(FarmSettings settings) async {
     await _prefs.setString(_key(_kSettings), jsonEncode(settings.toJson()));
+  }
+
+  /// Ajustes locales modificados y aún no subidos.
+  ///
+  /// Se guarda aparte del modelo para no tocar su `toJson` (que también
+  /// alimenta al sync remoto). Sin esta marca, un dispositivo recién
+  /// instalado subiría ajustes por defecto y pisaría la caja menor ajena.
+  bool loadSettingsDirty() => _prefs.getBool(_key(_kSettingsDirty)) ?? false;
+
+  Future<void> saveSettingsDirty(bool value) async {
+    await _prefs.setBool(_key(_kSettingsDirty), value);
   }
 
   // ---- Sync timestamp ----

@@ -911,6 +911,24 @@ abstract class AppLocalizations {
   /// **'Sincronizar'**
   String get syncTooltip;
 
+  /// No description provided for @syncFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo sincronizar'**
+  String get syncFailed;
+
+  /// No description provided for @syncRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get syncRetry;
+
+  /// No description provided for @syncErrorTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay datos sin sincronizar. Toca para ver el detalle'**
+  String get syncErrorTooltip;
+
   /// No description provided for @menuReport.
   ///
   /// In es, this message translates to:
