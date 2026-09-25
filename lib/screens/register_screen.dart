@@ -52,11 +52,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _currency = 'COP';
   DateTime _date = DateTime.now();
 
+  /// Categorías que abren el bloque de datos de producción (ventas).
+  /// [kIncomeCategorySale] es la clave nueva: su etiqueta toma el nombre
+  /// del cultivo del movimiento. venta_cafe / venta_platano son legadas
+  /// y solo sirven para seguir editando registros viejos.
   static const _saleCategories = {
+    kIncomeCategorySale,
     'venta_cafe',
     'venta_platano',
     'venta_otro',
   };
+
+  /// Claves de venta fijas que ya no se ofrecen al registrar (su equivalente
+  /// es la venta por cultivo); se mantienen como ítem si el movimiento en
+  /// edición ya las usa, para no romper el dropdown.
+  static const _legacySaleCategories = {'venta_cafe', 'venta_platano'};
 
   /// Gasto de mano de obra: activa el bloque jornal (trabajador + días ×
   /// valor día) y bloquea el campo Monto (se calcula solo).
@@ -416,7 +426,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
             .map((c) => (key: c.key, icon: c.icon, name: l10n.expenseCategory(c.key)))
             .toList()
         : incomeCategories
-            .map((c) => (key: c.key, icon: c.icon, name: l10n.incomeCategory(c.key)))
+            // Las claves legadas (Venta café/…) solo se ofrecen si el
+            // movimiento ya las usa; lo nuevo es la venta por cultivo.
+            .where(
+                (c) => c.key == _category || !_legacySaleCategories.contains(c.key))
+            .map((c) {
+              final isSale = c.key == kIncomeCategorySale;
+              final crop = isSale ? cropOf(crops, _cropId) : null;
+              return (
+                key: c.key,
+                icon: isSale ? (crop?.icon ?? c.icon) : c.icon,
+                name: isSale
+                    ? l10n.incomeSaleLabel(crop?.name)
+                    : l10n.incomeCategory(c.key),
+              );
+            })
             .toList();
 
     final form = Form(
@@ -523,7 +547,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Datos de producción (solo ventas de café/plátano/otro)
+          // Datos de producción (solo ventas)
           if (_type == TransactionType.income &&
               _saleCategories.contains(_category)) ...[
             _ProdSectionHeader(label: l10n.prodSectionTitle),

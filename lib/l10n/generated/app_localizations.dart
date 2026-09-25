@@ -1970,7 +1970,7 @@ abstract class AppLocalizations {
   /// No description provided for @cropGroupHint.
   ///
   /// In es, this message translates to:
-  /// **'Los movimientos del mismo cultivo se suman juntos en el reporte.'**
+  /// **'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.'**
   String get cropGroupHint;
 
   /// No description provided for @categoryFieldLabel.
@@ -3520,6 +3520,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Venta otros'**
   String get catVentaOtro;
+
+  /// No description provided for @catVenta.
+  ///
+  /// In es, this message translates to:
+  /// **'Venta'**
+  String get catVenta;
+
+  /// No description provided for @catVentaCrop.
+  ///
+  /// In es, this message translates to:
+  /// **'Venta {crop}'**
+  String catVentaCrop(String crop);
 
   /// No description provided for @alertCropEstablishmentTitle.
   ///

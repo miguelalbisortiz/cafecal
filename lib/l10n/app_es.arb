@@ -350,7 +350,7 @@
   "cropFieldLabel": "Cultivo (opcional)",
   "cropUnspecified": "Sin especificar",
   "cropNewOption": "+ Nueva variedad…",
-  "cropGroupHint": "Los movimientos del mismo cultivo se suman juntos en el reporte.",
+  "cropGroupHint": "Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.",
   "categoryFieldLabel": "Categoría",
   "amountFieldLabel": "Monto",
   "amountInvalid": "Ingresa un monto válido",
@@ -787,6 +787,11 @@
   "catVentaPlatano": "Venta plátano",
   "catSubvenciones": "Subvenciones y apoyos",
   "catVentaOtro": "Venta otros",
+  "catVenta": "Venta",
+  "@catVentaCrop": {
+    "placeholders": { "crop": { "type": "String" } }
+  },
+  "catVentaCrop": "Venta {crop}",
 
   "@alertCropEstablishmentTitle": {
     "placeholders": { "crop": { "type": "String" } }

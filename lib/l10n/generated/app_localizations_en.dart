@@ -961,7 +961,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cropNewOption => '+ New crop…';
 
   @override
-  String get cropGroupHint => 'Transactions for the same crop are added together in the report.';
+  String get cropGroupHint => 'Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.';
 
   @override
   String get categoryFieldLabel => 'Category';
@@ -1852,6 +1852,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catVentaOtro => 'Other sales';
+
+  @override
+  String get catVenta => 'Sale';
+
+  @override
+  String catVentaCrop(String crop) {
+    return '$crop sales';
+  }
 
   @override
   String alertCropEstablishmentTitle(String crop) {

@@ -344,7 +344,7 @@
   "cropFieldLabel": "Crop (optional)",
   "cropUnspecified": "Not specified",
   "cropNewOption": "+ New crop…",
-  "cropGroupHint": "Transactions for the same crop are added together in the report.",
+  "cropGroupHint": "Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.",
   "categoryFieldLabel": "Category",
   "amountFieldLabel": "Amount",
   "amountInvalid": "Enter a valid amount",
@@ -647,6 +647,11 @@
   "catVentaPlatano": "Plantain sales",
   "catSubvenciones": "Subsidies & support",
   "catVentaOtro": "Other sales",
+  "catVenta": "Sale",
+  "@catVentaCrop": {
+    "placeholders": { "crop": { "type": "String" } }
+  },
+  "catVentaCrop": "{crop} sales",
 
   "@alertCropEstablishmentTitle": {
     "placeholders": { "crop": { "type": "String" } }

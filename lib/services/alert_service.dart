@@ -213,7 +213,7 @@ class AlertService {
     final sales = txns
         .where((t) =>
             !t.type.isExpense &&
-            t.category.startsWith('venta_') &&
+            isSaleCategory(t.category) &&
             t.quantity != null &&
             t.quantity! > 0)
         .toList();
@@ -367,7 +367,7 @@ class AlertService {
 
     final salesByCrop = <String, double>{};
     for (final t in txns) {
-      if (t.type.isExpense || !t.category.startsWith('venta_')) continue;
+      if (t.type.isExpense || !isSaleCategory(t.category)) continue;
       if (t.date.isBefore(cutoff)) continue;
       final cid = t.cropId ?? '_none_';
       final qty = (t.quantity ?? 0);
@@ -448,7 +448,7 @@ class AlertService {
     final cutoff = now.subtract(const Duration(days: 90));
     var count = 0;
     for (final t in txns) {
-      if (t.type.isExpense || !t.category.startsWith('venta_')) continue;
+      if (t.type.isExpense || !isSaleCategory(t.category)) continue;
       if (t.date.isBefore(cutoff)) continue;
       final qty = t.quantity ?? 0;
       if (qty > 0) continue;

@@ -227,7 +227,7 @@ class PdfExportService {
             _statementRow(l10n.pdfNoIncomeSub, '',
                 small: true, valueColor: PdfColors.grey700),
           ...incomeTotals.entries.map((e) => _statementRow(
-                '    ${l10n.incomeCategory(e.key)}',
+                '    ${l10n.incomeGroupLabel(e.key, crops)}',
                 '${_pctOf(e.value, incomes)}%   '
                 '${formatPdfMoney(e.value, currency)}',
                 small: true,
@@ -387,7 +387,10 @@ class PdfExportService {
   Map<String, double> _groupTotals(List<Transaction> list) {
     final totals = <String, double>{};
     for (final t in list) {
-      totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+      // Las ventas con cultivo se agrupan aparte (venta|<cropId>): el
+      // desglose de ingresos muestra "Venta plátano" / "Venta café".
+      final key = incomeGroupKey(t.category, t.cropId);
+      totals[key] = (totals[key] ?? 0) + t.amount;
     }
     final entries = totals.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));

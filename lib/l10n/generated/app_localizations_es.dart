@@ -961,7 +961,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropNewOption => '+ Nueva variedad…';
 
   @override
-  String get cropGroupHint => 'Los movimientos del mismo cultivo se suman juntos en el reporte.';
+  String get cropGroupHint => 'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.';
 
   @override
   String get categoryFieldLabel => 'Categoría';
@@ -1852,6 +1852,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get catVentaOtro => 'Venta otros';
+
+  @override
+  String get catVenta => 'Venta';
+
+  @override
+  String catVentaCrop(String crop) {
+    return 'Venta $crop';
+  }
 
   @override
   String alertCropEstablishmentTitle(String crop) {

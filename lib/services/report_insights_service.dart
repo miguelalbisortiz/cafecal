@@ -1,5 +1,7 @@
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
+import '../models/categories.dart';
+import '../models/crop.dart';
 import '../models/transaction.dart';
 
 /// Tono de cada conclusión para colorearla en la UI.
@@ -40,6 +42,7 @@ class ReportInsightsService {
     required List<Transaction> yearRecords,
     required int year,
     int? month,
+    List<Crop> crops = const [],
     required AppLocalizations l10n,
     required String Function(double) money,
   }) {
@@ -55,8 +58,8 @@ class ReportInsightsService {
     }
 
     _balance(current, previousMonth, month, l10n, money, insights);
-    _topExpense(current, l10n, money, insights);
-    _sales(current, currentYear, now, l10n, money, insights);
+    _topExpense(current, l10n, money, insights, crops);
+    _sales(current, currentYear, now, l10n, money, insights, crops);
     _bestMonth(month, currentYear, l10n, money, insights);
 
     return insights;
@@ -116,13 +119,13 @@ class ReportInsightsService {
   // ---- B. Mayor gasto ----
 
   void _topExpense(List<Transaction> current, AppLocalizations l10n,
-      String Function(double) money, List<ReportInsight> out) {
+      String Function(double) money, List<ReportInsight> out, List<Crop> crops) {
     final expenses = current.where((t) => t.type.isExpense).toList();
     if (expenses.isEmpty) return;
     final total = _sumBy(expenses, isExpense: true);
     if (total <= 0) return;
 
-    final top = _topCategory(expenses, true, l10n);
+    final top = _topCategory(expenses, true, l10n, crops);
     final pct = top.amount / total * 100;
     out.add(ReportInsight(
       tone: pct >= 50 ? InsightTone.negative : InsightTone.info,
@@ -141,11 +144,11 @@ class ReportInsightsService {
 
   void _sales(List<Transaction> current, List<Transaction> yearRecords,
       DateTime now, AppLocalizations l10n, String Function(double) money,
-      List<ReportInsight> out) {
+      List<ReportInsight> out, List<Crop> crops) {
     final incomes = current.where((t) => !t.type.isExpense).toList();
     if (incomes.isNotEmpty) {
       final total = _sumBy(incomes, isExpense: false);
-      final top = _topCategory(incomes, false, l10n);
+      final top = _topCategory(incomes, false, l10n, crops);
       final pct = top.amount / total * 100;
       out.add(ReportInsight(
         tone: InsightTone.positive,
@@ -156,7 +159,7 @@ class ReportInsightsService {
 
     // Venta promedio reciente (30 días) vs histórico del año.
     final sales = yearRecords
-        .where((t) => !t.type.isExpense && t.category.startsWith('venta_'))
+        .where((t) => !t.type.isExpense && isSaleCategory(t.category))
         .toList();
     if (sales.length >= 3) {
       final histAvg = _sumBy(sales, isExpense: false) / sales.length;
@@ -222,18 +225,20 @@ class ReportInsightsService {
         .fold<double>(0, (a, t) => a + t.amount);
   }
 
-  ({String label, double amount}) _topCategory(
-      List<Transaction> items, bool isExpense, AppLocalizations l10n) {
+  ({String label, double amount}) _topCategory(List<Transaction> items,
+      bool isExpense, AppLocalizations l10n, List<Crop> crops) {
     final totals = <String, double>{};
     for (final t in items) {
       if (t.type.isExpense != isExpense) continue;
-      totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+      // Las ventas con cultivo se agrupan aparte: "Venta plátano" ≠ "Venta café".
+      final key = isExpense ? t.category : incomeGroupKey(t.category, t.cropId);
+      totals[key] = (totals[key] ?? 0) + t.amount;
     }
     final entry = totals.entries.reduce(
         (a, b) => b.value > a.value ? b : a);
     final label = isExpense
         ? l10n.expenseCategory(entry.key)
-        : l10n.incomeCategory(entry.key);
+        : l10n.incomeGroupLabel(entry.key, crops);
     return (label: label, amount: entry.value);
   }
 
