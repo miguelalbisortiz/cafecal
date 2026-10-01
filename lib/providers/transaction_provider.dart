@@ -21,6 +21,12 @@ class TransactionProvider extends ChangeNotifier {
   List<Employee> _employees = [];
   bool _settingsDirty = false;
 
+  /// Se dispara tras un alta/edición/borrado local de un movimiento, para que
+  /// [SyncProvider] lo suba en el momento en lugar de esperar a abrir la app
+  /// o a tocar ⟳. Es una función y no una referencia directa al proveedor
+  /// para no crear un ciclo entre los dos notifiers.
+  void Function()? onLocalChange;
+
   TransactionProvider(this._store) {
     _transactions = _store.loadTransactions();
     _crops = _store.loadCrops();
@@ -40,6 +46,9 @@ class TransactionProvider extends ChangeNotifier {
     _harvests = _store.loadHarvests();
     _sowings = _store.loadSowings();
     _employees = _store.loadEmployees();
+    // La marca dirty vive en el namespace: al cambiar de cuenta había que
+    // recargarla, o el estado del equipo anterior mandaba sobre el nuevo.
+    _settingsDirty = _store.loadSettingsDirty();
     notifyListeners();
   }
 
@@ -180,6 +189,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
     notifyListeners();
+    onLocalChange?.call();
     return txn;
   }
 
@@ -191,6 +201,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions = list;
     await _store.saveTransactions(_transactions);
     notifyListeners();
+    onLocalChange?.call();
   }
 
   Future<void> deleteTransaction(String id) async {
@@ -201,6 +212,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions = list;
     await _store.saveTransactions(_transactions);
     notifyListeners();
+    onLocalChange?.call();
   }
 
   // ---- Crops ----

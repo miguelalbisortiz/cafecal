@@ -75,6 +75,12 @@ String? _uuidOrNull(String? v) => _isUuid(v) ? v : null;
 class SyncProvider extends ChangeNotifier {
   final TransactionProvider _txProvider;
   bool _syncing = false;
+
+  /// Un sync pedido mientras otro está corriendo no se descarta: se repite
+  /// al terminar. Sin esto, registrar dos movimientos seguidos dejaba el
+  /// segundo sin subir hasta el próximo ⟳ manual.
+  bool _syncPending = false;
+
   bool _error = false;
   String? _lastSyncError;
 
@@ -93,7 +99,12 @@ class SyncProvider extends ChangeNotifier {
       return;
     }
     if (!supabase.isAuthenticated) return;
-    if (_syncing) return;
+    if (_syncing) {
+      // Ya hay una pasada en marcha: no la interrumpimos, repetimos al final
+      // para que lo recién registrado termine subido sin tocar ⟳ otra vez.
+      _syncPending = true;
+      return;
+    }
 
     _syncing = true;
     _error = false;
@@ -126,6 +137,12 @@ class SyncProvider extends ChangeNotifier {
     } finally {
       _syncing = false;
       notifyListeners();
+    }
+
+    // Las peticiones anotadas durante la pasada se atienden ahora.
+    if (_syncPending) {
+      _syncPending = false;
+      await sync();
     }
   }
 
@@ -213,22 +230,42 @@ class SyncProvider extends ChangeNotifier {
     }
   }
 
+  /// ¿Toca subir `settings`? Solo si el usuario cambió algo.
+  ///
+  /// Un equipo recién instalado arranca con los defaults de [FarmSettings] y
+  /// `settingsDirty = false`; subirlos tapaba el valor real del otro equipo.
+  /// El 2026-10-01 eso borró `caja_menor_mensual` (30.000.000 → null): el push
+  /// corría antes del pull y solo la bajada estaba protegida. La misma guarda
+  /// evita ahora la subida.
+  @visibleForTesting
+  static bool shouldPushSettings(bool settingsDirty) => settingsDirty;
+
   Future<void> _upsertRemoteSettings(SupabaseService supabase) async {
     final user = supabase.client.auth.currentUser;
     if (user == null) return;
-    final s = _txProvider.settings;
-    await supabase.client.from('settings').upsert({
-      'user_id': user.id,
-      'farm_name': s.farmName,
-      'currency': s.currency,
-      'locale': s.locale,
-      'language': s.language,
-      'last_crop_id': s.lastCropId,
-      'low_price_threshold_per_kg': s.lowPriceThresholdPerKg,
-      'caja_menor_mensual': s.cajaMenorMensual,
-    }, onConflict: 'user_id');
+    if (!shouldPushSettings(_txProvider.settingsDirty)) return;
+    await supabase.client.from('settings').upsert(
+          buildSettingsPayload(_txProvider.settings, user.id),
+          onConflict: 'user_id',
+        );
     await _txProvider.markSettingsSynced();
   }
+
+  /// Payload que sale hacia `settings`.
+  ///
+  /// Va completo, con las tres columnas nulas incluidas: si un valor no está
+  /// configurado, se quiere reflejar así en la BD y no dejar el anterior.
+  @visibleForTesting
+  Map<String, dynamic> buildSettingsPayload(FarmSettings s, String userId) => {
+        'user_id': userId,
+        'farm_name': s.farmName,
+        'currency': s.currency,
+        'locale': s.locale,
+        'language': s.language,
+        'last_crop_id': s.lastCropId,
+        'low_price_threshold_per_kg': s.lowPriceThresholdPerKg,
+        'caja_menor_mensual': s.cajaMenorMensual,
+      };
 
   /// Payload que sale hacia `transactions`.
   ///

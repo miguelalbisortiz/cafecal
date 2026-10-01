@@ -45,7 +45,13 @@ class MiCafetalApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => txProvider),
         ChangeNotifierProvider(
-          create: (_) => SyncProvider(txProvider),
+          create: (_) {
+            final sync = SyncProvider(txProvider);
+            // Al registrar o borrar un movimiento se sube sin esperar a
+            // abrir la app ni a tocar ⟳ (sync en segundo plano).
+            txProvider.onLocalChange = sync.sync;
+            return sync;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => AlertProvider(txProvider),

@@ -31,11 +31,13 @@ void main() {
     await tester.pumpAndSettle();
 
     final now = DateTime.now();
-    final expected = stringsFor('es').monthFull[now.month - 1];
+    final mesActual = stringsFor('es').monthFull[now.month - 1];
+    // El mes siguiente, girando de diciembre a enero.
+    final mesSiguiente = stringsFor('es').monthFull[now.month % 12];
 
-    expect(find.textContaining(expected), findsWidgets,
-        reason: 'debe mostrar el mes actual ($expected)');
-    expect(find.textContaining('Octubre'), findsNothing,
-        reason: 'no debe mostrar el mes siguiente');
+    expect(find.textContaining(mesActual), findsWidgets,
+        reason: 'debe mostrar el mes actual ($mesActual)');
+    expect(find.textContaining(mesSiguiente), findsNothing,
+        reason: 'no debe mostrar el mes siguiente ($mesSiguiente)');
   });
 }

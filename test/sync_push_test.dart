@@ -248,4 +248,87 @@ void main() {
       expect(storeB.loadSettingsDirty(), isFalse);
     });
   });
+
+  group('Ajustes: no subir lo que no cambió (regresión 2026-10-01)', () {
+    test('dispositivo nuevo con defaults NO sube settings', () async {
+      final tx = await newProvider();
+      // Arranca limpio y con cajaMenorMensual = null: si esto subiera,
+      // taparía el 30.000.000 que tiene el equipo anterior.
+      expect(tx.settingsDirty, isFalse);
+      expect(SyncProvider.shouldPushSettings(tx.settingsDirty), isFalse);
+    });
+
+    test('tras editar, settings SÍ se sube', () async {
+      final tx = await newProvider();
+      await tx.updateSettings(
+          tx.settings.copyWith(cajaMenorMensual: 30000000.0));
+
+      expect(SyncProvider.shouldPushSettings(tx.settingsDirty), isTrue);
+    });
+
+    test('el payload manda las 8 columnas, incluidas las nulas', () async {
+      final tx = await newProvider();
+      final p = SyncProvider(tx)
+          .buildSettingsPayload(tx.settings, uid);
+
+      expect(p.keys.toSet(), {
+        'user_id',
+        'farm_name',
+        'currency',
+        'locale',
+        'language',
+        'last_crop_id',
+        'low_price_threshold_per_kg',
+        'caja_menor_mensual',
+      });
+      expect(p['user_id'], uid);
+      // Sin escribir la clave, un null explícito borra el valor remoto.
+      expect(p['caja_menor_mensual'], isNull);
+    });
+
+    test('la caja menor editada viaja entera en el payload', () async {
+      final tx = await newProvider();
+      await tx.updateSettings(const FarmSettings(
+          farmName: 'Mi Caferin', cajaMenorMensual: 30000000.0));
+
+      final p = SyncProvider(tx).buildSettingsPayload(tx.settings, uid);
+      expect(p['caja_menor_mensual'], 30000000.0);
+      expect(p['farm_name'], 'Mi Caferin');
+      expect(p['language'], 'es');
+    });
+  });
+
+  group('Sync automático al registrar', () {
+    test('alta, edición y borrado avisan al sync', () async {
+      final tx = await newProvider();
+      var avisos = 0;
+      tx.onLocalChange = () => avisos++;
+
+      final added = await tx.addTransaction(
+        type: TransactionType.income,
+        category: 'venta',
+        amount: 5000,
+        date: DateTime(2026, 10, 1),
+      );
+      expect(avisos, 1);
+
+      await tx.updateTransaction(added.copyWith(amount: 6000));
+      expect(avisos, 2);
+
+      await tx.deleteTransaction(added.id);
+      expect(avisos, 3);
+      expect(tx.transactions.single.deleted, isTrue);
+    });
+
+    test('sin listener no se lanza excepción', () async {
+      final tx = await newProvider();
+      final added = await tx.addTransaction(
+        type: TransactionType.expense,
+        category: 'riego',
+        amount: 100,
+        date: DateTime(2026, 10, 1),
+      );
+      expect(tx.transactions.single.id, added.id);
+    });
+  });
 }
