@@ -1,6 +1,6 @@
 # COMMANDS
 
-> 61 slash commands, agrupados por intención. Igual que `ROUTE.md` pero para comandos.
+> 69 slash commands, agrupados por intención. Igual que `ROUTE.md` pero para comandos.
 > El archivo vive en `.opencode/commands/<nombre>.md` con frontmatter `description` y `agent`.
 
 ## "Quiero clarificar antes de implementar"
@@ -14,6 +14,7 @@
 | `/harness-audit` | Auditoría determinista del repo y devuelve un scorecard priorizado. | build |
 | `/aside` | Pregunta rápida sin cambiar el contexto de la sesión. | build |
 | `/quick-prd` | Mini-PRD de 10 lineas para bugs, fixes o one-liners. Auto-regenera a PRD completo si crece. | build |
+| `/change-request` | Cambio de spec a mitad de ciclo: impacto sobre ACs/fases, renumeración `[revised]`, `Change Log` en el PRD y propagación al plan. | prd-agent |
 
 ## "Quiero validar cambios"
 

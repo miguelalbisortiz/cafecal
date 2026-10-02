@@ -95,6 +95,17 @@ For implementation work, ALWAYS layer with `planner` → `tdd-guide` → reviewe
 | Request | Primary agent | Notes |
 |---------|---------------|-------|
 | "implement X" (after PRD/plan) | `build` (primary) | Routes to sub-agents as needed |
+| "build fullstack app" | `fullstack-builder` | Generates complete frontend+backend+DB |
+| "create MVP" / "scaffold project" | `fullstack-builder` | Quick project setup |
+| "add auth" / "login system" | `auth-builder` | OAuth, JWT, sessions, roles |
+| "integrate payments" / "stripe" | `payment-integrator` | Subscriptions, checkout, webhooks |
+| "deploy to production" | `devops-deploy` | Docker, CI/CD, Vercel, Railway |
+| "create mobile app" | `mobile-builder` | React Native, Expo, Flutter |
+| "integrate API" / "connect service" | `api-integrator` | Third-party API integration |
+| "graphql api" / "apollo server" | `graphql-builder` | GraphQL schemas and resolvers |
+| "realtime" / "chat" / "websockets" | `realtime-builder` | WebSockets, SSE, live updates |
+| "generate tests" / "write tests" | `testing-auto` | Auto-generate unit/integration/E2E |
+| "migrate framework" / "modernize" | `legacy-modernizer` | Framework/language migration |
 | "fix this build error" | `build-error-resolver` | Falls back to language-specific |
 | Language-specific build error | `{lang}-build-resolver` | cpp, csharp, dart, django, go, java, kotlin, python, pytorch, react, rust, swift |
 | "implement feature via autonomous loop" | `gan-generator` | Pairs with `gan-evaluator` |
@@ -238,6 +249,16 @@ Use these INSTEAD of `code-reviewer` when the stack is known:
 | manual, usuario, user guide, user manual, handoff, entrega, end user docs, guía, release notes | `user-manual-generator` |
 | performance, budget, LCP, FID, CLS, bundle size, load time, Core Web Vitals, threshold, metric, optimization, speed | `performance-budget` |
 | compliance, GDPR, SOC2, HIPAA, PCI-DSS, CCPA, privacy, PII, PHI, consent, audit log, encrypted | `compliance-checker` |
+| stripe, payment, checkout, subscription, billing, invoice, webhook, payment_intent | `stripe-integration` |
+| clerk, authentication, sign-up, sign-in, user-management, organizations, mfa | `clerk-auth` |
+| supabase, postgres, rls, realtime, storage, edge-functions, row-level-security | `supabase-patterns` |
+| firebase, firestore, firebase-auth, cloud-functions, realtime-database, firebase-storage | `firebase-patterns` |
+| docker, dockerfile, docker-compose, container, image, multi-stage, optimization | `docker-patterns` |
+| github-actions, ci-cd, workflow, automation, deployment, actions | `github-actions` |
+| vercel, deployment, serverless, edge, domain, preview, production | `vercel-deploy` |
+| railway, deployment, paas, database, service, microservice | `railway-deploy` |
+| turso, libsql, edge-database, sqlite, embedded-replica, global-database | `turso-libsql` |
+| drizzle, orm, schema, migration, type-safe, query-builder, database | `drizzle-patterns` |
 | "find a skill", "is there a skill for", extend capabilities, install skill | `find-skills` (global, `~/.agents/skills/`) |
 
 ---
