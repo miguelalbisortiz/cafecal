@@ -1481,6 +1481,78 @@ abstract class AppLocalizations {
   /// **'No registraste cosecha de este cultivo en el período. Esta venta puede venir de una cosecha de meses anteriores.'**
   String get soldVsHarvestedNoHarvest;
 
+  /// No description provided for @reportSowingsSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembras'**
+  String get reportSowingsSection;
+
+  /// No description provided for @reportSowingsNow.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué tengo plantado hoy?'**
+  String get reportSowingsNow;
+
+  /// No description provided for @reportSowingsPlantOne.
+  ///
+  /// In es, this message translates to:
+  /// **'planta'**
+  String get reportSowingsPlantOne;
+
+  /// No description provided for @reportSowingsPlantMany.
+  ///
+  /// In es, this message translates to:
+  /// **'plantas'**
+  String get reportSowingsPlantMany;
+
+  /// No description provided for @reportSowingsTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total plantado'**
+  String get reportSowingsTotal;
+
+  /// No description provided for @reportSowingsLosses.
+  ///
+  /// In es, this message translates to:
+  /// **'Pérdidas acumuladas'**
+  String get reportSowingsLosses;
+
+  /// No description provided for @reportSowingsInPeriod.
+  ///
+  /// In es, this message translates to:
+  /// **'Siembras en {period}'**
+  String reportSowingsInPeriod(Object period);
+
+  /// No description provided for @reportSowingsKindSiembra.
+  ///
+  /// In es, this message translates to:
+  /// **'siembra'**
+  String get reportSowingsKindSiembra;
+
+  /// No description provided for @reportSowingsKindResiembra.
+  ///
+  /// In es, this message translates to:
+  /// **'resiembra'**
+  String get reportSowingsKindResiembra;
+
+  /// No description provided for @reportSowingsLostLine.
+  ///
+  /// In es, this message translates to:
+  /// **'↳ perdidas {count} · {reason}'**
+  String reportSowingsLostLine(Object count, Object reason);
+
+  /// No description provided for @reportSowingsLostOnly.
+  ///
+  /// In es, this message translates to:
+  /// **'↳ perdidas {count}'**
+  String reportSowingsLostOnly(Object count);
+
+  /// No description provided for @reportSowingsNoPeriod.
+  ///
+  /// In es, this message translates to:
+  /// **'No registraste siembras en este período.'**
+  String get reportSowingsNoPeriod;
+
   /// No description provided for @reportWhatsNext.
   ///
   /// In es, this message translates to:

@@ -706,6 +706,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get soldVsHarvestedNoHarvest => 'You recorded no harvest for this crop in this period. The sale may come from a harvest in earlier months.';
 
   @override
+  String get reportSowingsSection => 'Sowings';
+
+  @override
+  String get reportSowingsNow => 'What do I have planted today?';
+
+  @override
+  String get reportSowingsPlantOne => 'plant';
+
+  @override
+  String get reportSowingsPlantMany => 'plants';
+
+  @override
+  String get reportSowingsTotal => 'Total planted';
+
+  @override
+  String get reportSowingsLosses => 'Accumulated losses';
+
+  @override
+  String reportSowingsInPeriod(Object period) {
+    return 'Sowings in $period';
+  }
+
+  @override
+  String get reportSowingsKindSiembra => 'sowing';
+
+  @override
+  String get reportSowingsKindResiembra => 'replanting';
+
+  @override
+  String reportSowingsLostLine(Object count, Object reason) {
+    return '↳ $count lost · $reason';
+  }
+
+  @override
+  String reportSowingsLostOnly(Object count) {
+    return '↳ $count lost';
+  }
+
+  @override
+  String get reportSowingsNoPeriod => 'You did not record sowings in this period.';
+
+  @override
   String get reportWhatsNext => 'What to do next';
 
   @override

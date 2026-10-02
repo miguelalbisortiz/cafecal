@@ -9,6 +9,7 @@ import '../l10n/strings.dart';
 import '../providers/transaction_provider.dart';
 import '../models/farm_alert.dart';
 import '../models/harvest.dart';
+import '../models/sowing.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
@@ -415,6 +416,8 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(height: 20),
             _builtHarvestCard(context, tx, l10n),
             const SizedBox(height: 20),
+            _builtSowingCard(context, tx, l10n),
+            const SizedBox(height: 20),
             _builtSoldVsHarvestedCard(context, tx, l10n),
             const SizedBox(height: 20),
             _builtPayrollCard(context, tx, l10n),
@@ -613,6 +616,176 @@ class _ReportScreenState extends State<ReportScreen> {
       final end = _year < today.year ? DateTime(_year, 12, 31) : today;
       return !h.date.isAfter(end);
     }).toList();
+  }
+
+  /// Siembras que caen dentro del período seleccionado. Mismo criterio que
+  /// [_periodHarvests].
+  List<Sowing> _periodSowings(TransactionProvider tx) {
+    return tx.sowings.where((s) {
+      if (_mode == _PeriodMode.week) {
+        final range = weekRange(_year, _week);
+        return !s.date.isBefore(range.start) && !s.date.isAfter(range.end);
+      }
+      if (_mode == _PeriodMode.month) {
+        return s.date.year == _year && s.date.month == _month;
+      }
+      if (_mode == _PeriodMode.year) {
+        return s.date.year == _year;
+      }
+      final today = DateTime.now();
+      final end = _year < today.year ? DateTime(_year, 12, 31) : today;
+      return !s.date.isAfter(end);
+    }).toList();
+  }
+
+  /// P5 — "Siembras": arriba el estado actual (qué tengo plantado hoy) y
+  /// abajo las siembras del período con sus pérdidas y motivo.
+  ///
+  /// Todo sale de datos que ya se registran (`Sowing.plants/areaHa/
+  /// lostPlants/reason`) — sin migración ni campos nuevos.
+  Widget _builtSowingCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final state = recomputeCropState(tx.sowings);
+    final periodSowings = _periodSowings(tx);
+    final scheme = Theme.of(context).colorScheme;
+
+    String plantUnit(int n) =>
+        n == 1 ? l10n.reportSowingsPlantOne : l10n.reportSowingsPlantMany;
+
+    final nowRows = <Widget>[];
+    var totalPlants = 0;
+    var totalHa = 0.0;
+    var hasArea = false;
+    for (final c in tx.crops) {
+      final s = state[c.id];
+      final plants = s?.livePlants ?? c.livePlants;
+      if (plants == null) continue;
+      final ha = s?.areaHa ?? c.areaHa;
+      totalPlants += plants;
+      if (ha != null) {
+        totalHa += ha;
+        hasArea = true;
+      }
+      nowRows.add(_harvestLine(
+        label: c.name,
+        value: '$plants ${plantUnit(plants)}',
+        extra: ha != null ? '${_num(ha)} ha' : null,
+      ));
+    }
+
+    if (nowRows.isEmpty && periodSowings.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final totalLost =
+        tx.sowings.fold<int>(0, (a, s) => a + (s.lostPlants ?? 0));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.reportSowingsSection,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.glossaryTitle,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () =>
+                      showTerminologyGuide(context, highlight: 'siembra'),
+                  icon: const Icon(Icons.info_outline, size: 18),
+                ),
+              ],
+            ),
+            if (nowRows.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.reportSowingsNow,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              ...nowRows,
+              const SizedBox(height: 6),
+              _harvestLine(
+                label: l10n.reportSowingsTotal,
+                value: '$totalPlants ${plantUnit(totalPlants)}',
+                extra: hasArea ? '${_num(totalHa)} ha' : null,
+                bold: true,
+              ),
+              if (totalLost > 0)
+                _harvestLine(
+                  label: l10n.reportSowingsLosses,
+                  value: '$totalLost ${plantUnit(totalLost)}',
+                  color: scheme.error,
+                ),
+            ],
+            if (periodSowings.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Text(
+                l10n.reportSowingsInPeriod(_periodLabel(l10n)),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              ...periodSowings.map((s) {
+                final name = cropNameOf(tx.crops, s.cropId) ??
+                    l10n.assignCropsUnassigned;
+                final kind = s.kind == SowingKind.resiembra
+                    ? l10n.reportSowingsKindResiembra
+                    : l10n.reportSowingsKindSiembra;
+                final lost = s.lostPlants ?? 0;
+                final reason = s.reason ?? '';
+                String? note;
+                if (lost > 0 && reason.isNotEmpty) {
+                  note = l10n.reportSowingsLostLine(lost, reason);
+                } else if (lost > 0) {
+                  note = l10n.reportSowingsLostOnly(lost);
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _harvestLine(
+                      label: '${_fmtDate(s.date)} · $name · $kind',
+                      value: '${s.plants} ${plantUnit(s.plants)}',
+                      extra:
+                          s.areaHa != null ? '${_num(s.areaHa!)} ha' : null,
+                    ),
+                    if (note != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, bottom: 6),
+                        child: Text(
+                          note,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }),
+            ] else if (nowRows.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _hintLine(l10n.reportSowingsNoPeriod),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _builtHarvestCard(

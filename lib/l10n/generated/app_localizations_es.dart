@@ -706,6 +706,48 @@ class AppLocalizationsEs extends AppLocalizations {
   String get soldVsHarvestedNoHarvest => 'No registraste cosecha de este cultivo en el período. Esta venta puede venir de una cosecha de meses anteriores.';
 
   @override
+  String get reportSowingsSection => 'Siembras';
+
+  @override
+  String get reportSowingsNow => '¿Qué tengo plantado hoy?';
+
+  @override
+  String get reportSowingsPlantOne => 'planta';
+
+  @override
+  String get reportSowingsPlantMany => 'plantas';
+
+  @override
+  String get reportSowingsTotal => 'Total plantado';
+
+  @override
+  String get reportSowingsLosses => 'Pérdidas acumuladas';
+
+  @override
+  String reportSowingsInPeriod(Object period) {
+    return 'Siembras en $period';
+  }
+
+  @override
+  String get reportSowingsKindSiembra => 'siembra';
+
+  @override
+  String get reportSowingsKindResiembra => 'resiembra';
+
+  @override
+  String reportSowingsLostLine(Object count, Object reason) {
+    return '↳ perdidas $count · $reason';
+  }
+
+  @override
+  String reportSowingsLostOnly(Object count) {
+    return '↳ perdidas $count';
+  }
+
+  @override
+  String get reportSowingsNoPeriod => 'No registraste siembras en este período.';
+
+  @override
   String get reportWhatsNext => 'Qué hacer';
 
   @override

@@ -11,8 +11,14 @@ Sesión de pulido de la experiencia de usuario nueva: migración N2 aplicada y v
    - Verificación vía REST con anon key: `sowings`/`harvests` responden; columnas nuevas de `crops` consultables; RLS funcional (insert sin sesión → 401 PGRST42501).
 
 2. **Bug cultivos duplicados — corregido** (commit `e8d8340`):
-   - Causa: trigger `handle_new_user()` crea Café/Plátano con ids uuid vs ids fijos locales; `_pullRemote`/`mergeRemoteCrops` deduplicaba solo por id.
+   - Causa: los cultivos por defecto locales (Café/Plátano/Otro con **ids fijos**) convivían
+     con los mismos cultivos bajados de la BD, cuyo `crops.id` es **uuid que genera la BD**;
+     `_pullRemote`/`mergeRemoteCrops` deduplicaba solo por id, así que entraban dos veces.
    - Fix: dedup por **nombre** (case-insensitive) en `mergeRemoteCrops` y `loadCrops()`. 3 tests de regresión.
+   - Corrección de la causa original (verificada el 2026-10-02): el trigger **no** crea
+     cultivos. `handle_new_user()` solo inserta una fila en `settings`
+     (`user_id`, `farm_name`) — ver `supabase/migrations/202609040001_mi_cafetal_init.sql:93-104`.
+     El uuid venía de la BD al insertar los cultivos, no del trigger.
 
 3. **Tarjeta "Tu próximo paso"** (PRD `docs/plans/2026-09-07-tu-proximo-paso.plan.md` → implementado y desplegado):
    - `lib/services/next_step_service.dart` (reglas 1-5), `lib/widgets/next_step_card.dart`, integración en `home_screen.dart`, `register_screen.dart` con `initialType`.
