@@ -182,6 +182,48 @@ No resumir, no reescribir, no inventar criterios que no estén.
 
 ---
 
+## PASO 5 — Feedback loop: ¿es bug o es spec? (OBLIGATORIO si hay FAIL)
+
+Cuando un criterio queda `FAIL` o `NOT-VERIFIED`, **no lo trates siempre como bug de código.**
+Antes de mandar a arreglar, clasificar el origen:
+
+```
+¿El codigo viola lo que el PRD pide?
+├── SI  → BUG DE IMPLEMENTACION   → arreglar codigo (accionables del PASO 4)
+├── NO, el PRD pide algo imposible/contradictorio/ambiguo
+│        → SPEC DEFECTUOSO        → proponer /change-request
+└── NO SE, falta informacion      → marcar NOT-VERIFIED + preguntar
+```
+
+**Señales de que es SPEC DEFECTUOSO (no bug):**
+
+| Señal | Ejemplo |
+|---|---|
+| El criterio contradice otro criterio | SC-1 pide offline, SC-5 pide sync inmediata |
+| El criterio es inmedible | "debe sentirse rápido" → nadie puede pasarlo |
+| El criterio pide algo que el stack no soporta | "exportar a .xlsx" sin librería de Office |
+| El criterio ya no aplica (cambió el negocio) | pide features de un plan que ya no existe |
+| Se cumplió la intención pero no la letra | usuario logra el objetivo por otro camino |
+
+**Comportamiento:**
+
+1. Clasificar **cada** FAIL/NOT-VERIFIED como `BUG` o `SPEC`.
+2. Si hay 1+ `SPEC` → **no cerrar el verify en silencio**. Proponer una sola vez:
+
+   > "Hay {N} criterios fallidos que parecen **defecto del spec**, no del código:
+   > - SC-3: {razón}
+   >
+   > ¿Abro `/change-request` para corregir el PRD? (sí/no)"
+
+3. Si el usuario dice **sí** → invocar `/change-request` con esos criterios listados.
+4. Si dice **no** → respetar y dejarlos como `FAIL` en el report.
+5. Si son `BUG` → seguir con los action items del PASO 4, sin tocar el spec.
+
+> **Esto es lo que cierra el ciclo:** sin este paso, un spec mal escrito se paga como
+> deuda de código infinita. Con él, el fallo retroalimenta al spec.
+
+---
+
 **NOTE**: Correr antes de cada commit y PR.
 
 ---

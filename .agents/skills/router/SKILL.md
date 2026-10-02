@@ -102,6 +102,7 @@ For implementation work, ALWAYS layer with `planner` → `tdd-guide` → reviewe
 | "deploy to production" | `devops-deploy` | Docker, CI/CD, Vercel, Railway |
 | "create mobile app" | `mobile-builder` | React Native, Expo, Flutter |
 | "integrate API" / "connect service" | `api-integrator` | Third-party API integration |
+| "supabase" / "RLS policy" / "migración SQL" | `supabase-builder` | Schema, Row Level Security, Edge Functions, Storage, Realtime, RPC |
 | "graphql api" / "apollo server" | `graphql-builder` | GraphQL schemas and resolvers |
 | "realtime" / "chat" / "websockets" | `realtime-builder` | WebSockets, SSE, live updates |
 | "generate tests" / "write tests" | `testing-auto` | Auto-generate unit/integration/E2E |
