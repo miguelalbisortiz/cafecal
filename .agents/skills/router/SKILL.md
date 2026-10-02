@@ -253,15 +253,12 @@ Use these INSTEAD of `code-reviewer` when the stack is known:
 | performance, budget, LCP, FID, CLS, bundle size, load time, Core Web Vitals, threshold, metric, optimization, speed | `performance-budget` |
 | compliance, GDPR, SOC2, HIPAA, PCI-DSS, CCPA, privacy, PII, PHI, consent, audit log, encrypted | `compliance-checker` |
 | stripe, payment, checkout, subscription, billing, invoice, webhook, payment_intent | `stripe-integration` |
-| clerk, authentication, sign-up, sign-in, user-management, organizations, mfa | `clerk-auth` |
 | supabase, postgres, rls, realtime, storage, edge-functions, row-level-security | `supabase-patterns` |
 | firebase, firestore, firebase-auth, cloud-functions, realtime-database, firebase-storage | `firebase-patterns` |
 | docker, dockerfile, docker-compose, container, image, multi-stage, optimization | `docker-patterns` |
 | github-actions, ci-cd, workflow, automation, deployment, actions | `github-actions` |
 | vercel, deployment, serverless, edge, domain, preview, production | `vercel-deploy` |
 | railway, deployment, paas, database, service, microservice | `railway-deploy` |
-| turso, libsql, edge-database, sqlite, embedded-replica, global-database | `turso-libsql` |
-| drizzle, orm, schema, migration, type-safe, query-builder, database | `drizzle-patterns` |
 | "find a skill", "is there a skill for", extend capabilities, install skill | `find-skills` (global, `~/.agents/skills/`) |
 
 ---

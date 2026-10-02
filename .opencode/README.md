@@ -10,7 +10,7 @@ Pack portable de opencode. Cópialo a cualquier proyecto, reinicia opencode y em
 
 - **59** agents (.opencode/agents)
 - **66** commands (.opencode/commands)
-- **40** skills (.agents/skills)
+- **37** skills (.agents/skills)
 - **15** native CLIs (.opencode/bin)
 - **3** npm plugins + **1** local plugin(s)
 - **4** active MCPs + **12** optional MCP(s)
