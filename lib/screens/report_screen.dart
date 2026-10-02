@@ -16,6 +16,7 @@ import '../models/currencies.dart';
 import '../services/alert_service.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
+import '../services/metric_signal.dart';
 import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
@@ -312,12 +313,18 @@ class _ReportScreenState extends State<ReportScreen> {
                     _resultLine(context, tx, l10n, balance),
                     const SizedBox(height: 10),
                     _metricLine(
+                      context,
                       l10n.marginLabel,
-                      margen != null ? '${_pct(margen)}%' : 'â€”',
+                      margen != null ? '${_pct(margen)}%' : '—',
+                      signal: signalOfMargin(marginVerdict(margen)),
+                      caption: _marginCaption(l10n, margen),
                     ),
                     _metricLine(
+                      context,
                       l10n.ratioLabel,
-                      ratio != null ? '${_pct(ratio)}%' : 'â€"',
+                      ratio != null ? '${_pct(ratio)}%' : '—',
+                      signal: signalOfRatio(ratioVerdict(ratio)),
+                      caption: _ratioCaption(l10n, ratio),
                     ),
                     if (isMixedCurrency) ...[
                       const SizedBox(height: 12),
@@ -696,6 +703,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(height: 8),
                 _harvestLine(
                   label: l10n.reportPickupCostPerKg,
+                  help: 'costo',
                   value: formatMoneyFor(context, pickupKg,
                       currency: _effectiveCurrency),
                   bold: true,
@@ -768,6 +776,7 @@ class _ReportScreenState extends State<ReportScreen> {
             const Divider(height: 16),
             _harvestLine(
               label: l10n.reportPayrollTotal,
+              help: 'nómina',
               value: formatMoneyFor(context, summary.total,
                   currency: _effectiveCurrency),
               bold: true,
@@ -801,12 +810,25 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.cashBoxTitle,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.cashBoxTitle,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.glossaryTitle,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => showTerminologyGuide(context,
+                      highlight: 'caja menor'),
+                  icon: const Icon(Icons.info_outline, size: 18),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             ...rows.map((r) {
@@ -890,6 +912,21 @@ class _ReportScreenState extends State<ReportScreen> {
                         label: l10n.reportHarvestedKg,
                         value: _numKg(r.harvestedKg),
                         color: scheme.onSurfaceVariant),
+                    if (mismatch) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        r.harvestedKg > 0
+                            ? l10n.soldVsHarvestedMismatch(_pct(
+                                ((r.soldKg - r.harvestedKg) /
+                                        r.harvestedKg) *
+                                    100))
+                            : l10n.soldVsHarvestedNoHarvest,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               );
@@ -1004,19 +1041,46 @@ class _ReportScreenState extends State<ReportScreen> {
       required String value,
       String? extra,
       Color? color,
-      bool bold = false}) {
+      bool bold = false,
+      String? help}) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 3),
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: bold ? FontWeight.bold : FontWeight.w500,
-                color: color ?? Colors.grey.shade700,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+                      color: color ?? Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+                if (help != null) ...[
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: l10n.glossaryTitle,
+                    child: InkWell(
+                      onTap: () =>
+                          showTerminologyGuide(context, highlight: help),
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Icon(
+                        Icons.help_outline,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           if (extra != null) ...[
@@ -1292,25 +1356,92 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  Widget _metricLine(String label, String value) {
+  /// Fila de métrica con señal bueno/malo.
+  ///
+  /// La señal nunca es solo color: lleva icono de forma distinta (`[signal]`)
+  /// y una frase en lenguaje llano (`[caption]`) que explica qué significa —
+  /// es el hallazgo H1 del PRD de comprensibilidad.
+  Widget _metricLine(
+    BuildContext context,
+    String label,
+    String value, {
+    MetricSignal signal = MetricSignal.none,
+    String? caption,
+  }) {
+    final color = _signalColor(context, signal);
+    final icon = switch (signal) {
+      MetricSignal.positive => Icons.check_circle_outline,
+      MetricSignal.neutral => Icons.info_outline,
+      MetricSignal.negative => Icons.error_outline,
+      MetricSignal.none => null,
+    };
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+              if (icon != null) ...[
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: icon == null ? null : color,
+                ),
+              ),
+            ],
+          ),
+          if (caption != null && caption.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2, bottom: 4),
+              child: Text(
+                caption,
+                style: TextStyle(fontSize: 11, color: color),
+              ),
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
         ],
       ),
     );
   }
+
+  Color _signalColor(BuildContext context, MetricSignal signal) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch (signal) {
+      MetricSignal.positive => const Color(0xFF2E7D32),
+      MetricSignal.neutral => const Color(0xFFED6C02),
+      MetricSignal.negative => scheme.error,
+      MetricSignal.none => Colors.grey,
+    };
+  }
+
+  String _marginCaption(AppLocalizations l10n, double? margin) =>
+      switch (marginVerdict(margin)) {
+        MarginVerdict.good => l10n.metricMarginGood,
+        MarginVerdict.fair => l10n.metricMarginFair,
+        MarginVerdict.low => l10n.metricMarginLow,
+        MarginVerdict.loss => l10n.metricMarginLoss,
+        MarginVerdict.breakEven => l10n.metricMarginBreakEven,
+        MarginVerdict.noSales => l10n.metricNoSales,
+      };
+
+  String _ratioCaption(AppLocalizations l10n, double? ratio) =>
+      switch (ratioVerdict(ratio)) {
+        RatioVerdict.healthy => l10n.metricRatioHealthy,
+        RatioVerdict.high => l10n.metricRatioHigh,
+        RatioVerdict.critical => l10n.metricRatioCritical,
+        RatioVerdict.noSales => l10n.metricNoSales,
+      };
 
   Widget _hintLine(String text) {
     return Padding(

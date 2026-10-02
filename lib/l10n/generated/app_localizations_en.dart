@@ -698,6 +698,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportHarvestedKg => 'Harvested (kg)';
 
   @override
+  String soldVsHarvestedMismatch(Object pct) {
+    return 'You sold $pct% more than you harvested this period. This is usually a harvest from earlier months or one you have not recorded.';
+  }
+
+  @override
+  String get soldVsHarvestedNoHarvest => 'You recorded no harvest for this crop in this period. The sale may come from a harvest in earlier months.';
+
+  @override
   String get reportWhatsNext => 'What to do next';
 
   @override
@@ -902,6 +910,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get glossaryAvgDef => 'The average of what you spend per month in a category (for example, labor). It serves as a reference to detect unusual increases in your expenses.';
+
+  @override
+  String get glossaryYieldAreaTerm => 'Yield per area (kg/ha)';
+
+  @override
+  String get glossaryYieldAreaDef => 'How many kilos you get from one hectare. It lets you compare plots of different sizes: if one gives 1,200 kg/ha and another 800 kg/ha, the first yields more from the same land.';
+
+  @override
+  String get glossaryYieldPlantTerm => 'Yield per plant (kg/plant)';
+
+  @override
+  String get glossaryYieldPlantDef => 'How many kilos each plant produces. It helps you tell whether the problem is the number of plants or how the crop is being cared for.';
+
+  @override
+  String get glossaryCostPerKgTerm => 'Total cost per kg';
+
+  @override
+  String get glossaryCostPerKgDef => 'Everything it cost you to produce each kilo (establishment, labor and the period\'s expenses) divided by the kilos harvested. If you sell below this number, you lose money.';
+
+  @override
+  String get glossaryPickupCostTerm => 'Picking cost per kg';
+
+  @override
+  String get glossaryPickupCostDef => 'What you pay to pick one kilo: day labor and collection, not counting what you invested in planting. It is the immediate cost of each harvest.';
+
+  @override
+  String get glossaryEstablishmentTerm => 'Establishment investment';
+
+  @override
+  String get glossaryEstablishmentDef => 'What you invested to start the crop: seedlings, initial fertilizer and the labor of planting. It is not a loss, it is an investment you recover through sales.';
+
+  @override
+  String get glossaryPaybackTerm => 'Payback (recovery)';
+
+  @override
+  String get glossaryPaybackDef => 'How long it takes you to recover what you invested in establishment. 100% means you have already paid it off completely with what you sold.';
+
+  @override
+  String get glossarySubtotalTerm => 'Subtotal';
+
+  @override
+  String get glossarySubtotalDef => 'A partial sum of a group of rows before the grand total. In payroll it is what each worker is paid before the period total.';
+
+  @override
+  String get glossaryYtdTerm => 'Year to date (YTD)';
+
+  @override
+  String get glossaryYtdDef => 'What has accumulated from January 1 of this year until today, no matter which month you are looking at.';
+
+  @override
+  String get glossaryPayrollTerm => 'Payroll for the period';
+
+  @override
+  String get glossaryPayrollDef => 'What was paid for labor in the period: people, days worked and day labor. It does not include what you invest in planting.';
+
+  @override
+  String get glossaryCashBoxTerm => 'Petty cash';
+
+  @override
+  String get glossaryCashBoxDef => 'Money available for small monthly expenses: transport, tools and emergencies. It is compared against the budget you set so you do not overspend.';
+
+  @override
+  String get glossarySoldVsHarvestedTerm => 'Sold vs harvested';
+
+  @override
+  String get glossarySoldVsHarvestedDef => 'Compares the kilos you sold with the kilos you harvested in the same period. If you sold more, it is usually a harvest from earlier months or one you have not recorded.';
 
   @override
   String get glossaryRoiTooltip => 'What does ROI mean?';
@@ -1314,6 +1388,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ratioLabel => 'Expenses vs income';
 
   @override
+  String get metricMarginGood => 'Good margin: you keep \$20 or more of every \$100 sold.';
+
+  @override
+  String get metricMarginFair => 'Tight margin: you keep between \$10 and \$20 of every \$100 sold.';
+
+  @override
+  String get metricMarginLow => 'Low margin: you keep less than \$10 of every \$100 sold.';
+
+  @override
+  String get metricMarginLoss => 'Loss: your expenses are higher than what you sold.';
+
+  @override
+  String get metricMarginBreakEven => 'Neither gain nor loss: expenses exactly cover what you sold.';
+
+  @override
+  String get metricNoSales => 'No sales in this period: it cannot be calculated.';
+
+  @override
+  String get metricRatioHealthy => 'Good control: of every \$100 that comes in, up to \$70 goes to expenses.';
+
+  @override
+  String get metricRatioHigh => 'You spend quite a bit: of every \$100 that comes in, between \$70 and \$90 goes to expenses.';
+
+  @override
+  String get metricRatioCritical => 'You spend almost everything you earn: more than \$90 of every \$100 goes to expenses.';
+
+  @override
   String cropBreakdownTitle(String period) {
     return 'Breakdown by crop — $period';
   }
@@ -1484,17 +1585,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insightBalanceNoIncome(Object spent) {
-    return 'You recorded $spent in expenses and no sales in this period.';
+    return 'Period result: $spent in expenses and no sales in this period.';
   }
 
   @override
   String insightBalancePositive(Object balance, Object margin) {
-    return 'Positive result: $balance with $margin margin over sales.';
+    return 'Period result: $balance gain with $margin margin over sales.';
   }
 
   @override
   String insightBalanceNegative(Object loss, Object margin) {
-    return 'Negative result: $loss with $margin margin over sales.';
+    return 'Period result: $loss with $margin margin over sales.';
   }
 
   @override

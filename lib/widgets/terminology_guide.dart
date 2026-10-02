@@ -31,6 +31,50 @@ List<TerminologyEntry> buildGlossary(AppLocalizations l10n) {
       l10n.glossaryAvgTerm,
       l10n.glossaryAvgDef,
     ),
+    TerminologyEntry(
+      l10n.glossaryYieldAreaTerm,
+      l10n.glossaryYieldAreaDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryYieldPlantTerm,
+      l10n.glossaryYieldPlantDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryCostPerKgTerm,
+      l10n.glossaryCostPerKgDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryPickupCostTerm,
+      l10n.glossaryPickupCostDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryEstablishmentTerm,
+      l10n.glossaryEstablishmentDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryPaybackTerm,
+      l10n.glossaryPaybackDef,
+    ),
+    TerminologyEntry(
+      l10n.glossarySubtotalTerm,
+      l10n.glossarySubtotalDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryYtdTerm,
+      l10n.glossaryYtdDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryPayrollTerm,
+      l10n.glossaryPayrollDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryCashBoxTerm,
+      l10n.glossaryCashBoxDef,
+    ),
+    TerminologyEntry(
+      l10n.glossarySoldVsHarvestedTerm,
+      l10n.glossarySoldVsHarvestedDef,
+    ),
   ];
 }
 

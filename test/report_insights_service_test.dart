@@ -48,7 +48,9 @@ void main() {
         l10n: _es,
         money: _money,
       );
-      final bal = insights.firstWhere((i) => i.text.contains('Resultado negativo'));
+      // P4: el insight debe usar el mismo nombre que la tarjeta
+      // RESULTADO DEL PERÍODO.
+      final bal = insights.firstWhere((i) => i.text.contains('Resultado del período'));
       expect(bal.tone, InsightTone.negative);
       expect(bal.text, contains(r'$600'));
       expect(bal.text, contains('-150%'));
@@ -89,7 +91,14 @@ void main() {
         l10n: _es,
         money: _money,
       );
-      expect(insights.any((i) => i.text.contains('no hay ventas')), isTrue);
+      expect(
+        insights.any((i) =>
+            i.text.startsWith('Resultado del período') &&
+            i.text.contains('ninguna venta')),
+        isTrue,
+        reason: 'sin ventas debe avisarlo usando la etiqueta canónica del '
+            'resultado (P4)',
+      );
     });
   });
 

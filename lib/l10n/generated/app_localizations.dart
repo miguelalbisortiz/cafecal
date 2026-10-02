@@ -1469,6 +1469,18 @@ abstract class AppLocalizations {
   /// **'Cosechado (kg)'**
   String get reportHarvestedKg;
 
+  /// No description provided for @soldVsHarvestedMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendiste {pct}% más de lo que cosechaste en este período. Suele ser una cosecha de meses anteriores o una cosecha sin registrar.'**
+  String soldVsHarvestedMismatch(Object pct);
+
+  /// No description provided for @soldVsHarvestedNoHarvest.
+  ///
+  /// In es, this message translates to:
+  /// **'No registraste cosecha de este cultivo en el período. Esta venta puede venir de una cosecha de meses anteriores.'**
+  String get soldVsHarvestedNoHarvest;
+
   /// No description provided for @reportWhatsNext.
   ///
   /// In es, this message translates to:
@@ -1852,6 +1864,138 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El promedio de lo que gastas al mes en una categoría (por ejemplo, mano de obra). Sirve como referencia para detectar aumentos inusuales en tus gastos.'**
   String get glossaryAvgDef;
+
+  /// No description provided for @glossaryYieldAreaTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento por área (kg/ha)'**
+  String get glossaryYieldAreaTerm;
+
+  /// No description provided for @glossaryYieldAreaDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántos kilos sacas de una hectárea. Sirve para comparar lotes de tamaños distintos: si uno da 1.200 kg/ha y otro 800 kg/ha, el primero rinde más con la misma tierra.'**
+  String get glossaryYieldAreaDef;
+
+  /// No description provided for @glossaryYieldPlantTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento por planta (kg/planta)'**
+  String get glossaryYieldPlantTerm;
+
+  /// No description provided for @glossaryYieldPlantDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántos kilos produce cada planta. Te ayuda a ver si el problema es la cantidad de plantas o el cuidado del cultivo.'**
+  String get glossaryYieldPlantDef;
+
+  /// No description provided for @glossaryCostPerKgTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo total por kg'**
+  String get glossaryCostPerKgTerm;
+
+  /// No description provided for @glossaryCostPerKgDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo lo que te costó producir cada kilo (establecimiento, mano de obra y gastos del período) dividido entre los kilos cosechados. Si vendes por debajo de este número, pierdes plata.'**
+  String get glossaryCostPerKgDef;
+
+  /// No description provided for @glossaryPickupCostTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo de recogida por kg'**
+  String get glossaryPickupCostTerm;
+
+  /// No description provided for @glossaryPickupCostDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que pagas por recoger un kilo: jornales y recolección, sin contar lo invertido en plantar. Es el costo inmediato de cada cosecha.'**
+  String get glossaryPickupCostDef;
+
+  /// No description provided for @glossaryEstablishmentTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Inversión de establecimiento'**
+  String get glossaryEstablishmentTerm;
+
+  /// No description provided for @glossaryEstablishmentDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que invertiste para empezar el cultivo: plantines, abono inicial y la mano de obra de plantar. No es una pérdida, es una inversión que se recupera con las ventas.'**
+  String get glossaryEstablishmentDef;
+
+  /// No description provided for @glossaryPaybackTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Payback (recuperación)'**
+  String get glossaryPaybackTerm;
+
+  /// No description provided for @glossaryPaybackDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuánto te lleva recuperar lo invertido en establecimiento. 100% significa que ya lo pagaste por completo con lo que vendiste.'**
+  String get glossaryPaybackDef;
+
+  /// No description provided for @glossarySubtotalTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Subtotal'**
+  String get glossarySubtotalTerm;
+
+  /// No description provided for @glossarySubtotalDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Suma parcial de un grupo de filas antes del total general. En la nómina es lo que se le paga a cada trabajador antes del total del período.'**
+  String get glossarySubtotalDef;
+
+  /// No description provided for @glossaryYtdTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Año a la fecha (YTD)'**
+  String get glossaryYtdTerm;
+
+  /// No description provided for @glossaryYtdDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que va acumulado desde el 1 de enero de este año hasta hoy, sin importar en qué mes estés mirando.'**
+  String get glossaryYtdDef;
+
+  /// No description provided for @glossaryPayrollTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Nómina del período'**
+  String get glossaryPayrollTerm;
+
+  /// No description provided for @glossaryPayrollDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que se pagó por mano de obra en el período: personas, días trabajados y jornales. No incluye lo que inviertes en plantar.'**
+  String get glossaryPayrollDef;
+
+  /// No description provided for @glossaryCashBoxTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Caja menor'**
+  String get glossaryCashBoxTerm;
+
+  /// No description provided for @glossaryCashBoxDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Dinero disponible para gastos pequeños del mes: transporte, herramientas e imprevistos. Se compara con el presupuesto que definiste para no pasarte.'**
+  String get glossaryCashBoxDef;
+
+  /// No description provided for @glossarySoldVsHarvestedTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendido vs cosechado'**
+  String get glossarySoldVsHarvestedTerm;
+
+  /// No description provided for @glossarySoldVsHarvestedDef.
+  ///
+  /// In es, this message translates to:
+  /// **'Compara los kilos que vendiste con los que cosechaste en el mismo período. Si vendiste más, suele ser una cosecha de meses anteriores o una cosecha sin registrar.'**
+  String get glossarySoldVsHarvestedDef;
 
   /// No description provided for @glossaryRoiTooltip.
   ///
@@ -2633,6 +2777,60 @@ abstract class AppLocalizations {
   /// **'Gastos vs ingresos'**
   String get ratioLabel;
 
+  /// No description provided for @metricMarginGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Buen margen: te quedan \$20 o más de cada \$100 vendidos.'**
+  String get metricMarginGood;
+
+  /// No description provided for @metricMarginFair.
+  ///
+  /// In es, this message translates to:
+  /// **'Margen justo: te quedan entre \$10 y \$20 de cada \$100 vendidos.'**
+  String get metricMarginFair;
+
+  /// No description provided for @metricMarginLow.
+  ///
+  /// In es, this message translates to:
+  /// **'Margen bajo: te quedan menos de \$10 de cada \$100 vendidos.'**
+  String get metricMarginLow;
+
+  /// No description provided for @metricMarginLoss.
+  ///
+  /// In es, this message translates to:
+  /// **'Pérdida: los gastos son mayores a lo que vendiste.'**
+  String get metricMarginLoss;
+
+  /// No description provided for @metricMarginBreakEven.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin ganancia ni pérdida: los gastos cubren justo lo vendido.'**
+  String get metricMarginBreakEven;
+
+  /// No description provided for @metricNoSales.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin ventas en el período: no se puede calcular.'**
+  String get metricNoSales;
+
+  /// No description provided for @metricRatioHealthy.
+  ///
+  /// In es, this message translates to:
+  /// **'Buen control: de cada \$100 que entran, hasta \$70 se van en gastos.'**
+  String get metricRatioHealthy;
+
+  /// No description provided for @metricRatioHigh.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastas bastante: de cada \$100 que entran, entre \$70 y \$90 se van en gastos.'**
+  String get metricRatioHigh;
+
+  /// No description provided for @metricRatioCritical.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastas casi todo lo que entra: más de \$90 de cada \$100 se van en gastos.'**
+  String get metricRatioCritical;
+
   /// No description provided for @cropBreakdownTitle.
   ///
   /// In es, this message translates to:
@@ -2918,19 +3116,19 @@ abstract class AppLocalizations {
   /// No description provided for @insightBalanceNoIncome.
   ///
   /// In es, this message translates to:
-  /// **'Registraste {spent} en gastos y no hay ventas en este período.'**
+  /// **'Resultado del período: {spent} en gastos y ninguna venta en este período.'**
   String insightBalanceNoIncome(Object spent);
 
   /// No description provided for @insightBalancePositive.
   ///
   /// In es, this message translates to:
-  /// **'Resultado positivo: {balance} con {margin} de margen sobre las ventas.'**
+  /// **'Resultado del período: ganancia de {balance} con {margin} de margen sobre las ventas.'**
   String insightBalancePositive(Object balance, Object margin);
 
   /// No description provided for @insightBalanceNegative.
   ///
   /// In es, this message translates to:
-  /// **'Resultado negativo: {loss} con margen de {margin} sobre las ventas.'**
+  /// **'Resultado del período: pérdida de {loss} con margen de {margin} sobre las ventas.'**
   String insightBalanceNegative(Object loss, Object margin);
 
   /// No description provided for @insightVsPrev.

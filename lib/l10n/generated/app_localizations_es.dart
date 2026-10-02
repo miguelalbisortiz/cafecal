@@ -698,6 +698,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportHarvestedKg => 'Cosechado (kg)';
 
   @override
+  String soldVsHarvestedMismatch(Object pct) {
+    return 'Vendiste $pct% más de lo que cosechaste en este período. Suele ser una cosecha de meses anteriores o una cosecha sin registrar.';
+  }
+
+  @override
+  String get soldVsHarvestedNoHarvest => 'No registraste cosecha de este cultivo en el período. Esta venta puede venir de una cosecha de meses anteriores.';
+
+  @override
   String get reportWhatsNext => 'Qué hacer';
 
   @override
@@ -902,6 +910,72 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get glossaryAvgDef => 'El promedio de lo que gastas al mes en una categoría (por ejemplo, mano de obra). Sirve como referencia para detectar aumentos inusuales en tus gastos.';
+
+  @override
+  String get glossaryYieldAreaTerm => 'Rendimiento por área (kg/ha)';
+
+  @override
+  String get glossaryYieldAreaDef => 'Cuántos kilos sacas de una hectárea. Sirve para comparar lotes de tamaños distintos: si uno da 1.200 kg/ha y otro 800 kg/ha, el primero rinde más con la misma tierra.';
+
+  @override
+  String get glossaryYieldPlantTerm => 'Rendimiento por planta (kg/planta)';
+
+  @override
+  String get glossaryYieldPlantDef => 'Cuántos kilos produce cada planta. Te ayuda a ver si el problema es la cantidad de plantas o el cuidado del cultivo.';
+
+  @override
+  String get glossaryCostPerKgTerm => 'Costo total por kg';
+
+  @override
+  String get glossaryCostPerKgDef => 'Todo lo que te costó producir cada kilo (establecimiento, mano de obra y gastos del período) dividido entre los kilos cosechados. Si vendes por debajo de este número, pierdes plata.';
+
+  @override
+  String get glossaryPickupCostTerm => 'Costo de recogida por kg';
+
+  @override
+  String get glossaryPickupCostDef => 'Lo que pagas por recoger un kilo: jornales y recolección, sin contar lo invertido en plantar. Es el costo inmediato de cada cosecha.';
+
+  @override
+  String get glossaryEstablishmentTerm => 'Inversión de establecimiento';
+
+  @override
+  String get glossaryEstablishmentDef => 'Lo que invertiste para empezar el cultivo: plantines, abono inicial y la mano de obra de plantar. No es una pérdida, es una inversión que se recupera con las ventas.';
+
+  @override
+  String get glossaryPaybackTerm => 'Payback (recuperación)';
+
+  @override
+  String get glossaryPaybackDef => 'Cuánto te lleva recuperar lo invertido en establecimiento. 100% significa que ya lo pagaste por completo con lo que vendiste.';
+
+  @override
+  String get glossarySubtotalTerm => 'Subtotal';
+
+  @override
+  String get glossarySubtotalDef => 'Suma parcial de un grupo de filas antes del total general. En la nómina es lo que se le paga a cada trabajador antes del total del período.';
+
+  @override
+  String get glossaryYtdTerm => 'Año a la fecha (YTD)';
+
+  @override
+  String get glossaryYtdDef => 'Lo que va acumulado desde el 1 de enero de este año hasta hoy, sin importar en qué mes estés mirando.';
+
+  @override
+  String get glossaryPayrollTerm => 'Nómina del período';
+
+  @override
+  String get glossaryPayrollDef => 'Lo que se pagó por mano de obra en el período: personas, días trabajados y jornales. No incluye lo que inviertes en plantar.';
+
+  @override
+  String get glossaryCashBoxTerm => 'Caja menor';
+
+  @override
+  String get glossaryCashBoxDef => 'Dinero disponible para gastos pequeños del mes: transporte, herramientas e imprevistos. Se compara con el presupuesto que definiste para no pasarte.';
+
+  @override
+  String get glossarySoldVsHarvestedTerm => 'Vendido vs cosechado';
+
+  @override
+  String get glossarySoldVsHarvestedDef => 'Compara los kilos que vendiste con los que cosechaste en el mismo período. Si vendiste más, suele ser una cosecha de meses anteriores o una cosecha sin registrar.';
 
   @override
   String get glossaryRoiTooltip => '¿Qué significa ROI?';
@@ -1314,6 +1388,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ratioLabel => 'Gastos vs ingresos';
 
   @override
+  String get metricMarginGood => 'Buen margen: te quedan \$20 o más de cada \$100 vendidos.';
+
+  @override
+  String get metricMarginFair => 'Margen justo: te quedan entre \$10 y \$20 de cada \$100 vendidos.';
+
+  @override
+  String get metricMarginLow => 'Margen bajo: te quedan menos de \$10 de cada \$100 vendidos.';
+
+  @override
+  String get metricMarginLoss => 'Pérdida: los gastos son mayores a lo que vendiste.';
+
+  @override
+  String get metricMarginBreakEven => 'Sin ganancia ni pérdida: los gastos cubren justo lo vendido.';
+
+  @override
+  String get metricNoSales => 'Sin ventas en el período: no se puede calcular.';
+
+  @override
+  String get metricRatioHealthy => 'Buen control: de cada \$100 que entran, hasta \$70 se van en gastos.';
+
+  @override
+  String get metricRatioHigh => 'Gastas bastante: de cada \$100 que entran, entre \$70 y \$90 se van en gastos.';
+
+  @override
+  String get metricRatioCritical => 'Gastas casi todo lo que entra: más de \$90 de cada \$100 se van en gastos.';
+
+  @override
   String cropBreakdownTitle(String period) {
     return 'Desglose por cultivo — $period';
   }
@@ -1484,17 +1585,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String insightBalanceNoIncome(Object spent) {
-    return 'Registraste $spent en gastos y no hay ventas en este período.';
+    return 'Resultado del período: $spent en gastos y ninguna venta en este período.';
   }
 
   @override
   String insightBalancePositive(Object balance, Object margin) {
-    return 'Resultado positivo: $balance con $margin de margen sobre las ventas.';
+    return 'Resultado del período: ganancia de $balance con $margin de margen sobre las ventas.';
   }
 
   @override
   String insightBalanceNegative(Object loss, Object margin) {
-    return 'Resultado negativo: $loss con margen de $margin sobre las ventas.';
+    return 'Resultado del período: pérdida de $loss con margen de $margin sobre las ventas.';
   }
 
   @override

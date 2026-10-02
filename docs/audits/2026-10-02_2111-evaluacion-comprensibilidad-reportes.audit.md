@@ -32,7 +32,7 @@
 | H7 | Nombre de archivo siempre con `(_month+1)` aunque el modo sea semana/año | **PASS** | `lib/screens/report_screen.dart:1074` (pdf) y `:1124` (xlsx), ambos con `(_month + 1)` incondicional; el modo (`_mode`) solo parametriza el contenido, no el nombre |
 | H8 | Cifras absolutas sin comparación en tarjetas de detalle | **PASS con observación** | Las referencias `:611` (`_builtHarvestCard`) y `:786` (`_builtCashBoxCard`) son **exactas**; que las cifras "sean difíciles de interpretar" es juicio, no hecho verificable |
 | H9 | ROI en la tabla PDF solo tiene pie de página | **PASS** | `lib/services/pdf_export_service.dart:308-310` — `l10n.pdfRoiFootnote`, gris, `fontSize: 8` |
-| H10 | Dependencia del color en resultado / ROI / vendido-cosechado / caja | **PASS con observación** | `:874` verificado ✓. `:1267` es `color: source.withOpacity(0.08)` — un **tinte de fondo**, no el "resultado" como afirma el PRD. `:1531-1537` y `:828` **NO verificados**. El hallazgo es correcto en lo esencial pero su lista de líneas es imprecisa |
+| H10 | Dependencia del color en resultado / ROI / vendido-cosechado / caja | **PASS** | `:874` verificado ✓. `:1267` verificado ✓ — **corregido el 2026-10-02**: esa línea está dentro de `_resultLine` (1263-1293) y es el fondo del bloque de resultado, cuyo número se pinta por color en `:1287`; la cita del PRD era **correcta**. `:1531-1537` y `:828` no verificados en esta pasada |
 | H11 | Textos de 11-13px y filas de 11-12px | **PASS** | **30** ocurrencias con `fontSize ≤ 13` en `report_screen.dart`; `:257` (13px) y `:1233` (11px) **exactos** |
 | H12 | "No hay recomendaciones para este período" no distingue "todo bien" de "sin datos" | **PASS** | `lib/l10n/app_es.arb:243` **exacto**; un único string para ambos estados |
 
@@ -58,7 +58,9 @@ El **H2** (exportes sin insights) también es sólido, pero pertenece a la **Alt
 ### Veredicto final
 
 **PASS con observaciones** — 12/12 hallazgos verificados, 0 FAIL,
-3 observaciones de precisión (H5, H8, H10) que no afectan la decisión tomada.
+2 observaciones de precisión (H5, H8) que no afectan la decisión tomada.
+La observación sobre H10 fue **retirada el 2026-10-02** tras verificar que `:1267`
+sí pertenece a `_resultLine`.
 
 ---
 

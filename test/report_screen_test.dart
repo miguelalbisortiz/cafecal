@@ -40,4 +40,27 @@ void main() {
     expect(find.textContaining(mesSiguiente), findsNothing,
         reason: 'no debe mostrar el mes siguiente ($mesSiguiente)');
   });
+
+  testWidgets(
+      'sin ventas, margen y ratio explican el guion largo en vez de dejarlo mudo',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text(stringsFor('es').metricNoSales), findsNWidgets(2),
+        reason: 'tanto el margen como gastos vs ingresos deben decir por qué '
+            'no se pueden calcular');
+  });
 }
