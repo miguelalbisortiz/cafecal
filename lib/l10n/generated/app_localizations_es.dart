@@ -1233,6 +1233,43 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropNameTaken => 'Ya hay un cultivo con ese nombre. Escribe otro.';
 
   @override
+  String get newCropDuplicateTitle => 'Ya tienes un cultivo con ese nombre';
+
+  @override
+  String newCropDuplicateBody(String name) {
+    return '«$name» ya está en tu lista de cultivos. ¿Qué prefieres hacer?';
+  }
+
+  @override
+  String get newCropUseExisting => 'Usar el que ya tienes';
+
+  @override
+  String get newCropCreateAnother => 'Crear otro igual';
+
+  @override
+  String cropLotTag(int n) {
+    return 'lote $n';
+  }
+
+  @override
+  String get cropPhaseNoYield => 'aún no rinde · primera cosecha pendiente';
+
+  @override
+  String get sowingRenovacionCheckbox => 'Esta resiembra renovó el cultivo — cambiar su fase a renovación';
+
+  @override
+  String get sowingAreaMissingWarning => 'Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.';
+
+  @override
+  String get cropSetupPrompt => 'Tu cultivo está listo para usar. ¿Quieres completar sus datos (fase, área, plantas, unidad)?';
+
+  @override
+  String get cropSetupComplete => 'Completar';
+
+  @override
+  String get cropSetupLater => 'Ahora no';
+
+  @override
   String get deleteCropTitle => '¿Eliminar cultivo?';
 
   @override
@@ -1517,6 +1554,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cropBreakdownSummaryG => 'Gastos';
+
+  @override
+  String get cropBreakdownInvestment => 'Inversión inicial';
+
+  @override
+  String get cropBreakdownOperation => 'Operación del período';
 
   @override
   String get cropBreakdownSummaryI => 'Ingresos';

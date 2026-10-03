@@ -438,6 +438,25 @@
   "cropNameLabel": "Nombre del cultivo",
   "cropNameRequired": "Escribe el nombre del cultivo.",
   "cropNameTaken": "Ya hay un cultivo con ese nombre. Escribe otro.",
+  "newCropDuplicateTitle": "Ya tienes un cultivo con ese nombre",
+  "@newCropDuplicateBody": {
+    "description": "Segunda pregunta del diálogo de cultivo nuevo: el nombre escrito ya existe y hay que decidir si se usa el existente o se crea otro igual.",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "newCropDuplicateBody": "«{name}» ya está en tu lista de cultivos. ¿Qué prefieres hacer?",
+  "newCropUseExisting": "Usar el que ya tienes",
+  "newCropCreateAnother": "Crear otro igual",
+  "@cropLotTag": {
+    "description": "Subtítulo que distingue cultivos con el mismo nombre cuando no tienen área cargada",
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "cropLotTag": "lote {n}",
+  "cropPhaseNoYield": "aún no rinde · primera cosecha pendiente",
+  "sowingRenovacionCheckbox": "Esta resiembra renovó el cultivo — cambiar su fase a renovación",
+  "sowingAreaMissingWarning": "Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.",
+  "cropSetupPrompt": "Tu cultivo está listo para usar. ¿Quieres completar sus datos (fase, área, plantas, unidad)?",
+  "cropSetupComplete": "Completar",
+  "cropSetupLater": "Ahora no",
   "deleteCropTitle": "¿Eliminar cultivo?",
   "deleteCropBody": "Se eliminarán las siembras ({sowings}) y las cosechas ({harvests}) de «{name}». Los gastos y ventas se quedarán sin cultivo.",
   "deleteCropBodyEmpty": "«{name}» todavía no tiene siembras ni cosechas. Los gastos y ventas se quedarán sin cultivo.",
@@ -579,6 +598,14 @@
   },
   "cropBreakdownTitle": "Desglose por cultivo — {period}",
   "cropBreakdownSummaryG": "Gastos",
+  "@cropBreakdownInvestment": {
+    "description": "Parte de los gastos de un cultivo que viene de la siembra (costo de establecer el lote)"
+  },
+  "cropBreakdownInvestment": "Inversión inicial",
+  "@cropBreakdownOperation": {
+    "description": "Parte de los gastos de un cultivo que es trabajo del campo en el período"
+  },
+  "cropBreakdownOperation": "Operación del período",
   "cropBreakdownSummaryI": "Ingresos",
   "cropBreakdownSummaryR": "Resultado",
   "cropBreakdownRoiHint": "Cómo leer el ROI: por cada $1 invertido recuperas la ganancia más el capital. Ej.: ROI 516% → por cada $1 vuelven $6,16 (5,16 de ganancia + 1 del capital).",

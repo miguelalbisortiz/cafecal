@@ -1,3 +1,4 @@
+import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/transaction.dart';
@@ -89,6 +90,30 @@ class ReportHarvestMetrics {
       cost += t.amount;
     }
     return cost;
+  }
+
+  /// Separa los gastos de un cultivo en **inversión inicial** y **operación
+  /// del período** (la separación estándar de Cenicafé: costos de
+  /// establecimiento vs costos de operación).
+  ///
+  /// Un gasto es inversión inicial si viene de una siembra: su categoría es
+  /// [kExpenseCategorySowing] ('siembra') **o** trae `sowingId` anotado.
+  /// Todo lo demás es operación del período. Los borrados (`t.deleted`) no
+  /// cuentan. Es una partición exacta: `inversión + operación` siempre suma
+  /// el total de gastos, sin duplicar ni perder montos.
+  CropExpenseSplit splitInvestmentAndOperation(
+      List<Transaction> cropExpenses) {
+    double investment = 0;
+    double operation = 0;
+    for (final t in cropExpenses) {
+      if (t.deleted) continue;
+      if (t.category == kExpenseCategorySowing || t.sowingId != null) {
+        investment += t.amount;
+      } else {
+        operation += t.amount;
+      }
+    }
+    return CropExpenseSplit(investment: investment, operation: operation);
   }
 
   /// Costo por kilo cosechado en el período: gastos ÷ kg cosechados.
@@ -235,6 +260,18 @@ class ReportHarvestMetrics {
         .toList()
       ..sort((a, b) => b.harvestedKg.compareTo(a.harvestedKg));
   }
+}
+
+/// Reparto de los gastos de un cultivo en inversión inicial vs operación.
+/// `total` es exactamente la suma de ambos: la UI lo usa para comprobar que
+/// el desglose no pierde ni duplica montos.
+class CropExpenseSplit {
+  final double investment;
+  final double operation;
+
+  const CropExpenseSplit({required this.investment, required this.operation});
+
+  double get total => investment + operation;
 }
 
 class _Acc {

@@ -20,7 +20,10 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   final _nameController = TextEditingController();
   String _icon = '🌱';
   String _color = '#2E7D32';
-  CropPhase _phase = CropPhase.produccion;
+  // Un cultivo nuevo nace en establecimiento (P3): sin cosecha que lo
+  // demuestre, todavía no es producción. Al editar lo pisa initState con la
+  // fase real del cultivo.
+  CropPhase _phase = CropPhase.establecimiento;
   CropCycle _cycle = CropCycle.perenne;
   String? _defaultUnit;
   String _currency = 'COP';
@@ -155,6 +158,8 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               onChanged: (v) => setState(() {
                 _cycle = v ?? CropCycle.perenne;
                 if (_cycle == CropCycle.anual) {
+                  // Un cultivo anual no tiene fases de cafetal: el dropdown de
+                  // fase se oculta, así que se fija producción a mano.
                   _phase = CropPhase.produccion;
                 }
               }),

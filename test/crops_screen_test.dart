@@ -92,7 +92,9 @@ void main() {
 
     await tester.tap(find.byType(DropdownButtonFormField<CropPhase>));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(dialogL10n.phaseEstablecimiento));
+    // "Establecimiento" ya viene preseleccionado (L2.0): aparece en el botón
+    // y en el menú. `.last` es la opción del menú, la que se puede tocar.
+    await tester.tap(find.text(dialogL10n.phaseEstablecimiento).last);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text(dialogL10n.add));

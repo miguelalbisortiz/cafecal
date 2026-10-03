@@ -2495,6 +2495,72 @@ abstract class AppLocalizations {
   /// **'Ya hay un cultivo con ese nombre. Escribe otro.'**
   String get cropNameTaken;
 
+  /// No description provided for @newCropDuplicateTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tienes un cultivo con ese nombre'**
+  String get newCropDuplicateTitle;
+
+  /// Segunda pregunta del diálogo de cultivo nuevo: el nombre escrito ya existe y hay que decidir si se usa el existente o se crea otro igual.
+  ///
+  /// In es, this message translates to:
+  /// **'«{name}» ya está en tu lista de cultivos. ¿Qué prefieres hacer?'**
+  String newCropDuplicateBody(String name);
+
+  /// No description provided for @newCropUseExisting.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar el que ya tienes'**
+  String get newCropUseExisting;
+
+  /// No description provided for @newCropCreateAnother.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear otro igual'**
+  String get newCropCreateAnother;
+
+  /// Subtítulo que distingue cultivos con el mismo nombre cuando no tienen área cargada
+  ///
+  /// In es, this message translates to:
+  /// **'lote {n}'**
+  String cropLotTag(int n);
+
+  /// No description provided for @cropPhaseNoYield.
+  ///
+  /// In es, this message translates to:
+  /// **'aún no rinde · primera cosecha pendiente'**
+  String get cropPhaseNoYield;
+
+  /// No description provided for @sowingRenovacionCheckbox.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta resiembra renovó el cultivo — cambiar su fase a renovación'**
+  String get sowingRenovacionCheckbox;
+
+  /// No description provided for @sowingAreaMissingWarning.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.'**
+  String get sowingAreaMissingWarning;
+
+  /// No description provided for @cropSetupPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cultivo está listo para usar. ¿Quieres completar sus datos (fase, área, plantas, unidad)?'**
+  String get cropSetupPrompt;
+
+  /// No description provided for @cropSetupComplete.
+  ///
+  /// In es, this message translates to:
+  /// **'Completar'**
+  String get cropSetupComplete;
+
+  /// No description provided for @cropSetupLater.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora no'**
+  String get cropSetupLater;
+
   /// No description provided for @deleteCropTitle.
   ///
   /// In es, this message translates to:
@@ -2998,6 +3064,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Gastos'**
   String get cropBreakdownSummaryG;
+
+  /// Parte de los gastos de un cultivo que viene de la siembra (costo de establecer el lote)
+  ///
+  /// In es, this message translates to:
+  /// **'Inversión inicial'**
+  String get cropBreakdownInvestment;
+
+  /// Parte de los gastos de un cultivo que es trabajo del campo en el período
+  ///
+  /// In es, this message translates to:
+  /// **'Operación del período'**
+  String get cropBreakdownOperation;
 
   /// No description provided for @cropBreakdownSummaryI.
   ///

@@ -5,11 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
+import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/sowing.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/report_screen.dart';
 import 'package:mi_cafetal/services/local_store.dart';
+import 'package:mi_cafetal/utils/format.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -267,5 +269,151 @@ void main() {
             '"no se puede calcular"');
     // Las otras dos métricas siguen explicándose como antes.
     expect(find.text(l10n.metricNoSales), findsNWidgets(2));
+  });
+
+  testWidgets(
+      'L2.1: el desglose por cultivo separa inversión inicial de operación '
+      'sin cambiar el total', (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    final cafe = await provider.addCrop('Café');
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: kExpenseCategorySowing,
+      cropId: cafe.id,
+      amount: 600000,
+      description: 'Siembra',
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      cropId: cafe.id,
+      amount: 400000,
+      description: 'Jornal',
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      cropId: cafe.id,
+      amount: 900000,
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    final now = DateTime.now();
+    final titulo = l10n.cropBreakdownTitle(
+        l10n.reportPeriodMonth(l10n.monthFull[now.month - 1], now.year));
+    final desglose = find.ancestor(
+        of: find.text(titulo), matching: find.byType(Card));
+    expect(desglose, findsOneWidget,
+        reason: 'la tarjeta del desglose por cultivo');
+
+    String money(double v) =>
+        formatAmount(v, currency: 'COP', locale: provider.settings.locale);
+
+    expect(
+        find.descendant(
+            of: desglose, matching: find.text(l10n.cropBreakdownInvestment)),
+        findsOneWidget,
+        reason: 'debe mostrar la inversión inicial (la siembra)');
+    expect(
+        find.descendant(
+            of: desglose, matching: find.text(l10n.cropBreakdownOperation)),
+        findsOneWidget,
+        reason: 'debe mostrar la operación del período (el jornal)');
+    expect(
+        find.descendant(of: desglose, matching: find.text(money(600000))),
+        findsOneWidget,
+        reason: 'la inversión inicial es el gasto de siembra');
+    expect(
+        find.descendant(of: desglose, matching: find.text(money(400000))),
+        findsOneWidget,
+        reason: 'la operación es el resto de gastos del período');
+    expect(
+        find.descendant(of: desglose, matching: find.text(money(1000000))),
+        findsOneWidget,
+        reason: 'el total de gastos no cambia: 600.000 + 400.000 = 1.000.000');
+    expect(
+        find.descendant(
+            of: desglose, matching: find.text(l10n.cropBreakdownSummaryG)),
+        findsOneWidget,
+        reason: 'la línea de gastos de siempre sigue ahí');
+    expect(
+        find.descendant(
+            of: desglose, matching: find.text(money(900000))),
+        findsOneWidget,
+        reason: 'los ingresos siguen mostrándose como antes');
+  });
+
+  testWidgets(
+      'L2.1: un cultivo sin gastos no abre filas de inversión ni de operación',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    final cafe = await provider.addCrop('Café');
+
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      cropId: cafe.id,
+      amount: 900000,
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.cropBreakdownInvestment), findsNothing,
+        reason: 'sin gastos de siembra no se muestra una fila vacía');
+    expect(find.text(l10n.cropBreakdownOperation), findsNothing,
+        reason: 'sin gastos de operación no se muestra una fila vacía');
+
+    // La fila del cultivo sigue ahí, con sus ingresos.
+    final now = DateTime.now();
+    final titulo = l10n.cropBreakdownTitle(
+        l10n.reportPeriodMonth(l10n.monthFull[now.month - 1], now.year));
+    final desglose = find.ancestor(
+        of: find.text(titulo), matching: find.byType(Card));
+    expect(desglose, findsOneWidget);
+    expect(
+        find.descendant(
+            of: desglose, matching: find.text(l10n.cropBreakdownSummaryI)),
+        findsOneWidget,
+        reason: 'la fila del cultivo sigue mostrando sus ingresos');
   });
 }

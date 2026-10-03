@@ -7,6 +7,7 @@ import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
 import '../widgets/new_crop_dialog.dart';
+import '../widgets/crop_setup_prompt.dart';
 
 /// Asignación rápida de cultivo a los registros que quedaron sin uno.
 /// Cada fila tiene un selector; los cambios se aplican juntos con "Guardar".
@@ -26,25 +27,23 @@ class _AssignCropsScreenState extends State<AssignCropsScreen> {
   Future<void> _onSelect(Transaction t, String? value) async {
     if (value == _newCropOption) {
       final tx = context.read<TransactionProvider>();
-      final name = await showDialog<String>(
+      final res = await showDialog<NewCropResult>(
         context: context,
-        builder: (_) => NewCropDialog(
-          existingNames: tx.crops.map((c) => c.name).toList(),
-        ),
+        builder: (_) => NewCropDialog(crops: tx.crops),
       );
-      if (name == null || !mounted) return;
-      final trimmed = name.trim();
-      if (trimmed.isEmpty) return;
-      final matched = tx.crops
-          .where((c) => c.name.toLowerCase() == trimmed.toLowerCase())
-          .toList();
-      if (matched.isNotEmpty) {
-        setState(() => _pending[t.id] = matched.first.id);
+      if (res == null || !mounted) return;
+      // L2.2: el id devuelto por el diálogo manda; el nombre ya no se
+      // vuelve a buscar (con nombres repetidos era ambiguo).
+      if (res.existingId != null) {
+        setState(() => _pending[t.id] = res.existingId);
         return;
       }
-      final crop = await tx.addCrop(trimmed);
+      final crop =
+          await tx.addCrop(res.name, currency: tx.settings.currency);
       if (!mounted) return;
       setState(() => _pending[t.id] = crop.id);
+      // L2.5b: aviso opcional y descartable para completar los datos.
+      await CropSetupPrompt.show(context, tx, crop);
       return;
     }
     setState(() {

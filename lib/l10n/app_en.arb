@@ -432,6 +432,25 @@
   "cropNameLabel": "Crop name",
   "cropNameRequired": "Type the crop name.",
   "cropNameTaken": "A crop with that name already exists. Type a different one.",
+  "newCropDuplicateTitle": "You already have a crop with that name",
+  "@newCropDuplicateBody": {
+    "description": "Second question of the new crop dialog: the typed name already exists and the user must choose between using the existing one or creating another with the same name.",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "newCropDuplicateBody": "“{name}” is already in your crop list. What would you like to do?",
+  "newCropUseExisting": "Use the one you have",
+  "newCropCreateAnother": "Create another one",
+  "@cropLotTag": {
+    "description": "Subtitle that tells apart crops sharing a name when they have no area",
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "cropLotTag": "lot {n}",
+  "cropPhaseNoYield": "not yielding yet · first harvest pending",
+  "sowingRenovacionCheckbox": "This replanting renewed the crop — change its phase to renewal",
+  "sowingAreaMissingWarning": "Without an area you cannot see costs per hectare. You can still save.",
+  "cropSetupPrompt": "Your crop is ready to use. Do you want to complete its details (phase, area, plants, unit)?",
+  "cropSetupComplete": "Complete",
+  "cropSetupLater": "Not now",
   "deleteCropTitle": "Delete crop?",
   "deleteCropBody": "The sowings ({sowings}) and harvests ({harvests}) of \"{name}\" will be deleted. Expenses and sales will remain without a crop.",
   "deleteCropBodyEmpty": "\"{name}\" has no sowings or harvests yet. Expenses and sales will remain without a crop.",
@@ -537,6 +556,14 @@
   "metricCostPriceNoQty": "It costs you {cost} per kg, but your sales do not record kg: it cannot be compared.",
   "cropBreakdownTitle": "Breakdown by crop — {period}",
   "cropBreakdownSummaryG": "Expenses",
+  "@cropBreakdownInvestment": {
+    "description": "Part of a crop's expenses that comes from sowing (the cost of setting up the plot)"
+  },
+  "cropBreakdownInvestment": "Initial investment",
+  "@cropBreakdownOperation": {
+    "description": "Part of a crop's expenses that is field work during the period"
+  },
+  "cropBreakdownOperation": "Operating costs this period",
   "cropBreakdownSummaryI": "Income",
   "cropBreakdownSummaryR": "Net result",
   "cropBreakdownRoiHint": "How to read ROI: for every $1 invested you recover the profit plus the capital. E.g., ROI 516% → $6.16 back per $1 (5.16 profit + 1 of capital).",

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
@@ -147,6 +148,10 @@ class CropsScreen extends StatelessWidget {
     await tx.deleteCrop(crop.id);
   }
 
+  /// Formato corto de hectáreas en lenguaje llano: `0,4 ha`, `2 ha`.
+  static String _ha(TransactionProvider tx, double v) =>
+      NumberFormat('0.###', tx.settings.locale).format(v);
+
   Widget _row(
       BuildContext context, TransactionProvider tx, Crop crop, AppLocalizations l10n) {
     String phaseLabel(CropPhase p) => switch (p) {
@@ -154,12 +159,32 @@ class CropsScreen extends StatelessWidget {
           CropPhase.produccion => l10n.phaseProduccion,
           CropPhase.renovacion => l10n.phaseRenovacion,
         };
+    // L2.3 (patrón H10): la fase se ve con icono de forma distinta + texto,
+    // nunca solo con color.
+    IconData phaseIcon(CropPhase p) => switch (p) {
+          CropPhase.establecimiento => Icons.spa_outlined,
+          CropPhase.produccion => Icons.agriculture_outlined,
+          CropPhase.renovacion => Icons.autorenew,
+        };
+
+    // L2.2: los nombres se pueden repetir (C4), así que el nombre ya no
+    // distingue. Solo con empate se añade el subtítulo que separa cada fila;
+    // con nombre único la lista queda como siempre.
+    var sameName = 0;
+    var ordinal = 0;
+    for (final c in tx.crops) {
+      if (c.name.toLowerCase() != crop.name.toLowerCase()) continue;
+      sameName++;
+      if (c.id == crop.id) ordinal = sameName;
+    }
+    final areaText =
+        crop.areaHa == null ? null : '${_ha(tx, crop.areaHa!)} ha';
+    final tag = sameName > 1 ? (areaText ?? l10n.cropLotTag(ordinal)) : null;
+
     final details = <String>[
       crop.cycle == CropCycle.anual ? l10n.cycleAnual : l10n.cyclePerenne,
-      if (crop.phase != CropPhase.produccion || crop.cycle == CropCycle.perenne)
-        phaseLabel(crop.phase),
       if (crop.defaultUnit != null) crop.defaultUnit!,
-      if (crop.areaHa != null) '${crop.areaHa!.toStringAsFixed(2)} ha',
+      if (areaText != null && areaText != tag) areaText,
       if (crop.livePlants != null) '${crop.livePlants}',
     ];
     return Card(
@@ -172,9 +197,44 @@ class CropsScreen extends StatelessWidget {
           crop.name,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(
-          details.join(' · '),
-          style: const TextStyle(fontSize: 12),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (tag != null)
+              Text(
+                tag,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFED6C02),
+                ),
+              ),
+            Row(
+              children: [
+                Icon(
+                  phaseIcon(crop.phase),
+                  size: 14,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    phaseLabel(crop.phase),
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            if (details.isNotEmpty)
+              Text(
+                details.join(' · '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12),
+              ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

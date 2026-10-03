@@ -8,6 +8,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../providers/transaction_provider.dart';
 import '../models/farm_alert.dart';
+import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/sowing.dart';
 import '../models/top_accounts.dart';
@@ -599,6 +600,7 @@ class _ReportScreenState extends State<ReportScreen> {
       };
 
   List<_CropRow> _cropRows(TransactionProvider tx, AppLocalizations l10n) {
+    const metrics = ReportHarvestMetrics();
     final nameById = {for (final c in tx.crops) c.id: c.name};
     final totals = <String?, _CropRow>{
       null: _CropRow(name: l10n.cropUnspecified),
@@ -616,9 +618,17 @@ class _ReportScreenState extends State<ReportScreen> {
       row.count++;
       if (t.type.isExpense) {
         row.expenses += t.amount;
+        row.expenseTxs.add(t);
       } else {
         row.incomes += t.amount;
       }
+    }
+    // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
+    // operación del período suman exactamente lo mismo que `expenses`.
+    for (final row in totals.values) {
+      final split = metrics.splitInvestmentAndOperation(row.expenseTxs);
+      row.investment = split.investment;
+      row.operation = split.operation;
     }
     return totals.values
         .where((r) => r.expenses > 0 || r.incomes > 0)
@@ -700,6 +710,11 @@ class _ReportScreenState extends State<ReportScreen> {
         value: '$plants ${plantUnit(plants)}',
         extra: ha != null ? '${_num(ha)} ha' : null,
       ));
+      // L2.3: un cultivo que sigue en establecimiento todavía no rinde; se
+      // dice con una frase, no solo con un color.
+      if (c.phase == CropPhase.establecimiento) {
+        nowRows.add(_hintLine(l10n.cropPhaseNoYield));
+      }
     }
 
     if (nowRows.isEmpty && periodSowings.isEmpty) {
@@ -1921,6 +1936,12 @@ class _CropRow {
   double incomes = 0;
   int count = 0;
 
+  /// Gastos del período (sin borrados), para repartirlos en
+  /// inversión inicial vs operación con [CropExpenseSplit].
+  final List<Transaction> expenseTxs = [];
+  double investment = 0;
+  double operation = 0;
+
   _CropRow({required this.name, this.currency = 'COP'});
 
   double get net => incomes - expenses;
@@ -1991,6 +2012,26 @@ class _CropBreakdownTile extends StatelessWidget {
             value: _amount(row.expenses),
             valueColor: scheme.onSurfaceVariant,
           ),
+          // L2.1 — inversión inicial y operación suman exactamente el
+          // "Gastos" de arriba; solo se piden si hay monto que mostrar.
+          if (row.investment > 0)
+            _miniLine(
+              icon: Icons.grass_outlined,
+              iconColor: scheme.onSurfaceVariant,
+              label: l10n.cropBreakdownInvestment,
+              labelColor: scheme.onSurfaceVariant,
+              value: _amount(row.investment),
+              valueColor: scheme.onSurfaceVariant,
+            ),
+          if (row.operation > 0)
+            _miniLine(
+              icon: Icons.agriculture_outlined,
+              iconColor: scheme.onSurfaceVariant,
+              label: l10n.cropBreakdownOperation,
+              labelColor: scheme.onSurfaceVariant,
+              value: _amount(row.operation),
+              valueColor: scheme.onSurfaceVariant,
+            ),
           _miniLine(
             icon: Icons.trending_up,
             iconColor: _green,

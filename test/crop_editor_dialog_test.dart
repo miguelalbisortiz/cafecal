@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
+import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/widgets/crop_editor_dialog.dart';
 
 class _Holder {
@@ -117,5 +118,107 @@ void main() {
     expect(find.text(l10n.cropNameRequired), findsNothing,
         reason: 'el mensaje de "falta el nombre" ya no corresponde (C3)');
     expect(holder.value, isNull);
+  });
+
+  testWidgets('L2.0: un cultivo nuevo nace en establecimiento, no en producción',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openDialog(tester);
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(CropEditorDialog)))!;
+
+    // El dropdown trae la fase preseleccionada: no se puede "leer" el valor
+    // inicial de otra forma, así que se comprueba lo que se ve y lo que sale.
+    expect(find.text(l10n.phaseEstablecimiento), findsOneWidget,
+        reason: 'valor inicial del selector: establecimiento (P3)');
+    expect(find.text(l10n.phaseProduccion), findsNothing,
+        reason: 'producción ya no viene marcada por defecto');
+    expect(find.text(l10n.phaseRenovacion), findsNothing);
+
+    await tester.enterText(find.byType(TextField).at(0), 'Café');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.phase, CropPhase.establecimiento);
+  });
+
+  testWidgets('L2.0: el selector sigue ofreciendo las 3 fases y permite '
+      'elegir producción a mano', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openDialog(tester);
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(CropEditorDialog)))!;
+
+    await tester.tap(find.byType(DropdownButtonFormField<CropPhase>));
+    await tester.pumpAndSettle();
+
+    // Abierto: la opción preseleccionada también está en el botón, por eso
+    // aparece dos veces; producción y renovación, una sola.
+    expect(find.text(l10n.phaseEstablecimiento), findsNWidgets(2));
+    expect(find.text(l10n.phaseProduccion), findsOneWidget);
+    expect(find.text(l10n.phaseRenovacion), findsOneWidget);
+
+    await tester.tap(find.text(l10n.phaseProduccion));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).at(0), 'Café');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.phase, CropPhase.produccion,
+        reason: 'elegir producción a mano sigue funcionando');
+  });
+
+  testWidgets('L2.0: al editar un cultivo se respeta su fase (renovación)',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = _Holder();
+    const crop =
+        Crop(id: 'c1', name: 'Café viejo', phase: CropPhase.renovacion);
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: FilledButton(
+              onPressed: () async {
+                holder.value = await showDialog<CropFormData>(
+                  context: context,
+                  builder: (_) => const CropEditorDialog(
+                      crop: crop, existingNames: ['Café viejo']),
+                );
+              },
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(CropEditorDialog)))!;
+    expect(find.text(l10n.phaseRenovacion), findsOneWidget,
+        reason: 'la fase preseleccionada debe ser la del cultivo editado');
+
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.phase, CropPhase.renovacion);
   });
 }

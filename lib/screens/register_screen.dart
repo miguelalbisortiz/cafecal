@@ -10,6 +10,7 @@ import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
 import '../widgets/new_crop_dialog.dart';
+import '../widgets/crop_setup_prompt.dart';
 import '../widgets/employee_editor_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -159,28 +160,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _createCrop() async {
     final tx = context.read<TransactionProvider>();
-    final name = await showDialog<String>(
+    final res = await showDialog<NewCropResult>(
       context: context,
-      builder: (_) => NewCropDialog(
-        existingNames: tx.crops.map((c) => c.name).toList(),
-      ),
+      builder: (_) => NewCropDialog(crops: tx.crops),
     );
     if (!mounted) return;
-    final n = name?.trim() ?? '';
-    if (n.isEmpty) {
+    if (res == null) {
+      // Cancelado: repinta para que el desplegable no se quede en la opción
+      // de "crear nuevo".
       setState(() {});
       return;
     }
-    final matched = tx.crops
-        .where((c) => c.name.toLowerCase() == n.toLowerCase())
-        .toList();
-    if (matched.isNotEmpty) {
-      setState(() => _cropId = matched.first.id);
+    // L2.2: si el diálogo devolvió un id se usa directo; sin id, es un
+    // cultivo nuevo con ese nombre.
+    if (res.existingId != null) {
+      setState(() => _cropId = res.existingId);
       return;
     }
-    final crop = await tx.addCrop(n, currency: _currency);
+    final crop = await tx.addCrop(res.name, currency: _currency);
     if (!mounted) return;
     setState(() => _cropId = crop.id);
+    // L2.5b: aviso opcional y descartable para completar los datos.
+    await CropSetupPrompt.show(context, tx, crop);
   }
 
   /// Reconstruye el campo Monto con días × valor por día cuando el bloque

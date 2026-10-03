@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/categories.dart';
+import '../models/crop.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../widgets/crop_setup_prompt.dart';
 import '../widgets/new_crop_dialog.dart';
 
 class SowingScreen extends StatelessWidget {
@@ -16,6 +18,7 @@ class SowingScreen extends StatelessWidget {
     final tx = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
     final nameById = {for (final c in tx.crops) c.id: c.name};
+    final phaseById = {for (final c in tx.crops) c.id: c.phase};
     final sowings = [...tx.sowings]
       ..sort((a, b) => b.date.compareTo(a.date));
 
@@ -35,7 +38,7 @@ class SowingScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
                   itemCount: sowings.length,
                   itemBuilder: (context, i) => _row(
-                      context, tx, sowings[i], nameById, l10n),
+                      context, tx, sowings[i], nameById, phaseById, l10n),
                 ),
         ),
       ),
@@ -44,12 +47,19 @@ class SowingScreen extends StatelessWidget {
 
   Future<void> _openForm(
       BuildContext context, TransactionProvider tx, Sowing? editing) async {
+    Crop? created;
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => _SowingForm(cropNames: {
         for (final c in tx.crops) c.id: '${c.icon} ${c.name}',
-      }, editing: editing),
+      }, editing: editing, onCropCreated: (c) => created = c),
     );
+    // L2.5b: el aviso de "completar datos" sale recién al cerrar el
+    // formulario, para no quedar tapado por el diálogo.
+    final nuevo = created;
+    if (nuevo != null && context.mounted) {
+      await CropSetupPrompt.show(context, tx, nuevo);
+    }
     if (result != true || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(editing == null
@@ -60,7 +70,10 @@ class SowingScreen extends StatelessWidget {
   }
 
   Widget _row(BuildContext context, TransactionProvider tx, Sowing s,
-      Map<String, String> nameById, AppLocalizations l10n) {
+      Map<String, String> nameById, Map<String, CropPhase> phaseById,
+      AppLocalizations l10n) {
+    final noYield = s.cropId != null &&
+        phaseById[s.cropId] == CropPhase.establecimiento;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -81,19 +94,46 @@ class SowingScreen extends StatelessWidget {
               : l10n.sowingKindResiembra,
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(
-          [
-            '${s.date.day.toString().padLeft(2, '0')}/'
-                '${s.date.month.toString().padLeft(2, '0')}/${s.date.year}',
-            if (s.cropId != null) nameById[s.cropId] ?? s.cropId!,
-            '${s.plants}',
-            if (s.areaHa != null) '${s.areaHa!.toStringAsFixed(2)} ha',
-            if (s.lostPlants != null) '-${s.lostPlants}',
-            if (s.reason != null && s.reason!.isNotEmpty) s.reason!,
-          ].join(' · '),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              [
+                '${s.date.day.toString().padLeft(2, '0')}/'
+                    '${s.date.month.toString().padLeft(2, '0')}/${s.date.year}',
+                if (s.cropId != null) nameById[s.cropId] ?? s.cropId!,
+                '${s.plants}',
+                if (s.areaHa != null) '${s.areaHa!.toStringAsFixed(2)} ha',
+                if (s.lostPlants != null) '-${s.lostPlants}',
+                if (s.reason != null && s.reason!.isNotEmpty) s.reason!,
+              ].join(' · '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+            // L2.3: un cultivo que sigue en establecimiento todavía no rinde.
+            if (noYield)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  children: [
+                    const Icon(Icons.hourglass_top_outlined,
+                        size: 12, color: Color(0xFFED6C02)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        l10n.cropPhaseNoYield,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: Color(0xFFED6C02),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
         trailing: IconButton(
           tooltip: l10n.delete,
@@ -138,7 +178,15 @@ class _SowingForm extends StatefulWidget {
   final Map<String, String> cropNames;
   final Sowing? editing;
 
-  const _SowingForm({required this.cropNames, this.editing});
+  /// L2.5b: se invoca cuando se crea un cultivo nuevo desde este formulario
+  /// (puerta corta), para ofrecer completar sus datos después de cerrarlo.
+  final void Function(Crop crop)? onCropCreated;
+
+  const _SowingForm({
+    required this.cropNames,
+    this.editing,
+    this.onCropCreated,
+  });
 
   @override
   State<_SowingForm> createState() => _SowingFormState();
@@ -158,6 +206,10 @@ class _SowingFormState extends State<_SowingForm> {
   String? _cropId;
   DateTime _date = DateTime.now();
   SowingKind _kind = SowingKind.siembra;
+
+  /// L2.4: solo la resiembra puede ofrecer pasar el cultivo a renovación.
+  /// Nunca se marca solo.
+  bool _renewCrop = false;
 
   @override
   void initState() {
@@ -202,32 +254,37 @@ class _SowingFormState extends State<_SowingForm> {
       return;
     }
     final tx = context.read<TransactionProvider>();
-    final name = await showDialog<String>(
+    final res = await showDialog<NewCropResult>(
       context: context,
-      builder: (_) => NewCropDialog(
-        existingNames: tx.crops.map((c) => c.name).toList(),
-      ),
+      builder: (_) => NewCropDialog(crops: tx.crops),
     );
-    if (name == null || !mounted) return;
-    final trimmed = name.trim();
-    if (trimmed.isEmpty) return;
-    final matched = tx.crops
-        .where((c) => c.name.toLowerCase() == trimmed.toLowerCase())
-        .toList();
-    if (matched.isNotEmpty) {
+    if (res == null || !mounted) return;
+    // L2.2: el diálogo ya resolvió la ambigüedad. Si devolvió un id, se usa
+    // directo (nunca se vuelve a "matchear" por nombre); si no, se crea.
+    if (res.existingId != null) {
+      Crop? found;
+      for (final c in tx.crops) {
+        if (c.id == res.existingId) {
+          found = c;
+          break;
+        }
+      }
+      final existing = found;
+      if (existing == null) return;
       setState(() {
-        final m = matched.first;
-        _cropId = m.id;
-        _cropNames[m.id] = '${m.icon} ${m.name}';
+        _cropId = existing.id;
+        _cropNames[existing.id] = '${existing.icon} ${existing.name}';
       });
       return;
     }
-    final crop = await tx.addCrop(trimmed);
+    final crop =
+        await tx.addCrop(res.name, currency: tx.settings.currency);
     if (!mounted) return;
     setState(() {
       _cropId = crop.id;
       _cropNames[crop.id] = '${crop.icon} ${crop.name}';
     });
+    widget.onCropCreated?.call(crop);
   }
 
   Future<void> _save() async {
@@ -272,6 +329,25 @@ class _SowingFormState extends State<_SowingForm> {
         reason: reason,
       );
       sowingId = sowing.id;
+    }
+
+    // L2.4: la resiembra puede ofrecer pasar el cultivo a renovación, pero
+    // solo si la casilla está marcada. Nunca automático ni en siembra inicial.
+    if (_renewCrop && _kind == SowingKind.resiembra && _cropId != null) {
+      Crop? found;
+      for (final c in tx.crops) {
+        if (c.id == _cropId) {
+          found = c;
+          break;
+        }
+      }
+      final crop = found;
+      if (crop != null) {
+        await tx.updateCrop(crop.copyWith(
+          phase: CropPhase.renovacion,
+          pendingSync: true,
+        ));
+      }
     }
 
     // Costo opcional: solo siembra inicial con costo > 0 → crea gasto vinculado.
@@ -413,15 +489,37 @@ class _SowingFormState extends State<_SowingForm> {
                     border: const OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 4),
+                // L2.4: solo la resiembra puede renovar el cultivo, y solo
+                // si el productor lo pide a mano.
+                CheckboxListTile(
+                  value: _renewCrop,
+                  onChanged: (v) => setState(() => _renewCrop = v ?? false),
+                  title: Text(
+                    l10n.sowingRenovacionCheckbox,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
               ] else ...[
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _areaController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: l10n.sowingAreaLabel,
-                    helperText: l10n.helpSowingAreaShort,
+                    // L2.5c: sin área se puede guardar igual, pero se avisa
+                    // en palabras simples qué es lo que no se podrá ver.
+                    helperText: _areaController.text.trim().isEmpty
+                        ? l10n.sowingAreaMissingWarning
+                        : l10n.helpSowingAreaShort,
+                    helperStyle: _areaController.text.trim().isEmpty
+                        ? const TextStyle(color: Color(0xFFED6C02))
+                        : null,
                     prefixIcon: const Icon(Icons.square_foot_outlined),
                     suffixIcon: Tooltip(
                       message: l10n.helpSowingArea,
