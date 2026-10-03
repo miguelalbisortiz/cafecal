@@ -67,11 +67,13 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       setState(() => _error = l10n.cropNameRequired);
       return;
     }
-    final dup = widget.existingNames
-        .where((e) => e.toLowerCase() == n.toLowerCase() && e != widget.crop?.name)
-        .toList();
-    if (dup.isNotEmpty) {
-      setState(() => _error = l10n.cropNameRequired);
+    final current = widget.crop?.name.toLowerCase();
+    final dup = widget.existingNames.any((e) =>
+        e.toLowerCase() == n.toLowerCase() && e.toLowerCase() != current);
+    if (dup) {
+      // C3: decía "el nombre es obligatorio", que era un mensaje para otra
+      // cosa y dejaba al usuario reescribiendo el mismo nombre.
+      setState(() => _error = l10n.cropNameTaken);
       return;
     }
     final areaText = _areaController.text.trim().replaceAll(',', '.');
@@ -117,6 +119,11 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
           children: [
             TextField(
               controller: _nameController,
+              onChanged: (_) {
+                // El error no debe quedarse pegado mientras el usuario
+                // escribe un nombre nuevo.
+                if (_error != null) setState(() => _error = null);
+              },
               decoration: InputDecoration(
                 labelText: l10n.cropNameLabel,
                 errorText: _error,

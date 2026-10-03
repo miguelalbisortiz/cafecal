@@ -217,16 +217,35 @@ class TransactionProvider extends ChangeNotifier {
 
   // ---- Crops ----
 
-  Future<Crop> addCrop(String name,
-      {String icon = '🌱',
-      String color = '#2E7D32',
-      String? currency}) async {
+  /// Crea el cultivo con el formulario completo en **una sola escritura**.
+  ///
+  /// Antes la pantalla de Cultivos tenía que llamar a `addCrop` y luego a
+  /// `updateCrop`, lo que guardaba dos veces, avisaba dos veces (y disparaba
+  /// el auto-sync dos veces) y dejaba una ventana con el cultivo a medias.
+  Future<Crop> addCrop(
+    String name, {
+    String icon = '🌱',
+    String color = '#2E7D32',
+    String? currency,
+    CropPhase phase = CropPhase.produccion,
+    CropCycle cycle = CropCycle.perenne,
+    String? defaultUnit,
+    double? areaHa,
+    int? livePlants,
+    double? establishmentCost,
+  }) async {
     final crop = Crop(
       id: _uuid.v4(),
       name: name,
       icon: icon,
       color: color,
       currency: currency,
+      phase: phase,
+      cycle: cycle,
+      defaultUnit: defaultUnit,
+      areaHa: areaHa,
+      livePlants: livePlants,
+      establishmentCost: establishmentCost,
       pendingSync: true,
     );
     _crops = [..._crops, crop];

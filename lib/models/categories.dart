@@ -84,6 +84,45 @@ const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: 'otro', name: 'Otro', icon: '📦', color: '#757575'),
 ];
 
+/// Bloques en que se agrupan los gastos en el estado de resultados (P5).
+///
+/// La idea es responder "¿cuánto me costó producir?" sin sumar a mano las
+/// 16 categorías. `otros` recoge la clave `otro` y cualquier clave legada no
+/// reconocida, para que ningún gasto se pierda de vista.
+enum ExpenseGroup { produccion, venta, fijos, otros }
+
+const Set<String> _productionKeys = {
+  'siembra',
+  'semillas_insumos',
+  'fertilizante',
+  'mano_obra',
+  'cosecha',
+  'plagas',
+  'riego',
+};
+
+const Set<String> _sellingKeys = {
+  'empaque',
+  'transporte',
+};
+
+const Set<String> _fixedKeys = {
+  'arriendo',
+  'energia',
+  'agua',
+  'equipo',
+  'mantenimiento',
+  'impuestos',
+};
+
+/// Grupo de una categoría de gasto. Ver [expenseGroupOf].
+ExpenseGroup expenseGroupOf(String key) {
+  if (_productionKeys.contains(key)) return ExpenseGroup.produccion;
+  if (_sellingKeys.contains(key)) return ExpenseGroup.venta;
+  if (_fixedKeys.contains(key)) return ExpenseGroup.fijos;
+  return ExpenseGroup.otros;
+}
+
 const List<IncomeCategory> incomeCategories = [
   IncomeCategory(key: kIncomeCategorySale, name: 'Venta', icon: '💰', color: '#2E7D32'),
   IncomeCategory(key: 'subvenciones', name: 'Subvenciones y apoyos', icon: '🤝', color: '#00897B'),

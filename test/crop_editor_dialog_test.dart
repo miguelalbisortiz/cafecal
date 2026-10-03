@@ -73,4 +73,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(holder.value!.establishmentCost, 12500000);
   });
+
+  testWidgets('un nombre repetido explica que ya existe y no que falta', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = _Holder();
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: FilledButton(
+              onPressed: () async {
+                holder.value = await showDialog<CropFormData>(
+                  context: context,
+                  builder: (_) =>
+                      const CropEditorDialog(existingNames: ['Café']),
+                );
+              },
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(CropEditorDialog)))!;
+
+    await tester.enterText(find.byType(TextField).at(0), 'café');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CropEditorDialog), findsOneWidget,
+        reason: 'no debe cerrarse con un nombre repetido');
+    expect(find.text(l10n.cropNameTaken), findsOneWidget);
+    expect(find.text(l10n.cropNameRequired), findsNothing,
+        reason: 'el mensaje de "falta el nombre" ya no corresponde (C3)');
+    expect(holder.value, isNull);
+  });
 }

@@ -1230,6 +1230,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropNameRequired => 'Escribe el nombre del cultivo.';
 
   @override
+  String get cropNameTaken => 'Ya hay un cultivo con ese nombre. Escribe otro.';
+
+  @override
+  String get deleteCropTitle => '¿Eliminar cultivo?';
+
+  @override
+  String deleteCropBody(Object harvests, Object name, Object sowings) {
+    return 'Se eliminarán las siembras ($sowings) y las cosechas ($harvests) de «$name». Los gastos y ventas se quedarán sin cultivo.';
+  }
+
+  @override
+  String deleteCropBodyEmpty(Object name) {
+    return '«$name» todavía no tiene siembras ni cosechas. Los gastos y ventas se quedarán sin cultivo.';
+  }
+
+  @override
+  String get expenseGroupProduccion => 'Gastos de producción';
+
+  @override
+  String get expenseGroupVenta => 'Gastos de venta';
+
+  @override
+  String get expenseGroupFijos => 'Gastos fijos';
+
+  @override
+  String get expenseGroupOtros => 'Otros gastos';
+
+  @override
   String get menuCrops => 'Cultivos';
 
   @override

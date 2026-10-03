@@ -100,9 +100,12 @@ class LocalStore {
     try {
       final list = jsonDecode(raw) as List<dynamic>;
       final seen = <String>{};
+      // C4: deduplicar por id, nunca por nombre. Dos cultivos distintos
+      // pueden llamarse igual y borrar uno por nombre dejaba sus siembras y
+      // cosechas huérfanas sin que nadie lo notara.
       return list
           .map((e) => Crop.fromJson((e as Map).cast<String, dynamic>()))
-          .where((c) => seen.add(c.name.trim().toLowerCase()))
+          .where((c) => seen.add(c.id))
           .toList();
     } catch (_) {
       return [];

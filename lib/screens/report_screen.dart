@@ -13,6 +13,7 @@ import '../models/sowing.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
+import '../models/categories.dart';
 import '../models/currencies.dart';
 import '../services/alert_service.dart';
 import '../services/excel_export_service.dart';
@@ -308,8 +309,8 @@ class _ReportScreenState extends State<ReportScreen> {
                         -expenses, Theme.of(context).colorScheme.error),
                     if (expenseRows.isEmpty)
                       _hintLine(l10n.noExpensesPeriod),
-                    ...expenseRows.map((r) => _categoryLine(context, tx, r,
-                        expenses, Theme.of(context).colorScheme.error)),
+                    ..._groupedExpenseLines(
+                        context, tx, l10n, expenseRows, expenses),
                     const Divider(height: 24),
                     _resultLine(context, tx, l10n, balance),
                     const SizedBox(height: 10),
@@ -1484,6 +1485,97 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
+  /// P5 — los gastos agrupados en bloques (producción / venta / fijos /
+  /// otros). Cada bloque muestra su subtotal y **debajo sigue el detalle**:
+  /// se agrupa sin esconder ninguna de las categorías existentes.
+  ///
+  /// El porcentaje de cada fila sigue calculándose sobre el total de gastos
+  /// del período, igual que antes, para que la cifra no cambie de significado.
+  List<Widget> _groupedExpenseLines(
+      BuildContext context,
+      TransactionProvider tx,
+      AppLocalizations l10n,
+      List<_CategoryRow> rows,
+      double expensesTotal) {
+    if (rows.isEmpty) return const [];
+
+    final byGroup = <ExpenseGroup, List<_CategoryRow>>{};
+    for (final row in rows) {
+      byGroup.putIfAbsent(expenseGroupOf(row.key), () => []).add(row);
+    }
+
+    String groupLabel(ExpenseGroup g) => switch (g) {
+          ExpenseGroup.produccion => l10n.expenseGroupProduccion,
+          ExpenseGroup.venta => l10n.expenseGroupVenta,
+          ExpenseGroup.fijos => l10n.expenseGroupFijos,
+          ExpenseGroup.otros => l10n.expenseGroupOtros,
+        };
+
+    const order = [
+      ExpenseGroup.produccion,
+      ExpenseGroup.venta,
+      ExpenseGroup.fijos,
+      ExpenseGroup.otros,
+    ];
+
+    final out = <Widget>[];
+    for (final g in order) {
+      final group = byGroup[g];
+      if (group == null || group.isEmpty) continue;
+      final total = group.fold<double>(0, (a, r) => a + r.amount);
+      out.add(_groupLine(
+        context,
+        tx,
+        label: groupLabel(g),
+        amount: total,
+        ofTotal: expensesTotal,
+      ));
+      out.addAll(group.map((r) => _categoryLine(
+          context, tx, r, expensesTotal, Theme.of(context).colorScheme.error)));
+    }
+    return out;
+  }
+
+  /// Cabecera de un bloque de gastos: subtotal + % sobre el total del período.
+  Widget _groupLine(
+    BuildContext context,
+    TransactionProvider tx, {
+    required String label,
+    required double amount,
+    required double ofTotal,
+  }) {
+    final pct = ofTotal > 0 ? amount / ofTotal * 100 : 0.0;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, top: 6, bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Text(
+            '${_pct(pct)}%',
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            _accounting(context, tx, -amount, currency: _effectiveCurrency),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _resultLine(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n, double balance) {
     final scheme = Theme.of(context).colorScheme;
@@ -1656,6 +1748,7 @@ class _ReportScreenState extends State<ReportScreen> {
         label: label,
         amount: e.value,
         isExpense: type.isExpense,
+        key: e.key,
       );
     }).toList()
       ..sort((a, b) => b.amount.compareTo(a.amount));
@@ -1693,10 +1786,15 @@ class _CategoryRow {
   final double amount;
   final bool isExpense;
 
+  /// Clave cruda (p. ej. `fertilizante` o `venta|<cropId>`). Solo los gastos
+  /// la usan: agruparlos por bloque (P5) necesita la clave, no la etiqueta.
+  final String key;
+
   const _CategoryRow({
     required this.label,
     required this.amount,
     required this.isExpense,
+    this.key = '',
   });
 }
 

@@ -2489,6 +2489,54 @@ abstract class AppLocalizations {
   /// **'Escribe el nombre del cultivo.'**
   String get cropNameRequired;
 
+  /// No description provided for @cropNameTaken.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya hay un cultivo con ese nombre. Escribe otro.'**
+  String get cropNameTaken;
+
+  /// No description provided for @deleteCropTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar cultivo?'**
+  String get deleteCropTitle;
+
+  /// No description provided for @deleteCropBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se eliminarán las siembras ({sowings}) y las cosechas ({harvests}) de «{name}». Los gastos y ventas se quedarán sin cultivo.'**
+  String deleteCropBody(Object harvests, Object name, Object sowings);
+
+  /// No description provided for @deleteCropBodyEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'«{name}» todavía no tiene siembras ni cosechas. Los gastos y ventas se quedarán sin cultivo.'**
+  String deleteCropBodyEmpty(Object name);
+
+  /// No description provided for @expenseGroupProduccion.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos de producción'**
+  String get expenseGroupProduccion;
+
+  /// No description provided for @expenseGroupVenta.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos de venta'**
+  String get expenseGroupVenta;
+
+  /// No description provided for @expenseGroupFijos.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos fijos'**
+  String get expenseGroupFijos;
+
+  /// No description provided for @expenseGroupOtros.
+  ///
+  /// In es, this message translates to:
+  /// **'Otros gastos'**
+  String get expenseGroupOtros;
+
   /// No description provided for @menuCrops.
   ///
   /// In es, this message translates to:

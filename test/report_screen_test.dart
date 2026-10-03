@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/sowing.dart';
+import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/report_screen.dart';
 import 'package:mi_cafetal/services/local_store.dart';
@@ -125,5 +126,63 @@ void main() {
     );
     expect(find.textContaining('Siembras en '), findsOneWidget,
         reason: 'debe listar las siembras del período seleccionado');
+  });
+
+  testWidgets(
+      'P5: el estado de resultados agrupa los gastos sin esconder el detalle',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      amount: 1000.0,
+      description: 'Fertilizante',
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'transporte',
+      amount: 500.0,
+      description: 'Transporte',
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'arriendo',
+      amount: 300.0,
+      description: 'Arriendo',
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.expenseGroupProduccion), findsOneWidget);
+    expect(find.text(l10n.expenseGroupVenta), findsOneWidget);
+    expect(find.text(l10n.expenseGroupFijos), findsOneWidget);
+    expect(find.text(l10n.expenseGroupOtros), findsNothing,
+        reason: 'sin gastos "otro" no debe abrirse ese bloque');
+
+    // Agrupar no esconde nada: las categorías siguen listadas debajo.
+    expect(find.text(l10n.expenseCategory('fertilizante')), findsOneWidget);
+    expect(find.text(l10n.expenseCategory('transporte')), findsOneWidget);
+    expect(find.text(l10n.expenseCategory('arriendo')), findsOneWidget);
   });
 }

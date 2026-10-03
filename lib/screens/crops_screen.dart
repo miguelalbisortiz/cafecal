@@ -54,21 +54,21 @@ class CropsScreen extends StatelessWidget {
         ),
       );
       if (form == null || !context.mounted) return;
-      final crop = await tx.addCrop(
+      // Una sola escritura con todo el formulario (C5): antes era addCrop +
+      // updateCrop, que guardaba y avisaba dos veces y disparaba el auto-sync
+      // en dos pasadas.
+      await tx.addCrop(
         form.name,
         icon: form.icon,
         color: form.color,
         currency: form.currency,
-      );
-      await tx.updateCrop(crop.copyWith(
         phase: form.phase,
         cycle: form.cycle,
         defaultUnit: form.defaultUnit,
         areaHa: form.areaHa,
         livePlants: form.livePlants,
         establishmentCost: form.establishmentCost,
-        currency: form.currency,
-      ));
+      );
       if (!wasEmpty || !context.mounted) return;
       // Primer cultivo: el onboarding invita a agregar varios existentes.
       keepAdding = await showDialog<bool>(
@@ -110,7 +110,41 @@ class CropsScreen extends StatelessWidget {
       areaHa: form.areaHa,
       livePlants: form.livePlants,
       establishmentCost: form.establishmentCost,
+      // C1: antes la moneda se descartaba en silencio al editar (solo se
+      // guardaba al crear).
+      currency: form.currency,
     ));
+  }
+
+  /// C2: borrar un cultivo hace match con lo que hace `deleteCrop`
+  /// (`transaction_provider.dart`) — borra siembras y cosechas y deja los
+  /// gastos/ventas sin cultivo — así que lo avisamos antes de ejecutar.
+  Future<void> _confirmDelete(BuildContext context, TransactionProvider tx,
+      Crop crop, AppLocalizations l10n) async {
+    final sowings = tx.sowings.where((s) => s.cropId == crop.id).length;
+    final harvests = tx.harvests.where((h) => h.cropId == crop.id).length;
+    final hasHistory = sowings > 0 || harvests > 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteCropTitle),
+        content: Text(hasHistory
+            ? l10n.deleteCropBody(sowings, harvests, crop.name)
+            : l10n.deleteCropBodyEmpty(crop.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await tx.deleteCrop(crop.id);
   }
 
   Widget _row(
@@ -142,10 +176,20 @@ class CropsScreen extends StatelessWidget {
           details.join(' · '),
           style: const TextStyle(fontSize: 12),
         ),
-        trailing: IconButton(
-          tooltip: l10n.delete,
-          icon: const Icon(Icons.edit_outlined, size: 20),
-          onPressed: () => _editCrop(context, tx, crop),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: l10n.edit,
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              onPressed: () => _editCrop(context, tx, crop),
+            ),
+            IconButton(
+              tooltip: l10n.delete,
+              icon: const Icon(Icons.delete_outline, size: 20),
+              onPressed: () => _confirmDelete(context, tx, crop, l10n),
+            ),
+          ],
         ),
       ),
     );

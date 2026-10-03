@@ -104,17 +104,66 @@ void main() {
           containsAll(['Café', 'Caña']));
     });
 
-    test('loadCrops deduplica registrarizados preexistentes', () async {
+    test('addCrop acepta el formulario completo en una sola escritura',
+        () async {
+      // C5: antes la pantalla de Cultivos tenía que hacer addCrop +
+      // updateCrop para guardar lo que addCrop no aceptaba.
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final provider = TransactionProvider(LocalStore(prefs));
+
+      final crop = await provider.addCrop(
+        'Café',
+        currency: 'USD',
+        phase: CropPhase.establecimiento,
+        cycle: CropCycle.perenne,
+        defaultUnit: 'saco',
+        areaHa: 1.5,
+        livePlants: 1200,
+        establishmentCost: 2500000,
+      );
+
+      expect(crop.phase, CropPhase.establecimiento);
+      expect(crop.cycle, CropCycle.perenne);
+      expect(crop.defaultUnit, 'saco');
+      expect(crop.areaHa, 1.5);
+      expect(crop.livePlants, 1200);
+      expect(crop.establishmentCost, 2500000);
+      expect(crop.currency, 'USD');
+      expect(crop.pendingSync, isTrue,
+          reason: 'debe quedar marcado para subir a Supabase');
+
+      expect(provider.crops.single.areaHa, 1.5);
+      expect(provider.crops.single.currency, 'USD');
+    });
+
+    test('loadCrops deduplica registros con el mismo id', () async {
       SharedPreferences.setMockInitialValues({
         'flutter.crops_v1': '['
             '{"id":"cafe","name":"Café","phase":"produccion","cycle":"perenne"},'
-            '{"id":"uuid-cafe","name":"Café","phase":"produccion","cycle":"perenne"}'
+            '{"id":"cafe","name":"Café repetido","phase":"produccion","cycle":"perenne"}'
             ']',
       });
       final prefs = await SharedPreferences.getInstance();
       final store = LocalStore(prefs);
       expect(store.loadCrops().length, 1);
       expect(store.loadCrops().single.id, 'cafe');
+    });
+
+    test('loadCrops conserva dos cultivos distintos aunque se llamen igual',
+        () async {
+      // C4: deduplicar por nombre borraba uno y dejaba sus siembras y
+      // cosechas huérfanas.
+      SharedPreferences.setMockInitialValues({
+        'flutter.crops_v1': '['
+            '{"id":"cafe-1","name":"Café","phase":"produccion","cycle":"perenne"},'
+            '{"id":"cafe-2","name":"Café","phase":"produccion","cycle":"perenne"}'
+            ']',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final store = LocalStore(prefs);
+      expect(store.loadCrops().map((c) => c.id).toList(),
+          ['cafe-1', 'cafe-2']);
     });
   });
 }

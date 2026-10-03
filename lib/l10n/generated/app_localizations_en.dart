@@ -1230,6 +1230,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cropNameRequired => 'Type the crop name.';
 
   @override
+  String get cropNameTaken => 'A crop with that name already exists. Type a different one.';
+
+  @override
+  String get deleteCropTitle => 'Delete crop?';
+
+  @override
+  String deleteCropBody(Object harvests, Object name, Object sowings) {
+    return 'The sowings ($sowings) and harvests ($harvests) of \"$name\" will be deleted. Expenses and sales will remain without a crop.';
+  }
+
+  @override
+  String deleteCropBodyEmpty(Object name) {
+    return '\"$name\" has no sowings or harvests yet. Expenses and sales will remain without a crop.';
+  }
+
+  @override
+  String get expenseGroupProduccion => 'Production costs';
+
+  @override
+  String get expenseGroupVenta => 'Selling costs';
+
+  @override
+  String get expenseGroupFijos => 'Fixed costs';
+
+  @override
+  String get expenseGroupOtros => 'Other costs';
+
+  @override
   String get menuCrops => 'Crops';
 
   @override

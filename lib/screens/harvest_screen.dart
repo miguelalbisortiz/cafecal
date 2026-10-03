@@ -351,10 +351,16 @@ class _HarvestFormState extends State<_HarvestForm> {
                     value: HarvestDestination.vendido,
                     child: Text(l10n.harvestDstVendido),
                   ),
-                  DropdownMenuItem(
-                    value: HarvestDestination.almacenado,
-                    child: Text(l10n.harvestDstAlmacenado),
-                  ),
+                  // P4: aquí no hay bodega — todo lo cosechado se vende —,
+                  // así que "almacenado" ya no se ofrece. El ítem solo
+                  // aparece si la cosecha que estamos editando ya lo trae,
+                  // para que el desplegable siga coincidiendo con su valor
+                  // y los históricos se puedan leer y guardar sin romperse.
+                  if (_destination == HarvestDestination.almacenado)
+                    DropdownMenuItem(
+                      value: HarvestDestination.almacenado,
+                      child: Text(l10n.harvestDstAlmacenado),
+                    ),
                   DropdownMenuItem(
                     value: HarvestDestination.perdida,
                     child: Text(l10n.harvestDstPerdida),
