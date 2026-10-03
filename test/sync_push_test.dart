@@ -112,6 +112,41 @@ void main() {
 
       expect(cropIds, [cropUuid]);
     });
+
+    test('el borrado de cultivo sube tras settings y antes que las '
+        'transacciones', () async {
+      final tx = await newProvider();
+      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café')]);
+      tx.mergeRemote([txn(id: 't1', cropId: cropUuid)]);
+      await tx.deleteCrop(cropUuid);
+
+      final stages =
+          SyncProvider(tx).buildPushStages(SupabaseService.instance);
+      final tables = stages.map((s) => s.table).toList();
+      final deletes =
+          stages.where((s) => s.label == 'Borrado de cultivo').toList();
+
+      expect(deletes, hasLength(1));
+      expect(deletes.single.id, cropUuid);
+      expect(tables.first, 'settings');
+      expect(tables.last, 'transactions');
+      expect(tables.indexOf('crops'), lessThan(tables.indexOf('transactions')));
+    });
+
+    test('los borrados con id legado no generan etapa (crop_id es uuid)',
+        () async {
+      final tx = await newProvider();
+      tx.mergeRemoteCrops([const Crop(id: 'cafe', name: 'Café')]);
+      await tx.deleteCrop('cafe');
+
+      final labels = SyncProvider(tx)
+          .buildPushStages(SupabaseService.instance)
+          .map((s) => s.label)
+          .toList();
+
+      expect(labels, isNot(contains('Borrado de cultivo')),
+          reason: 'una consulta con id no-uuid rompería la subida entera');
+    });
   });
 
   group('Payload: ids referenciados', () {

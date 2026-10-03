@@ -18,6 +18,7 @@ class LocalStore {
   static const _kSowings = 'sowings_v1';
   static const _kEmployees = 'employees_v1';
   static const _kSettingsDirty = 'settings_dirty_v1';
+  static const _kDeletedCrops = 'deleted_crops_v1';
 
   static const _allKeys = [
     _kTransactions,
@@ -28,6 +29,7 @@ class LocalStore {
     _kSowings,
     _kEmployees,
     _kSettingsDirty,
+    _kDeletedCrops,
   ];
 
   final SharedPreferences _prefs;
@@ -115,6 +117,26 @@ class LocalStore {
   Future<void> saveCrops(List<Crop> crops) async {
     final raw = jsonEncode(crops.map((c) => c.toJson()).toList());
     await _prefs.setString(_key(_kCrops), raw);
+  }
+
+  // ---- Cultivos borrados (pendientes de borrar en la BD) ----
+  //
+  // El borrado de cultivos no se propaga solo: si se olvidara, el pull volvería
+  // a traer el cultivo. Estos ids son la "tombstone" que hay que subir antes de
+  // poder olvidarlos.
+
+  List<String> loadDeletedCrops() {
+    final raw = _prefs.getString(_key(_kDeletedCrops));
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      return (jsonDecode(raw) as List<dynamic>).cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveDeletedCrops(List<String> ids) async {
+    await _prefs.setString(_key(_kDeletedCrops), jsonEncode(ids));
   }
 
   // ---- Harvests ----

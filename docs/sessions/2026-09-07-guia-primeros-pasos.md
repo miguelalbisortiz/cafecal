@@ -15,6 +15,16 @@ Sesión de pulido de la experiencia de usuario nueva: migración N2 aplicada y v
      con los mismos cultivos bajados de la BD, cuyo `crops.id` es **uuid que genera la BD**;
      `_pullRemote`/`mergeRemoteCrops` deduplicaba solo por id, así que entraban dos veces.
    - Fix: dedup por **nombre** (case-insensitive) en `mergeRemoteCrops` y `loadCrops()`. 3 tests de regresión.
+   - **Actualización (2026-10-03)** — el dedup por nombre se retiró: descartaba el cultivo
+     remoto cuando dos cultivos distintos se llamaban igual, y sus siembras, cosechas y
+     ventas quedaban sin cultivo. Hoy `mergeRemoteCrops` deduplica **solo por id** y resuelve
+     el caso de los ids fijos **adoptando** el id remoto para `cafe`/`platano`/`otro`
+     (set `legacyCropIds`), re-apuntando siembras, cosechas y movimientos. `loadCrops()`
+     deduplica por id desde el Lote 1 (2026-10-03).
+     La otra cara del mismo problema: el borrado de cultivos **nunca se había sincronizado**
+     (`crops` solo se hace `upsert`), así que el pull resucitaba el cultivo borrado. Ahora
+     `deleteCrop` deja una tombstone (`deleted_crops_v1`) que sube como etapa de borrado y
+     solo se olvida si la subida llegó.
    - Corrección de la causa original (verificada el 2026-10-02): el trigger **no** crea
      cultivos. `handle_new_user()` solo inserta una fila en `settings`
      (`user_id`, `farm_name`) — ver `supabase/migrations/202609040001_mi_cafetal_init.sql:93-104`.

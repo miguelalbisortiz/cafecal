@@ -55,9 +55,16 @@ class Transaction {
     this.sowingId,
   });
 
+  /// Marcador para distinguir "no tocar este campo" (`copyWith()`) de "borrarlo"
+  /// (`copyWith(cropId: null)`). Sin él el null se interpretaba como "conserva el
+  /// anterior", y así los tres ids de referencia (`crop_id`, `harvest_id`,
+  /// `sowing_id`) no se podían desvincular: al borrar, el movimiento seguía
+  /// apuntando a una fila que ya no existe y la BD rechazaba la subida.
+  static const Object _keep = Object();
+
   Transaction copyWith({
     String? id,
-    String? cropId,
+    Object? cropId = _keep,
     TransactionType? type,
     String? category,
     double? amount,
@@ -72,12 +79,12 @@ class Transaction {
     double? pricePerUnit,
     String? client,
     String? provider,
-    String? harvestId,
-    String? sowingId,
+    Object? harvestId = _keep,
+    Object? sowingId = _keep,
   }) {
     return Transaction(
       id: id ?? this.id,
-      cropId: cropId ?? this.cropId,
+      cropId: cropId == _keep ? this.cropId : cropId as String?,
       type: type ?? this.type,
       category: category ?? this.category,
       amount: amount ?? this.amount,
@@ -92,8 +99,8 @@ class Transaction {
       pricePerUnit: pricePerUnit ?? this.pricePerUnit,
       client: client ?? this.client,
       provider: provider ?? this.provider,
-      harvestId: harvestId ?? this.harvestId,
-      sowingId: sowingId ?? this.sowingId,
+      harvestId: harvestId == _keep ? this.harvestId : harvestId as String?,
+      sowingId: sowingId == _keep ? this.sowingId : sowingId as String?,
     );
   }
 

@@ -110,3 +110,12 @@ const List<Crop> defaultCrops = [
   Crop(id: 'platano', name: 'Plátano', icon: '🍌', color: '#F9A825'),
   Crop(id: 'otro', name: 'Otro', icon: '🌱', color: '#2E7D32'),
 ];
+
+/// Los tres ids fijos con que antes se sembraban los cultivos por defecto.
+///
+/// [defaultCrops] ya no se siembra, pero cualquier navegador antiguo todavía
+/// los puede tener guardados en local, mientras que la BD solo acepta uuid
+/// y jamás tendrá esos ids. Sirven para reconocerlos y **adoptar** el cultivo
+/// remoto equivalente en lugar de deduplicar por nombre (ver
+/// `TransactionProvider.mergeRemoteCrops`).
+final Set<String> legacyCropIds = {for (final c in defaultCrops) c.id};

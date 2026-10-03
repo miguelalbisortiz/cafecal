@@ -21,6 +21,11 @@ class TransactionProvider extends ChangeNotifier {
   List<Employee> _employees = [];
   bool _settingsDirty = false;
 
+  /// Ids de cultivos borrados localmente que **aún no se han borrado en la
+  /// BD**. Mientras estén aquí, el pull no debe revivirlos (se habrían ido sin
+  /// borrar, porque `crops` solo se hace `upsert`).
+  List<String> _deletedCrops = [];
+
   /// Se dispara tras un alta/edición/borrado local de un movimiento, para que
   /// [SyncProvider] lo suba en el momento en lugar de esperar a abrir la app
   /// o a tocar ⟳. Es una función y no una referencia directa al proveedor
@@ -35,6 +40,7 @@ class TransactionProvider extends ChangeNotifier {
     _sowings = _store.loadSowings();
     _employees = _store.loadEmployees();
     _settingsDirty = _store.loadSettingsDirty();
+    _deletedCrops = _store.loadDeletedCrops();
   }
 
   /// Recarga todo el estado desde el namespace activo del store. Se invoca
@@ -49,6 +55,9 @@ class TransactionProvider extends ChangeNotifier {
     // La marca dirty vive en el namespace: al cambiar de cuenta había que
     // recargarla, o el estado del equipo anterior mandaba sobre el nuevo.
     _settingsDirty = _store.loadSettingsDirty();
+    // Igual que la dirty: si no se recarga, un cultivo borrado en la cuenta
+    // anterior reviviría aquí (o se borraría sin querer en otra).
+    _deletedCrops = _store.loadDeletedCrops();
     notifyListeners();
   }
 
@@ -58,6 +67,10 @@ class TransactionProvider extends ChangeNotifier {
   List<Harvest> get harvests => _harvests;
   List<Sowing> get sowings => _sowings;
   List<Employee> get employees => _employees;
+
+  /// Cultivos borrados localmente pendientes de borrar en la BD. Se expone
+  /// para que [SyncProvider] pueda subir los borrados.
+  List<String> get deletedCrops => _deletedCrops;
 
   List<Harvest> harvestsFor(String? cropId, {DateTime? from, DateTime? to}) {
     return _harvests.where((h) {
@@ -265,16 +278,43 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   Future<void> deleteCrop(String id) async {
+    // Antes de nada: los ids de las siembras y cosechas que se van a borrar.
+    // Los movimientos guardan harvest_id/sowing_id, y si quedaran apuntando a
+    // una fila borrada la BD rechazaría la subida por clave foránea.
+    final sowingIds =
+        _sowings.where((s) => s.cropId == id).map((s) => s.id).toSet();
+    final harvestIds =
+        _harvests.where((h) => h.cropId == id).map((h) => h.id).toSet();
+
     _crops = _crops.where((c) => c.id != id).toList();
+    // Queda anotado: `crops` solo se hace upsert, así que sin esta marca el
+    // siguiente pull traería el cultivo de vuelta. Se borra de la BD en el
+    // próximo sync y solo entonces se olvida (si falla, se reintenta).
+    if (!_deletedCrops.contains(id)) {
+      _deletedCrops = [..._deletedCrops, id];
+      await _store.saveDeletedCrops(_deletedCrops);
+    }
     await _store.saveCrops(_crops);
     // B1-B3: limpiar datos vinculados al cultivo eliminado
     _sowings = _sowings.where((s) => s.cropId != id).toList();
     await _store.saveSowings(_sowings);
     _harvests = _harvests.where((h) => h.cropId != id).toList();
     await _store.saveHarvests(_harvests);
-    _transactions = _transactions
-        .map((t) => t.cropId == id ? t.copyWith(cropId: null, pendingSync: true) : t)
-        .toList();
+    // Los movimientos se quedan (son dinero), pero sin enlaces rotos.
+    _transactions = [
+      for (final t in _transactions)
+        t.cropId == id ||
+                sowingIds.contains(t.sowingId) ||
+                harvestIds.contains(t.harvestId)
+            ? t.copyWith(
+                cropId: t.cropId == id ? null : t.cropId,
+                harvestId:
+                    harvestIds.contains(t.harvestId) ? null : t.harvestId,
+                sowingId: sowingIds.contains(t.sowingId) ? null : t.sowingId,
+                pendingSync: true,
+              )
+            : t,
+    ];
     await _store.saveTransactions(_transactions);
     notifyListeners();
   }
@@ -529,11 +569,16 @@ class TransactionProvider extends ChangeNotifier {
     _employees = _employees
         .map((e) => failed(e.id) ? e : e.copyWith(pendingSync: false))
         .toList();
+    // Mismo criterio que con los movimientos: solo se olvidan los borrados de
+    // cultivo que SÍ llegaron. Si se descartaran los fallidos, el pull los
+    // resucitaría desde el remoto.
+    _deletedCrops = _deletedCrops.where(failed).toList();
     await _store.saveTransactions(_transactions);
     await _store.saveCrops(_crops);
     await _store.saveHarvests(_harvests);
     await _store.saveSowings(_sowings);
     await _store.saveEmployees(_employees);
+    await _store.saveDeletedCrops(_deletedCrops);
     notifyListeners();
   }
 
@@ -547,21 +592,80 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fusiona los cultivos que trae el pull.
+  ///
+  /// Deduplica **solo por id, nunca por nombre**: dos cultivos distintos pueden
+  /// llamarse igual y descartar el remoto dejaba sus siembras, cosechas y
+  /// ventas sin cultivo. Antes valía el nombre porque los cultivos por defecto
+  /// vivían con ids fijos (`cafe`) mientras la BD los tenía con uuid; eso se
+  /// resuelve ahora en [_adoptLegacyCrops], que adopta el id remoto de verdad.
   void mergeRemoteCrops(List<Crop> remoteCrops) {
+    _adoptLegacyCrops(remoteCrops);
+
     final existingIds = _crops.map((c) => c.id).toSet();
-    final existingNames = _crops
-        .map((c) => c.name.trim().toLowerCase())
-        .toSet();
+    // Los borrados pendientes no reviven: quizá todavía no hayan llegado a la
+    // BD, y sin esta marca el pull los devolvería tal cual.
+    final pendingDeletes = _deletedCrops.toSet();
     _crops = [
       ..._crops,
       ...remoteCrops.where(
-        (c) =>
-            !existingIds.contains(c.id) &&
-            !existingNames.contains(c.name.trim().toLowerCase()),
+        (c) => !existingIds.contains(c.id) && !pendingDeletes.contains(c.id),
       ),
     ];
     _store.saveCrops(_crops);
     notifyListeners();
+  }
+
+  /// Los cultivos por defecto antiguos (`cafe`, `platano`, `otro`) convivían con
+  /// el mismo cultivo ya creado en la BD: eran dos filas para lo mismo. Si el
+  /// remoto trae el mismo nombre con otro id, es el mismo cultivo: se re-apuntan
+  /// las siembras, cosechas y movimientos locales al id remoto y se descarta el
+  /// local. Así no hace falta deduplicar por nombre, que además borraba cultivos
+  /// distintos con igual nombre y dejaba sus datos huérfanos.
+  void _adoptLegacyCrops(List<Crop> remoteCrops) {
+    if (!_crops.any((c) => legacyCropIds.contains(c.id))) return;
+
+    final remoteByName = <String, Crop>{
+      for (final r in remoteCrops) r.name.trim().toLowerCase(): r,
+    };
+    final pendingDeletes = _deletedCrops.toSet();
+    final adopt = <String, String>{};
+    for (final c in _crops) {
+      if (!legacyCropIds.contains(c.id)) continue;
+      final remote = remoteByName[c.name.trim().toLowerCase()];
+      if (remote == null || remote.id == c.id) continue;
+      // Un cultivo remoto pendiente de borrado no sirve como destino.
+      if (pendingDeletes.contains(remote.id)) continue;
+      adopt[c.id] = remote.id;
+    }
+    if (adopt.isEmpty) return;
+
+    _sowings = [
+      for (final s in _sowings)
+        adopt.containsKey(s.cropId)
+            ? s.copyWith(cropId: adopt[s.cropId], pendingSync: true)
+            : s,
+    ];
+    _harvests = [
+      for (final h in _harvests)
+        adopt.containsKey(h.cropId)
+            ? h.copyWith(cropId: adopt[h.cropId], pendingSync: true)
+            : h,
+    ];
+    // Se re-marcan pendientes: en la BD siguen con `crop_id` a null (o con el
+    // id legado) y hay que subirlos de nuevo con el id bueno.
+    _transactions = [
+      for (final t in _transactions)
+        adopt.containsKey(t.cropId)
+            ? t.copyWith(cropId: adopt[t.cropId], pendingSync: true)
+            : t,
+    ];
+    _crops = _crops.where((c) => !adopt.containsKey(c.id)).toList();
+
+    _store.saveSowings(_sowings);
+    _store.saveHarvests(_harvests);
+    _store.saveTransactions(_transactions);
+    _store.saveCrops(_crops);
   }
 
   void mergeRemoteHarvests(List<Harvest> remoteHarvests) {

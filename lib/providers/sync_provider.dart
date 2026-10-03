@@ -175,6 +175,16 @@ class SyncProvider extends ChangeNotifier {
           id: c.id,
           run: () => _upsertRemoteCrop(supabase, c),
         ),
+      // El borrado viaja con los cultivos: sin subirlo, el pull lo reviviría
+      // (crops solo se hace upsert). Los ids no-uuid se omiten: nunca estuvieron
+      // en la BD y `crop_id` es uuid, así que esa consulta daría error.
+      for (final id in _txProvider.deletedCrops.where(_isUuid))
+        PushStage(
+          table: 'crops',
+          label: 'Borrado de cultivo',
+          id: id,
+          run: () => _deleteRemoteCrop(supabase, id),
+        ),
       for (final s in _txProvider.sowings)
         PushStage(
           table: 'sowings',
@@ -304,6 +314,22 @@ class SyncProvider extends ChangeNotifier {
 
   Future<void> _deleteRemote(SupabaseService supabase, String id) async {
     await supabase.client.from('transactions').delete().eq('id', id);
+  }
+
+  /// Borra un cultivo en la BD junto con las siembras y cosechas que lo usan.
+  ///
+  /// El orden es el contrario al del resto: primero los hijos, después el
+  /// cultivo. Las FK de `sowings.crop_id` y `harvests.crop_id` son
+  /// `on delete set null`, así que si se borrara el cultivo primero quedarían
+  /// con `crop_id` a null y ya no coincidirían con el id que buscamos,
+  /// dejando filas que el pull devolvería como huérfanas.
+  ///
+  /// Los movimientos **no** se borran: localmente se quedan como "sin cultivo"
+  /// y vuelven a subirse con `crop_id` null.
+  Future<void> _deleteRemoteCrop(SupabaseService supabase, String id) async {
+    await supabase.client.from('sowings').delete().eq('crop_id', id);
+    await supabase.client.from('harvests').delete().eq('crop_id', id);
+    await supabase.client.from('crops').delete().eq('id', id);
   }
 
   /// Payload que sale hacia `crops`. Incluye `currency`: sin esa columna en
