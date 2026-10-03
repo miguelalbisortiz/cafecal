@@ -271,4 +271,87 @@ void main() {
           ['cafe-1', 'cafe-2']);
     });
   });
+
+  group('P3 — fase automática', () {
+    Future<TransactionProvider> newProvider() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      return TransactionProvider(LocalStore(prefs));
+    }
+
+    test('addCrop arranca en establecimiento: todavía no se produce', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      expect(crop.phase, CropPhase.establecimiento);
+      expect(provider.crops.single.phase, CropPhase.establecimiento);
+    });
+
+    test('addCrop respeta la fase que pide el formulario completo',
+        () async {
+      // La pantalla de Cultivos sigue decidiendo la fase a mano.
+      final provider = await newProvider();
+      expect(
+          (await provider.addCrop('Maíz', phase: CropPhase.produccion)).phase,
+          CropPhase.produccion);
+      expect(
+          (await provider.addCrop('Vid', phase: CropPhase.renovacion)).phase,
+          CropPhase.renovacion);
+    });
+
+    test('la primera cosecha promueve establecimiento → producción',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      expect(crop.phase, CropPhase.establecimiento);
+
+      await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 50);
+
+      expect(provider.crops.single.phase, CropPhase.produccion);
+      expect(provider.crops.single.pendingSync, isTrue,
+          reason: 'hay que avisar a Supabase del cambio de fase');
+      expect(provider.harvests, hasLength(1));
+    });
+
+    test('promover es idempotente: la segunda cosecha no vuelve a tocarlo',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 50);
+      final afterFirst = provider.crops.single;
+
+      await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 11, 1), amount: 30);
+
+      expect(provider.crops.single.phase, CropPhase.produccion);
+      expect(provider.crops.single.pendingSync, afterFirst.pendingSync);
+    });
+
+    test('una cosecha no altera renovación ni producción', () async {
+      final provider = await newProvider();
+      final renov = await provider.addCrop('Vid', phase: CropPhase.renovacion);
+      final prod = await provider.addCrop('Maíz', phase: CropPhase.produccion);
+
+      await provider.addHarvest(
+          cropId: renov.id, date: DateTime(2026, 10, 1), amount: 10);
+      await provider.addHarvest(
+          cropId: prod.id, date: DateTime(2026, 10, 1), amount: 10);
+
+      expect(phaseOf(provider, renov.id), CropPhase.renovacion);
+      expect(phaseOf(provider, prod.id), CropPhase.produccion);
+    });
+
+    test('una cosecha sin cultivo no se cuelga', () async {
+      final provider = await newProvider();
+      await provider.addCrop('Café');
+      await provider.addHarvest(cropId: null, date: DateTime(2026, 10, 1),
+          amount: 10);
+      // Ninguna fase cambió porque ninguna cosecha estaba vinculada.
+      expect(provider.crops.single.phase, CropPhase.establecimiento);
+    });
+  });
 }
+
+CropPhase phaseOf(TransactionProvider provider, String cropId) =>
+    provider.crops.firstWhere((c) => c.id == cropId).phase;

@@ -91,6 +91,38 @@ class ReportHarvestMetrics {
     return cost;
   }
 
+  /// Costo por kilo cosechado en el período: gastos ÷ kg cosechados.
+  ///
+  /// Es el mismo criterio que [totalCostPerKg], pero sin pedir cultivo ni fase,
+  /// porque la línea del estado de resultados mira el período entero. Devuelve
+  /// null si no se cosechó nada: un 0 fabricado invitaría a compararlo con un
+  /// precio que no significa nada.
+  double? periodCostPerKg(double expenses, List<Harvest> harvests) {
+    double kg = 0;
+    for (final h in harvests) {
+      kg += h.amount * unitToKg(h.unit);
+    }
+    return kg > 0 ? expenses / kg : null;
+  }
+
+  /// Precio promedio de venta por kilo: ingresos ÷ kilos vendidos.
+  ///
+  /// Solo cuenta las ventas que **anotaron cantidad**. Si nadie anotó kilos,
+  /// devuelve null: un precio promedio inventado es peor que no mostrar ninguno
+  /// (es el mismo hueco que ya detecta la regla de alertas por precio bajo).
+  double? avgSalePricePerKg(List<Transaction> records) {
+    double kg = 0;
+    double money = 0;
+    for (final t in records) {
+      if (t.deleted || t.type.isExpense) continue;
+      final qty = t.quantity ?? 0;
+      if (qty <= 0) continue;
+      kg += qty * unitToKg(t.unit);
+      money += t.amount;
+    }
+    return kg > 0 ? money / kg : null;
+  }
+
   /// Rendimiento básico por área y por planta (schema parity con la Regla).
   /// [hasResiembra] marca los valores como "aproximado".
   double? yieldPerArea(List<Harvest> harvests, double? areaHa) {

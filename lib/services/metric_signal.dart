@@ -35,6 +35,44 @@ enum RatioVerdict {
   noSales,
 }
 
+/// Umbrales de la línea "precio de venta por kilo vs costo por kilo" (P2,
+/// aprobada el 2026-10-03). La pregunta que responde es simple: ¿vendo por
+/// encima o por debajo de lo que me cuesta producir?
+enum CostPriceVerdict {
+  /// Precio > costo.
+  above,
+
+  /// Precio < costo: se vende por debajo de lo que costó.
+  below,
+
+  /// Precio == costo.
+  equal,
+
+  /// No se cosechó nada en el período: no hay costo que comparar.
+  noCost,
+
+  /// Las ventas no anotan kilos: no hay precio que comparar.
+  noQty,
+}
+
+/// [costPerKg] y [pricePerKg] son `null` cuando no hay datos suficientes; un
+/// `null` no es "mal", es "no se puede saber" y la UI lo dice con su propia
+/// frase en vez de señalar en rojo algo que simplemente no existe.
+CostPriceVerdict costPriceVerdict(double? costPerKg, double? pricePerKg) {
+  if (costPerKg == null) return CostPriceVerdict.noCost;
+  if (pricePerKg == null) return CostPriceVerdict.noQty;
+  if (pricePerKg > costPerKg) return CostPriceVerdict.above;
+  if (pricePerKg < costPerKg) return CostPriceVerdict.below;
+  return CostPriceVerdict.equal;
+}
+
+MetricSignal signalOfCostPrice(CostPriceVerdict verdict) => switch (verdict) {
+      CostPriceVerdict.above => MetricSignal.positive,
+      CostPriceVerdict.below => MetricSignal.negative,
+      CostPriceVerdict.equal => MetricSignal.neutral,
+      CostPriceVerdict.noCost || CostPriceVerdict.noQty => MetricSignal.none,
+    };
+
 /// Umbrales aprobados el 2026-10-02 junto con el diseño de la Alternativa 1.
 ///
 /// [marginPercent] es `((ingresos - gastos) / ingresos) * 100`, o `null`

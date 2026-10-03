@@ -185,4 +185,87 @@ void main() {
     expect(find.text(l10n.expenseCategory('transporte')), findsOneWidget);
     expect(find.text(l10n.expenseCategory('arriendo')), findsOneWidget);
   });
+
+  testWidgets('P2: el estado de resultados compara precio/kg con costo/kg',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      amount: 1000.0,
+      date: hoy,
+    );
+    await provider.addHarvest(
+        cropId: null, date: hoy, amount: 10, unit: 'kg');
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      amount: 12000.0,
+      quantity: 10,
+      unit: 'kg',
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    // 1000 de gasto sobre 10 kg cosechados = $100/kg de costo;
+    // 12000 sobre 10 kg vendidos = $1200/kg de precio.
+    expect(find.text(l10n.metricCostPriceLabel), findsOneWidget);
+    expect(find.textContaining('por encima de tu costo'), findsOneWidget,
+        reason: 'precio > costo debe decirlo con palabras, no solo en verde');
+  });
+
+  testWidgets('P2: sin cosecha ni kilos anotados la línea ni aparece',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      amount: 1000.0,
+      date: DateTime.now(),
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.metricCostPriceLabel), findsNothing,
+        reason: 'no hay nada que comparar: no hay que llenar el reporte de '
+            '"no se puede calcular"');
+    // Las otras dos métricas siguen explicándose como antes.
+    expect(find.text(l10n.metricNoSales), findsNWidgets(2));
+  });
 }

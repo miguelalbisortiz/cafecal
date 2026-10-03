@@ -1485,6 +1485,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get metricRatioCritical => 'You spend almost everything you earn: more than \$90 of every \$100 goes to expenses.';
 
   @override
+  String get metricCostPriceLabel => 'Sale price per kg';
+
+  @override
+  String metricCostPriceAbove(String cost) {
+    return 'It costs you $cost per kg. You sell above your cost.';
+  }
+
+  @override
+  String metricCostPriceBelow(String cost) {
+    return 'It costs you $cost per kg. You sell below your cost: every kg sold subtracts.';
+  }
+
+  @override
+  String metricCostPriceEqual(String cost) {
+    return 'It costs you $cost per kg and you sell at that same price: neither gain nor loss.';
+  }
+
+  @override
+  String get metricCostPriceNoCost => 'Nothing harvested this period: there is still no cost per kg to compare.';
+
+  @override
+  String metricCostPriceNoQty(String cost) {
+    return 'It costs you $cost per kg, but your sales do not record kg: it cannot be compared.';
+  }
+
+  @override
   String cropBreakdownTitle(String period) {
     return 'Breakdown by crop — $period';
   }
@@ -2118,4 +2144,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertCashBoxDangerSuggestion => 'Review extra expenses and consider reducing workers this month.';
+
+  @override
+  String get backupSectionTitle => 'Backup';
+
+  @override
+  String get backupSectionSubtitle => 'Save all your farm data to a file and load it back whenever you need it.';
+
+  @override
+  String get backupExport => 'Export backup';
+
+  @override
+  String get backupRestore => 'Restore backup';
+
+  @override
+  String get backupShareSubject => 'Mi Cafetal — Data backup';
+
+  @override
+  String get backupExportDoneMsg => 'Backup ready to share.';
+
+  @override
+  String get backupConfirmTitle => 'Restore this backup?';
+
+  @override
+  String backupConfirmMessage(String counts) {
+    return 'This will add: $counts. What you already have is kept as is; nothing is deleted.';
+  }
+
+  @override
+  String get backupConfirmAccept => 'Restore';
+
+  @override
+  String get backupAccountDiffers => 'Warning: this backup comes from another account. Its data will be added to what you already have here.';
+
+  @override
+  String backupCountCrops(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count crops',
+      one: '$count crop',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupCountSowings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plantings',
+      one: '$count planting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupCountHarvests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count harvests',
+      one: '$count harvest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupCountEmployees(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count workers',
+      one: '$count worker',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummary(int added, int existing) {
+    return 'Backup restored: $added added and $existing you already had.';
+  }
+
+  @override
+  String backupOrphans(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items were not linked to their crops or harvests',
+      one: '$count item was not linked to its crop or harvest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupInvalidFile => 'That file is not a valid backup.';
+
+  @override
+  String get backupUnknownFormat => 'That file is not a Mi Cafetal backup.';
+
+  @override
+  String get backupUnsupportedVersion => 'This backup was made with a newer version of the app. Update the app to restore it.';
+
+  @override
+  String get backupRestoreError => 'The backup could not be restored. Please try again.';
 }

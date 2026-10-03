@@ -22,8 +22,88 @@ Harvest _h({
   );
 }
 
+Transaction _sale({
+  required String id,
+  required double amount,
+  double? quantity,
+  String unit = 'kg',
+  TransactionType type = TransactionType.income,
+  bool deleted = false,
+}) {
+  return Transaction(
+    id: id,
+    type: type,
+    category: 'venta_cafe',
+    amount: amount,
+    quantity: quantity,
+    unit: unit,
+    deleted: deleted,
+    date: DateTime(2026, 5, 1),
+    createdAt: DateTime(2026, 5, 1),
+  );
+}
+
 void main() {
   const metrics = ReportHarvestMetrics();
+
+  group('periodCostPerKg (P2 — precio de venta vs costo por kilo)', () {
+    test('gastos ÷ kg cosechados, normalizado a kg', () {
+      final harvests = [
+        _h(id: 'h1', cropId: 'cafe', date: DateTime(2026, 5, 1), amount: 10),
+        _h(id: 'h2', cropId: 'cafe', date: DateTime(2026, 5, 2), amount: 5),
+      ];
+      expect(metrics.periodCostPerKg(1500, harvests), 100);
+    });
+
+    test('sin cosechas devuelve null, nunca 0 (un 0 compararía mal)', () {
+      expect(metrics.periodCostPerKg(1500, []), isNull);
+    });
+
+    test('normaliza unidades que no son kg', () {
+      final harvests = [
+        _h(id: 'h1', cropId: 'cafe', date: DateTime(2026, 5, 1), amount: 2,
+            unit: 'arroba'),
+      ];
+      final cost = metrics.periodCostPerKg(300, harvests);
+      expect(cost, isNotNull);
+      expect(cost!, greaterThan(0));
+    });
+  });
+
+  group('avgSalePricePerKg (P2 — precio de venta vs costo por kilo)', () {
+    test('ingresos ÷ kilos vendidos', () {
+      final rows = [
+        _sale(id: 't1', amount: 10000, quantity: 10),
+        _sale(id: 't2', amount: 20000, quantity: 10),
+      ];
+      expect(metrics.avgSalePricePerKg(rows), 1500);
+    });
+
+    test('las ventas sin kilos aportan cero, no inflan el promedio', () {
+      final rows = [
+        _sale(id: 't1', amount: 10000, quantity: 10),
+        _sale(id: 't2', amount: 900000), // sin cantidad anotada
+      ];
+      expect(metrics.avgSalePricePerKg(rows), 1000);
+    });
+
+    test('ignora gastos y movimientos eliminados', () {
+      final rows = [
+        _sale(id: 't1', amount: 10000, quantity: 10),
+        _sale(id: 't2', amount: 999999, quantity: 10,
+            type: TransactionType.expense),
+        _sale(id: 't3', amount: 999999, quantity: 10, deleted: true),
+      ];
+      expect(metrics.avgSalePricePerKg(rows), 1000);
+    });
+
+    test('si nadie anota kilos, null: no se inventa un precio', () {
+      final rows = [_sale(id: 't1', amount: 10000)];
+      expect(metrics.avgSalePricePerKg(rows), isNull);
+      expect(metrics.avgSalePricePerKg(const []), isNull);
+    });
+  });
+
   const crops = [
     Crop(id: 'cafe', name: 'Café', phase: CropPhase.produccion,
         areaHa: 0.5, livePlants: 1000),

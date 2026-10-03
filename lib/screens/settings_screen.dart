@@ -1,9 +1,15 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/currencies.dart';
 import '../providers/transaction_provider.dart';
+import '../services/backup_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _cajaMenor;
   String _currency = 'COP';
   String _language = 'es';
+  bool _exportingBackup = false;
+  bool _restoringBackup = false;
 
   @override
   void initState() {
@@ -75,6 +83,146 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Text(l10n.settingsSavedMsg),
       ),
     );
+  }
+
+  // ---- Respaldo (P1) ----
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Genera el JSON del respaldo y lo comparte para que el productor lo
+  /// guarde donde quiera (misma mecánica que exportar PDF/Excel).
+  Future<void> _exportBackup() async {
+    final l10n = AppLocalizations.of(context)!;
+    final tx = context.read<TransactionProvider>();
+    setState(() => _exportingBackup = true);
+    try {
+      final json = tx.exportBackupJson();
+      final now = DateTime.now();
+      final fileName =
+          'cafecal-respaldo-${now.toIso8601String().substring(0, 10)}.json';
+      final result = await SharePlus.instance.share(ShareParams(
+        files: [
+          XFile.fromData(
+            Uint8List.fromList(utf8.encode(json)),
+            mimeType: 'application/json',
+            name: fileName,
+          ),
+        ],
+        subject: l10n.backupShareSubject,
+      ));
+      if (!mounted) return;
+      if (result.status != ShareResultStatus.dismissed) {
+        _snack(l10n.backupExportDoneMsg);
+      }
+    } catch (e) {
+      _snack(l10n.exportError('$e'));
+    } finally {
+      if (mounted) setState(() => _exportingBackup = false);
+    }
+  }
+
+  /// Elige un archivo .json, lo valida y, si el productor confirma, lo
+  /// fusiona con lo que ya tiene. Un archivo inválido o cancelado no rompe
+  /// nada: solo se avisa con un mensaje claro.
+  Future<void> _restoreBackup() async {
+    final l10n = AppLocalizations.of(context)!;
+    final tx = context.read<TransactionProvider>();
+    setState(() => _restoringBackup = true);
+    try {
+      final picked = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        withData: true,
+      );
+      // Cerró el selector sin elegir: no hay nada que restaurar.
+      if (picked == null || picked.files.isEmpty) return;
+
+      final bytes = picked.files.first.bytes;
+      if (bytes == null) {
+        _snack(l10n.backupInvalidFile);
+        return;
+      }
+
+      final BackupPayload payload;
+      try {
+        payload = decodeBackup(utf8.decode(bytes));
+      } on BackupFormatException catch (e) {
+        _snack(switch (e.kind) {
+          BackupErrorKind.versionNoSoportada => l10n.backupUnsupportedVersion,
+          BackupErrorKind.formatoDesconocido => l10n.backupUnknownFormat,
+          _ => l10n.backupInvalidFile,
+        });
+        return;
+      } on FormatException {
+        // Bytes que ni siquiera son texto UTF-8.
+        _snack(l10n.backupInvalidFile);
+        return;
+      }
+
+      if (!mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.backupConfirmTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.backupConfirmMessage([
+                l10n.backupCountCrops(payload.conteo.cultivos),
+                l10n.backupCountSowings(payload.conteo.siembras),
+                l10n.backupCountHarvests(payload.conteo.cosechas),
+                l10n.backupCountEmployees(payload.conteo.empleados),
+                l10n.movementsCount(payload.conteo.movimientos),
+              ].join(', '))),
+              if (tx.backupFromOtherAccount(payload)) ...[
+                const SizedBox(height: 12),
+                Text(
+                  l10n.backupAccountDiffers,
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l10n.backupConfirmAccept),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+
+      final summary = await tx.importBackup(payload);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.backupSummary(
+                  summary.agregados.total, summary.omitidos.total)),
+              if (summary.huerfanos > 0)
+                Text(l10n.backupOrphans(summary.huerfanos)),
+            ],
+          ),
+        ),
+      );
+    } catch (_) {
+      _snack(l10n.backupRestoreError);
+    } finally {
+      if (mounted) setState(() => _restoringBackup = false);
+    }
   }
 
   @override
@@ -151,6 +299,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: _save,
             icon: const Icon(Icons.save),
             label: Text(l10n.saveButton),
+          ),
+          const Divider(height: 32),
+          Text(
+            l10n.backupSectionTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.backupSectionSubtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _exportingBackup ? null : _exportBackup,
+            icon: const Icon(Icons.save_alt),
+            label: Text(l10n.backupExport),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _restoringBackup ? null : _restoreBackup,
+            icon: const Icon(Icons.settings_backup_restore),
+            label: Text(l10n.backupRestore),
           ),
         ],
         ),

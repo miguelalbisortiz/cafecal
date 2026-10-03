@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,6 +9,7 @@ import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
+import '../services/backup_service.dart';
 import '../services/local_store.dart';
 
 class TransactionProvider extends ChangeNotifier {
@@ -235,12 +238,18 @@ class TransactionProvider extends ChangeNotifier {
   /// Antes la pantalla de Cultivos tenía que llamar a `addCrop` y luego a
   /// `updateCrop`, lo que guardaba dos veces, avisaba dos veces (y disparaba
   /// el auto-sync dos veces) y dejaba una ventana con el cultivo a medias.
+  ///
+  /// La fase por defecto es [CropPhase.establecimiento], no producción: quien
+  /// lo crea desde una puerta de solo nombre (siembra, registro, asignación)
+  /// todavía no tiene una sola cosecha que lo demuestre. Se promueve a
+  /// producción solo, al dar la primera cosecha (ver [_promotePhaseOnHarvest]);
+  /// el formulario completo de Cultivos sigue poniendo la fase a mano.
   Future<Crop> addCrop(
     String name, {
     String icon = '🌱',
     String color = '#2E7D32',
     String? currency,
-    CropPhase phase = CropPhase.produccion,
+    CropPhase phase = CropPhase.establecimiento,
     CropCycle cycle = CropCycle.perenne,
     String? defaultUnit,
     double? areaHa,
@@ -343,8 +352,27 @@ class TransactionProvider extends ChangeNotifier {
     );
     _harvests = [..._harvests, harvest];
     await _store.saveHarvests(_harvests);
+    await _promotePhaseOnHarvest(cropId);
     notifyListeners();
     return harvest;
+  }
+
+  /// P3 · Fase automática: un cultivo que ya dio cosecha está en producción.
+  ///
+  /// Solo se promueve **desde** `establecimiento`: nunca al revés y nunca toca
+  /// `renovacion`, que sigue siendo una decisión del usuario. Como después de
+  /// promover ya no cumple la condición, la operación es idempotente.
+  Future<void> _promotePhaseOnHarvest(String? cropId) async {
+    if (cropId == null) return;
+    final idx = _crops.indexWhere(
+        (c) => c.id == cropId && c.phase == CropPhase.establecimiento);
+    if (idx == -1) return;
+    final list = [..._crops];
+    list[idx] =
+        list[idx].copyWith(phase: CropPhase.produccion, pendingSync: true);
+    _crops = list;
+    await _store.saveCrops(_crops);
+    notifyListeners();
   }
 
   Future<void> updateHarvest(Harvest updated) async {
@@ -524,6 +552,157 @@ class TransactionProvider extends ChangeNotifier {
         .toList();
     await _store.saveTransactions(_transactions);
     notifyListeners();
+  }
+
+  // ---- Respaldo (P1) ----
+
+  /// Serializa todos los datos del usuario como JSON de respaldo.
+  ///
+  /// Solo entran datos del productor (`settings`, cultivos, siembras,
+  /// cosechas, trabajadores y movimientos): la cola de sincronización
+  /// (`deleted_crops_v1`, `settings_dirty_v1`, `synced_at_v1`) se queda fuera,
+  /// porque es estado interno de la app y no suyo.
+  String exportBackupJson({String? uid, DateTime? now}) => encodeBackup(
+        crops: _crops,
+        sowings: _sowings,
+        harvests: _harvests,
+        employees: _employees,
+        transactions: _transactions,
+        settings: _settings,
+        uid: uid ?? _store.uid ?? '',
+        now: now,
+      );
+
+  /// true si el respaldo salió de otra cuenta. Es solo un aviso para el
+  /// diálogo: la fusión procede igual, que restaurar en local es válido
+  /// también sin sesión.
+  bool backupFromOtherAccount(BackupPayload payload) =>
+      payload.cuenta.isNotEmpty && payload.cuenta != _store.uid;
+
+  /// Fusiona un respaldo sobre el estado actual **por id**: lo que ya existe
+  /// se conserva tal cual (no se pisa), lo nuevo entra con `pendingSync: true`
+  /// y **nada se borra**. Devuelve el resumen para que la UI avise.
+  ///
+  /// El orden es crops → siembras → cosechas → trabajadores → movimientos →
+  /// ajustes. Las referencias que no apuntan a nada ni local ni en el archivo
+  /// se importan igual, sin enlazar, y solo se cuentan en
+  /// [BackupSummary.huerfanos]: no se descartan datos del productor.
+  Future<BackupSummary> importBackup(BackupPayload payload) async {
+    var agregados = BackupCounts.cero;
+    var omitidos = BackupCounts.cero;
+
+    // 1) Cultivos — misma deduplicación por id que `LocalStore.loadCrops`.
+    final cropAdd = _fuse(
+        _crops, payload.crops, (c) => c.id, (c) => c.copyWith(pendingSync: true));
+    if (cropAdd.added.isNotEmpty) {
+      _crops = [..._crops, ...cropAdd.added];
+      await _store.saveCrops(_crops);
+    }
+    agregados += BackupCounts(cultivos: cropAdd.added.length);
+    omitidos += BackupCounts(cultivos: cropAdd.omitidos);
+
+    // 2) Siembras.
+    final sowingAdd = _fuse(_sowings, payload.sowings, (s) => s.id,
+        (s) => s.copyWith(pendingSync: true));
+    if (sowingAdd.added.isNotEmpty) {
+      _sowings = [..._sowings, ...sowingAdd.added];
+      await _store.saveSowings(_sowings);
+    }
+    agregados += BackupCounts(siembras: sowingAdd.added.length);
+    omitidos += BackupCounts(siembras: sowingAdd.omitidos);
+
+    // 3) Cosechas.
+    final harvestAdd = _fuse(_harvests, payload.harvests, (h) => h.id,
+        (h) => h.copyWith(pendingSync: true));
+    if (harvestAdd.added.isNotEmpty) {
+      _harvests = [..._harvests, ...harvestAdd.added];
+      await _store.saveHarvests(_harvests);
+    }
+    agregados += BackupCounts(cosechas: harvestAdd.added.length);
+    omitidos += BackupCounts(cosechas: harvestAdd.omitidos);
+
+    // 4) Trabajadores.
+    final employeeAdd = _fuse(_employees, payload.employees, (e) => e.id,
+        (e) => e.copyWith(pendingSync: true));
+    if (employeeAdd.added.isNotEmpty) {
+      _employees = [..._employees, ...employeeAdd.added];
+      await _store.saveEmployees(_employees);
+    }
+    agregados += BackupCounts(empleados: employeeAdd.added.length);
+    omitidos += BackupCounts(empleados: employeeAdd.omitidos);
+
+    // 5) Movimientos.
+    final txnAdd = _fuse(_transactions, payload.transactions, (t) => t.id,
+        (t) => t.copyWith(pendingSync: true));
+    if (txnAdd.added.isNotEmpty) {
+      _transactions = [..._transactions, ...txnAdd.added];
+      await _store.saveTransactions(_transactions);
+    }
+    agregados += BackupCounts(movimientos: txnAdd.added.length);
+    omitidos += BackupCounts(movimientos: txnAdd.omitidos);
+
+    // 6) Ajustes — fusión sin borrar: un valor con contenido del archivo
+    // manda, un valor por defecto o nulo no pisa lo ya configurado aquí.
+    final merged = mergeBackupSettings(_settings, payload.settings);
+    var ajustesImportados = false;
+    if (jsonEncode(merged.toJson()) != jsonEncode(_settings.toJson())) {
+      _settings = merged;
+      _settingsDirty = true;
+      await _store.saveSettings(_settings);
+      // Para que los ajustes restaurados suban en el próximo sync.
+      await _store.saveSettingsDirty(true);
+      ajustesImportados = true;
+    }
+
+    // Huérfanos: referencias del archivo que no existen ni aquí ni en el
+    // propio archivo. Se cuentan para avisar; los datos se importan igual.
+    final cropIds = _crops.map((c) => c.id).toSet();
+    final sowingIds = _sowings.map((s) => s.id).toSet();
+    final harvestIds = _harvests.map((h) => h.id).toSet();
+    var huerfanos = 0;
+    for (final s in payload.sowings) {
+      if (s.cropId != null && !cropIds.contains(s.cropId)) huerfanos++;
+    }
+    for (final h in payload.harvests) {
+      if (h.cropId != null && !cropIds.contains(h.cropId)) huerfanos++;
+    }
+    for (final t in payload.transactions) {
+      if (t.cropId != null && !cropIds.contains(t.cropId)) huerfanos++;
+      if (t.sowingId != null && !sowingIds.contains(t.sowingId)) huerfanos++;
+      if (t.harvestId != null && !harvestIds.contains(t.harvestId)) huerfanos++;
+    }
+
+    notifyListeners();
+    return BackupSummary(
+      agregados: agregados,
+      omitidos: omitidos,
+      huerfanos: huerfanos,
+      cuentaDistinta: backupFromOtherAccount(payload),
+      ajustesImportados: ajustesImportados,
+    );
+  }
+
+  /// Une `incoming` sobre `current` por id, sin pisar nada: devuelve solo lo
+  /// nuevo (marcado con `markPending`, que en la práctica le pone
+  /// `pendingSync: true`) y cuántos incoming traían un id que ya existía — ya
+  /// fuera local o repetido dentro del propio archivo.
+  static ({List<T> added, int omitidos}) _fuse<T>(
+    List<T> current,
+    List<T> incoming,
+    String Function(T) idOf,
+    T Function(T) markPending,
+  ) {
+    final seen = {for (final item in current) idOf(item)};
+    final added = <T>[];
+    var omitidos = 0;
+    for (final item in incoming) {
+      if (!seen.add(idOf(item))) {
+        omitidos++;
+        continue;
+      }
+      added.add(markPending(item));
+    }
+    return (added: added, omitidos: omitidos);
   }
 
   // ---- Sync helpers ----

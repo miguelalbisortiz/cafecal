@@ -2951,6 +2951,42 @@ abstract class AppLocalizations {
   /// **'Gastas casi todo lo que entra: más de \$90 de cada \$100 se van en gastos.'**
   String get metricRatioCritical;
 
+  /// No description provided for @metricCostPriceLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio de venta por kilo'**
+  String get metricCostPriceLabel;
+
+  /// Veredicto de la línea precio/kg vs costo/kg cuando se vende por encima del costo
+  ///
+  /// In es, this message translates to:
+  /// **'Te cuesta {cost} por kilo. Vendes por encima de tu costo.'**
+  String metricCostPriceAbove(String cost);
+
+  /// Veredicto de la línea precio/kg vs costo/kg cuando se vende por debajo del costo
+  ///
+  /// In es, this message translates to:
+  /// **'Te cuesta {cost} por kilo. Vendes por debajo de tu costo: cada kilo vendido resta.'**
+  String metricCostPriceBelow(String cost);
+
+  /// Veredicto de la línea precio/kg vs costo/kg cuando coinciden
+  ///
+  /// In es, this message translates to:
+  /// **'Te cuesta {cost} por kilo y vendes a ese mismo precio: ni ganas ni pierdes.'**
+  String metricCostPriceEqual(String cost);
+
+  /// No description provided for @metricCostPriceNoCost.
+  ///
+  /// In es, this message translates to:
+  /// **'No cosechaste en el período: todavía no hay costo por kilo que comparar.'**
+  String get metricCostPriceNoCost;
+
+  /// Hay costo por kilo pero las ventas no registran cantidad
+  ///
+  /// In es, this message translates to:
+  /// **'Te cuesta {cost} por kilo, pero tus ventas no anotan kilos: no se puede comparar.'**
+  String metricCostPriceNoQty(String cost);
+
   /// No description provided for @cropBreakdownTitle.
   ///
   /// In es, this message translates to:
@@ -3976,6 +4012,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Revisa los gastos extras y considera reducir trabajadores este mes.'**
   String get alertCashBoxDangerSuggestion;
+
+  /// No description provided for @backupSectionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo'**
+  String get backupSectionTitle;
+
+  /// No description provided for @backupSectionSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda todos los datos de tu finca en un archivo y vuelve a cargarlos cuando quieras.'**
+  String get backupSectionSubtitle;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar respaldo'**
+  String get backupExport;
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar respaldo'**
+  String get backupRestore;
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In es, this message translates to:
+  /// **'Mi Cafetal — Respaldo de datos'**
+  String get backupShareSubject;
+
+  /// No description provided for @backupExportDoneMsg.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo listo para compartir.'**
+  String get backupExportDoneMsg;
+
+  /// No description provided for @backupConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Restaurar este respaldo?'**
+  String get backupConfirmTitle;
+
+  /// Qué hará la restauración, con el detalle de lo que trae el archivo
+  ///
+  /// In es, this message translates to:
+  /// **'Se añadirá: {counts}. Lo que ya tengas se conserva tal cual; nada se borra.'**
+  String backupConfirmMessage(String counts);
+
+  /// No description provided for @backupConfirmAccept.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar'**
+  String get backupConfirmAccept;
+
+  /// Aviso de que el archivo de respaldo salió de otra cuenta
+  ///
+  /// In es, this message translates to:
+  /// **'Aviso: este respaldo viene de otra cuenta. Sus datos se sumarán a los que ya tienes aquí.'**
+  String get backupAccountDiffers;
+
+  /// Conteo de cultivos dentro del respaldo
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} cultivo} other{{count} cultivos}}'**
+  String backupCountCrops(int count);
+
+  /// Conteo de siembras dentro del respaldo
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} siembra} other{{count} siembras}}'**
+  String backupCountSowings(int count);
+
+  /// Conteo de cosechas dentro del respaldo
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} cosecha} other{{count} cosechas}}'**
+  String backupCountHarvests(int count);
+
+  /// Conteo de trabajadores dentro del respaldo
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} trabajador} other{{count} trabajadores}}'**
+  String backupCountEmployees(int count);
+
+  /// Resultado de la restauración: cuántos datos entraron y cuántos ya estaban
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo restaurado: {added} añadidos y {existing} que ya tenías.'**
+  String backupSummary(int added, int existing);
+
+  /// Aviso de datos importados sin enlace a su cultivo o cosecha
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} dato quedó sin enlazar con su cultivo o cosecha} other{{count} datos quedaron sin enlazar con su cultivo o cosecha}}'**
+  String backupOrphans(int count);
+
+  /// No description provided for @backupInvalidFile.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese archivo no es un respaldo válido.'**
+  String get backupInvalidFile;
+
+  /// No description provided for @backupUnknownFormat.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese archivo no es un respaldo de Mi Cafetal.'**
+  String get backupUnknownFormat;
+
+  /// No description provided for @backupUnsupportedVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Este respaldo se hizo con una versión más nueva de la app. Actualiza la app para restaurarlo.'**
+  String get backupUnsupportedVersion;
+
+  /// No description provided for @backupRestoreError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo restaurar el respaldo. Inténtalo de nuevo.'**
+  String get backupRestoreError;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

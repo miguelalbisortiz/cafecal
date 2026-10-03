@@ -40,6 +40,10 @@ class LocalStore {
   /// anterior, usado por los tests y el arranque sin sesión).
   LocalStore(this._prefs, {String? uid}) : _uid = _normalizeUid(uid);
 
+  /// Usuario cuyo namespace está activo (null = datos legacy/sin sesión).
+  /// Lo usan el export/import de respaldo para comparar cuentas.
+  String? get uid => _uid;
+
   static String? _normalizeUid(String? uid) =>
       (uid == null || uid.isEmpty) ? null : uid;
 

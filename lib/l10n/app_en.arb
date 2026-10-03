@@ -513,6 +513,28 @@
   "metricRatioHealthy": "Good control: of every $100 that comes in, up to $70 goes to expenses.",
   "metricRatioHigh": "You spend quite a bit: of every $100 that comes in, between $70 and $90 goes to expenses.",
   "metricRatioCritical": "You spend almost everything you earn: more than $90 of every $100 goes to expenses.",
+  "metricCostPriceLabel": "Sale price per kg",
+  "@metricCostPriceAbove": {
+    "description": "Verdict of the price/kg vs cost/kg line when selling above cost",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceAbove": "It costs you {cost} per kg. You sell above your cost.",
+  "@metricCostPriceBelow": {
+    "description": "Verdict of the price/kg vs cost/kg line when selling below cost",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceBelow": "It costs you {cost} per kg. You sell below your cost: every kg sold subtracts.",
+  "@metricCostPriceEqual": {
+    "description": "Verdict of the price/kg vs cost/kg line when both match",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceEqual": "It costs you {cost} per kg and you sell at that same price: neither gain nor loss.",
+  "metricCostPriceNoCost": "Nothing harvested this period: there is still no cost per kg to compare.",
+  "@metricCostPriceNoQty": {
+    "description": "There is a cost per kg but sales do not record a quantity",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceNoQty": "It costs you {cost} per kg, but your sales do not record kg: it cannot be compared.",
   "cropBreakdownTitle": "Breakdown by crop — {period}",
   "cropBreakdownSummaryG": "Expenses",
   "cropBreakdownSummaryI": "Income",
@@ -771,5 +793,60 @@
     }
   },
   "alertCashBoxDangerMessage": "The problem: this month you have {used} of {total} in day labor and extras ({percent}). There is no budget left.",
-  "alertCashBoxDangerSuggestion": "Review extra expenses and consider reducing workers this month."
+  "alertCashBoxDangerSuggestion": "Review extra expenses and consider reducing workers this month.",
+
+  "backupSectionTitle": "Backup",
+  "backupSectionSubtitle": "Save all your farm data to a file and load it back whenever you need it.",
+  "backupExport": "Export backup",
+  "backupRestore": "Restore backup",
+  "backupShareSubject": "Mi Cafetal — Data backup",
+  "backupExportDoneMsg": "Backup ready to share.",
+  "backupConfirmTitle": "Restore this backup?",
+  "@backupConfirmMessage": {
+    "description": "What restoring will do, with the detail of what the file contains",
+    "placeholders": { "counts": { "type": "String" } }
+  },
+  "backupConfirmMessage": "This will add: {counts}. What you already have is kept as is; nothing is deleted.",
+  "backupConfirmAccept": "Restore",
+  "@backupAccountDiffers": {
+    "description": "Warning that the backup file came from another account"
+  },
+  "backupAccountDiffers": "Warning: this backup comes from another account. Its data will be added to what you already have here.",
+  "@backupCountCrops": {
+    "description": "Number of crops inside the backup",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountCrops": "{count, plural, one{{count} crop} other{{count} crops}}",
+  "@backupCountSowings": {
+    "description": "Number of plantings inside the backup",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountSowings": "{count, plural, one{{count} planting} other{{count} plantings}}",
+  "@backupCountHarvests": {
+    "description": "Number of harvests inside the backup",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountHarvests": "{count, plural, one{{count} harvest} other{{count} harvests}}",
+  "@backupCountEmployees": {
+    "description": "Number of workers inside the backup",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountEmployees": "{count, plural, one{{count} worker} other{{count} workers}}",
+  "@backupSummary": {
+    "description": "Restore result: how many items came in and how many were already there",
+    "placeholders": {
+      "added": { "type": "int" },
+      "existing": { "type": "int" }
+    }
+  },
+  "backupSummary": "Backup restored: {added} added and {existing} you already had.",
+  "@backupOrphans": {
+    "description": "Warning about imported items not linked to their crop or harvest",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupOrphans": "{count, plural, one{{count} item was not linked to its crop or harvest} other{{count} items were not linked to their crops or harvests}}",
+  "backupInvalidFile": "That file is not a valid backup.",
+  "backupUnknownFormat": "That file is not a Mi Cafetal backup.",
+  "backupUnsupportedVersion": "This backup was made with a newer version of the app. Update the app to restore it.",
+  "backupRestoreError": "The backup could not be restored. Please try again."
 }

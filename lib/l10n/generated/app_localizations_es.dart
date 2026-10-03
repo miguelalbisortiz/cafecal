@@ -1485,6 +1485,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get metricRatioCritical => 'Gastas casi todo lo que entra: más de \$90 de cada \$100 se van en gastos.';
 
   @override
+  String get metricCostPriceLabel => 'Precio de venta por kilo';
+
+  @override
+  String metricCostPriceAbove(String cost) {
+    return 'Te cuesta $cost por kilo. Vendes por encima de tu costo.';
+  }
+
+  @override
+  String metricCostPriceBelow(String cost) {
+    return 'Te cuesta $cost por kilo. Vendes por debajo de tu costo: cada kilo vendido resta.';
+  }
+
+  @override
+  String metricCostPriceEqual(String cost) {
+    return 'Te cuesta $cost por kilo y vendes a ese mismo precio: ni ganas ni pierdes.';
+  }
+
+  @override
+  String get metricCostPriceNoCost => 'No cosechaste en el período: todavía no hay costo por kilo que comparar.';
+
+  @override
+  String metricCostPriceNoQty(String cost) {
+    return 'Te cuesta $cost por kilo, pero tus ventas no anotan kilos: no se puede comparar.';
+  }
+
+  @override
   String cropBreakdownTitle(String period) {
     return 'Desglose por cultivo — $period';
   }
@@ -2118,4 +2144,108 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertCashBoxDangerSuggestion => 'Revisa los gastos extras y considera reducir trabajadores este mes.';
+
+  @override
+  String get backupSectionTitle => 'Respaldo';
+
+  @override
+  String get backupSectionSubtitle => 'Guarda todos los datos de tu finca en un archivo y vuelve a cargarlos cuando quieras.';
+
+  @override
+  String get backupExport => 'Exportar respaldo';
+
+  @override
+  String get backupRestore => 'Restaurar respaldo';
+
+  @override
+  String get backupShareSubject => 'Mi Cafetal — Respaldo de datos';
+
+  @override
+  String get backupExportDoneMsg => 'Respaldo listo para compartir.';
+
+  @override
+  String get backupConfirmTitle => '¿Restaurar este respaldo?';
+
+  @override
+  String backupConfirmMessage(String counts) {
+    return 'Se añadirá: $counts. Lo que ya tengas se conserva tal cual; nada se borra.';
+  }
+
+  @override
+  String get backupConfirmAccept => 'Restaurar';
+
+  @override
+  String get backupAccountDiffers => 'Aviso: este respaldo viene de otra cuenta. Sus datos se sumarán a los que ya tienes aquí.';
+
+  @override
+  String backupCountCrops(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cultivos',
+      one: '$count cultivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupCountSowings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siembras',
+      one: '$count siembra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupCountHarvests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cosechas',
+      one: '$count cosecha',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupCountEmployees(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trabajadores',
+      one: '$count trabajador',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummary(int added, int existing) {
+    return 'Respaldo restaurado: $added añadidos y $existing que ya tenías.';
+  }
+
+  @override
+  String backupOrphans(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count datos quedaron sin enlazar con su cultivo o cosecha',
+      one: '$count dato quedó sin enlazar con su cultivo o cosecha',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupInvalidFile => 'Ese archivo no es un respaldo válido.';
+
+  @override
+  String get backupUnknownFormat => 'Ese archivo no es un respaldo de Mi Cafetal.';
+
+  @override
+  String get backupUnsupportedVersion => 'Este respaldo se hizo con una versión más nueva de la app. Actualiza la app para restaurarlo.';
+
+  @override
+  String get backupRestoreError => 'No se pudo restaurar el respaldo. Inténtalo de nuevo.';
 }

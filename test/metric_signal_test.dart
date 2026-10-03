@@ -62,6 +62,35 @@ void main() {
     });
   });
 
+  group('costPriceVerdict — precio de venta por kilo vs costo por kilo (P2)',
+      () {
+    test('sin cosecha no hay costo que comparar y no se pinta en rojo', () {
+      expect(costPriceVerdict(null, 1200), CostPriceVerdict.noCost);
+      expect(costPriceVerdict(null, null), CostPriceVerdict.noCost);
+      expect(signalOfCostPrice(CostPriceVerdict.noCost), MetricSignal.none);
+    });
+
+    test('sin kilos en las ventas no hay precio que comparar', () {
+      expect(costPriceVerdict(800, null), CostPriceVerdict.noQty);
+      expect(signalOfCostPrice(CostPriceVerdict.noQty), MetricSignal.none);
+    });
+
+    test('vender por encima del costo es verde', () {
+      expect(costPriceVerdict(800, 800.01), CostPriceVerdict.above);
+      expect(signalOfCostPrice(CostPriceVerdict.above), MetricSignal.positive);
+    });
+
+    test('vender por debajo del costo es rojo', () {
+      expect(costPriceVerdict(800, 799.99), CostPriceVerdict.below);
+      expect(signalOfCostPrice(CostPriceVerdict.below), MetricSignal.negative);
+    });
+
+    test('vender a costo exacto es neutro, no alarma', () {
+      expect(costPriceVerdict(800, 800), CostPriceVerdict.equal);
+      expect(signalOfCostPrice(CostPriceVerdict.equal), MetricSignal.neutral);
+    });
+  });
+
   test('los tres estados buenos/neutros/malos son distinguibles sin color', () {
     // H10: la señal no puede depender solo del color, así que cada estado
     // necesita su propia identidad (en la UI se traduce en icono + texto).

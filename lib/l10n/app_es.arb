@@ -552,6 +552,28 @@
   "metricRatioHealthy": "Buen control: de cada $100 que entran, hasta $70 se van en gastos.",
   "metricRatioHigh": "Gastas bastante: de cada $100 que entran, entre $70 y $90 se van en gastos.",
   "metricRatioCritical": "Gastas casi todo lo que entra: más de $90 de cada $100 se van en gastos.",
+  "metricCostPriceLabel": "Precio de venta por kilo",
+  "@metricCostPriceAbove": {
+    "description": "Veredicto de la línea precio/kg vs costo/kg cuando se vende por encima del costo",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceAbove": "Te cuesta {cost} por kilo. Vendes por encima de tu costo.",
+  "@metricCostPriceBelow": {
+    "description": "Veredicto de la línea precio/kg vs costo/kg cuando se vende por debajo del costo",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceBelow": "Te cuesta {cost} por kilo. Vendes por debajo de tu costo: cada kilo vendido resta.",
+  "@metricCostPriceEqual": {
+    "description": "Veredicto de la línea precio/kg vs costo/kg cuando coinciden",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceEqual": "Te cuesta {cost} por kilo y vendes a ese mismo precio: ni ganas ni pierdes.",
+  "metricCostPriceNoCost": "No cosechaste en el período: todavía no hay costo por kilo que comparar.",
+  "@metricCostPriceNoQty": {
+    "description": "Hay costo por kilo pero las ventas no registran cantidad",
+    "placeholders": { "cost": { "type": "String" } }
+  },
+  "metricCostPriceNoQty": "Te cuesta {cost} por kilo, pero tus ventas no anotan kilos: no se puede comparar.",
   "@cropBreakdownTitle": {
     "placeholders": { "period": { "type": "String" } }
   },
@@ -911,5 +933,60 @@
     }
   },
   "alertCashBoxDangerMessage": "El problema: este mes llevas {used} de {total} en jornales y extras ({percent}). Ya no queda presupuesto disponible.",
-  "alertCashBoxDangerSuggestion": "Revisa los gastos extras y considera reducir trabajadores este mes."
+  "alertCashBoxDangerSuggestion": "Revisa los gastos extras y considera reducir trabajadores este mes.",
+
+  "backupSectionTitle": "Respaldo",
+  "backupSectionSubtitle": "Guarda todos los datos de tu finca en un archivo y vuelve a cargarlos cuando quieras.",
+  "backupExport": "Exportar respaldo",
+  "backupRestore": "Restaurar respaldo",
+  "backupShareSubject": "Mi Cafetal — Respaldo de datos",
+  "backupExportDoneMsg": "Respaldo listo para compartir.",
+  "backupConfirmTitle": "¿Restaurar este respaldo?",
+  "@backupConfirmMessage": {
+    "description": "Qué hará la restauración, con el detalle de lo que trae el archivo",
+    "placeholders": { "counts": { "type": "String" } }
+  },
+  "backupConfirmMessage": "Se añadirá: {counts}. Lo que ya tengas se conserva tal cual; nada se borra.",
+  "backupConfirmAccept": "Restaurar",
+  "@backupAccountDiffers": {
+    "description": "Aviso de que el archivo de respaldo salió de otra cuenta"
+  },
+  "backupAccountDiffers": "Aviso: este respaldo viene de otra cuenta. Sus datos se sumarán a los que ya tienes aquí.",
+  "@backupCountCrops": {
+    "description": "Conteo de cultivos dentro del respaldo",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountCrops": "{count, plural, one{{count} cultivo} other{{count} cultivos}}",
+  "@backupCountSowings": {
+    "description": "Conteo de siembras dentro del respaldo",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountSowings": "{count, plural, one{{count} siembra} other{{count} siembras}}",
+  "@backupCountHarvests": {
+    "description": "Conteo de cosechas dentro del respaldo",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountHarvests": "{count, plural, one{{count} cosecha} other{{count} cosechas}}",
+  "@backupCountEmployees": {
+    "description": "Conteo de trabajadores dentro del respaldo",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupCountEmployees": "{count, plural, one{{count} trabajador} other{{count} trabajadores}}",
+  "@backupSummary": {
+    "description": "Resultado de la restauración: cuántos datos entraron y cuántos ya estaban",
+    "placeholders": {
+      "added": { "type": "int" },
+      "existing": { "type": "int" }
+    }
+  },
+  "backupSummary": "Respaldo restaurado: {added} añadidos y {existing} que ya tenías.",
+  "@backupOrphans": {
+    "description": "Aviso de datos importados sin enlace a su cultivo o cosecha",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupOrphans": "{count, plural, one{{count} dato quedó sin enlazar con su cultivo o cosecha} other{{count} datos quedaron sin enlazar con su cultivo o cosecha}}",
+  "backupInvalidFile": "Ese archivo no es un respaldo válido.",
+  "backupUnknownFormat": "Ese archivo no es un respaldo de Mi Cafetal.",
+  "backupUnsupportedVersion": "Este respaldo se hizo con una versión más nueva de la app. Actualiza la app para restaurarlo.",
+  "backupRestoreError": "No se pudo restaurar el respaldo. Inténtalo de nuevo."
 }

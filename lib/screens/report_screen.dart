@@ -96,6 +96,12 @@ class _ReportScreenState extends State<ReportScreen> {
     final margen = incomes > 0 ? (balance / incomes) * 100 : null;
     final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
 
+    // P2: precio de venta por kilo vs costo por kilo. Dos datos que ya
+    // existen en la app (solo salían en PDF y Excel, nunca en pantalla).
+    const metrics = ReportHarvestMetrics();
+    final costByKg = metrics.periodCostPerKg(expenses, _periodHarvests(tx));
+    final priceByKg = metrics.avgSalePricePerKg(records);
+
     // Monedas mixtas: desglose por moneda
     final expenseByCurrency = tx.sumByCurrency(TransactionType.expense,
         year: _mode == _PeriodMode.year || _mode == _PeriodMode.yearToDate ? _year : null,
@@ -328,6 +334,28 @@ class _ReportScreenState extends State<ReportScreen> {
                       signal: signalOfRatio(ratioVerdict(ratio)),
                       caption: _ratioCaption(l10n, ratio),
                     ),
+                    // Si no hay nada que comparar (ni cosecha ni kilos en las
+                    // ventas) la línea se omite en vez de llenar el reporte de
+                    // "no se puede calcular".
+                    if (costByKg != null || priceByKg != null)
+                      _metricLine(
+                        context,
+                        l10n.metricCostPriceLabel,
+                        priceByKg != null
+                            ? _accounting(context, tx, priceByKg,
+                                currency: _effectiveCurrency)
+                            : '—',
+                        signal: signalOfCostPrice(
+                            costPriceVerdict(costByKg, priceByKg)),
+                        caption: _costPriceCaption(
+                          l10n,
+                          costPriceVerdict(costByKg, priceByKg),
+                          costByKg == null
+                              ? ''
+                              : _accounting(context, tx, costByKg,
+                                  currency: _effectiveCurrency),
+                        ),
+                      ),
                     if (isMixedCurrency) ...[
                       const SizedBox(height: 12),
                       _CurrencyBreakdown(
@@ -1706,6 +1734,16 @@ class _ReportScreenState extends State<ReportScreen> {
         RatioVerdict.high => l10n.metricRatioHigh,
         RatioVerdict.critical => l10n.metricRatioCritical,
         RatioVerdict.noSales => l10n.metricNoSales,
+      };
+
+  String _costPriceCaption(
+          AppLocalizations l10n, CostPriceVerdict verdict, String costText) =>
+      switch (verdict) {
+        CostPriceVerdict.above => l10n.metricCostPriceAbove(costText),
+        CostPriceVerdict.below => l10n.metricCostPriceBelow(costText),
+        CostPriceVerdict.equal => l10n.metricCostPriceEqual(costText),
+        CostPriceVerdict.noCost => l10n.metricCostPriceNoCost,
+        CostPriceVerdict.noQty => l10n.metricCostPriceNoQty(costText),
       };
 
   Widget _hintLine(String text) {
