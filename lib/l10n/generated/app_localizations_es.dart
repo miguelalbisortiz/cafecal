@@ -1627,6 +1627,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String cropMixedCurrencyNote(int count) {
+    return 'Este cultivo está en $count monedas: cada moneda va por separado y no se calcula el ROI.';
+  }
+
+  @override
+  String currencyMixedByCurrencyNote(int count) {
+    return 'En $count monedas: cada monto sale con su moneda; no se suman ni se comparan entre sí.';
+  }
+
+  @override
   String currencyConvertedTotal(String currency, String amount) {
     return 'Total en $currency: $amount';
   }

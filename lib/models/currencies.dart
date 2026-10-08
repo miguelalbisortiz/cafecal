@@ -31,3 +31,15 @@ CurrencyInfo currencyInfo(String code) => supportedCurrencies.firstWhere(
       orElse: () => const CurrencyInfo(
           code: 'COP', name: 'Peso colombiano', symbol: r'$'),
     );
+
+/// Etiqueta de un monto con el símbolo y los decimales de **su** moneda:
+/// `$5.000`, `€200,00`, `($1.000,00)` si es negativo.
+///
+/// No añade el código: quien muestra más de una moneda en la misma línea
+/// debe ponerlo aparte (ver `byCurrencyText`), porque esta función solo
+/// formatea un monto, nunca suma monedas distintas.
+String formatMoneyLabel(double value, String currency) {
+  final info = currencyInfo(currency);
+  final s = '${info.symbol}${value.abs().toStringAsFixed(info.decimals)}';
+  return value < 0 ? '($s)' : s;
+}

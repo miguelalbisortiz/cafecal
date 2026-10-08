@@ -8,29 +8,54 @@ import 'week_utils.dart';
 class PayrollRow {
   final String provider; // '' = gasto sin nombre de trabajador
   final double days;
-  final double subtotal;
 
-  const PayrollRow({
+  /// Montos pagados **por moneda** (clave = código ISO). Nunca se suman
+  /// monedas distintas: con una sola moneda es el subtotal de siempre.
+  final Map<String, double> byCurrency;
+
+  PayrollRow({
     required this.provider,
     required this.days,
-    required this.subtotal,
-  });
+    Map<String, double>? byCurrency,
+  }) : byCurrency = byCurrency ?? <String, double>{};
+
+  /// Suma aritmética de [byCurrency]: válida con moneda única; con mezcla
+  /// solo sirve para ordenar, no para mostrar.
+  double get subtotal =>
+      byCurrency.values.fold<double>(0, (a, b) => a + b);
+
+  /// true → este trabajador cobró en más de una moneda.
+  bool get isMixed => byCurrency.length > 1;
 }
 
 /// Resumen de nómina del período.
 class PayrollSummary {
   final List<PayrollRow> rows;
-  final double total;
 
   /// Cantidad de empleados: trabajadores distintos (nombres no vacíos en
   /// `provider`) con gasto de mano de obra en el período. No se anota a mano.
   final int distinctEmployees;
 
-  const PayrollSummary({
+  PayrollSummary({
     required this.rows,
-    required this.total,
     required this.distinctEmployees,
   });
+
+  /// Suma de los subtotales: cifra válida con moneda única; con moneda
+  /// mixta hay que usar [totalByCurrency].
+  double get total => rows.fold<double>(0, (a, r) => a + r.subtotal);
+
+  /// Total del período **separado por moneda**.
+  Map<String, double> get totalByCurrency {
+    final out = <String, double>{};
+    for (final r in rows) {
+      r.byCurrency.forEach((code, v) => out[code] = (out[code] ?? 0) + v);
+    }
+    return out;
+  }
+
+  /// true → la nómina del período toca más de una moneda.
+  bool get isMixed => totalByCurrency.length > 1;
 
   bool get isEmpty => rows.isEmpty;
 }
@@ -40,21 +65,51 @@ class CashBoxMonthRow {
   final int year;
   final int month; // 1-12
   final double budget;
-  final double labor; // jornales (mano de obra)
-  final double extras; // kCashBoxExtraCategories
+
+  /// Jornales (mano de obra) **por moneda**.
+  final Map<String, double> laborByCurrency;
+
+  /// Extras de caja (`kCashBoxExtraCategories`) **por moneda**.
+  final Map<String, double> extrasByCurrency;
 
   const CashBoxMonthRow({
     required this.year,
     required this.month,
     required this.budget,
-    required this.labor,
-    required this.extras,
+    required this.laborByCurrency,
+    required this.extrasByCurrency,
   });
+
+  /// Jornales: suma aritmética (solo comparable con [budget] si hay una
+  /// sola moneda y es la del presupuesto).
+  double get labor =>
+      laborByCurrency.values.fold<double>(0, (a, b) => a + b);
+
+  /// Extras: misma regla que [labor].
+  double get extras =>
+      extrasByCurrency.values.fold<double>(0, (a, b) => a + b);
 
   double get total => labor + extras;
 
-  /// Positivo = lo que queda; negativo = caja agotada.
+  /// Positivo = lo que queda; negativo = caja agotada. Solo es una cifra
+  /// cierta si los gastos están en la misma moneda que el presupuesto.
   double get balance => budget - total;
+
+  /// Monedas de los gastos de caja de ese mes.
+  Set<String> get currencies =>
+      {...laborByCurrency.keys, ...extrasByCurrency.keys};
+
+  /// true → los gastos de caja del mes mezclan monedas: no se compara con
+  /// el presupuesto ni se suma un total único.
+  bool get isMixed => currencies.length > 1;
+
+  /// Gastos del mes (jornales + extras) **por moneda**.
+  Map<String, double> get totalByCurrency {
+    final out = <String, double>{};
+    laborByCurrency.forEach((c, v) => out[c] = (out[c] ?? 0) + v);
+    extrasByCurrency.forEach((c, v) => out[c] = (out[c] ?? 0) + v);
+    return out;
+  }
 }
 
 /// Métricas de nómina y caja menor para los reportes (PDF, Excel y pantalla).
@@ -67,7 +122,7 @@ class ReportPayrollMetrics {
   /// distintos solo cuentan nombres no vacíos.
   PayrollSummary payroll(Iterable<Transaction> periodTx) {
     final days = <String, double>{};
-    final amounts = <String, double>{};
+    final amounts = <String, Map<String, double>>{};
     final employees = <String>{};
 
     for (final t in periodTx) {
@@ -75,7 +130,8 @@ class ReportPayrollMetrics {
         continue;
       }
       final key = (t.provider ?? '').trim();
-      amounts[key] = (amounts[key] ?? 0) + t.amount;
+      final byCurrency = amounts.putIfAbsent(key, () => <String, double>{});
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
       if (t.quantity != null) {
         days[key] = (days[key] ?? 0) + t.quantity!;
       }
@@ -86,14 +142,13 @@ class ReportPayrollMetrics {
         .map((e) => PayrollRow(
               provider: e.key,
               days: days[e.key] ?? 0,
-              subtotal: e.value,
+              byCurrency: e.value,
             ))
         .toList()
       ..sort((a, b) => b.subtotal.compareTo(a.subtotal));
 
     return PayrollSummary(
       rows: rows,
-      total: rows.fold<double>(0, (a, r) => a + r.subtotal),
       distinctEmployees: employees.length,
     );
   }
@@ -114,18 +169,16 @@ class ReportPayrollMetrics {
     if (b == null || b <= 0) return const [];
     final ref = now ?? DateTime.now();
 
-    final labor = <String, double>{};
-    final extras = <String, double>{};
+    final labor = <String, Map<String, double>>{};
+    final extras = <String, Map<String, double>>{};
     for (final t in periodTx) {
       if (t.deleted || !t.type.isExpense || !discountsCashBox(t.category)) {
         continue;
       }
       final key = '${t.date.year}-${t.date.month}';
-      if (t.category == 'mano_obra') {
-        labor[key] = (labor[key] ?? 0) + t.amount;
-      } else {
-        extras[key] = (extras[key] ?? 0) + t.amount;
-      }
+      final byCurrency = (t.category == 'mano_obra' ? labor : extras)
+          .putIfAbsent(key, () => <String, double>{});
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
     }
 
     final keys = <String>{...labor.keys, ...extras.keys};
@@ -165,8 +218,8 @@ class ReportPayrollMetrics {
         year: int.parse(parts[0]),
         month: int.parse(parts[1]),
         budget: b,
-        labor: labor[key] ?? 0,
-        extras: extras[key] ?? 0,
+        laborByCurrency: Map.of(labor[key] ?? const {}),
+        extrasByCurrency: Map.of(extras[key] ?? const {}),
       ));
     }
     return out;

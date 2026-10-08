@@ -16,6 +16,7 @@ import '../models/transaction.dart';
 import '../models/units.dart';
 import '../models/categories.dart';
 import '../services/alert_service.dart';
+import '../services/crop_totals.dart';
 import '../services/currency_conversion.dart';
 import '../services/currency_totals.dart';
 import '../services/excel_export_service.dart';
@@ -79,6 +80,9 @@ class _ReportScreenState extends State<ReportScreen> {
 
     // A — totales por moneda: nunca se suman monedas distintas.
     final periodTotals = PeriodCurrencyTotals.fromRecords(records);
+
+    // Desglose por cultivo, calculado una sola vez por build.
+    final cropRows = _cropRows(tx, l10n);
 
     final insights = const ReportInsightsService().build(
       now: DateTime.now(),
@@ -298,16 +302,18 @@ class _ReportScreenState extends State<ReportScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    ..._cropRows(tx, l10n).map((row) => _CropBreakdownTile(
+                    ...cropRows.map((row) => _CropBreakdownTile(
                           row: row,
                           l10n: l10n,
                           currency: row.currency,
                           locale: tx.settings.locale,
                           scheme: Theme.of(context).colorScheme,
                         )),
-                    if (_cropRows(tx, l10n).isEmpty)
+                    if (cropRows.isEmpty)
                       Text(l10n.noCropData),
-                    if (_cropRows(tx, l10n).isNotEmpty)
+                    // El consejo de ROI solo tiene sentido si hay alguna fila
+                    // con ROI (moneda única): con mezcla no se calcula.
+                    if (cropRows.isNotEmpty && cropRows.any((r) => !r.isMixed))
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Row(
@@ -494,29 +500,27 @@ class _ReportScreenState extends State<ReportScreen> {
         _PeriodMode.yearToDate => l10n.reportChipYtd(_year),
       };
 
+  /// Filas del desglose por cultivo del período.
+  ///
+  /// Los montos salen del helper puro `cropBreakdownRows` (el mismo que
+  /// usan el PDF y el Excel): cada cultivo guarda sus montos **por moneda**.
+  /// Así, un cultivo de una sola moneda se pinta exactamente como siempre
+  /// y uno con dos o más monedas no llega a imprimir un neto ni un ROI
+  /// falsos (se desglosa por moneda en su tarjeta).
   List<_CropRow> _cropRows(TransactionProvider tx, AppLocalizations l10n) {
     const metrics = ReportHarvestMetrics();
-    final nameById = {for (final c in tx.crops) c.id: c.name};
+    final records = _recordsFor(tx);
     final totals = <String?, _CropRow>{
-      null: _CropRow(name: l10n.cropUnspecified),
+      for (final r in cropBreakdownRows(
+        records: records,
+        crops: tx.crops,
+        unspecifiedName: l10n.cropUnspecified,
+      ))
+        r.cropId: _CropRow(r),
     };
-    for (final c in tx.crops) {
-      totals.putIfAbsent(c.id, () => _CropRow(
-          name: c.name, currency: c.currency ?? 'COP'));
-    }
-    for (final t in _recordsFor(tx)) {
-      final row = totals.putIfAbsent(t.cropId, () => _CropRow(
-          name: t.cropId == null
-              ? l10n.cropUnspecified
-              : (nameById[t.cropId] ?? t.cropId!),
-          currency: t.currency));
-      row.count++;
-      if (t.type.isExpense) {
-        row.expenses += t.amount;
-        row.expenseTxs.add(t);
-      } else {
-        row.incomes += t.amount;
-      }
+    for (final t in records) {
+      if (!t.type.isExpense) continue;
+      totals[t.cropId]?.expenseTxs.add(t);
     }
     // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
     // operación del período suman exactamente lo mismo que `expenses`.
@@ -525,11 +529,9 @@ class _ReportScreenState extends State<ReportScreen> {
       row.investment = split.investment;
       row.operation = split.operation;
     }
-    return totals.values
-        .where((r) => r.expenses > 0 || r.incomes > 0)
-        .toList()
-      ..sort((a, b) => (b.expenses + b.incomes)
-          .compareTo(a.expenses + a.incomes));
+    return totals.values.where((r) => r.expenses > 0 || r.incomes > 0).toList()
+      ..sort((a, b) =>
+          (b.expenses + b.incomes).compareTo(a.expenses + a.incomes));
   }
 
   // ---- Nivel 2: secciÃ³n cosechas, vendido vs cosechado, y "QuÃ© hacer" ----
@@ -861,6 +863,19 @@ class _ReportScreenState extends State<ReportScreen> {
     final summary = const ReportPayrollMetrics().payroll(_recordsFor(tx));
     if (summary.isEmpty) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
+
+    // Con moneda mixta cada trabajador lleva sus monedas y el total también:
+    // sumar pesos con dólares daría una planilla falsa.
+    final mixed = summary.isMixed;
+    String money(double v, String currency) =>
+        formatMoneyFor(context, v, currency: currency);
+    String rowValue(Map<String, double> byCurrency) => mixed
+        ? _byCurrencyText(tx, byCurrency)
+        : money(
+            byCurrency.values.fold<double>(0, (a, b) => a + b),
+            byCurrency.keys.first,
+          );
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -875,6 +890,16 @@ class _ReportScreenState extends State<ReportScreen> {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+            if (mixed) ...[
+              Text(
+                l10n.currencyMixedByCurrencyNote(summary.totalByCurrency.length),
+                style: TextStyle(
+                    fontSize: 11,
+                    height: 1.3,
+                    color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 6),
+            ],
             ...summary.rows.map((r) => _harvestLine(
                   label: r.provider.isEmpty
                       ? l10n.reportPayrollUnnamed
@@ -882,15 +907,13 @@ class _ReportScreenState extends State<ReportScreen> {
                   extra: r.days > 0
                       ? '${_num(r.days)} ${l10n.reportPayrollDays.toLowerCase()}'
                       : null,
-                  value: formatMoneyFor(context, r.subtotal,
-                      currency: _effectiveCurrency),
+                  value: rowValue(r.byCurrency),
                 )),
             const Divider(height: 16),
             _harvestLine(
               label: l10n.reportPayrollTotal,
               help: 'nómina',
-              value: formatMoneyFor(context, summary.total,
-                  currency: _effectiveCurrency),
+              value: rowValue(summary.totalByCurrency),
               bold: true,
             ),
             _harvestLine(
@@ -916,6 +939,17 @@ class _ReportScreenState extends State<ReportScreen> {
     if (rows.isEmpty) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
     final multiYear = rows.map((r) => r.year).toSet().length > 1;
+    // El presupuesto vive en la moneda de Ajustes: solo se le resta lo
+    // gastado si los gastos están en esa misma moneda. Con dos o más monedas
+    // no hay saldo posible, así que cada moneda sale por separado.
+    final mixed = rows.any((r) => r.isMixed);
+    final budgetCurrency = tx.settings.currency;
+
+    String money(double v, String currency) =>
+        formatMoneyFor(context, v, currency: currency);
+    String byCur(Map<String, double> amounts) => byCurrencyText(amounts,
+        (v, c) => formatMoneyFor(context, v, currency: c));
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -943,13 +977,51 @@ class _ReportScreenState extends State<ReportScreen> {
               ],
             ),
             const SizedBox(height: 8),
+            if (mixed) ...[
+              Text(
+                l10n.currencyMixedByCurrencyNote(
+                    rows.expand((r) => r.currencies).toSet().length),
+                style: TextStyle(
+                    fontSize: 11, height: 1.3, color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 6),
+            ],
             ...rows.map((r) {
               final monthLabel = multiYear
                   ? '${l10n.monthFull[r.month - 1]} ${r.year}'
                   : l10n.monthFull[r.month - 1];
-              final negative = r.balance < 0;
-              String money(double v) =>
-                  formatMoneyFor(context, v, currency: _effectiveCurrency);
+              final comparable = r.currencies.isEmpty ||
+                  (!r.isMixed && r.currencies.first == budgetCurrency);
+              if (comparable) {
+                final negative = r.balance < 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _harvestLine(
+                        label: monthLabel,
+                        extra: l10n.reportCashBoxBalance,
+                        value: money(r.balance, budgetCurrency),
+                        color: negative ? scheme.error : scheme.primary,
+                        bold: true,
+                      ),
+                      Text(
+                        '${l10n.reportCashBoxBudget} ${money(r.budget, budgetCurrency)}'
+                        ' · ${l10n.cashBoxLabor} ${money(r.labor, budgetCurrency)}'
+                        ' · ${l10n.cashBoxExtras} ${money(r.extras, budgetCurrency)}'
+                        ' · ${l10n.jornalTotalLabel} ${money(r.total, budgetCurrency)}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              // Sin comparación posible: gastos por moneda y presupuesto
+              // con su propia moneda, sin saldo (restaría monedas distintas).
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Column(
@@ -957,16 +1029,14 @@ class _ReportScreenState extends State<ReportScreen> {
                   children: [
                     _harvestLine(
                       label: monthLabel,
-                      extra: l10n.reportCashBoxBalance,
-                      value: money(r.balance),
-                      color: negative ? scheme.error : scheme.primary,
+                      value: byCur(r.totalByCurrency),
+                      color: scheme.primary,
                       bold: true,
                     ),
                     Text(
-                      '${l10n.reportCashBoxBudget} ${money(r.budget)}'
-                      ' · ${l10n.cashBoxLabor} ${money(r.labor)}'
-                      ' · ${l10n.cashBoxExtras} ${money(r.extras)}'
-                      ' · ${l10n.jornalTotalLabel} ${money(r.total)}',
+                      '${l10n.cashBoxLabor} ${byCur(r.laborByCurrency)}'
+                      '${r.extrasByCurrency.isEmpty ? '' : ' · ${l10n.cashBoxExtras} ${byCur(r.extrasByCurrency)}'}'
+                      ' · ${l10n.reportCashBoxBudget} ${money(r.budget, budgetCurrency)}',
                       style: Theme.of(context)
                           .textTheme
                           .bodySmall
@@ -1493,7 +1563,13 @@ class _ReportScreenState extends State<ReportScreen> {
               // Si no hay nada que comparar (ni cosecha ni kilos en las
               // ventas) la línea se omite en vez de llenar el reporte de
               // "no se puede calcular".
-              if (costByKg != null || priceByKg != null)
+              //
+              // Con moneda mixta también se omite: el precio por kilo se
+              // calcula con ingresos de varias monedas y saldría un precio
+              // único inventado (aunque haya tasa, el costo/kg y el precio/kg
+              // no estarían en la misma moneda).
+              if (!periodTotals.isMixed &&
+                  (costByKg != null || priceByKg != null))
                 _metricLine(
                   context,
                   l10n.metricCostPriceLabel,
@@ -2091,11 +2167,8 @@ class _TopAccountsCard extends StatelessWidget {
 }
 
 class _CropRow {
-  final String name;
-  String currency;
-  double expenses = 0;
-  double incomes = 0;
-  int count = 0;
+  /// Montos del cultivo **por moneda** (helper compartido con PDF/Excel).
+  final CropBreakdownRow totals;
 
   /// Gastos del período (sin borrados), para repartirlos en
   /// inversión inicial vs operación con [CropExpenseSplit].
@@ -2103,7 +2176,30 @@ class _CropRow {
   double investment = 0;
   double operation = 0;
 
-  _CropRow({required this.name, this.currency = 'COP'});
+  _CropRow(this.totals);
+
+  String get name => totals.name;
+  int get count => totals.count;
+
+  /// Ingresos y gastos separados por código de moneda.
+  Map<String, double> get incomesByCurrency => totals.incomes;
+  Map<String, double> get expensesByCurrency => totals.expenses;
+
+  /// Monedas distintas que toca el cultivo en el período.
+  Set<String> get currencies => totals.currencies;
+
+  /// true → el cultivo mezcla dos o más monedas: no se imprime neto ni ROI,
+  /// solo el desglose moneda por moneda.
+  bool get isMixed => totals.isMixed;
+
+  /// Moneda de la fila: la única en la que se movió el cultivo. Si hay dos
+  /// o más, [isMixed] es true y esta cifra no debe pintarse.
+  String get currency => totals.singleCurrency ?? 'COP';
+
+  /// Sumas aritméticas: con moneda única son las de siempre; con mezcla
+  /// solo sirven para ordenar la fila, nunca para mostrar.
+  double get expenses => totals.expensesTotal;
+  double get incomes => totals.incomesTotal;
 
   double get net => incomes - expenses;
   double get roi => expenses <= 0 ? 0 : (incomes - expenses) / expenses;
@@ -2131,8 +2227,66 @@ class _CropBreakdownTile extends StatelessWidget {
   String _amount(double v) =>
       formatAmount(v, currency: currency, locale: locale);
 
+  /// Monto con su código: `$5.000 COP`. Cada moneda conserva su cifra.
+  String _amountIn(double v, String currency) =>
+      '${formatAmount(v, currency: currency, locale: locale)} $currency';
+
+  /// Cultivo con movimientos en dos o más monedas.
+  ///
+  /// Restar pesos con dólares daría un neto y un ROI falsos, así que no se
+  /// imprimen: cada moneda sale por separado con su código.
+  Widget _mixedByCurrency() {
+    final currencies = row.currencies.toList()..sort();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            row.name,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.movementsCount(row.count),
+            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.cropMixedCurrencyNote(currencies.length),
+            style: TextStyle(fontSize: 11, height: 1.3, color: scheme.primary),
+          ),
+          const SizedBox(height: 6),
+          for (final code in currencies) ...[
+            if (code != currencies.first) const SizedBox(height: 6),
+            if ((row.expensesByCurrency[code] ?? 0) != 0)
+              _miniLine(
+                icon: Icons.trending_down,
+                iconColor: scheme.onSurfaceVariant,
+                label: '${l10n.cropBreakdownSummaryG} · $code',
+                labelColor: scheme.onSurfaceVariant,
+                value: _amountIn(row.expensesByCurrency[code]!, code),
+                valueColor: scheme.onSurfaceVariant,
+              ),
+            if ((row.incomesByCurrency[code] ?? 0) != 0)
+              _miniLine(
+                icon: Icons.trending_up,
+                iconColor: _green,
+                label: '${l10n.cropBreakdownSummaryI} · $code',
+                labelColor: scheme.onSurfaceVariant,
+                value: _amountIn(row.incomesByCurrency[code]!, code),
+                valueColor: _green,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Moneda mixta dentro del cultivo: sin neto ni ROI, solo el desglose.
+    if (row.isMixed) return _mixedByCurrency();
     final net = row.net;
     final netColor = net >= 0 ? _green : scheme.error;
     return Padding(

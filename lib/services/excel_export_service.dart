@@ -12,6 +12,7 @@ import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
+import 'crop_totals.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
@@ -378,14 +379,31 @@ class ExcelExportService {
       final now = DateTime.now();
       final lastMonth =
           (period == ReportPeriod.year || year < now.year) ? 12 : now.month;
-      final incByMonth = List<double>.filled(lastMonth + 1, 0);
-      final expByMonth = List<double>.filled(lastMonth + 1, 0);
+      // Monedas del período: con dos o más la serie sale mes × moneda,
+      // porque sumar monedas distintas en una sola celda sería mentira.
+      final seriesCodes = {for (final t in periodTx) t.currency}.toList()
+        ..sort();
+      final mixed = seriesCodes.length > 1;
+      final codes = seriesCodes.isEmpty ? <String>[currency] : seriesCodes;
+
+      final incByMonth = <String, List<double>>{
+        for (final c in codes) c: List<double>.filled(lastMonth + 1, 0),
+      };
+      final expByMonth = <String, List<double>>{
+        for (final c in codes) c: List<double>.filled(lastMonth + 1, 0),
+      };
+      final totInc = <String, double>{for (final c in codes) c: 0};
+      final totExp = <String, double>{for (final c in codes) c: 0};
       for (final t in periodTx) {
-        if (t.date.month < 1 || t.date.month > lastMonth) continue;
+        if (t.date.month >= 1 && t.date.month <= lastMonth) {
+          final target =
+              t.type.isExpense ? expByMonth[t.currency]! : incByMonth[t.currency]!;
+          target[t.date.month] += t.amount;
+        }
         if (t.type.isExpense) {
-          expByMonth[t.date.month] += t.amount;
+          totExp[t.currency] = (totExp[t.currency] ?? 0) + t.amount;
         } else {
-          incByMonth[t.date.month] += t.amount;
+          totInc[t.currency] = (totInc[t.currency] ?? 0) + t.amount;
         }
       }
 
@@ -400,61 +418,89 @@ class ExcelExportService {
       ]);
       _styleTableHeader(sheet, sheet.maxRows - 1, 4);
       final monthFrom = sheet.maxRows;
+      final rowCode = <int, String>{};
       for (var m = 1; m <= lastMonth; m++) {
+        for (final code in codes) {
+          final inc = incByMonth[code]![m];
+          final exp = expByMonth[code]![m];
+          row([
+            TextCellValue(mixed
+                ? '${l10n.monthFull[m - 1]} · $code'
+                : l10n.monthFull[m - 1]),
+            DoubleCellValue(inc),
+            DoubleCellValue(exp),
+            DoubleCellValue(inc - exp),
+          ]);
+          rowCode[sheet.maxRows - 1] = code;
+        }
+      }
+      final totalFrom = sheet.maxRows;
+      for (final code in codes) {
+        final inc = totInc[code]!;
+        final exp = totExp[code]!;
         row([
-          TextCellValue(l10n.monthFull[m - 1]),
-          DoubleCellValue(incByMonth[m]),
-          DoubleCellValue(expByMonth[m]),
-          DoubleCellValue(incByMonth[m] - expByMonth[m]),
+          TextCellValue(mixed
+              ? '${l10n.jornalTotalLabel} · $code'
+              : l10n.jornalTotalLabel),
+          DoubleCellValue(inc),
+          DoubleCellValue(exp),
+          DoubleCellValue(inc - exp),
         ]);
+        rowCode[sheet.maxRows - 1] = code;
       }
-      row([
-        TextCellValue(l10n.jornalTotalLabel),
-        DoubleCellValue(incomes),
-        DoubleCellValue(expenses),
-        DoubleCellValue(balance),
-      ]);
       final monthTo = sheet.maxRows - 1;
-      for (var c = 1; c <= 3; c++) {
-        _applyCurrencyFormat(sheet, currency, c, monthFrom, monthTo);
+
+      // Formato de moneda: con mezcla cada fila usa la moneda que le
+      // corresponde; con moneda única, la de Ajustes (como siempre).
+      NumFormat fmtOf(int rowIndex) {
+        final info = currencyInfo(mixed ? rowCode[rowIndex]! : currency);
+        final f = info.decimals > 0 ? '#,##0.${'0' * info.decimals}' : '#,##0';
+        return NumFormat.custom(formatCode: f);
       }
-      final mInfo = currencyInfo(currency);
-      final mFmt = mInfo.decimals > 0
-          ? '#,##0.${'0' * mInfo.decimals}'
-          : '#,##0';
-      final mNumFmt = NumFormat.custom(formatCode: mFmt);
+
+      for (var r = monthFrom; r <= monthTo; r++) {
+        for (var c = 1; c <= 3; c++) {
+          final cell = sheet.cell(
+              CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r));
+          if (cell.value is DoubleCellValue) {
+            cell.cellStyle = CellStyle(numberFormat: fmtOf(r));
+          }
+        }
+      }
       // Balance por mes en verde/rojo conservando el formato numérico.
-      for (var r = monthFrom; r < monthTo; r++) {
+      for (var r = monthFrom; r < totalFrom; r++) {
         final cell = sheet.cell(
             CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r));
         final val = cell.value;
         if (val is DoubleCellValue) {
           cell.cellStyle = CellStyle(
-            numberFormat: mNumFmt,
+            numberFormat: fmtOf(r),
             fontColorHex: val.value >= 0 ? _excelGreen : _excelRed,
             bold: true,
             fontSize: 10,
           );
         }
       }
-      // Fila Total: fondo marrón + números con formato.
-      for (var c = 0; c < 4; c++) {
-        final cell = sheet.cell(
-            CellIndex.indexByColumnRow(columnIndex: c, rowIndex: monthTo));
-        cell.cellStyle = c == 0
-            ? CellStyle(
-                backgroundColorHex: _excelBrown,
-                fontColorHex: _excelWhite,
-                bold: true,
-                fontSize: 10,
-              )
-            : CellStyle(
-                backgroundColorHex: _excelBrown,
-                fontColorHex: _excelWhite,
-                bold: true,
-                fontSize: 10,
-                numberFormat: mNumFmt,
-              );
+      // Filas Total: fondo marrón + números con formato.
+      for (var r = totalFrom; r <= monthTo; r++) {
+        for (var c = 0; c < 4; c++) {
+          final cell = sheet.cell(
+              CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r));
+          cell.cellStyle = c == 0
+              ? CellStyle(
+                  backgroundColorHex: _excelBrown,
+                  fontColorHex: _excelWhite,
+                  bold: true,
+                  fontSize: 10,
+                )
+              : CellStyle(
+                  backgroundColorHex: _excelBrown,
+                  fontColorHex: _excelWhite,
+                  bold: true,
+                  fontSize: 10,
+                  numberFormat: fmtOf(r),
+                );
+        }
       }
     }
 
@@ -515,17 +561,30 @@ class ExcelExportService {
           TextCellValue(
               r.provider.isEmpty ? l10n.reportPayrollUnnamed : r.provider),
           r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
-          DoubleCellValue(r.subtotal),
+          // Trabajador con varias monedas → cada moneda con su código.
+          r.isMixed
+              ? TextCellValue(
+                  byCurrencyText(r.byCurrency, (v, c) => formatMoneyLabel(v, c)))
+              : DoubleCellValue(r.subtotal),
         ]);
       }
       _applyCurrencyFormat(sheet, currency, 2, payrollFrom, sheet.maxRows - 1);
       row([
         TextCellValue(l10n.reportPayrollTotal),
         null,
-        DoubleCellValue(payroll.total),
+        payroll.isMixed
+            ? TextCellValue(byCurrencyText(
+                payroll.totalByCurrency, (v, c) => formatMoneyLabel(v, c)))
+            : DoubleCellValue(payroll.total),
       ]);
       _applyCurrencyFormat(
           sheet, currency, 2, sheet.maxRows - 1, sheet.maxRows - 1);
+      if (payroll.isMixed) {
+        row([
+          TextCellValue(
+              l10n.currencyMixedByCurrencyNote(payroll.totalByCurrency.length)),
+        ]);
+      }
       row([TextCellValue(
           l10n.reportPayrollEmployees(payroll.distinctEmployees))]);
     }
@@ -552,6 +611,10 @@ class ExcelExportService {
       ]);
       _styleTableHeader(sheet, sheet.maxRows - 1, 6);
       final multiYear = cashRows.map((r) => r.year).toSet().length > 1;
+      final cashMixed = <String>{
+        for (final r in cashRows)
+          if (r.isMixed) ...r.currencies,
+      };
       final cashFrom = sheet.maxRows;
       for (final r in cashRows) {
         row([
@@ -559,10 +622,21 @@ class ExcelExportService {
               ? '${l10n.monthFull[r.month - 1]} ${r.year}'
               : l10n.monthFull[r.month - 1]),
           DoubleCellValue(r.budget),
-          DoubleCellValue(r.labor),
-          DoubleCellValue(r.extras),
-          DoubleCellValue(r.total),
-          DoubleCellValue(r.balance),
+          // Mes con moneda mixta: cada moneda con su código y sin saldo
+          // (compararlo con el presupuesto sería mentira).
+          r.isMixed
+              ? TextCellValue(byCurrencyText(
+                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c)))
+              : DoubleCellValue(r.labor),
+          r.isMixed
+              ? TextCellValue(byCurrencyText(
+                  r.extrasByCurrency, (v, c) => formatMoneyLabel(v, c)))
+              : DoubleCellValue(r.extras),
+          r.isMixed
+              ? TextCellValue(byCurrencyText(
+                  r.totalByCurrency, (v, c) => formatMoneyLabel(v, c)))
+              : DoubleCellValue(r.total),
+          r.isMixed ? TextCellValue('—') : DoubleCellValue(r.balance),
         ]);
       }
       final cashTo = sheet.maxRows - 1;
@@ -585,6 +659,11 @@ class ExcelExportService {
             fontSize: 10,
           );
         }
+      }
+      if (cashMixed.isNotEmpty) {
+        row([
+          TextCellValue(l10n.currencyMixedByCurrencyNote(cashMixed.length)),
+        ]);
       }
     }
 
@@ -612,40 +691,44 @@ class ExcelExportService {
       TextCellValue(l10n.pdfColRoi),
     ]);
     _styleTableHeader(sheet, 0, 6);
-    final nameById = {for (final c in crops) c.id: c.name};
-    final totals = <String?, _CropTotalRow>{
-      null: _CropTotalRow(name: l10n.cropUnspecified),
-    };
-    for (final c in crops) {
-      totals.putIfAbsent(c.id, () => _CropTotalRow(name: c.name));
-    }
-    for (final t in periodTx) {
-      final row = totals.putIfAbsent(t.cropId, () {
-        final name = t.cropId == null
-            ? l10n.cropUnspecified
-            : (nameById[t.cropId] ?? t.cropId!);
-        return _CropTotalRow(name: name);
-      });
-      row.count++;
-      if (t.type.isExpense) {
-        row.expenses += t.amount;
-      } else {
-        row.incomes += t.amount;
-      }
-    }
+    // Mismo criterio que la pantalla y el PDF ([cropBreakdownRows]):
+    // moneda única → números de siempre; mezcla → cada monto con su
+    // código, sin resultado ni ROI, y una fila de aviso al final.
+    final breakdown = cropBreakdownRows(
+      records: periodTx,
+      crops: crops,
+      unspecifiedName: l10n.cropUnspecified,
+    );
     const startRow = 1;
     var r = startRow;
-    for (final row in totals.values.where(
-        (r) => r.expenses > 0 || r.incomes > 0)) {
-      final roi = row.expenses <= 0
+    final mixedCurrencies = <String>{};
+    for (final row in breakdown.where((row) => row.hasAnyAmount)) {
+      if (row.isMixed) {
+        mixedCurrencies.addAll(row.currencies);
+        sheet.appendRow([
+          TextCellValue(row.name),
+          IntCellValue(row.count),
+          TextCellValue(
+              byCurrencyText(row.expenses, (v, c) => formatMoneyLabel(v, c))),
+          TextCellValue(
+              byCurrencyText(row.incomes, (v, c) => formatMoneyLabel(v, c))),
+          TextCellValue('—'),
+          TextCellValue('—'),
+        ]);
+        r++;
+        continue;
+      }
+      final exp = row.expensesTotal;
+      final inc = row.incomesTotal;
+      final roi = exp <= 0
           ? '—'
-          : '${(((row.incomes - row.expenses) / row.expenses) * 100).toStringAsFixed(0)}%';
+          : '${(((inc - exp) / exp) * 100).toStringAsFixed(0)}%';
       sheet.appendRow([
         TextCellValue(row.name),
         IntCellValue(row.count),
-        DoubleCellValue(row.expenses),
-        DoubleCellValue(row.incomes),
-        DoubleCellValue(row.incomes - row.expenses),
+        DoubleCellValue(exp),
+        DoubleCellValue(inc),
+        DoubleCellValue(inc - exp),
         TextCellValue(roi),
       ]);
       // Colorear fila por ROI
@@ -658,6 +741,12 @@ class ExcelExportService {
         }
       }
       r++;
+    }
+    if (mixedCurrencies.isNotEmpty) {
+      sheet.appendRow([
+        TextCellValue(
+            l10n.currencyMixedByCurrencyNote(mixedCurrencies.length)),
+      ]);
     }
     // Formato de moneda en columnas de montos
     _applyCurrencyFormat(sheet, currency, 2, startRow, r - 1);
@@ -963,15 +1052,6 @@ class ExcelExportService {
       ..sort((a, b) => b.value.compareTo(a.value));
     return {for (final e in entries) e.key: e.value};
   }
-}
-
-class _CropTotalRow {
-  final String name;
-  int count = 0;
-  double expenses = 0;
-  double incomes = 0;
-
-  _CropTotalRow({required this.name});
 }
 
 /// Antepone una comilla simple cuando la celda arranca con un disparador de

@@ -3179,6 +3179,18 @@ abstract class AppLocalizations {
   /// **'Se muestra en {count} monedas'**
   String currencyMixedHint(int count);
 
+  /// Aviso en el desglose por cultivo cuando un cultivo tiene movimientos en más de una moneda
+  ///
+  /// In es, this message translates to:
+  /// **'Este cultivo está en {count} monedas: cada moneda va por separado y no se calcula el ROI.'**
+  String cropMixedCurrencyNote(int count);
+
+  /// Aviso genérico cuando hay moneda mixta y cada cifra se lista por moneda (caja, planilla, exportaciones)
+  ///
+  /// In es, this message translates to:
+  /// **'En {count} monedas: cada monto sale con su moneda; no se suman ni se comparan entre sí.'**
+  String currencyMixedByCurrencyNote(int count);
+
   /// Total converted to display currency
   ///
   /// In es, this message translates to:

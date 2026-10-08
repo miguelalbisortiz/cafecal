@@ -14,6 +14,7 @@ import '../models/sowing.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
+import 'crop_totals.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
@@ -430,11 +431,8 @@ class PdfExportService {
     );
   }
 
-  String formatPdfMoney(double value, String currency) {
-    final info = currencyInfo(currency);
-    final s = '${info.symbol}${value.abs().toStringAsFixed(info.decimals)}';
-    return value < 0 ? '($s)' : s;
-  }
+  String formatPdfMoney(double value, String currency) =>
+      formatMoneyLabel(value, currency);
 
   /// Sección "Principales compradores / proveedores" del período.
   /// Solo se muestra si hay ventas con cliente o gastos con proveedor.
@@ -550,43 +548,40 @@ class PdfExportService {
     );
   }
 
+  /// Filas de la tabla "Por cultivo". Mismo criterio que la pantalla y el
+  /// Excel ([cropBreakdownRows]): moneda única → la cifra de siempre; con
+  /// dos o más monedas cada monto sale con su código y la fila no lleva
+  /// neto ni ROI (serían sumas cruzando monedas).
   List<List<String>> _cropRows(pw.Context context, Iterable<Transaction> source,
       List<Crop> crops, String currency, AppLocalizations l10n) {
-    final nameById = {for (final c in crops) c.id: c.name};
-    final totals = <String?, _CropTotalRow>{
-      null: _CropTotalRow(name: l10n.cropUnspecified),
-    };
-    for (final c in crops) {
-      totals.putIfAbsent(c.id, () => _CropTotalRow(name: c.name));
-    }
+    final rows = cropBreakdownRows(
+      records: source,
+      crops: crops,
+      unspecifiedName: l10n.cropUnspecified,
+    );
 
-    for (final t in source) {
-      final row = totals.putIfAbsent(t.cropId, () {
-        final name = t.cropId == null
-            ? l10n.cropUnspecified
-            : (nameById[t.cropId] ?? t.cropId!);
-        return _CropTotalRow(name: name);
-      });
-      if (t.type.isExpense) {
-        row.expenses += t.amount;
-      } else {
-        row.incomes += t.amount;
+    return rows.where((r) => r.hasAnyAmount).map((r) {
+      if (r.isMixed) {
+        return [
+          '${r.name}\n${l10n.cropMixedCurrencyNote(r.currencies.length)}',
+          r.count.toString(),
+          byCurrencyText(r.expenses, (v, c) => formatPdfMoney(v, c)),
+          byCurrencyText(r.incomes, (v, c) => formatPdfMoney(v, c)),
+          '—',
+          '—',
+        ];
       }
-      row.count++;
-    }
-
-    return totals.values
-        .where((r) => r.expenses > 0 || r.incomes > 0)
-        .map((r) {
-      final roi = r.expenses <= 0
+      final exp = r.expensesTotal;
+      final inc = r.incomesTotal;
+      final roi = exp <= 0
           ? '—'
-          : '${(((r.incomes - r.expenses) / r.expenses) * 100).toStringAsFixed(0)}%';
+          : '${(((inc - exp) / exp) * 100).toStringAsFixed(0)}%';
       return [
         r.name,
         r.count.toString(),
-        formatPdfMoney(r.expenses, currency),
-        formatPdfMoney(r.incomes, currency),
-        formatPdfMoney(r.incomes - r.expenses, currency),
+        formatPdfMoney(exp, currency),
+        formatPdfMoney(inc, currency),
+        formatPdfMoney(inc - exp, currency),
         roi,
       ];
     }).toList();
@@ -789,8 +784,14 @@ class PdfExportService {
                       : r.provider, _payrollCellStyle),
                   _payrollCell(
                       r.days > 0 ? _num(r.days) : '—', _payrollCellStyle),
+                  // Trabajador que cobró en varias monedas → cada moneda
+                  // con su código, nunca un subtotal cruzando monedas.
                   _payrollCell(
-                      formatPdfMoney(r.subtotal, currency), _payrollCellStyle),
+                      r.isMixed
+                          ? byCurrencyText(
+                              r.byCurrency, (v, c) => formatPdfMoney(v, c))
+                          : formatPdfMoney(r.subtotal, currency),
+                      _payrollCellStyle),
                 ],
               ),
           ],
@@ -798,9 +799,13 @@ class PdfExportService {
         pw.SizedBox(height: 4),
         _statementRow(
           l10n.reportPayrollTotal,
-          formatPdfMoney(summary.total, currency),
+          summary.isMixed
+              ? byCurrencyText(summary.totalByCurrency,
+                  (v, c) => formatPdfMoney(v, c))
+              : formatPdfMoney(summary.total, currency),
           bold: true,
         ),
+        if (summary.isMixed) _mixedNote(l10n, summary.totalByCurrency.length),
         _statementRow(
           l10n.reportPayrollEmployees(summary.distinctEmployees),
           '',
@@ -820,6 +825,16 @@ class PdfExportService {
   pw.Widget _payrollCell(String text, pw.TextStyle style) => pw.Padding(
         padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: pw.Text(text, style: style),
+      );
+
+  /// Aviso genérico de moneda mixta (cada monto con su moneda; nunca se
+  /// suman ni se comparan entre sí).
+  pw.Widget _mixedNote(AppLocalizations l10n, int currencies) => pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: pw.Text(
+          l10n.currencyMixedByCurrencyNote(currencies),
+          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+        ),
       );
 
   /// Sección "Caja menor": una fila por mes del período con presupuesto,
@@ -845,6 +860,13 @@ class PdfExportService {
     );
     if (rows.isEmpty) return pw.SizedBox.shrink();
     final multiYear = rows.map((r) => r.year).toSet().length > 1;
+
+    // Monedas que aparecen mezcladas en algún mes del período (para el
+    // aviso de que esos montos van por separado).
+    final mixedCurrencies = <String>{
+      for (final r in rows)
+        if (r.isMixed) ...r.currencies,
+    };
 
     pw.Widget cell(String text, {PdfColor? color, bool bold = false}) =>
         pw.Padding(
@@ -897,18 +919,35 @@ class PdfExportService {
                       ? '${l10n.monthFull[r.month - 1]} ${r.year}'
                       : l10n.monthFull[r.month - 1]),
                   cell(formatPdfMoney(r.budget, currency)),
-                  cell(formatPdfMoney(r.labor, currency)),
-                  cell(formatPdfMoney(r.extras, currency)),
-                  cell(formatPdfMoney(r.total, currency)),
+                  // Mes con moneda mixta: cada moneda con su código y sin
+                  // saldo (compararlo con el presupuesto sería mentira).
+                  cell(r.isMixed
+                      ? byCurrencyText(
+                          r.laborByCurrency, (v, c) => formatPdfMoney(v, c))
+                      : formatPdfMoney(r.labor, currency)),
+                  cell(r.isMixed
+                      ? byCurrencyText(
+                          r.extrasByCurrency, (v, c) => formatPdfMoney(v, c))
+                      : formatPdfMoney(r.extras, currency)),
+                  cell(r.isMixed
+                      ? byCurrencyText(
+                          r.totalByCurrency, (v, c) => formatPdfMoney(v, c))
+                      : formatPdfMoney(r.total, currency)),
                   cell(
-                    formatPdfMoney(r.balance, currency),
-                    color: r.balance < 0 ? _pdfNegative : _pdfPositive,
+                    r.isMixed
+                        ? '—'
+                        : formatPdfMoney(r.balance, currency),
+                    color: (!r.isMixed && r.balance < 0)
+                        ? _pdfNegative
+                        : _pdfPositive,
                     bold: true,
                   ),
                 ],
               ),
           ],
         ),
+        if (mixedCurrencies.isNotEmpty)
+          _mixedNote(l10n, mixedCurrencies.length),
       ],
     );
   }
@@ -999,13 +1038,4 @@ class PdfExportService {
   String _numKg(double v) => v >= 100
       ? v.toStringAsFixed(0)
       : v.toStringAsFixed(v % 1 == 0 ? 0 : 2);
-}
-
-class _CropTotalRow {
-  final String name;
-  int count = 0;
-  double expenses = 0;
-  double incomes = 0;
-
-  _CropTotalRow({required this.name});
 }

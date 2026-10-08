@@ -647,6 +647,24 @@
       }
     }
   },
+  "cropMixedCurrencyNote": "Este cultivo está en {count} monedas: cada moneda va por separado y no se calcula el ROI.",
+  "@cropMixedCurrencyNote": {
+    "description": "Aviso en el desglose por cultivo cuando un cultivo tiene movimientos en más de una moneda",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyMixedByCurrencyNote": "En {count} monedas: cada monto sale con su moneda; no se suman ni se comparan entre sí.",
+  "@currencyMixedByCurrencyNote": {
+    "description": "Aviso genérico cuando hay moneda mixta y cada cifra se lista por moneda (caja, planilla, exportaciones)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "currencyConvertedTotal": "Total en {currency}: {amount}",
   "@currencyConvertedTotal": {
     "description": "Total converted to display currency",

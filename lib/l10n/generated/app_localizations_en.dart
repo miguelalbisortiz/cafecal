@@ -1627,6 +1627,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String cropMixedCurrencyNote(int count) {
+    return 'This crop has $count currencies: each one is shown separately and ROI is not calculated.';
+  }
+
+  @override
+  String currencyMixedByCurrencyNote(int count) {
+    return 'In $count currencies: each amount shows its own currency; they are not added up or compared with each other.';
+  }
+
+  @override
   String currencyConvertedTotal(String currency, String amount) {
     return 'Total in $currency: $amount';
   }

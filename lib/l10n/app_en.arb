@@ -593,6 +593,24 @@
       }
     }
   },
+  "cropMixedCurrencyNote": "This crop has {count} currencies: each one is shown separately and ROI is not calculated.",
+  "@cropMixedCurrencyNote": {
+    "description": "Note in the crop breakdown when one crop has movements in more than one currency",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyMixedByCurrencyNote": "In {count} currencies: each amount shows its own currency; they are not added up or compared with each other.",
+  "@currencyMixedByCurrencyNote": {
+    "description": "Generic note when currencies are mixed and every figure is listed per currency (cash box, payroll, exports)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "currencyConvertedTotal": "Total in {currency}: {amount}",
   "@currencyConvertedTotal": {
     "description": "Total converted to display currency",
