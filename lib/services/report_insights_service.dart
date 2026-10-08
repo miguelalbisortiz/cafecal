@@ -3,6 +3,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/transaction.dart';
+import 'currency_totals.dart';
 
 /// Tono de cada conclusión para colorearla en la UI.
 enum InsightTone {
@@ -35,9 +36,17 @@ class ReportInsightsService {
   /// - [yearRecords] todos los registros del año (para comparar meses).
   /// - [now] fecha de referencia para la ventana de 30 días.
   /// - [money] formatea un monto según la moneda activa de la app.
-  /// - [mixedTotals] el período toca más de una moneda: entonces **no** se
-  ///   emite la conclusión de balance, porque sumaría monedas distintas y
-  ///   el número sería falso. Nunca se inventa una cifra.
+  /// - [mixedTotals] el período toca más de una moneda. Sin tasa de cambio
+  ///   **ninguna** conclusión que pinte dinero se emite: ni el balance, ni el
+  ///   mayor gasto, ni la tarjeta de ventas, ni el mejor mes, porque todas
+  ///   sumarían o compararían monedas distintas y el número sería falso.
+  ///   Nunca se inventa una cifra.
+  ///
+  /// Además, cada conclusión que mira el año comprueba **su propio conjunto
+  /// de registros**: aunque el período sea de una sola moneda, si el año
+  /// mezcla no se emite el "mejor mes" ni el "precio bajo" (compararían mes
+  /// con mes cruzando monedas). Con una sola moneda el resultado es idéntico
+  /// al de siempre.
   List<ReportInsight> build({
     required DateTime now,
     required List<Transaction> current,
@@ -64,9 +73,9 @@ class ReportInsightsService {
     if (!mixedTotals) {
       _balance(current, previousMonth, month, l10n, money, insights);
     }
-    _topExpense(current, l10n, money, insights, crops);
-    _sales(current, currentYear, now, l10n, money, insights, crops);
-    _bestMonth(month, currentYear, l10n, money, insights);
+    _topExpense(current, l10n, money, insights, crops, mixedTotals);
+    _sales(current, currentYear, now, l10n, money, insights, crops, mixedTotals);
+    _bestMonth(month, currentYear, l10n, money, insights, mixedTotals);
 
     return insights;
   }
@@ -125,9 +134,13 @@ class ReportInsightsService {
   // ---- B. Mayor gasto ----
 
   void _topExpense(List<Transaction> current, AppLocalizations l10n,
-      String Function(double) money, List<ReportInsight> out, List<Crop> crops) {
+      String Function(double) money, List<ReportInsight> out, List<Crop> crops,
+      bool mixedTotals) {
     final expenses = current.where((t) => t.type.isExpense).toList();
     if (expenses.isEmpty) return;
+    // Sin tasa, "el mayor gasto" y su % sobre el total solo se emiten si el
+    // período es de una sola moneda: con mezcla cruzaría pesos y dólares.
+    if (mixedTotals || isMixedCurrency(expenses)) return;
     final total = _sumBy(expenses, isExpense: true);
     if (total <= 0) return;
 
@@ -150,9 +163,10 @@ class ReportInsightsService {
 
   void _sales(List<Transaction> current, List<Transaction> yearRecords,
       DateTime now, AppLocalizations l10n, String Function(double) money,
-      List<ReportInsight> out, List<Crop> crops) {
+      List<ReportInsight> out, List<Crop> crops, bool mixedTotals) {
     final incomes = current.where((t) => !t.type.isExpense).toList();
-    if (incomes.isNotEmpty) {
+    // El "% del total" del mejor ingreso solo es cierto en moneda única.
+    if (incomes.isNotEmpty && !mixedTotals && !isMixedCurrency(incomes)) {
       final total = _sumBy(incomes, isExpense: false);
       final top = _topCategory(incomes, false, l10n, crops);
       final pct = top.amount / total * 100;
@@ -167,7 +181,9 @@ class ReportInsightsService {
     final sales = yearRecords
         .where((t) => !t.type.isExpense && isSaleCategory(t.category))
         .toList();
-    if (sales.length >= 3) {
+    // Un promedio de montos en pesos y dólares no significa nada: se omite.
+    // Aquí no basta con el período: el año puede mezclar aunque el mes no.
+    if (sales.length >= 3 && !mixedTotals && !isMixedCurrency(sales)) {
       final histAvg = _sumBy(sales, isExpense: false) / sales.length;
       final threshold = DateTime(now.year, now.month, now.day - 30);
       final recent = sales.where((t) => t.date.isAfter(threshold)).toList();
@@ -188,7 +204,10 @@ class ReportInsightsService {
 
   void _bestMonth(int? month, List<Transaction> yearRecords,
       AppLocalizations l10n, String Function(double) money,
-      List<ReportInsight> out) {
+      List<ReportInsight> out, bool mixedTotals) {
+    // Comparar los meses del año exige sumar todos los meses: si el período
+    // o el año mezclan monedas ese ranking sería mentira, así que no se emite.
+    if (mixedTotals || isMixedCurrency(yearRecords)) return;
     final totals = <int, (double income, double expense)>{};
     for (final t in yearRecords) {
       final m = t.date.month;

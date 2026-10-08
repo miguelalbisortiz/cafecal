@@ -5,6 +5,8 @@ import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../services/crop_totals.dart';
+import '../services/currency_totals.dart';
 import '../utils/format.dart';
 import 'assign_crops_screen.dart';
 import 'register_screen.dart';
@@ -52,15 +54,12 @@ class _MovementsScreenState extends State<MovementsScreen> {
     final unassigned =
         records.where((t) => t.cropId == null).length;
 
-    double totalsIn = 0;
-    double totalsOut = 0;
-    for (final t in filtered) {
-      if (t.type.isExpense) {
-        totalsOut += t.amount;
-      } else {
-        totalsIn += t.amount;
-      }
-    }
+    // Totales del listado por moneda: con una sola moneda se pinta la cifra
+    // de siempre; con dos o más cada total va moneda por moneda, porque un
+    // ingreso en pesos y otro en euros no suman un "ingreso" común.
+    final totals = PeriodCurrencyTotals.fromRecords(filtered);
+    final mixed = totals.isMixed;
+    final currencyCount = totals.currencies.length;
 
     return Center(
       child: ConstrainedBox(
@@ -127,6 +126,53 @@ class _MovementsScreenState extends State<MovementsScreen> {
                     child: Builder(
                       builder: (context) {
                         final scheme = Theme.of(context).colorScheme;
+                        // Moneda mixta: ninguna cifra cruza monedas. Cada
+                        // mini-stat lista sus montos con su código y se
+                        // avisa una vez, sin romper la fila compacta.
+                        if (mixed) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _miniStatByCurrency(
+                                      l10n.incomeLabel,
+                                      totals.incomes,
+                                      scheme.primary,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _miniStatByCurrency(
+                                      l10n.expensesLabel,
+                                      totals.expenses,
+                                      scheme.error,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _miniStatByCurrency(
+                                      l10n.resultLabel,
+                                      totals.results,
+                                      totals.results.values.any((v) => v < 0)
+                                          ? scheme.error
+                                          : scheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                l10n.currencyMixedHint(currencyCount),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: Colors.grey),
+                              ),
+                            ],
+                          );
+                        }
+                        final totalsIn = amountsTotal(totals.incomes);
+                        final totalsOut = amountsTotal(totals.expenses);
                         return Row(
                           children: [
                             Expanded(
@@ -213,6 +259,32 @@ class _MovementsScreenState extends State<MovementsScreen> {
           formatMoney(context, value),
           style: TextStyle(
               fontSize: 15, fontWeight: FontWeight.bold, color: color),
+        ),
+      ],
+    );
+  }
+
+  /// Mini-stat de un período con más de una moneda: cada monto sale con su
+  /// código (`$5.000 COP · €200,00 EUR`) en la misma línea, sin sumarlos.
+  Widget _miniStatByCurrency(
+      String label, Map<String, double> amounts, Color color) {
+    final locale = context.read<TransactionProvider>().settings.locale;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            byCurrencyText(
+              amounts,
+              (v, c) => formatAmount(v, currency: c, locale: locale),
+            ),
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.bold, color: color),
+          ),
         ),
       ],
     );

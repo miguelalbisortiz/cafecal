@@ -106,21 +106,37 @@ class TransactionProvider extends ChangeNotifier {
         .toList();
   }
 
-  double totalExpenses({int? year, int? month}) =>
-      _sumBy(_transactions, TransactionType.expense, year: year, month: month);
+  /// Total de gastos del período **en una sola moneda**.
+  ///
+  /// Devuelve `null` cuando el conjunto mezcla dos o más monedas: un total
+  /// así sería una suma de pesos con dólares (una cifra falsa). En ese caso
+  /// usa [sumByCurrency], que separa cada moneda con su código.
+  ///
+  /// Con una sola moneda (o sin registros) devuelve la suma de siempre.
+  double? totalExpenses({int? year, int? month}) =>
+      _totalOf(TransactionType.expense, year: year, month: month);
 
-  double totalIncomes({int? year, int? month}) =>
-      _sumBy(_transactions, TransactionType.income, year: year, month: month);
+  /// Total de ingresos del período **en una sola moneda**.
+  ///
+  /// Igual que [totalExpenses]: `null` si el período mezcla monedas, para que
+  /// jamás se pueda pintar un total global cruzando monedas distintas. El
+  /// desglose correcto está en [sumByCurrency].
+  double? totalIncomes({int? year, int? month}) =>
+      _totalOf(TransactionType.income, year: year, month: month);
 
-  double _sumBy(List<Transaction> source, TransactionType type,
-      {int? year, int? month}) {
+  /// Suma del [type] filtrando por año/mes. Devuelve `null` en cuanto aparece
+  /// una segunda moneda: así ninguna llamada puede colar un total mezclado.
+  double? _totalOf(TransactionType type, {int? year, int? month}) {
     double sum = 0;
-    for (final t in source) {
+    final currencies = <String>{};
+    for (final t in _transactions) {
       if (t.deleted || t.type != type) continue;
       if (year != null && t.date.year != year) continue;
       if (month != null && (t.date.year != year || t.date.month != month)) {
         continue;
       }
+      currencies.add(t.currency);
+      if (currencies.length > 1) return null;
       sum += t.amount;
     }
     return sum;

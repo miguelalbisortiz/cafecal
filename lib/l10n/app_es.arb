@@ -97,7 +97,7 @@
   "helpCaseBEx3": "$100,000 de mano de obra y $150,000 de fertilizante",
   "helpCaseBEx4": "Inversión $450,000. No dice pérdida: es inversión hasta que produzca.",
   "helpGlossaryTitle": "Glosario",
-  "helpGlossaryBody": "Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.",
+  "helpGlossaryBody": "Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.",
   "helpGlossaryFinance": "Ver glosario financiero",
 
   "helpPerHaTitle": "¿Qué es el panel \"Por hectárea\"?",
@@ -894,6 +894,11 @@
   "balanceCheckLabel": "VERIFICACIÓN — Activo = Pasivo + Patrimonio (0 = balanceado)",
   "balanceCheckFormula": "=B11-B17-B23",
   "balanceNote": "Completa los montos de cada rubro en Excel. La celda de verificación usa fórmulas: debe dar 0 cuando el balance cuadra.",
+  "@balanceMixedCurrencyNote": {
+    "description": "Plantilla de balance cuando el año mezcla monedas: no se emite ninguna fórmula de total y la utilidad sale moneda por moneda",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "balanceMixedCurrencyNote": "Este año tienes movimientos en {count} monedas: la utilidad va moneda por moneda y no se calculan los totales del balance, porque sumar monedas distintas daría una cifra falsa.",
 
   "catSiembra": "Siembra",
   "catSemillasInsumos": "Semillas e insumos",
@@ -940,7 +945,7 @@
   "@alertHarvestVsSalesMessage": {
     "placeholders": { "soldKg": { "type": "String" }, "harvestedKg": { "type": "String" }, "crop": { "type": "String" } }
   },
-  "alertHarvestVsSalesMessage": "El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si hay inventario almacenado o un error de registro.",
+  "alertHarvestVsSalesMessage": "El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si te faltó registrar alguna cosecha o si usaste la misma unidad en la cosecha y en la venta.",
   "@alertHarvestVsSalesSuggestion": {
     "placeholders": { "crop": { "type": "String" } }
   },

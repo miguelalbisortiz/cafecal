@@ -281,7 +281,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpGlossaryTitle => 'Glosario';
 
   @override
-  String get helpGlossaryBody => 'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.';
+  String get helpGlossaryBody => 'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.';
 
   @override
   String get helpGlossaryFinance => 'Ver glosario financiero';
@@ -2056,6 +2056,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get balanceNote => 'Completa los montos de cada rubro en Excel. La celda de verificación usa fórmulas: debe dar 0 cuando el balance cuadra.';
 
   @override
+  String balanceMixedCurrencyNote(int count) {
+    return 'Este año tienes movimientos en $count monedas: la utilidad va moneda por moneda y no se calculan los totales del balance, porque sumar monedas distintas daría una cifra falsa.';
+  }
+
+  @override
   String get catSiembra => 'Siembra';
 
   @override
@@ -2145,7 +2150,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop) {
-    return 'El problema: en los últimos 12 meses vendiste $soldKg de $crop, pero solo registraste $harvestedKg de cosecha. Revisa si hay inventario almacenado o un error de registro.';
+    return 'El problema: en los últimos 12 meses vendiste $soldKg de $crop, pero solo registraste $harvestedKg de cosecha. Revisa si te faltó registrar alguna cosecha o si usaste la misma unidad en la cosecha y en la venta.';
   }
 
   @override

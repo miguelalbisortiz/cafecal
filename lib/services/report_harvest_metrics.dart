@@ -49,6 +49,11 @@ class ReportHarvestMetrics {
   }
 
   /// Costo de recogida por kg: gastos vinculados a una cosecha ÷ kg cosechados.
+  ///
+  /// Devuelve **null** si los gastos que lo componen están en más de una
+  /// moneda: dividir pesos y dólares entre los mismos kilos daría un costo
+  /// por kilo falso. Llama a [pickupCostCurrencies] para saber si toca
+  /// mostrar un guion en vez de omitir la fila.
   double? pickupCostPerKg(
       List<Transaction> transactions, List<Harvest> harvests) {
     double kg = 0;
@@ -60,11 +65,38 @@ class ReportHarvestMetrics {
       if (t.deleted || !t.type.isExpense || t.harvestId == null) continue;
       pickup += t.amount;
     }
-    return kg > 0 ? pickup / kg : null;
+    if (kg <= 0) return null;
+    if (pickupCostCurrencies(transactions).length > 1) return null;
+    return pickup / kg;
+  }
+
+  /// Monedas de los gastos de recogida (los que forman el costo por kg).
+  Set<String> pickupCostCurrencies(List<Transaction> transactions) {
+    final out = <String>{};
+    for (final t in transactions) {
+      if (t.deleted || !t.type.isExpense || t.harvestId == null) continue;
+      out.add(t.currency);
+    }
+    return out;
+  }
+
+  /// Monedas de los montos que suman [totalCostPerKg] y
+  /// [accumulatedInvestment] de un cultivo.
+  Set<String> cropAmountCurrencies(List<Transaction> cropRecords) {
+    final out = <String>{};
+    for (final t in cropRecords) {
+      if (t.deleted) continue;
+      out.add(t.currency);
+    }
+    return out;
   }
 
   /// Costo total por kg: gastos del cultivo ÷ kg cosechados (solo producción).
   /// Para establecimiento devuelve null (se muestra la inversión acumulada).
+  ///
+  /// También devuelve null si los montos del cultivo mezclan monedas: el
+  /// costo por kilo solo es válido cuando todos los montos que lo componen
+  /// son de una sola moneda.
   double? totalCostPerKg(Crop crop, List<Transaction> cropExpenses,
       List<Harvest> cropHarvests) {
     if (crop.cycle == CropCycle.anual ||
@@ -74,6 +106,7 @@ class ReportHarvestMetrics {
         kg += h.amount * unitToKg(h.unit);
       }
       if (kg <= 0) return null;
+      if (cropAmountCurrencies(cropExpenses).length > 1) return null;
       double cost = 0;
       for (final t in cropExpenses) {
         cost += t.amount;
@@ -84,6 +117,11 @@ class ReportHarvestMetrics {
   }
 
   /// Inversión acumulada del cultivo (para fase establecimiento/renovación).
+  ///
+  /// Es una suma simple de los montos: si [cropRecords] mezcla monedas el
+  /// número cruza monedas distintas y **no se puede imprimir**. Usa
+  /// [cropAmountCurrencies] para decidirlo y, con mezcla, lista los montos
+  /// moneda por moneda en vez de esta cifra.
   double accumulatedInvestment(List<Transaction> cropExpenses) {
     double cost = 0;
     for (final t in cropExpenses) {

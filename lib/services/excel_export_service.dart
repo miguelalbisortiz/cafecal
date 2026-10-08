@@ -13,6 +13,7 @@ import '../models/sowing.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
+import 'currency_totals.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
@@ -95,10 +96,19 @@ class ExcelExportService {
           .toList(),
     };
 
-    final incomeTotals = _groupTotals(
-        periodTx.where((t) => t.type == TransactionType.income).toList());
-    final expenseTotals = _groupTotals(
-        periodTx.where((t) => t.type == TransactionType.expense).toList());
+    // Totales del período por moneda: la fuente de verdad del encabezado.
+    // Con una sola moneda se imprime la cifra de siempre; con dos o más
+    // cada total va con su código, sin %, sin margen ni ratio.
+    final periodTotals = PeriodCurrencyTotals.fromRecords(periodTx);
+
+    final incomeGroups = groupAmountsByCurrency(
+      periodTx.where((t) => t.type == TransactionType.income),
+      keyOf: (t) => incomeGroupKey(t.category, t.cropId),
+    );
+    final expenseGroups = groupAmountsByCurrency(
+      periodTx.where((t) => t.type == TransactionType.expense),
+      keyOf: (t) => incomeGroupKey(t.category, t.cropId),
+    );
     final margen = incomes > 0 ? (balance / incomes) * 100 : null;
     final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
 
@@ -112,12 +122,13 @@ class ExcelExportService {
         currency: currency,
         l10n: l10n,
         incomes: incomes,
-        incomeTotals: incomeTotals,
+        incomeGroups: incomeGroups,
         expenses: expenses,
-        expenseTotals: expenseTotals,
+        expenseGroups: expenseGroups,
         balance: balance,
         margen: margen,
         ratio: ratio,
+        periodTotals: periodTotals,
         periodTx: periodTx,
         crops: crops,
         period: period,
@@ -152,6 +163,10 @@ class ExcelExportService {
 
   /// Plantilla de balance contable en CSV (delimitador ';') que abre en Excel
   /// con totales por fórmula y la utilidad del ejercicio precargada.
+  ///
+  /// **Moneda mixta**: si el año toca más de una moneda no se imprime ninguna
+  /// fórmula de total (sumar pesos con dólares daría un balance falso) y la
+  /// utilidad del ejercicio sale una fila por moneda, cada una con su código.
   Uint8List buildBalanceTemplate({
     required FarmSettings settings,
     required List<Transaction> transactions,
@@ -161,6 +176,9 @@ class ExcelExportService {
   }) {
     final active = transactions.where((t) => !t.deleted).toList();
     final yearTx = active.where((t) => t.date.year == year).toList();
+    final totals = PeriodCurrencyTotals.fromRecords(yearTx);
+    final mixed = totals.isMixed;
+    final currencies = totals.currencies.toList()..sort();
     final incomes = yearTx
         .where((t) => t.type == TransactionType.income)
         .fold(0.0, (a, t) => a + t.amount);
@@ -179,6 +197,9 @@ class ExcelExportService {
     // Evita inyección de fórmulas (H5): Excel ejecuta celdas que arrancan
     // con = + @ (y con - si no es un número). Las fórmulas internas del
     // template se marcan con formula:true y se preservan.
+    //
+    // Con moneda mixta no se emite **ninguna** fórmula: sería una celda que
+    // suma monedas distintas al abrirla en Excel.
     void line(List<String> cols, {Set<int> formulaCols = const {}}) => buf
         .write('${cols.asMap().entries.map((e) => cell(e.value,
                 formula: formulaCols.contains(e.key))).join(';')}\r\n');
@@ -195,27 +216,53 @@ class ExcelExportService {
     line([l10n.balanceRowMachinery]);
     line([l10n.balanceRowLand]);
     line([l10n.balanceRowOtherAssets]);
-    line([l10n.balanceTotalAssets, '=SUM(B5:B10)'], formulaCols: {1});
+    if (mixed) {
+      line([l10n.balanceTotalAssets]);
+    } else {
+      line([l10n.balanceTotalAssets, '=SUM(B5:B10)'], formulaCols: {1});
+    }
     line([]);
     line([l10n.balanceLiabilitiesTitle]);
     line([l10n.balanceRowLoans]);
     line([l10n.balanceRowPayables]);
     line([l10n.balanceRowTaxes]);
-    line([l10n.balanceTotalLiabilities, '=SUM(B14:B16)'], formulaCols: {1});
+    if (mixed) {
+      line([l10n.balanceTotalLiabilities]);
+    } else {
+      line([l10n.balanceTotalLiabilities, '=SUM(B14:B16)'], formulaCols: {1});
+    }
     line([]);
     line([l10n.balanceEquityTitle]);
     line([l10n.balanceRowCapital]);
     line([l10n.balanceRowAccumulated]);
-    line([
-      l10n.balanceRowNetIncome(year),
-      _decimal(utilidad),
-    ]);
-    line([l10n.balanceTotalEquity, '=SUM(B20:B22)'], formulaCols: {1});
+    if (mixed) {
+      // Una fila de utilidad por moneda: nunca una cifra que cruce monedas.
+      for (final code in currencies) {
+        line([
+          '${l10n.balanceRowNetIncome(year)} · $code',
+          _decimal(totals.resultOf(code)),
+        ]);
+      }
+      line([l10n.balanceTotalEquity]);
+    } else {
+      line([
+        l10n.balanceRowNetIncome(year),
+        _decimal(utilidad),
+      ]);
+      line([l10n.balanceTotalEquity, '=SUM(B20:B22)'], formulaCols: {1});
+    }
     line([]);
-    line([l10n.balanceCheckLabel, l10n.balanceCheckFormula],
-        formulaCols: {1});
+    if (mixed) {
+      line([l10n.balanceCheckLabel]);
+    } else {
+      line([l10n.balanceCheckLabel, l10n.balanceCheckFormula],
+          formulaCols: {1});
+    }
     line([]);
     line([l10n.balanceNote]);
+    if (mixed) {
+      line([l10n.balanceMixedCurrencyNote(currencies.length)]);
+    }
     return Uint8List.fromList(
         [0xEF, 0xBB, 0xBF, ...utf8.encode(buf.toString())]);
   }
@@ -295,12 +342,13 @@ class ExcelExportService {
     required String currency,
     required AppLocalizations l10n,
     required double incomes,
-    required Map<String, double> incomeTotals,
+    required Map<String, Map<String, double>> incomeGroups,
     required double expenses,
-    required Map<String, double> expenseTotals,
+    required Map<String, Map<String, double>> expenseGroups,
     required double balance,
     required double? margen,
     required double? ratio,
+    required PeriodCurrencyTotals periodTotals,
     required List<Transaction> periodTx,
     required List<Crop> crops,
     required ReportPeriod period,
@@ -308,6 +356,20 @@ class ExcelExportService {
     int? month,
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
+
+    // Con mezcla cada total sale moneda por moneda y sin %: el % sería
+    // sobre un total que cruzaría monedas distintas.
+    final mixedHeader = periodTotals.isMixed;
+
+    /// Montos de un grupo con una sola moneda (solo se usa sin mezcla).
+    double single(Map<String, double> amounts) => amounts.values.first;
+
+    String byCurrency(Map<String, double> amounts, {bool negative = false}) =>
+        byCurrencyText(
+            negative
+                ? {for (final e in amounts.entries) e.key: -e.value}
+                : amounts,
+            (v, c) => formatMoneyLabel(v, c));
 
     row([TextCellValue(settings.farmName)]);
     row([TextCellValue(l10n.pdfIncomeStatement(periodName))]);
@@ -321,14 +383,18 @@ class ExcelExportService {
     row([
       TextCellValue(l10n.pdfIncomesHeader),
       null,
-      DoubleCellValue(incomes),
+      mixedHeader
+          ? TextCellValue(byCurrency(periodTotals.incomes))
+          : DoubleCellValue(incomes),
     ]);
     _styleHeaderRow(sheet, 4, 3, _excelBrown);
-    for (final e in incomeTotals.entries) {
+    for (final e in incomeGroups.entries) {
       row([
         TextCellValue('    ${l10n.incomeGroupLabel(e.key, crops)}'),
-        TextCellValue(_pctOf(e.value, incomes)),
-        DoubleCellValue(e.value),
+        mixedHeader ? null : TextCellValue(_pctOf(single(e.value), incomes)),
+        mixedHeader
+            ? TextCellValue(byCurrency(e.value))
+            : DoubleCellValue(single(e.value)),
       ]);
     }
     row([null, null, null]);
@@ -336,14 +402,18 @@ class ExcelExportService {
     row([
       TextCellValue(l10n.pdfExpensesHeader),
       null,
-      DoubleCellValue(-expenses),
+      mixedHeader
+          ? TextCellValue(byCurrency(periodTotals.expenses, negative: true))
+          : DoubleCellValue(-expenses),
     ]);
-    _styleHeaderRow(sheet, 4 + incomeTotals.length + 1, 3, _excelBrown);
-    for (final e in expenseTotals.entries) {
+    _styleHeaderRow(sheet, 4 + incomeGroups.length + 1, 3, _excelBrown);
+    for (final e in expenseGroups.entries) {
       row([
         TextCellValue('    ${l10n.expenseCategory(e.key)}'),
-        TextCellValue(_pctOf(e.value, expenses)),
-        DoubleCellValue(-e.value),
+        mixedHeader ? null : TextCellValue(_pctOf(single(e.value), expenses)),
+        mixedHeader
+            ? TextCellValue(byCurrency(e.value, negative: true))
+            : DoubleCellValue(-single(e.value)),
       ]);
     }
     row([null, null, null]);
@@ -351,27 +421,39 @@ class ExcelExportService {
     row([
       TextCellValue(l10n.resultPeriodLabel),
       null,
-      DoubleCellValue(balance),
+      mixedHeader
+          ? TextCellValue(byCurrency(periodTotals.results))
+          : DoubleCellValue(balance),
     ]);
-    final resultRowIdx = 5 + incomeTotals.length + 1 + expenseTotals.length + 1;
+    final resultRowIdx = 5 + incomeGroups.length + 1 + expenseGroups.length + 1;
+    final resultNegative = mixedHeader
+        ? periodTotals.results.values.any((v) => v < 0)
+        : balance < 0;
     _styleHeaderRow(sheet, resultRowIdx, 3,
-        balance >= 0 ? _excelGreenSoft : _excelRedSoft);
+        resultNegative ? _excelRedSoft : _excelGreenSoft);
 
     row([
       TextCellValue(l10n.marginLabel),
-      TextCellValue(margen != null ? _pctOf(margen, 1) : '—'),
+      TextCellValue(
+          !mixedHeader && margen != null ? _pctOf(margen, 1) : '—'),
       null,
     ]);
     row([
       TextCellValue(l10n.ratioLabel),
-      TextCellValue(ratio != null ? _pctOf(ratio, 1) : '—'),
+      TextCellValue(!mixedHeader && ratio != null ? _pctOf(ratio, 1) : '—'),
       null,
     ]);
+    if (mixedHeader) {
+      row([
+        TextCellValue(
+            l10n.currencyMixedByCurrencyNote(periodTotals.currencies.length)),
+      ]);
+    }
 
-    // Formato de moneda en columna C
-    _applyCurrencyFormat(sheet, currency, 2, 4, 4 + incomeTotals.length);
+    // Formato de moneda en columna C (las celdas de texto se ignoran)
+    _applyCurrencyFormat(sheet, currency, 2, 4, 4 + incomeGroups.length);
     _applyCurrencyFormat(sheet, currency, 2,
-        6 + incomeTotals.length, 6 + incomeTotals.length + expenseTotals.length);
+        6 + incomeGroups.length, 6 + incomeGroups.length + expenseGroups.length);
     _applyCurrencyFormat(sheet, currency, 2, resultRowIdx, resultRowIdx);
 
     // ── Ingresos y gastos por mes (períodos multi-mes: anual/año hasta hoy) ──
@@ -508,11 +590,14 @@ class ExcelExportService {
     final expenseTx = periodTx.where((t) => t.type.isExpense).toList();
     if (expenseTx.isNotEmpty) {
       final nameById = {for (final c in crops) c.id: c.name};
-      final byCatCrop = <String, Map<String?, double>>{};
+      // Cada celda guarda la moneda por separado: la suma aritmética solo
+      // sirve para ordenar las filas, nunca se imprime.
+      final byCatCrop = <String, Map<String?, Map<String, double>>>{};
       for (final t in expenseTx) {
-        final byCrop =
-            byCatCrop.putIfAbsent(t.category, () => <String?, double>{});
-        byCrop[t.cropId] = (byCrop[t.cropId] ?? 0) + t.amount;
+        final byCrop = byCatCrop.putIfAbsent(
+            t.category, () => <String?, Map<String, double>>{});
+        final byCur = byCrop.putIfAbsent(t.cropId, () => <String, double>{});
+        byCur[t.currency] = (byCur[t.currency] ?? 0) + t.amount;
       }
       row([null, null, null]);
       row([TextCellValue(l10n.excelCrossExpensesTitle)]);
@@ -525,18 +610,21 @@ class ExcelExportService {
       _styleTableHeader(sheet, sheet.maxRows - 1, 3);
       final crossFrom = sheet.maxRows;
       // Categorías en el mismo orden (mayor a menor) del desglose superior.
-      for (final cat in expenseTotals.keys) {
+      for (final cat in expenseGroups.keys) {
         final byCrop = byCatCrop[cat];
         if (byCrop == null) continue;
         final sorted = byCrop.entries.toList()
-          ..sort((a, b) => b.value.compareTo(a.value));
+          ..sort((a, b) =>
+              amountsTotal(b.value).compareTo(amountsTotal(a.value)));
         for (final e in sorted) {
           row([
             TextCellValue(l10n.expenseCategory(cat)),
             TextCellValue(e.key == null
                 ? l10n.cropUnspecified
                 : (nameById[e.key] ?? e.key!)),
-            DoubleCellValue(e.value),
+            mixedHeader
+                ? TextCellValue(byCurrency(e.value))
+                : DoubleCellValue(single(e.value)),
           ]);
         }
       }
@@ -892,13 +980,18 @@ class ExcelExportService {
       ]);
     }
 
-    // Costo de recogida por kg.
+    // Costo de recogida por kg. Solo es válido si todos los montos que lo
+    // componen son de una moneda; con mezcla sale en guion y se explica.
+    final mixedCurrencies = <String>{};
+    final pickupCurrencies = metrics.pickupCostCurrencies(periodTx);
+    final pickupMixed = pickupCurrencies.length > 1;
     final pickupKg = metrics.pickupCostPerKg(periodTx, periodHarvests);
-    if (pickupKg != null) {
+    if (pickupKg != null || pickupMixed) {
+      if (pickupMixed) mixedCurrencies.addAll(pickupCurrencies);
       row([null, null, null]);
       row([
         TextCellValue(l10n.reportPickupCostPerKg),
-        DoubleCellValue(pickupKg),
+        pickupMixed ? TextCellValue('—') : DoubleCellValue(pickupKg!),
       ]);
     }
 
@@ -913,20 +1006,29 @@ class ExcelExportService {
           periodTx.where((t) => t.cropId == crop.id).toList();
       final hasResiembra = sowings.any(
           (s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
+      // Monedas de los montos del cultivo: con dos o más no hay ni costo
+      // por kilo ni inversión en una sola cifra.
+      final cropCurrencies = metrics.cropAmountCurrencies(cropExpenses);
+      final cropMixed = cropCurrencies.length > 1;
+      if (cropMixed) mixedCurrencies.addAll(cropCurrencies);
 
       if (crop.phase == CropPhase.establecimiento ||
           crop.phase == CropPhase.renovacion) {
-        final inv = metrics.accumulatedInvestment(cropExpenses);
+        // Inversión: total en una moneda → cifra de siempre; con mezcla,
+        // cada moneda con su código.
         row([
           TextCellValue('${crop.name} — ${l10n.reportInvestmentEstablecimiento}'),
-          DoubleCellValue(inv),
+          cropMixed
+              ? TextCellValue(byCurrencyText(amountsByCurrency(cropExpenses),
+                  (v, cur) => formatMoneyLabel(v, cur)))
+              : DoubleCellValue(metrics.accumulatedInvestment(cropExpenses)),
         ]);
       } else {
         final totalKg = metrics.totalCostPerKg(crop, cropExpenses, cropHarvests);
-        if (totalKg != null) {
+        if (totalKg != null || cropMixed) {
           row([
             TextCellValue('${crop.name} — ${l10n.reportTotalCostPerKg}'),
-            DoubleCellValue(totalKg),
+            cropMixed ? TextCellValue('—') : DoubleCellValue(totalKg!),
           ]);
         }
         final yieldArea = metrics.yieldPerArea(cropHarvests, crop.areaHa);
@@ -1021,6 +1123,16 @@ class ExcelExportService {
       ]);
     }
 
+    // Aviso: los costos por kilo no salen en una cifra porque los montos
+    // que los componen están en más de una moneda.
+    if (mixedCurrencies.isNotEmpty) {
+      row([null, null, null]);
+      row([
+        TextCellValue(
+            l10n.currencyMixedByCurrencyNote(mixedCurrencies.length)),
+      ]);
+    }
+
     for (var i = 0; i < 3; i++) {
       sheet.setColumnWidth(i, i == 0 ? 46 : (i == 1 ? 20 : 18));
     }
@@ -1037,20 +1149,6 @@ class ExcelExportService {
     if (total <= 0) return '—';
     final v = part / total * 100;
     return v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
-  }
-
-
-  Map<String, double> _groupTotals(List<Transaction> list) {
-    final totals = <String, double>{};
-    for (final t in list) {
-      // Las ventas con cultivo se agrupan aparte (venta|<cropId>): el
-      // desglose de ingresos muestra "Venta plátano" / "Venta café".
-      final key = incomeGroupKey(t.category, t.cropId);
-      totals[key] = (totals[key] ?? 0) + t.amount;
-    }
-    final entries = totals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return {for (final e in entries) e.key: e.value};
   }
 }
 

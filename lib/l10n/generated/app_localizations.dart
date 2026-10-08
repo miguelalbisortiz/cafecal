@@ -638,7 +638,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpGlossaryBody.
   ///
   /// In es, this message translates to:
-  /// **'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido, almacenado o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.'**
+  /// **'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.'**
   String get helpGlossaryBody;
 
   /// No description provided for @helpGlossaryFinance.
@@ -3869,6 +3869,12 @@ abstract class AppLocalizations {
   /// **'Completa los montos de cada rubro en Excel. La celda de verificación usa fórmulas: debe dar 0 cuando el balance cuadra.'**
   String get balanceNote;
 
+  /// Plantilla de balance cuando el año mezcla monedas: no se emite ninguna fórmula de total y la utilidad sale moneda por moneda
+  ///
+  /// In es, this message translates to:
+  /// **'Este año tienes movimientos en {count} monedas: la utilidad va moneda por moneda y no se calculan los totales del balance, porque sumar monedas distintas daría una cifra falsa.'**
+  String balanceMixedCurrencyNote(int count);
+
   /// No description provided for @catSiembra.
   ///
   /// In es, this message translates to:
@@ -4028,7 +4034,7 @@ abstract class AppLocalizations {
   /// No description provided for @alertHarvestVsSalesMessage.
   ///
   /// In es, this message translates to:
-  /// **'El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si hay inventario almacenado o un error de registro.'**
+  /// **'El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si te faltó registrar alguna cosecha o si usaste la misma unidad en la cosecha y en la venta.'**
   String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop);
 
   /// No description provided for @alertHarvestVsSalesSuggestion.

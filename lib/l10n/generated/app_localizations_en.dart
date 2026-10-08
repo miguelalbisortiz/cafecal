@@ -281,7 +281,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpGlossaryTitle => 'Glossary';
 
   @override
-  String get helpGlossaryBody => 'Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Destination: sold, stored or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.';
+  String get helpGlossaryBody => 'Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Destination: sold or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.';
 
   @override
   String get helpGlossaryFinance => 'View financial glossary';
@@ -2056,6 +2056,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balanceNote => 'Fill in the amounts per item in Excel. The check cell uses formulas: it must show 0 when the balance is balanced.';
 
   @override
+  String balanceMixedCurrencyNote(int count) {
+    return 'This year has entries in $count currencies: profit is listed per currency and balance totals are not calculated, because adding different currencies would give a false figure.';
+  }
+
+  @override
   String get catSiembra => 'Planting';
 
   @override
@@ -2145,7 +2150,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop) {
-    return 'The problem: in the last 12 months you sold $soldKg of $crop, but only recorded $harvestedKg of harvest. Check whether there is stored inventory or a recording error.';
+    return 'The problem: in the last 12 months you sold $soldKg of $crop, but only recorded $harvestedKg of harvest. Check whether a harvest is missing, or whether the harvest and the sale use the same unit.';
   }
 
   @override

@@ -97,7 +97,7 @@
   "helpCaseBEx3": "$100,000 labor and $150,000 fertilizer",
   "helpCaseBEx4": "Investment $450,000. It does not say loss: it is an investment until it produces.",
   "helpGlossaryTitle": "Glossary",
-  "helpGlossaryBody": "Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Destination: sold, stored or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.",
+  "helpGlossaryBody": "Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Destination: sold or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.",
   "helpGlossaryFinance": "View financial glossary",
 
   "helpPerHaTitle": "What does per-hectare mean?",
@@ -757,6 +757,11 @@
   "balanceCheckLabel": "CHECK — Assets = Liabilities + Equity (0 = balanced)",
   "balanceCheckFormula": "=B11-B17-B23",
   "balanceNote": "Fill in the amounts per item in Excel. The check cell uses formulas: it must show 0 when the balance is balanced.",
+  "@balanceMixedCurrencyNote": {
+    "description": "Balance template when the year mixes currencies: no total formula is emitted and profit is listed per currency",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "balanceMixedCurrencyNote": "This year has entries in {count} currencies: profit is listed per currency and balance totals are not calculated, because adding different currencies would give a false figure.",
 
   "catSiembra": "Planting",
   "catSemillasInsumos": "Seeds & supplies",
@@ -803,7 +808,7 @@
   "@alertHarvestVsSalesMessage": {
     "placeholders": { "soldKg": { "type": "String" }, "harvestedKg": { "type": "String" }, "crop": { "type": "String" } }
   },
-  "alertHarvestVsSalesMessage": "The problem: in the last 12 months you sold {soldKg} of {crop}, but only recorded {harvestedKg} of harvest. Check whether there is stored inventory or a recording error.",
+  "alertHarvestVsSalesMessage": "The problem: in the last 12 months you sold {soldKg} of {crop}, but only recorded {harvestedKg} of harvest. Check whether a harvest is missing, or whether the harvest and the sale use the same unit.",
   "@alertHarvestVsSalesSuggestion": {
     "placeholders": { "crop": { "type": "String" } }
   },

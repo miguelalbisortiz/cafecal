@@ -15,6 +15,12 @@ import '../models/units.dart';
 /// Los avisos usan lenguaje claro, sin siglas financieras (ROI, EBITDA…),
 /// incluyen los números que los disparan y una acción sugerida.
 /// Recibe [l10n] para los mensajes en el idioma activo.
+///
+/// **Moneda mixta**: ninguna regla compara ni promedia montos de monedas
+/// distintas. Cuando los montos que una regla necesita están en más de una
+/// moneda, esa regla **no se dispara** (los avisos silenciados se listan en
+/// `mixed_currency_gap_test.dart`); con una sola moneda todo funciona igual
+/// que siempre.
 class AlertService {
   const AlertService({DateTime? now}) : _now = now;
 
@@ -75,8 +81,9 @@ class AlertService {
         .toList();
 
     for (final category in expenses.map((t) => t.category).toSet()) {
+      final monthForCat = expenses.where((t) => t.category == category).toList();
       final current =
-          expenses.where((t) => t.category == category).fold<double>(0, (a, t) => a + t.amount);
+          monthForCat.fold<double>(0, (a, t) => a + t.amount);
       if (current <= 0) continue;
 
       final sameMonthForCat =
@@ -90,6 +97,12 @@ class AlertService {
           ? sameMonthForCat
           : globalHistory.where((t) => t.category == category).toList();
       if (catHistory.length < 2) continue;
+
+      // Moneda mixta entre el mes actual y su histórico: "2× el promedio"
+      // cruzaría monedas distintas, así que la categoría se salta.
+      if (_currenciesOf([...monthForCat, ...catHistory]).length > 1) {
+        continue;
+      }
 
       final months = <int>{};
       for (final t in catHistory) {
@@ -123,10 +136,11 @@ class AlertService {
       AppLocalizations l10n, List<FarmAlert> out) {
     final incomes = txns.where((t) => !t.type.isExpense).toList();
     if (incomes.isEmpty) {
-      if (txns.any((t) => t.type.isExpense)) {
-        final spent = txns
-            .where((t) => t.type.isExpense)
-            .fold<double>(0, (a, t) => a + t.amount);
+      final expenseTx = txns.where((t) => t.type.isExpense).toList();
+      // Con gastos en más de una moneda no hay cifra de gastos que citar.
+      if (expenseTx.isNotEmpty && _currenciesOf(expenseTx).length == 1) {
+        final spent =
+            expenseTx.fold<double>(0, (a, t) => a + t.amount);
         out.add(FarmAlert(
           id: 'no_income',
           rule: AlertRule.noIncome,
@@ -164,19 +178,20 @@ class AlertService {
     int consecutive = 0;
     for (var i = 0; i < 6; i++) {
       final month = DateTime(now.year, now.month - i);
-      final expenses = txns
+      final monthTx = txns
           .where((t) =>
               !t.deleted &&
-              t.type.isExpense &&
               t.date.year == month.year &&
               t.date.month == month.month)
+          .toList();
+      // Un mes con dos monedas no se puede comparar ingresos con gastos:
+      // la racha se corta ahí (nunca se cuenta una pérdida inventada).
+      if (_currenciesOf(monthTx).length > 1) break;
+      final expenses = monthTx
+          .where((t) => t.type.isExpense)
           .fold<double>(0, (a, t) => a + t.amount);
-      final incomes = txns
-          .where((t) =>
-              !t.deleted &&
-              !t.type.isExpense &&
-              t.date.year == month.year &&
-              t.date.month == month.month)
+      final incomes = monthTx
+          .where((t) => !t.type.isExpense)
           .fold<double>(0, (a, t) => a + t.amount);
 
       if (expenses > incomes) {
@@ -218,6 +233,11 @@ class AlertService {
             t.quantity! > 0)
         .toList();
     if (sales.isEmpty) return;
+
+    // El precio por kilo se calcula por venta, pero el promedio histórico y
+    // la comparación con el umbral cruzarían monedas distintas: con ventas
+    // en más de una moneda la regla se calla.
+    if (_currenciesOf(sales).length > 1) return;
 
     double pricePerKg(Transaction t) =>
         t.amount / (t.quantity! * unitToKg(t.unit));
@@ -279,8 +299,10 @@ class AlertService {
       AppLocalizations l10n, List<FarmAlert> out) {
     final cropMap = {for (final c in crops) c.id: c};
     final totals = <String?, _CropTotals>{};
+    final currencies = <String?, Set<String>>{};
     for (final t in txns) {
       final row = totals.putIfAbsent(t.cropId, _CropTotals.new);
+      (currencies[t.cropId] ??= <String>{}).add(t.currency);
       if (t.type.isExpense) {
         row.expenses += t.amount;
       } else {
@@ -289,6 +311,9 @@ class AlertService {
     }
 
     totals.forEach((cropId, row) {
+      // El ROI de un cultivo que cobra y paga en monedas distintas sería
+      // mentira: ese cultivo no genera aviso hasta que se unifique.
+      if ((currencies[cropId] ?? const <String>{}).length > 1) return;
       if (row.expenses <= 0) return;
       final ratio = (row.incomes - row.expenses) / row.expenses;
       if (ratio < -0.30) {
@@ -476,13 +501,17 @@ class AlertService {
 
     // Solo el mes calendario vigente: el saldo no se acumula entre meses
     // (reinicio automático al cambiar de mes). Descuentan jornales + extras.
-    final used = txns
+    final usedTx = txns
         .where((t) =>
             t.type.isExpense &&
             t.date.year == now.year &&
             t.date.month == now.month &&
             discountsCashBox(t.category))
-        .fold<double>(0, (a, t) => a + t.amount);
+        .toList();
+    // El presupuesto de caja es de una sola moneda: si el mes mezcla, la
+    // comparación (y el saldo) sería mentira.
+    if (usedTx.isEmpty || _currenciesOf(usedTx).length > 1) return;
+    final used = usedTx.fold<double>(0, (a, t) => a + t.amount);
     if (used <= 0) return;
 
     final ratio = used / cajaMensual;
@@ -520,6 +549,16 @@ class AlertService {
     }
   }
 }
+
+/// Monedas presentes en esos movimientos (los borrados no cuentan).
+///
+/// Es el guardián de moneda mixta del motor de alertas: cualquier regla que
+/// suma, promedia o compara montos debe comprobar antes que esto devuelva
+/// una sola moneda; con dos o más la cifra sería mentira.
+Set<String> _currenciesOf(Iterable<Transaction> txns) => {
+      for (final t in txns)
+        if (!t.deleted) t.currency,
+    };
 
 String _money(double value) {
   final digits = NumberFormat('#,##0', 'es_CO').format(value.abs());

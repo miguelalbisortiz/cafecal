@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../services/crop_totals.dart';
 import '../services/currency_totals.dart';
 import '../utils/format.dart';
 
@@ -83,7 +84,8 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
     final byCurrency = amountsByCurrency(
         tx.where(type: widget.type, year: widget.year, month: widget.month));
     final mixed = byCurrency.length > 1;
-    final maxAmount = rows.first.amount;
+    // Solo con moneda única hay un total y un máximo comparables entre filas.
+    final maxAmount = mixed ? 0.0 : rows.first.amount;
     final typeColor =
         widget.type.isExpense ? Colors.red.shade600 : Colors.green.shade700;
     final hasMore = rows.length > widget.topCount;
@@ -146,10 +148,20 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: visible.map((row) {
-              final width = (row.amount / maxAmount).clamp(0.04, 1.0);
+              // Con moneda mixta no hay % sobre un total falso ni barra
+              // proporcional: la fila lista sus montos moneda por moneda.
+              final width =
+                  mixed ? 0.0 : (row.amount / maxAmount).clamp(0.04, 1.0);
               final pct = total > 0 ? row.amount / total * 100 : 0.0;
               final pctText =
                   pct >= 10 ? pct.toStringAsFixed(0) : pct.toStringAsFixed(1);
+              final amountText = mixed
+                  ? byCurrencyText(
+                      row.byCurrency,
+                      (v, c) =>
+                          formatAmount(v, currency: c, locale: tx.settings.locale),
+                    )
+                  : formatMoney(context, row.amount);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: Column(
@@ -167,38 +179,44 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text(
-                          '$pctText%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                        if (!mixed) ...[
+                          Text(
+                            '$pctText%',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
+                          const SizedBox(width: 12),
+                        ],
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            formatMoney(context, row.amount),
-                            style: const TextStyle(
-                              fontSize: 13,
+                            amountText,
+                            style: TextStyle(
+                              fontSize: mixed ? 12 : 13,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: LinearProgressIndicator(
-                        value: width,
-                        minHeight: 10,
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation(row.color),
+                    // Sin barra que sugiera proporciones sobre monedas que
+                    // no se pueden sumar.
+                    if (!mixed) ...[
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: LinearProgressIndicator(
+                          value: width,
+                          minHeight: 10,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                          valueColor: AlwaysStoppedAnimation(row.color),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               );
@@ -232,13 +250,13 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
         provider.where(type: widget.type, year: widget.year, month: widget.month);
     final crops = provider.crops;
     final isExpense = widget.type.isExpense;
-    final totals = <String, double>{};
-    for (final t in records) {
-      // Las ventas con cultivo se agrupan aparte (venta|<cropId>) para que
-      // el desglose muestre "Venta plátano" / "Venta café" como filas.
-      final key = isExpense ? t.category : incomeGroupKey(t.category, t.cropId);
-      totals[key] = (totals[key] ?? 0) + t.amount;
-    }
+    // Cada categoría guarda sus montos **por moneda** y ya viene ordenada de
+    // mayor a menor (la suma que ordena no se muestra nunca).
+    final totals = groupAmountsByCurrency(
+      records,
+      keyOf: (t) =>
+          isExpense ? t.category : incomeGroupKey(t.category, t.cropId),
+    );
 
     final rows = totals.entries.map((e) {
       final key = e.key;
@@ -275,10 +293,9 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
         label: label,
         icon: icon,
         color: Color(int.parse(color.replaceFirst('#', '0xFF'))),
-        amount: e.value,
+        byCurrency: e.value,
       );
-    }).toList()
-      ..sort((a, b) => b.amount.compareTo(a.amount));
+    }).toList();
 
     return rows;
   }
@@ -288,12 +305,20 @@ class _CategoryRow {
   final String label;
   final String icon;
   final Color color;
-  final double amount;
+
+  /// Montos de la categoría **separados por moneda** (clave = código ISO).
+  /// Con una sola moneda es la cifra de siempre; con dos o más se listan por
+  /// separado: sumarlos cruzaría monedas distintas.
+  final Map<String, double> byCurrency;
 
   const _CategoryRow({
     required this.label,
     required this.icon,
     required this.color,
-    required this.amount,
+    required this.byCurrency,
   });
+
+  /// Suma aritmética de [byCurrency]. Con moneda única es el monto que se
+  /// pinta; con mezcla **solo** sirve para ordenar las filas: nunca se muestra.
+  double get amount => amountsTotal(byCurrency);
 }

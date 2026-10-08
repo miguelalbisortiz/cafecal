@@ -15,6 +15,7 @@ import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
+import 'currency_totals.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
@@ -109,13 +110,30 @@ class PdfExportService {
     final currency = settings.currency;
     final showYearAnnex = period != ReportPeriod.year;
 
-    final incomeTotals = _groupTotals(
-        periodTx.where((t) => t.type == TransactionType.income).toList());
-    final expenseTotals = _groupTotals(
-        periodTx.where((t) => t.type == TransactionType.expense).toList());
+    // Totales del período por moneda: la fuente de verdad del encabezado.
+    // Con una sola moneda se imprime la cifra de siempre; con dos o más
+    // cada total va con su código, sin %, sin margen ni ratio.
+    final periodTotals = PeriodCurrencyTotals.fromRecords(periodTx);
+    final mixedHeader = periodTotals.isMixed;
+
+    final incomeGroups = groupAmountsByCurrency(
+      periodTx.where((t) => t.type == TransactionType.income),
+      keyOf: (t) => incomeGroupKey(t.category, t.cropId),
+    );
+    final expenseGroups = groupAmountsByCurrency(
+      periodTx.where((t) => t.type == TransactionType.expense),
+      keyOf: (t) => incomeGroupKey(t.category, t.cropId),
+    );
+    // Con moneda única cada grupo tiene una sola entrada: la cifra de siempre.
     final margen = incomes > 0 ? (balance / incomes) * 100 : null;
     final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
-    final resultColor = balance < 0 ? _pdfNegative : _pdfPositive;
+    // Con mezcla el color del resultado mira cada moneda por separado: nunca
+    // el signo de una suma que cruzaría monedas.
+    final resultColor = mixedHeader
+        ? (periodTotals.results.values.any((v) => v < 0)
+            ? _pdfNegative
+            : _pdfPositive)
+        : (balance < 0 ? _pdfNegative : _pdfPositive);
 
     final regular = await _regularFont();
     final bold = await _boldFont();
@@ -193,44 +211,71 @@ class PdfExportService {
               pw.Expanded(
                 child: _summaryCard(
                   label: l10n.pdfIncomesHeader,
-                  amount: formatPdfMoney(incomes, currency),
+                  // Mezcla → ingresos moneda por moneda, sin sumar.
+                  amount: mixedHeader
+                      ? byCurrencyText(periodTotals.incomes,
+                          (v, c) => formatPdfMoney(v, c))
+                      : formatPdfMoney(incomes, currency),
                   color: _pdfPositive,
                   bgColor: _pdfPositiveSoft,
+                  smallText: mixedHeader,
                 ),
               ),
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _summaryCard(
                   label: l10n.pdfExpensesHeader,
-                  amount: formatPdfMoney(-expenses, currency),
+                  amount: mixedHeader
+                      ? byCurrencyText(
+                          {
+                            for (final c in periodTotals.currencies)
+                              c: -periodTotals.expenseOf(c),
+                          },
+                          (v, c) => formatPdfMoney(v, c),
+                        )
+                      : formatPdfMoney(-expenses, currency),
                   color: _pdfNegative,
                   bgColor: _pdfNegativeSoft,
+                  smallText: mixedHeader,
                 ),
               ),
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _summaryCard(
                   label: l10n.resultPeriodLabel,
-                  amount: formatPdfMoney(balance, currency),
+                  amount: mixedHeader
+                      ? byCurrencyText(
+                          periodTotals.results,
+                          (v, c) => formatPdfMoney(v, c),
+                        )
+                      : formatPdfMoney(balance, currency),
                   color: resultColor,
-                  bgColor: balance < 0
-                      ? _pdfNegativeSoft
-                      : _pdfPositiveSoft,
+                  bgColor: mixedHeader
+                      ? (periodTotals.results.values.any((v) => v < 0)
+                          ? _pdfNegativeSoft
+                          : _pdfPositiveSoft)
+                      : (balance < 0 ? _pdfNegativeSoft : _pdfPositiveSoft),
+                  smallText: mixedHeader,
                 ),
               ),
             ],
           ),
+          if (mixedHeader) _mixedNote(l10n, periodTotals.currencies.length),
           pw.SizedBox(height: 18),
 
           // ── Detalle de ingresos ──
           _sectionHeader(l10n.pdfIncomesHeader, _pdfPositive),
-          if (incomeTotals.isEmpty)
+          if (incomeGroups.isEmpty)
             _statementRow(l10n.pdfNoIncomeSub, '',
                 small: true, valueColor: PdfColors.grey700),
-          ...incomeTotals.entries.map((e) => _statementRow(
+          ...incomeGroups.entries.map((e) => _statementRow(
                 '    ${l10n.incomeGroupLabel(e.key, crops)}',
-                '${_pctOf(e.value, incomes)}%   '
-                '${formatPdfMoney(e.value, currency)}',
+                // Con mezcla cada grupo va moneda por moneda y sin %:
+                // el % sería sobre un total que cruzaría monedas.
+                mixedHeader
+                    ? byCurrencyText(e.value, (v, c) => formatPdfMoney(v, c))
+                    : '${_pctOf(e.value.values.first, incomes)}%   '
+                        '${formatPdfMoney(e.value.values.first, currency)}',
                 small: true,
                 valueColor: _pdfPositive,
               )),
@@ -238,32 +283,48 @@ class PdfExportService {
 
           // ── Detalle de gastos ──
           _sectionHeader(l10n.pdfExpensesHeader, _pdfNegative),
-          if (expenseTotals.isEmpty)
+          if (expenseGroups.isEmpty)
             _statementRow(l10n.pdfNoExpensesSub, '',
                 small: true, valueColor: PdfColors.grey700),
-          ...expenseTotals.entries.map((e) => _statementRow(
+          ...expenseGroups.entries.map((e) => _statementRow(
                 '    ${l10n.expenseCategory(e.key)}',
-                '${_pctOf(e.value, expenses)}%   '
-                '${formatPdfMoney(-e.value, currency)}',
+                mixedHeader
+                    ? byCurrencyText(
+                        {
+                          for (final c in e.value.entries) c.key: -c.value,
+                        },
+                        (v, c) => formatPdfMoney(v, c),
+                      )
+                    : '${_pctOf(e.value.values.first, expenses)}%   '
+                        '${formatPdfMoney(-e.value.values.first, currency)}',
                 small: true,
                 valueColor: _pdfNegative,
               )),
           pw.Divider(),
-          _statementRow(l10n.resultPeriodLabel,
-              formatPdfMoney(balance, currency),
+          _statementRow(
+              l10n.resultPeriodLabel,
+              mixedHeader
+                  ? byCurrencyText(
+                      periodTotals.results, (v, c) => formatPdfMoney(v, c))
+                  : formatPdfMoney(balance, currency),
               bold: true,
               valueColor: resultColor,
-              background: balance < 0 ? _pdfNegativeSoft : _pdfPositiveSoft),
+              background: mixedHeader
+                  ? (periodTotals.results.values.any((v) => v < 0)
+                      ? _pdfNegativeSoft
+                      : _pdfPositiveSoft)
+                  : (balance < 0 ? _pdfNegativeSoft : _pdfPositiveSoft)),
           _statementRow(
               l10n.marginLabel,
-              margen != null ? '${_pctOf(margen, 1)}%' : '—',
+              (mixedHeader || margen == null) ? '—' : '${_pctOf(margen, 1)}%',
               small: true,
               valueColor: resultColor),
           _statementRow(
               l10n.ratioLabel,
-              ratio != null ? '${_pctOf(ratio, 1)}%' : '—',
+              (mixedHeader || ratio == null) ? '—' : '${_pctOf(ratio, 1)}%',
               small: true,
               valueColor: PdfColors.grey700),
+          if (mixedHeader) _mixedNote(l10n, periodTotals.currencies.length),
           pw.SizedBox(height: 20),
           _topAccounts(periodTx, l10n, currency),
           pw.SizedBox(height: 20),
@@ -324,11 +385,15 @@ class PdfExportService {
   }
 
   /// Card de resumen con fondo coloreado — Ingresos / Gastos / Resultado.
+  ///
+  /// [smallText] baja la fuente cuando el monto es una lista de monedas
+  /// (moneda mixta): son varias cifras en la misma tarjeta.
   pw.Widget _summaryCard({
     required String label,
     required String amount,
     required PdfColor color,
     required PdfColor bgColor,
+    bool smallText = false,
   }) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -351,7 +416,7 @@ class PdfExportService {
           pw.Text(
             amount,
             style: pw.TextStyle(
-              fontSize: 14,
+              fontSize: smallText ? 9 : 14,
               fontWeight: pw.FontWeight.bold,
               color: color,
             ),
@@ -383,19 +448,6 @@ class PdfExportService {
         ],
       ),
     );
-  }
-
-  Map<String, double> _groupTotals(List<Transaction> list) {
-    final totals = <String, double>{};
-    for (final t in list) {
-      // Las ventas con cultivo se agrupan aparte (venta|<cropId>): el
-      // desglose de ingresos muestra "Venta plátano" / "Venta café".
-      final key = incomeGroupKey(t.category, t.cropId);
-      totals[key] = (totals[key] ?? 0) + t.amount;
-    }
-    final entries = totals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return {for (final e in entries) e.key: e.value};
   }
 
   pw.Widget _statementRow(String label, String value,
@@ -599,9 +651,16 @@ class PdfExportService {
     const metrics = ReportHarvestMetrics();
     if (periodHarvests.isEmpty) return pw.SizedBox.shrink();
 
+    final srcTx = source.toList();
     final byCrop = metrics.totalsByCrop(periodHarvests, crops);
     final byDestination = metrics.totalsByDestination(periodHarvests);
-    final pickupKg = metrics.pickupCostPerKg(source.toList(), periodHarvests);
+    final pickupKg = metrics.pickupCostPerKg(srcTx, periodHarvests);
+    // El costo por kg solo es válido si todos los montos que lo componen
+    // son de una moneda; con mezcla la fila sale en guion y se explica.
+    final pickupMixed = metrics.pickupCostCurrencies(srcTx).length > 1;
+    final mixedCurrencies = <String>{
+      if (pickupMixed) ...metrics.pickupCostCurrencies(srcTx),
+    };
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -631,20 +690,22 @@ class PdfExportService {
               _num(e.value),
               small: true,
             )),
-        if (pickupKg != null) ...[
+        if (pickupKg != null || pickupMixed) ...[
           pw.SizedBox(height: 2),
           _statementRow(
             l10n.reportPickupCostPerKg,
-            formatPdfMoney(pickupKg, currency),
+            pickupMixed ? '—' : formatPdfMoney(pickupKg!, currency),
             small: true,
             bold: true,
           ),
         ],
         // Costo total por kg e indicadores por cultivo (producción).
-        ..._perCropHarvestRows(byCrop, crops, periodHarvests, source.toList(),
-            sowings, currency, l10n),
+        ..._perCropHarvestRows(byCrop, crops, periodHarvests, srcTx, sowings,
+            currency, l10n, mixedCurrencies),
         // Personal y kilos por cosecha (si se registraron).
         ..._staffHarvestRows(periodHarvests, crops, l10n),
+        if (mixedCurrencies.isNotEmpty)
+          _mixedNote(l10n, mixedCurrencies.length),
       ],
     );
   }
@@ -656,7 +717,8 @@ class PdfExportService {
       List<Transaction> transactions,
       List<Sowing> sowings,
       String currency,
-      AppLocalizations l10n) {
+      AppLocalizations l10n,
+      Set<String> mixedCurrencies) {
     const metrics = ReportHarvestMetrics();
     final cropById = {for (final c in crops) c.id: c};
     final out = <pw.Widget>[];
@@ -670,22 +732,29 @@ class PdfExportService {
           transactions.where((t) => t.cropId == crop.id).toList();
       final hasResiembra =
           sowings.any((s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
+      // Monedas de los montos del cultivo: con dos o más no hay ni costo
+      // por kilo ni inversión en una sola cifra.
+      final cropCurrencies = metrics.cropAmountCurrencies(cropExpenses);
+      final cropMixed = cropCurrencies.length > 1;
+      if (cropMixed) mixedCurrencies.addAll(cropCurrencies);
 
       if (crop.phase == CropPhase.establecimiento ||
           crop.phase == CropPhase.renovacion) {
-        final inv = metrics.accumulatedInvestment(cropExpenses);
         out.add(_statementRow(
           '    ${crop.name} — ${l10n.reportInvestmentEstablecimiento}',
-          formatPdfMoney(inv, currency),
+          cropMixed
+              ? byCurrencyText(
+                  amountsByCurrency(cropExpenses), (v, cur) => formatPdfMoney(v, cur))
+              : formatPdfMoney(metrics.accumulatedInvestment(cropExpenses), currency),
           small: true,
         ));
       } else {
         final totalKg = metrics.totalCostPerKg(
             crop, cropExpenses, cropHarvests);
-        if (totalKg != null) {
+        if (totalKg != null || cropMixed) {
           out.add(_statementRow(
             '    ${crop.name} — ${l10n.reportTotalCostPerKg}',
-            formatPdfMoney(totalKg, currency),
+            cropMixed ? '—' : formatPdfMoney(totalKg!, currency),
             small: true,
           ));
         }
