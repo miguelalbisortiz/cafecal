@@ -4,13 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mi_cafetal/models/currencies.dart';
-import 'package:mi_cafetal/models/transaction.dart';
-import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/currency_rates_service.dart';
-import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart';
 import 'package:mi_cafetal/utils/format.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -62,28 +58,6 @@ void main() {
     expect(formatAmount(2500, currency: 'BOB', locale: 'es_CO'), 'Bs2.500,00');
     expect(formatAmount(2500, currency: 'CRC', locale: 'es_CO'), '₡2.500');
     expect(formatAmount(-2500, currency: 'COP', locale: 'es_CO'), '-\$2.500');
-  });
-
-  test('convertir a otra moneda multiplica montos y reetiqueta', () async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    final store = LocalStore(prefs);
-    final provider = TransactionProvider(store);
-
-    await provider.addTransaction(
-      type: TransactionType.expense,
-      category: 'fertilizante',
-      amount: 500,
-      date: DateTime(2026, 3, 1),
-    );
-    expect(provider.transactions.first.currency, 'COP');
-    expect(provider.transactions.first.amount, 500);
-
-    await provider.convertAllToCurrency('PEN', 0.001);
-
-    expect(provider.transactions.first.currency, 'PEN');
-    expect(provider.transactions.first.amount, 0.5);
-    expect(provider.transactions.first.pendingSync, isTrue);
   });
 
   test('formato PDF usa el símbolo y decimales de la moneda', () {

@@ -556,20 +556,6 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Convierte todos los registros a otra moneda usando la tasa recibida
-  /// y los marca como pendientes de sincronizar.
-  Future<void> convertAllToCurrency(String newCurrency, double factor) async {
-    _transactions = _transactions
-        .map((t) => t.copyWith(
-              amount: t.amount * factor,
-              currency: newCurrency,
-              pendingSync: true,
-            ))
-        .toList();
-    await _store.saveTransactions(_transactions);
-    notifyListeners();
-  }
-
   // ---- Respaldo (P1) ----
 
   /// Serializa todos los datos del usuario como JSON de respaldo.
