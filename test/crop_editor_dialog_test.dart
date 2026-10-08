@@ -221,4 +221,62 @@ void main() {
     expect(holder.value, isNotNull);
     expect(holder.value!.phase, CropPhase.renovacion);
   });
+
+  testWidgets('4: un cultivo anual que llegara con otra fase se guarda en producción',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = _Holder();
+    // El caso que motivó la regla: un cultivo anual en establecimiento. El
+    // selector de fase está oculto para los anuales, así que sin aplicar el
+    // invariante al guardar quedaría atascado y no habría forma de corregirlo
+    // desde la interfaz.
+    const crop = Crop(
+        id: 'c2',
+        name: 'Maíz',
+        phase: CropPhase.establecimiento,
+        cycle: CropCycle.anual);
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: FilledButton(
+              onPressed: () async {
+                holder.value = await showDialog<CropFormData>(
+                  context: context,
+                  builder: (_) => const CropEditorDialog(
+                      crop: crop, existingNames: ['Maíz']),
+                );
+              },
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(CropEditorDialog)))!;
+    expect(find.text(l10n.cycleAnual), findsOneWidget,
+        reason: 'el ciclo preseleccionado debe ser el del cultivo editado');
+    expect(find.byType(DropdownButtonFormField<CropPhase>), findsNothing,
+        reason: 'los anuales no tienen selector de fase: por eso el invariante '
+            'tiene que aplicarse al guardar y no solo al cambiar el ciclo');
+
+    await tester.enterText(find.byType(TextField).at(0), 'Maíz');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.cycle, CropCycle.anual);
+    expect(holder.value!.phase, CropPhase.produccion,
+        reason: 'el invariante anual -> producción se aplica al guardar');
+  });
 }

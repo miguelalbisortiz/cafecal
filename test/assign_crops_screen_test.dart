@@ -52,6 +52,33 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('un registro en otra moneda se pinta con su moneda, no con la de ajustes',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    // Ajustes queda en COP (0 decimales). El registro está en USD (2 decimales):
+    // comparten el símbolo "$", así que la única forma de distinguirlos es
+    // por los decimales que se pintan. En español el decimal va con coma.
+    expect(provider.settings.currency, 'COP');
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      amount: 500,
+      description: 'Abono USD',
+      date: DateTime(2026, 9, 1),
+      currency: 'USD',
+    );
+
+    await pumpScreen(tester, provider);
+
+    expect(find.textContaining('Abono USD'), findsOneWidget);
+    expect(find.textContaining('\$500,00'), findsOneWidget,
+        reason: 'debe pintar los 2 decimales de USD (coma en español). En COP, '
+            'que tiene 0 decimales, el mismo monto saldría como "\$500" suelto, '
+            'así que ver la coma ya demuestra que manda la moneda del registro.');
+  });
+
   testWidgets('asigna cultivo a un registro sin cultivo', (tester) async {
     final provider = await makeProvider();
     expect(provider.transactions.single.cropId, isNull);

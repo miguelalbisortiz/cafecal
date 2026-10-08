@@ -199,7 +199,7 @@ class _AssignCropsScreenState extends State<AssignCropsScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '$dateStr · '
-                    '${formatMoney(context, isExpense ? -t.amount : t.amount)}'
+                    '${formatMoneyFor(context, isExpense ? -t.amount : t.amount, currency: t.currency)}'
                         '${t.description.isNotEmpty ? ' · ${t.description}' : ''}',
                     style: const TextStyle(fontSize: 12),
                     maxLines: 2,

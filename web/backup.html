@@ -10,47 +10,136 @@
   p { font-size: 14px; line-height: 1.5; }
   button { font-size: 15px; padding: 12px 18px; background: #1976D2; color: #fff; border: 0; border-radius: 8px; cursor: pointer; }
   pre { background: #f3f6f4; padding: 12px; border-radius: 8px; margin-top: 20px; font-size: 13px; white-space: pre-wrap; }
+  .aviso { color: #6b4b16; background: #fdf6e3; border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
 </style>
 </head>
 <body>
   <h1>Mi Cafetal — exportar datos locales</h1>
-  <p>Esta página solo lee los datos guardados en este navegador (modo local /
-     sin cuenta). No envía nada a internet: la descarga queda directamente en tu equipo.</p>
+  <p>Esta página solo lee los datos guardados en este navegador. No envía nada
+     a internet: la descarga queda directamente en tu equipo.</p>
+  <p class="aviso">Si tienes cuenta e iniciaste sesión, usa la exportación de
+     <strong>Ajustes → Respaldo</strong> en la app: esa es la forma oficial y
+     trae todo, listo para volver a importar. Esta página es una ayuda para
+     sacar los datos crudos del navegador cuando hace falta.</p>
   <button id="btn">Descargar datos (datos.json)</button>
   <pre id="out">Cargando…</pre>
 <script>
+  // Prefijo que Flutter Web usa en localStorage para todas sus claves.
   var PREFIX = 'flutter.';
-  var NAMES = ['transactions_v1', 'crops_v1', 'settings_v1', 'synced_at_v1', 'guest_mode_v1'];
 
-  function collect() {
-    var out = {};
-    NAMES.forEach(function (key) {
-      var v = localStorage.getItem(PREFIX + key);
-      if (v !== null) out[key] = v;
-    });
+  // Colecciones del modelo de datos. Se emiten SIEMPRE bajo su nombre base
+  // (sin namespace) para que tool/local_report_tool.dart siga leyendo el
+  // archivo sin cambios.
+  var COLLECTIONS = [
+    'settings_v1',
+    'crops_v1',
+    'sowings_v1',
+    'harvests_v1',
+    'transactions_v1',
+    'employees_v1'
+  ];
+
+  // Todas las claves flutter.* del navegador, en orden alfabético.
+  function allFlutterKeys() {
+    var out = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf(PREFIX) === 0) out.push(k);
+    }
+    out.sort();
     return out;
   }
 
+  // LocalStore guarda cada cuenta bajo `<clave>_<uid>` (ver
+  /// LocalStore._key en lib/services/local_store.dart). Al entrar con sesión
+  /// se migran las claves legacy a ese namespace, así que las claves "peladas"
+  /// quedan vacías. Buscamos el namespace activo por settings_v1_<uid>.
+  function detectUid(keys) {
+    var probe = PREFIX + 'settings_v1_';
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].indexOf(probe) === 0 && keys[i].length > probe.length) {
+        return keys[i].substring(probe.length);
+      }
+    }
+    return null;
+  }
+
+  /// Devuelve el valor de una colección priorizando el namespace activo.
+  function readCollection(base, uid) {
+    if (uid) {
+      var ns = localStorage.getItem(PREFIX + base + '_' + uid);
+      if (ns !== null) return ns;
+    }
+    return localStorage.getItem(PREFIX + base);
+  }
+
+  function count(raw) {
+    if (raw === null || raw === undefined) return 0;
+    try {
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.length;
+      return 1;
+    } catch (e) { return 0; }
+  }
+
+  function collect() {
+    var keys = allFlutterKeys();
+    var uid = detectUid(keys);
+    var data = {};
+
+    // 1) Colecciones del modelo, siempre bajo su nombre base.
+    COLLECTIONS.forEach(function (base) {
+      var v = readCollection(base, uid);
+      if (v !== null) data[base] = v;
+    });
+
+    // 2) Todo lo demás que esté en el namespace (cola de sincronización,
+    //    guest_mode, y cualquier clave que aparezca en el futuro). No se
+    //    filtra nada: es un volcado crudo del navegador.
+    keys.forEach(function (k) {
+      var bare = k.substring(PREFIX.length);
+      if (data[bare] === undefined) {
+        var v = localStorage.getItem(k);
+        if (v !== null) data[bare] = v;
+      }
+    });
+
+    return { uid: uid, data: data };
+  }
+
+  function hasAnyData(data) {
+    for (var k in data) { if (Object.prototype.hasOwnProperty.call(data, k)) return true; }
+    return false;
+  }
+
   function preview() {
-    var data = collect();
-    var tx = 0, crops = 0;
-    if (data.transactions_v1) { try { tx = JSON.parse(data.transactions_v1).length; } catch (e) {} }
-    if (data.crops_v1) { try { crops = JSON.parse(data.crops_v1).length; } catch (e) {} }
-    if (data.transactions_v1 === undefined) {
+    var r = collect();
+    var d = r.data;
+    if (!hasAnyData(d)) {
       return 'No hay datos guardados en este navegador (o ya se limpiaron).';
     }
-    return 'Transacciones: ' + tx + ' · Cultivos: ' + crops +
-      '  →  haz clic en "Descargar datos" y guarda el archivo ' +
-      'como reportes/datos.json dentro del proyecto.';
+    var lineas = [
+      'Movimientos: ' + count(d['transactions_v1']),
+      'Cultivos: ' + count(d['crops_v1']),
+      'Siembras: ' + count(d['sowings_v1']),
+      'Cosechas: ' + count(d['harvests_v1']),
+      'Empleados: ' + count(d['employees_v1'])
+    ];
+    var cab = (r.uid ? 'Cuenta: ' + r.uid + '\n' : 'Sin sesión: datos sin namespace\n');
+    return cab + lineas.join(' · ') +
+      '\n\n→ haz clic en "Descargar datos" y guarda el archivo como ' +
+      'reportes/datos.json dentro del proyecto.';
   }
 
   document.getElementById('btn').onclick = function () {
-    var data = collect();
-    if (data.transactions_v1 === undefined) {
-      document.getElementById('out').textContent = 'No hay datos guardados en este navegador.';
+    var r = collect();
+    if (!hasAnyData(r.data)) {
+      document.getElementById('out').textContent =
+        'No hay datos guardados en este navegador.';
       return;
     }
-    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var blob = new Blob([JSON.stringify(r.data, null, 2)],
+        { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'datos.json';

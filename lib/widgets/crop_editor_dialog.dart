@@ -90,7 +90,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       name: n,
       icon: _icon,
       color: _color,
-      phase: _phase,
+      phase: _effectivePhase,
       cycle: _cycle,
       defaultUnit: _defaultUnit,
       areaHa: area,
@@ -99,6 +99,18 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       currency: _currency,
     ));
   }
+
+  /// Fase efectiva que se guarda.
+  ///
+  /// Invariante: un cultivo anual no tiene fases de cafetal, así que siempre
+  /// queda en `produccion`. Se aplica **al guardar** y no solo en el
+  /// `onChanged` del desplegable de ciclo, porque el desplegable de fase está
+  /// oculto para los anuales: si un cultivo anual llegara aquí con otra fase
+  /// (por un registro antiguo o por cualquier otro camino de escritura), sin
+  /// esta regla se quedaría atascado y no habría forma de corregirlo desde la
+  /// interfaz.
+  CropPhase get _effectivePhase =>
+      _cycle == CropCycle.anual ? CropPhase.produccion : _phase;
 
   String _unitLabel(String key, AppLocalizations l10n) => switch (key) {
         'kg' => l10n.unitKg,
