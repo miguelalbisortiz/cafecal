@@ -464,11 +464,21 @@ class PdfExportService {
         pw.Text(title,
             style:
                 pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-        ...rows.map((e) => _statementRow(
-              '    ${e.key} (${e.value.count})',
-              formatPdfMoney(e.value.amount, currency),
-              small: true,
-            )),
+        ...rows.map((e) {
+          // Moneda única → cifra de siempre; mezcla → cada moneda por
+          // separado con su código (nunca un total cruzando monedas).
+          final value = e.value.amount != null
+              ? formatPdfMoney(e.value.amount!, currency)
+              : (e.value.byCurrency.entries.toList()
+                    ..sort((a, b) => a.key.compareTo(b.key)))
+                  .map((c) => '${formatPdfMoney(c.value, c.key)} ${c.key}')
+                  .join(' · ');
+          return _statementRow(
+            '    ${e.key} (${e.value.count})',
+            value,
+            small: true,
+          );
+        }),
         pw.SizedBox(height: 6),
       ],
     );

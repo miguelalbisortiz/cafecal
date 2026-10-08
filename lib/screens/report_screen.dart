@@ -268,7 +268,8 @@ class _ReportScreenState extends State<ReportScreen> {
             _TopAccountsCard(
                 records: records,
                 l10n: l10n,
-                effectiveCurrency: _effectiveCurrency),
+                effectiveCurrency: _effectiveCurrency,
+                locale: tx.settings.locale),
             const SizedBox(height: 20),
             Card(
               child: Padding(
@@ -1377,6 +1378,9 @@ class _ReportScreenState extends State<ReportScreen> {
     ConvertedPeriodTotals? converted,
   ) {
     final showMixedTotals = periodTotals.isMixed && converted == null;
+    // Con dos o más monedas en el período, las filas de categoría nunca
+    // suman ni calculan % sobre un total que cruzaría monedas.
+    final mixedRows = periodTotals.isMixed;
 
     final expenses = records
         .where((t) => t.type.isExpense)
@@ -1445,8 +1449,9 @@ class _ReportScreenState extends State<ReportScreen> {
                   Theme.of(context).colorScheme.primary),
             if (incomeRows.isEmpty)
               _hintLine(l10n.noIncomePeriod),
-            ...incomeRows.map((r) => _categoryLine(context, tx, r, incomes,
-                Theme.of(context).colorScheme.primary)),
+            ...incomeRows.map((r) => _categoryLine(
+                context, tx, r, incomes, Theme.of(context).colorScheme.primary,
+                mixed: mixedRows)),
             const SizedBox(height: 6),
             if (!showMixedTotals)
               _statementLine(context, tx, l10n.operatingExpensesLabel,
@@ -1454,7 +1459,8 @@ class _ReportScreenState extends State<ReportScreen> {
             if (expenseRows.isEmpty)
               _hintLine(l10n.noExpensesPeriod),
             ..._groupedExpenseLines(
-                context, tx, l10n, expenseRows, expenses),
+                context, tx, l10n, expenseRows, expenses,
+                mixed: mixedRows),
             if (!showMixedTotals) ...[
               const Divider(height: 24),
               _resultLine(context, tx, l10n, balance,
@@ -1548,8 +1554,14 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
+  /// Fila de una categoría del estado de resultados.
+  ///
+  /// [mixed] = el período mezcla monedas: entonces no se calcula un % sobre
+  /// un total falso ni se pinta una cifra única; cada moneda va con su
+  /// código al lado.
   Widget _categoryLine(BuildContext context, TransactionProvider tx,
-      _CategoryRow row, double groupTotal, Color color) {
+      _CategoryRow row, double groupTotal, Color color,
+      {required bool mixed}) {
     final pct = groupTotal > 0 ? row.amount / groupTotal * 100 : 0.0;
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 4),
@@ -1562,14 +1574,19 @@ class _ReportScreenState extends State<ReportScreen> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (!mixed) ...[
+            Text(
+              '${_pct(pct)}%',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(width: 12),
+          ],
           Text(
-            '${_pct(pct)}%',
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            _accounting(context, tx, row.isExpense ? -row.amount : row.amount,
-                currency: _effectiveCurrency),
+            mixed
+                ? _byCurrencyText(
+                    tx, row.byCurrency, negative: row.isExpense)
+                : _accounting(context, tx, row.isExpense ? -row.amount : row.amount,
+                    currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -1579,6 +1596,18 @@ class _ReportScreenState extends State<ReportScreen> {
         ],
       ),
     );
+  }
+
+  /// Montos por moneda en una sola línea: `$5.000 COP · €200 EUR`.
+  /// Nunca se suman entre sí: cada moneda conserva su cifra y su código.
+  String _byCurrencyText(TransactionProvider tx, Map<String, double> byCurrency,
+      {bool negative = false}) {
+    final entries = byCurrency.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return entries
+        .map((e) =>
+            '${formatAmount(negative ? -e.value : e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}')
+        .join(' · ');
   }
 
   /// P5 — los gastos agrupados en bloques (producción / venta / fijos /
@@ -1592,7 +1621,8 @@ class _ReportScreenState extends State<ReportScreen> {
       TransactionProvider tx,
       AppLocalizations l10n,
       List<_CategoryRow> rows,
-      double expensesTotal) {
+      double expensesTotal,
+      {required bool mixed}) {
     if (rows.isEmpty) return const [];
 
     final byGroup = <ExpenseGroup, List<_CategoryRow>>{};
@@ -1619,26 +1649,41 @@ class _ReportScreenState extends State<ReportScreen> {
       final group = byGroup[g];
       if (group == null || group.isEmpty) continue;
       final total = group.fold<double>(0, (a, r) => a + r.amount);
+      // Subtotal por moneda: la misma suma, solo que sin cruzar monedas.
+      final totalByCurrency = <String, double>{};
+      for (final r in group) {
+        r.byCurrency.forEach((code, v) {
+          totalByCurrency[code] = (totalByCurrency[code] ?? 0) + v;
+        });
+      }
       out.add(_groupLine(
         context,
         tx,
         label: groupLabel(g),
         amount: total,
+        byCurrency: totalByCurrency,
         ofTotal: expensesTotal,
+        mixed: mixed,
       ));
       out.addAll(group.map((r) => _categoryLine(
-          context, tx, r, expensesTotal, Theme.of(context).colorScheme.error)));
+          context, tx, r, expensesTotal, Theme.of(context).colorScheme.error,
+          mixed: mixed)));
     }
     return out;
   }
 
   /// Cabecera de un bloque de gastos: subtotal + % sobre el total del período.
+  ///
+  /// Con [mixed] no hay % (el total del período cruzaría monedas) y el
+  /// subtotal sale moneda por moneda con su código.
   Widget _groupLine(
     BuildContext context,
     TransactionProvider tx, {
     required String label,
     required double amount,
+    required Map<String, double> byCurrency,
     required double ofTotal,
+    required bool mixed,
   }) {
     final pct = ofTotal > 0 ? amount / ofTotal * 100 : 0.0;
     return Padding(
@@ -1655,13 +1700,18 @@ class _ReportScreenState extends State<ReportScreen> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (!mixed) ...[
+            Text(
+              '${_pct(pct)}%',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(width: 12),
+          ],
           Text(
-            '${_pct(pct)}%',
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            _accounting(context, tx, -amount, currency: _effectiveCurrency),
+            mixed
+                ? _byCurrencyText(tx, byCurrency, negative: true)
+                : _accounting(context, tx, -amount,
+                    currency: _effectiveCurrency),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -1846,11 +1896,14 @@ class _ReportScreenState extends State<ReportScreen> {
   List<_CategoryRow> _categoryRows(
       TransactionProvider tx, TransactionType type, AppLocalizations l10n) {
     final records = _recordsFor(tx).where((t) => t.type == type);
-    final totals = <String, double>{};
+    // Cada categoría guarda sus montos **por moneda**: la suma con moneda
+    // única es la de siempre; con mezcla solo se listan por separado.
+    final totals = <String, Map<String, double>>{};
     for (final t in records) {
       // Ventas con cultivo: grupo aparte por cultivo (fila "Venta plátano").
       final key = type.isExpense ? t.category : incomeGroupKey(t.category, t.cropId);
-      totals[key] = (totals[key] ?? 0) + t.amount;
+      final byCurrency = totals.putIfAbsent(key, () => {});
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
     }
     return totals.entries.map((e) {
       final label = type.isExpense
@@ -1858,7 +1911,9 @@ class _ReportScreenState extends State<ReportScreen> {
           : l10n.incomeGroupLabel(e.key, tx.crops);
       return _CategoryRow(
         label: label,
-        amount: e.value,
+        // Solo para ordenar (con moneda mixta no es una cifra que se muestre).
+        amount: e.value.values.fold<double>(0, (a, b) => a + b),
+        byCurrency: Map.of(e.value),
         isExpense: type.isExpense,
         key: e.key,
       );
@@ -1895,7 +1950,14 @@ class _PeriodTag extends StatelessWidget {
 
 class _CategoryRow {
   final String label;
+
+  /// Montos de la categoría **separados por moneda** (clave = código ISO).
+  final Map<String, double> byCurrency;
+
+  /// Suma aritmética de [byCurrency]. Solo se usa para **ordenar** las
+  /// filas: con moneda mixta no es una cifra que se pueda mostrar.
   final double amount;
+
   final bool isExpense;
 
   /// Clave cruda (p. ej. `fertilizante` o `venta|<cropId>`). Solo los gastos
@@ -1905,20 +1967,26 @@ class _CategoryRow {
   const _CategoryRow({
     required this.label,
     required this.amount,
+    required this.byCurrency,
     required this.isExpense,
     this.key = '',
   });
+
+  /// true cuando la categoría juntó más de una moneda.
+  bool get isMixed => byCurrency.length > 1;
 }
 
 class _TopAccountsCard extends StatelessWidget {
   final List<Transaction> records;
   final AppLocalizations l10n;
   final String effectiveCurrency;
+  final String locale;
 
   const _TopAccountsCard({
     required this.records,
     required this.l10n,
     required this.effectiveCurrency,
+    required this.locale,
   });
 
   @override
@@ -1926,12 +1994,38 @@ class _TopAccountsCard extends StatelessWidget {
     final accounts = TopAccounts.from(records);
     if (accounts.isEmpty) return const SizedBox.shrink();
 
+    // Moneda mixta en el período: cada fila lleva sus monedas y se avisa
+    // una vez, para que nadie lea una cifra global que no existe.
+    final currencies = records.map((t) => t.currency).toSet();
+    final mixed = currencies.length > 1;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (mixed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.monetization_on_outlined,
+                        size: 16, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        l10n.currencyMixedHint(currencies.length),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             if (accounts.clients.isNotEmpty) ...[
               Text(
                 l10n.topClientsTitle,
@@ -1964,6 +2058,15 @@ class _TopAccountsCard extends StatelessWidget {
   List<Widget> _rows(
       BuildContext context, List<MapEntry<String, AccountTotal>> rows) {
     return rows.map((e) {
+      // Moneda única → la cifra de siempre; mezcla → cada moneda con su
+      // código, nunca un total que sume pesos con dólares.
+      final amount = e.value.amount != null
+          ? formatMoneyFor(context, e.value.amount!, currency: effectiveCurrency)
+          : (e.value.byCurrency.entries.toList()
+                ..sort((a, b) => a.key.compareTo(b.key)))
+              .map((c) =>
+                  '${formatAmount(c.value, currency: c.key, locale: locale)} ${c.key}')
+              .join(' · ');
       return Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: Row(
@@ -1976,8 +2079,7 @@ class _TopAccountsCard extends StatelessWidget {
               ),
             ),
             Text(
-              formatMoneyFor(context, e.value.amount,
-                  currency: effectiveCurrency),
+              amount,
               style: const TextStyle(
                   fontSize: 13, fontWeight: FontWeight.w600),
             ),

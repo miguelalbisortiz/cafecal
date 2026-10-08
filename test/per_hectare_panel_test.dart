@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
+import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/transaction.dart';
@@ -36,13 +37,14 @@ Crop _crop({double? area, double? establishmentCost}) => Crop(
       establishmentCost: establishmentCost,
     );
 
-Transaction _tx(String id, {required double amount, TransactionType type = TransactionType.expense, String? cropId = 'cafe', DateTime? date}) =>
+Transaction _tx(String id, {required double amount, TransactionType type = TransactionType.expense, String? cropId = 'cafe', DateTime? date, String currency = 'COP'}) =>
     Transaction(
       id: id,
       cropId: cropId,
       type: type,
       category: type == TransactionType.expense ? 'catManoObra' : 'catVentaCafe',
       amount: amount,
+      currency: currency,
       date: date ?? DateTime(2026, 8, 1),
       createdAt: DateTime(2026, 8, 1),
     );
@@ -124,5 +126,69 @@ void main() {
     expect(find.text('Inversión del establecimiento'), findsOneWidget);
     expect(find.text('Pendiente de recuperarse'), findsOneWidget);
     expect(find.textContaining('años (aprox.)'), findsNothing);
+  });
+
+  // ---- Moneda mixta: nunca una cifra de dinero inventada ----
+
+  testWidgets('cultivo con moneda mixta: sin totales de dinero falsos',
+      (tester) async {
+    final l10n = stringsFor('es');
+    final txs = [
+      _tx('e1', amount: 200000),
+      _tx('i1', amount: 1000000, type: TransactionType.income),
+      _tx('e2', amount: 300, currency: 'USD'),
+      _tx('i2', amount: 200, type: TransactionType.income, currency: 'USD'),
+    ];
+    await tester.pumpWidget(_wrap(await _provider(), PerHectarePanel(
+      crops: [_crop(area: 2)],
+      periodTransactions: txs,
+      periodHarvests: [
+        Harvest(id: 'h1', cropId: 'cafe', date: DateTime(2026, 8, 10), amount: 50),
+      ],
+      allTransactions: txs,
+    )));
+    await tester.pump();
+
+    expect(find.text('Por hectárea'), findsOneWidget);
+    expect(find.text('25.0 kg/ha'), findsOneWidget,
+        reason: 'los kilos no son dinero: la producción sigue midiéndose');
+    expect(find.text('Ventas por ha'), findsNothing,
+        reason: 'no se imprime un ingreso/ha cruzando pesos con dólares');
+    expect(find.text('Gastos por ha'), findsNothing);
+    expect(find.text('Margen por ha'), findsNothing,
+        reason: 'el margen resta las dos monedas: sería falso');
+    expect(find.textContaining(l10n.currencyMixedHint(2)), findsOneWidget,
+        reason: 'el aviso explica por qué faltan las cifras');
+  });
+
+  testWidgets(
+      'histórico mixto: muestra la inversión pero sin % recuperado inventado',
+      (tester) async {
+    final l10n = stringsFor('es');
+    final txs = [
+      _tx('e1', amount: 200000),
+      _tx('i1', amount: 300, type: TransactionType.income, currency: 'USD'),
+    ];
+    await tester.pumpWidget(_wrap(await _provider(), PerHectarePanel(
+      crops: [_crop(area: 2, establishmentCost: 8000000)],
+      periodTransactions: txs,
+      periodHarvests: const [],
+      allTransactions: txs,
+    )));
+    await tester.pump();
+
+    expect(find.text('Inversión del establecimiento'), findsOneWidget);
+    expect(find.text('Recuperado'), findsNothing,
+        reason: 'el margen histórico mezcla monedas: no hay % cierto');
+    expect(find.text('Pendiente de recuperarse'), findsNothing);
+    expect(find.textContaining('años (aprox.)'), findsNothing,
+        reason: 'sin margen anual no se estima el pago');
+    // Un aviso por bloque: los KPIs del período y el histórico.
+    expect(find.textContaining(l10n.currencyMixedHint(2)), findsNWidgets(2));
+    // Lo que sí es de una sola moneda sale con esa moneda al lado.
+    expect(find.textContaining('USD'), findsOneWidget,
+        reason: 'ingresos por ha medidos solo en USD');
+    expect(find.textContaining('COP'), findsOneWidget,
+        reason: 'gastos por ha medidos solo en COP');
   });
 }

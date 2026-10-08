@@ -170,13 +170,19 @@ class ReportHarvestMetrics {
 
   /// Ingresos del cultivo por hectárea. Solo si [areaHa] > 0 y hay ingresos
   /// no eliminados; si no, null (la UI oculta, nunca muestra 0).
+  ///
+  /// Si los ingresos mezclan monedas también devuelve null: sumar pesos con
+  /// dólares daría un ingreso falso por hectárea.
   double? revenuePerHa(List<Transaction> txs, double? areaHa) {
     if (areaHa == null || areaHa <= 0) return null;
     double total = 0;
+    final currencies = <String>{};
     for (final t in txs) {
       if (t.deleted || t.type.isExpense) continue;
       total += t.amount;
+      currencies.add(t.currency);
     }
+    if (currencies.length > 1) return null;
     return total > 0 ? total / areaHa : null;
   }
 
@@ -184,10 +190,13 @@ class ReportHarvestMetrics {
   double? costPerHa(List<Transaction> txs, double? areaHa) {
     if (areaHa == null || areaHa <= 0) return null;
     double total = 0;
+    final currencies = <String>{};
     for (final t in txs) {
       if (t.deleted || !t.type.isExpense) continue;
       total += t.amount;
+      currencies.add(t.currency);
     }
+    if (currencies.length > 1) return null;
     return total > 0 ? total / areaHa : null;
   }
 

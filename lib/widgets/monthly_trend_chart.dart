@@ -7,6 +7,7 @@ import '../l10n/strings.dart';
 import '../models/currencies.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../services/currency_totals.dart';
 import '../utils/format.dart';
 
 class MonthlyTrendChart extends StatelessWidget {
@@ -18,6 +19,60 @@ class MonthlyTrendChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
+
+    final title = Text(
+      l10n.chartTitle(year),
+      style: Theme.of(context)
+          .textTheme
+          .titleMedium
+          ?.copyWith(fontWeight: FontWeight.bold),
+    );
+
+    // Moneda mixta en el año: las barras sumarían pesos con dólares y el
+    // eje sería mentira. En su lugar se lista el total de cada moneda.
+    final yearRecords = tx.transactions
+        .where((t) => !t.deleted && t.date.year == year)
+        .toList();
+    final incomesByCurrency =
+        amountsByCurrency(yearRecords, type: TransactionType.income);
+    final expensesByCurrency =
+        amountsByCurrency(yearRecords, type: TransactionType.expense);
+    final currencies = {
+      ...incomesByCurrency.keys,
+      ...expensesByCurrency.keys,
+    }.toList()
+      ..sort();
+    if (currencies.length > 1) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          title,
+          const SizedBox(height: 16),
+          _mixedHint(
+            context,
+            l10n.currencyMixedHint(currencies.length),
+          ),
+          const SizedBox(height: 8),
+          for (final code in currencies)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                [
+                  currencyInfo(code).code,
+                  if (incomesByCurrency[code] != null)
+                    '${l10n.incomeLabel} '
+                    '${formatAmount(incomesByCurrency[code]!, currency: code, locale: tx.settings.locale)}',
+                  if (expensesByCurrency[code] != null)
+                    '${l10n.expensesLabel} '
+                    '${formatAmount(expensesByCurrency[code]!, currency: code, locale: tx.settings.locale)}',
+                ].join(' · '),
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+        ],
+      );
+    }
+
     final expenses = _monthlyTotals(tx, TransactionType.expense);
     final incomes = _monthlyTotals(tx, TransactionType.income);
 
@@ -35,13 +90,7 @@ class MonthlyTrendChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.chartTitle(year),
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title,
         const SizedBox(height: 16),
         SizedBox(
           height: 220,
@@ -162,6 +211,29 @@ class MonthlyTrendChart extends StatelessWidget {
     }
     return result;
   }
+
+  /// Aviso breve de moneda mixta: el gráfico no se dibuja porque las barras
+  /// sumarían monedas distintas. Nunca inventa una cifra.
+  Widget _mixedHint(BuildContext context, String text) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.monetization_on_outlined, size: 16, color: scheme.primary),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: scheme.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _LegendBar extends StatelessWidget {
@@ -169,7 +241,6 @@ class _LegendBar extends StatelessWidget {
   final String label;
 
   const _LegendBar({required this.color, required this.label});
-
   @override
   Widget build(BuildContext context) {
     return Row(

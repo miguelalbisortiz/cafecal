@@ -600,4 +600,72 @@ void main() {
     expect(find.byType(CurrencyBreakdown), findsOneWidget,
         reason: 'el desglose por moneda sigue como referencia');
   });
+
+  testWidgets(
+      'filas de categoría con mezcla: cada moneda con su código y sin % '
+      'sobre un total que cruzaría monedas', (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    await mezclar(provider);
+
+    final fx = CurrencyConversionService(
+      rates:
+          CurrencyRatesService(client: MockClient((_) async => throw Exception('sin red'))),
+      prefs: () async => prefs,
+    );
+
+    await tester.pumpWidget(pantalla(provider, fx));
+    await asentar(tester);
+
+    final l10n = stringsFor('es');
+    final statement = find.ancestor(
+        of: find.text(l10n.incomeStatementTitle), matching: find.byType(Card));
+
+    String money(double v, String currency) =>
+        formatAmount(v, currency: currency, locale: 'es_CO');
+
+    // Cada fila de categoría lleva su moneda y su código.
+    expect(
+      find.descendant(
+          of: statement, matching: find.text('${money(5000, 'COP')} COP')),
+      findsOneWidget,
+      reason: 'la fila de ingresos en COP no se pinta como si fuera única',
+    );
+    expect(
+      find.descendant(
+          of: statement, matching: find.text('${money(200, 'EUR')} EUR')),
+      findsOneWidget,
+      reason: 'la fila de ingresos en EUR conserva su moneda',
+    );
+    // Los gastos salen en sus dos bloques: subtotal del grupo y detalle.
+    expect(
+      find.descendant(
+          of: statement, matching: find.text('-${money(1000, 'COP')} COP')),
+      findsNWidgets(2),
+      reason: 'subtotal del bloque y fila de fertilizante, ambos en COP',
+    );
+    expect(
+      find.descendant(
+          of: statement, matching: find.text('-${money(50, 'EUR')} EUR')),
+      findsNWidgets(2),
+      reason: 'subtotal del bloque y fila de transporte, ambos en EUR',
+    );
+
+    // Sin tasa no hay total global: ningún % se calcula sobre monedas cruzadas.
+    final textos = tester
+        .widgetList<Text>(find.descendant(
+            of: statement, matching: find.byType(Text)))
+        .map((t) => t.data ?? '')
+        .toList();
+    expect(
+      textos.where((s) => s.endsWith('%')),
+      isEmpty,
+      reason: 'los porcentajes exigirían sumar pesos con euros',
+    );
+  });
 }

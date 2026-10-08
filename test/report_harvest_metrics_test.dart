@@ -239,6 +239,56 @@ void main() {
       expect(metrics.costPerHa(txs, null), isNull);
     });
 
+    test('moneda única vs mezcla: nunca se suman monedas distintas', () {
+      Transaction conMoneda(TransactionType type, double a, String c) =>
+          Transaction(
+            id: '${type.name}_${a}_$c',
+            type: type,
+            category: type.isExpense ? 'Recogida' : 'Venta de café',
+            amount: a,
+            currency: c,
+            date: DateTime(2026, 5, 1),
+            createdAt: DateTime(2026, 5, 1),
+          );
+
+      // Moneda única: la cifra de siempre (5.000 ÷ 2 ha).
+      expect(
+          metrics.revenuePerHa(
+              [conMoneda(TransactionType.income, 3000, 'COP'),
+               conMoneda(TransactionType.income, 2000, 'COP')],
+              2.0),
+          2500);
+      expect(
+          metrics.costPerHa([conMoneda(TransactionType.expense, 1000, 'COP')],
+              2.0),
+          500);
+
+      // Moneda mixta: null, no un total inventado.
+      expect(
+          metrics.revenuePerHa(
+              [conMoneda(TransactionType.income, 3000, 'COP'),
+               conMoneda(TransactionType.income, 500, 'USD')],
+              2.0),
+          isNull,
+          reason: '3.000 COP + 500 USD no es un ingreso por hectárea');
+      expect(
+          metrics.costPerHa(
+              [conMoneda(TransactionType.expense, 1000, 'COP'),
+               conMoneda(TransactionType.expense, 500, 'USD')],
+              2.0),
+          isNull,
+          reason: '3.500 "totales" sería una cifra falsa');
+
+      // Lo que no está mezclado sigue midiéndose: los ingresos en COP solos
+      // son válidos aunque los gastos de otra moneda estén en la lista.
+      expect(
+          metrics.revenuePerHa(
+              [conMoneda(TransactionType.income, 3000, 'COP'),
+               conMoneda(TransactionType.expense, 500, 'USD')],
+              2.0),
+          1500);
+    });
+
     test('marginPerHa resta ingresos − gastos, null si no hay dato', () {
       expect(metrics.marginPerHa(2750000, 575000), 2175000);
       expect(metrics.marginPerHa(null, null), isNull);

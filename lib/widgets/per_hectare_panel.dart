@@ -39,21 +39,54 @@ class PerHectarePanel extends StatelessWidget {
           periodTransactions.where((t) => t.cropId == c.id).toList();
       final periodHs = periodHarvests.where((h) => h.cropId == c.id).toList();
 
+      // Monedas del período de este cultivo: si mezcla, el margen no se
+      // calcula (sería restar pesos con dólares) y se avisa con el recuento.
+      // Lo que sí es de una sola moneda sigue mostrándose, con esa moneda.
+      final incomeCurrencies = periodTxs
+          .where((t) => !t.deleted && !t.type.isExpense)
+          .map((t) => t.currency)
+          .toSet();
+      final expenseCurrencies = periodTxs
+          .where((t) => !t.deleted && t.type.isExpense)
+          .map((t) => t.currency)
+          .toSet();
+      final moneyCurrencies = {...incomeCurrencies, ...expenseCurrencies};
+      final moneyMixed = moneyCurrencies.length > 1;
+      // Si el período mezcla y un lado es de una sola moneda, su cifra es
+      // válida: se muestra con ESA moneda (no con la de Ajustes). Con una
+      // sola moneda en el período no se toca nada, va como siempre.
+      final incomeCurrency = moneyMixed && incomeCurrencies.length == 1
+          ? incomeCurrencies.first
+          : null;
+      final expenseCurrency = moneyMixed && expenseCurrencies.length == 1
+          ? expenseCurrencies.first
+          : null;
+
       final yieldPerHa = metrics.yieldPerArea(periodHs, c.areaHa);
       final revenue = metrics.revenuePerHa(periodTxs, c.areaHa);
       final cost = metrics.costPerHa(periodTxs, c.areaHa);
-      final margin = metrics.marginPerHa(revenue, cost);
-      final hasKpis = yieldPerHa != null || revenue != null || cost != null;
+      // El margen resta ingresos y gastos: solo es cierto si las dos cifras
+      // están en la misma moneda (o no hay ninguna de las dos).
+      final margin = moneyMixed ? null : metrics.marginPerHa(revenue, cost);
+      final hasKpis = yieldPerHa != null ||
+          revenue != null ||
+          cost != null ||
+          moneyMixed;
       final hasInvestment = c.establishmentCost != null && c.establishmentCost! > 0;
       if (!hasKpis && !hasInvestment) continue;
 
+      final cumulative = _cumulativeMargin(c.id);
       rows.add(_CropMetrics._(
         crop: c,
         yieldPerHa: yieldPerHa,
         revenuePerHa: revenue,
         costPerHa: cost,
         marginPerHa: margin,
-        cumulativeMargin: _cumulativeMargin(c.id),
+        periodCurrencies: moneyCurrencies,
+        incomeCurrency: incomeCurrency,
+        expenseCurrency: expenseCurrency,
+        cumulativeMargin: cumulative.margin,
+        cumulativeCurrencies: cumulative.currencies,
         yearsWithData: _yearsWithData(c.id),
       ));
     }
@@ -124,17 +157,23 @@ class PerHectarePanel extends StatelessWidget {
               '${r.yieldPerHa!.toStringAsFixed(1)} kg/ha',
               color: scheme.primary,
             ),
+          // Cada cifra de dinero solo se pinta si salió de una sola moneda y
+          // con ESA moneda al lado; el aviso explica lo que no se suma.
           if (r.revenuePerHa != null)
-            _line(l10n.perHaRevenueLabel, formatMoney(context, r.revenuePerHa!)),
+            _line(l10n.perHaRevenueLabel,
+                _money(context, r.revenuePerHa!, r.incomeCurrency)),
           if (r.costPerHa != null)
-            _line(l10n.perHaCostLabel, formatMoney(context, r.costPerHa!)),
+            _line(l10n.perHaCostLabel,
+                _money(context, r.costPerHa!, r.expenseCurrency)),
           if (r.marginPerHa != null)
             _line(
               l10n.perHaMarginLabel,
-              formatMoney(context, r.marginPerHa!),
+              _money(context, r.marginPerHa!, null),
               bold: true,
               color: r.marginPerHa! < 0 ? scheme.error : scheme.primary,
             ),
+          if (r.periodMixed)
+            _hint(l10n.currencyMixedHint(r.periodCurrencies.length)),
           if (r.crop.establishmentCost != null && r.crop.establishmentCost! > 0)
             _recoveryBlock(context, r, l10n),
         ],
@@ -147,6 +186,28 @@ class PerHectarePanel extends StatelessWidget {
     const metrics = ReportHarvestMetrics();
     final scheme = Theme.of(context).colorScheme;
     final investment = r.crop.establishmentCost!;
+
+    // Margen histórico en moneda mixta: no hay un porcentaje cierto, se
+    // muestra la inversión con el aviso en vez de un % inventado.
+    if (r.cumulativeMixed) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _line(l10n.perHaInvestmentLabel, formatMoney(context, investment),
+                bold: true),
+            _hint(l10n.currencyMixedHint(r.cumulativeCurrencies.length)),
+          ],
+        ),
+      );
+    }
+
     final recovery = metrics.recoveryRate(investment, r.cumulativeMargin);
     final avgMargin = (r.cumulativeMargin != null && r.yearsWithData! > 0)
         ? r.cumulativeMargin! / r.yearsWithData!
@@ -205,19 +266,53 @@ class PerHectarePanel extends StatelessWidget {
     );
   }
 
-  double? _cumulativeMargin(String cropId) {
-    double margin = 0;
-    var has = false;
+  /// Formato de una cifra del panel.
+  ///
+  /// Sin [currency] usa el formato de siempre (período de una sola moneda).
+  /// Con [currency] —solo en período mixto— la cifra lleva la moneda en la
+  /// que está realmente medida y su código al lado.
+  String _money(BuildContext context, double value, String? currency) {
+    if (currency == null) return formatMoney(context, value);
+    return '${formatMoneyFor(context, value, currency: currency)} $currency';
+  }
+
+  /// Aviso de moneda mixta: explica por qué no hay una cifra única, sin
+  /// inventar ningún total.
+  Widget _hint(String text) {    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.monetization_on_outlined, size: 14),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Margen histórico del cultivo **por moneda**.
+  ///
+  /// Si las operaciones mezclan monedas, el margen llega como null junto con
+  /// las monedas encontradas: la UI muestra el aviso en vez de una cifra
+  /// falsa sumando pesos con dólares.
+  ({double? margin, Set<String> currencies}) _cumulativeMargin(String cropId) {
+    final byCurrency = <String, double>{};
     for (final t in allTransactions) {
       if (t.deleted || t.cropId != cropId) continue;
-      has = true;
-      if (t.type.isExpense) {
-        margin -= t.amount;
-      } else {
-        margin += t.amount;
-      }
+      final signed = t.type.isExpense ? -t.amount : t.amount;
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + signed;
     }
-    return has ? margin : null;
+    if (byCurrency.isEmpty) return (margin: null, currencies: const {});
+    if (byCurrency.length > 1) {
+      return (margin: null, currencies: byCurrency.keys.toSet());
+    }
+    return (margin: byCurrency.values.first, currencies: byCurrency.keys.toSet());
   }
 
   int? _yearsWithData(String cropId) {
@@ -239,6 +334,19 @@ class _CropMetrics {
   final double? cumulativeMargin;
   final int? yearsWithData;
 
+  /// Monedas de los movimientos de dinero del período de este cultivo.
+  final Set<String> periodCurrencies;
+
+  /// Moneda del lado de ingresos si el período mezcla y ese lado es de una
+  /// sola moneda (null = no toca etiquetar: o es moneda única o está mezclado).
+  final String? incomeCurrency;
+
+  /// Igual que [incomeCurrency] para el lado de gastos.
+  final String? expenseCurrency;
+
+  /// Monedas de los movimientos históricos (todos) de este cultivo.
+  final Set<String> cumulativeCurrencies;
+
   const _CropMetrics._({
     required this.crop,
     required this.yieldPerHa,
@@ -247,5 +355,15 @@ class _CropMetrics {
     required this.marginPerHa,
     required this.cumulativeMargin,
     required this.yearsWithData,
+    this.periodCurrencies = const {},
+    this.incomeCurrency,
+    this.expenseCurrency,
+    this.cumulativeCurrencies = const {},
   });
+
+  /// El período de este cultivo toca más de una moneda.
+  bool get periodMixed => periodCurrencies.length > 1;
+
+  /// El histórico de este cultivo toca más de una moneda.
+  bool get cumulativeMixed => cumulativeCurrencies.length > 1;
 }
