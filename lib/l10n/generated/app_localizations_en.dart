@@ -503,7 +503,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get livePlantsLabel => 'Live plants';
 
   @override
-  String get establishmentCostLabel => 'Establishment cost (\$)';
+  String get establishmentCostLabel => 'Establishment cost';
 
   @override
   String get editCropTitle => 'Edit crop';
@@ -1651,8 +1651,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String currencyChangedMsg(String currency) {
-    return 'Currency changed to $currency. Amounts converted at the current rate.';
+    return 'Report currency changed to $currency. Amounts you already saved stay in the currency you recorded them in; totals are now shown in $currency.';
   }
+
+  @override
+  String get currencyRateNote => 'Total at today\'s rate. Each entry stays in its own currency.';
 
   @override
   String get settingsSavedMsg => 'Settings saved';
@@ -1803,7 +1806,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertNoIncomeMessage(String spent) {
-    return 'The problem: there are $spent in expenses and \$0 in sales, so the balance is at a loss.';
+    return 'The problem: there are $spent in expenses and no sales, so the balance is at a loss.';
   }
 
   @override

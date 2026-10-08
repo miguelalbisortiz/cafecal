@@ -15,8 +15,9 @@ import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
 import '../models/categories.dart';
-import '../models/currencies.dart';
 import '../services/alert_service.dart';
+import '../services/currency_conversion.dart';
+import '../services/currency_totals.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
 import '../services/metric_signal.dart';
@@ -26,7 +27,9 @@ import '../services/report_insights_service.dart';
 import '../services/report_payroll_metrics.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
+import '../widgets/currency_breakdown.dart';
 import '../widgets/per_hectare_panel.dart';
+import '../widgets/period_totals.dart';
 import '../widgets/terminology_guide.dart';
 
 enum _PeriodMode { week, month, year, yearToDate }
@@ -74,6 +77,9 @@ class _ReportScreenState extends State<ReportScreen> {
         ? currenciesInPeriod.first
         : tx.settings.currency;
 
+    // A — totales por moneda: nunca se suman monedas distintas.
+    final periodTotals = PeriodCurrencyTotals.fromRecords(records);
+
     final insights = const ReportInsightsService().build(
       now: DateTime.now(),
       current: records,
@@ -83,39 +89,17 @@ class _ReportScreenState extends State<ReportScreen> {
       month: _mode == _PeriodMode.month ? _month : null,
       crops: tx.crops,
       l10n: l10n,
+      // Con moneda mixta no se imprime un balance global: sería falso.
+      mixedTotals: periodTotals.isMixed,
       money: (v) => formatMoneyFor(context, v, currency: _effectiveCurrency),
     );
-    final expenses = records
-        .where((t) => t.type.isExpense)
-        .fold<double>(0, (a, t) => a + t.amount);
-    final incomes = records
-        .where((t) => !t.type.isExpense)
-        .fold<double>(0, (a, t) => a + t.amount);
-    final balance = incomes - expenses;
-    final incomeRows = _categoryRows(tx, TransactionType.income, l10n);
-    final expenseRows = _categoryRows(tx, TransactionType.expense, l10n);
-    final margen = incomes > 0 ? (balance / incomes) * 100 : null;
-    final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
-
-    // P2: precio de venta por kilo vs costo por kilo. Dos datos que ya
-    // existen en la app (solo salían en PDF y Excel, nunca en pantalla).
-    const metrics = ReportHarvestMetrics();
-    final costByKg = metrics.periodCostPerKg(expenses, _periodHarvests(tx));
-    final priceByKg = metrics.avgSalePricePerKg(records);
-
-    // Monedas mixtas: desglose por moneda
-    final expenseByCurrency = tx.sumByCurrency(TransactionType.expense,
-        year: _mode == _PeriodMode.year || _mode == _PeriodMode.yearToDate ? _year : null,
-        month: _mode == _PeriodMode.month ? _month : null);
-    final incomeByCurrency = tx.sumByCurrency(TransactionType.income,
-        year: _mode == _PeriodMode.year || _mode == _PeriodMode.yearToDate ? _year : null,
-        month: _mode == _PeriodMode.month ? _month : null);
-    final allCurrencies = {...expenseByCurrency.keys, ...incomeByCurrency.keys};
-    final isMixedCurrency = allCurrencies.length > 1;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.menuReport)),
-      body: RefreshIndicator(
+      body: PeriodTotalsBuilder(
+        totals: periodTotals,
+        targetCurrency: tx.settings.currency,
+        builder: (context, converted) => RefreshIndicator(
         onRefresh: () async {},
         child: Center(
           child: ConstrainedBox(
@@ -277,99 +261,8 @@ class _ReportScreenState extends State<ReportScreen> {
               const SizedBox(height: 12),
             ],
 
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.incomeStatementTitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: l10n.glossaryTitle,
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () =>
-                              showTerminologyGuide(context, highlight: 'margen'),
-                          icon: const Icon(Icons.info_outline, size: 18),
-                        ),
-                        _PeriodTag(label: _periodChipLabel(l10n)),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _statementLine(context, tx, l10n.incomeLabel, incomes,
-                        Theme.of(context).colorScheme.primary),
-                    if (incomeRows.isEmpty)
-                      _hintLine(l10n.noIncomePeriod),
-                    ...incomeRows.map((r) => _categoryLine(context, tx, r,
-                        incomes, Theme.of(context).colorScheme.primary)),
-                    const SizedBox(height: 6),
-                    _statementLine(context, tx, l10n.operatingExpensesLabel,
-                        -expenses, Theme.of(context).colorScheme.error),
-                    if (expenseRows.isEmpty)
-                      _hintLine(l10n.noExpensesPeriod),
-                    ..._groupedExpenseLines(
-                        context, tx, l10n, expenseRows, expenses),
-                    const Divider(height: 24),
-                    _resultLine(context, tx, l10n, balance),
-                    const SizedBox(height: 10),
-                    _metricLine(
-                      context,
-                      l10n.marginLabel,
-                      margen != null ? '${_pct(margen)}%' : '—',
-                      signal: signalOfMargin(marginVerdict(margen)),
-                      caption: _marginCaption(l10n, margen),
-                    ),
-                    _metricLine(
-                      context,
-                      l10n.ratioLabel,
-                      ratio != null ? '${_pct(ratio)}%' : '—',
-                      signal: signalOfRatio(ratioVerdict(ratio)),
-                      caption: _ratioCaption(l10n, ratio),
-                    ),
-                    // Si no hay nada que comparar (ni cosecha ni kilos en las
-                    // ventas) la línea se omite en vez de llenar el reporte de
-                    // "no se puede calcular".
-                    if (costByKg != null || priceByKg != null)
-                      _metricLine(
-                        context,
-                        l10n.metricCostPriceLabel,
-                        priceByKg != null
-                            ? _accounting(context, tx, priceByKg,
-                                currency: _effectiveCurrency)
-                            : '—',
-                        signal: signalOfCostPrice(
-                            costPriceVerdict(costByKg, priceByKg)),
-                        caption: _costPriceCaption(
-                          l10n,
-                          costPriceVerdict(costByKg, priceByKg),
-                          costByKg == null
-                              ? ''
-                              : _accounting(context, tx, costByKg,
-                                  currency: _effectiveCurrency),
-                        ),
-                      ),
-                    if (isMixedCurrency) ...[
-                      const SizedBox(height: 12),
-                      _CurrencyBreakdown(
-                        expenseByCurrency: expenseByCurrency,
-                        incomeByCurrency: incomeByCurrency,
-                        l10n: l10n,
-                        locale: tx.settings.locale,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            _statementCard(
+                context, tx, l10n, records, periodTotals, converted),
 
             const SizedBox(height: 20),
             _TopAccountsCard(
@@ -508,6 +401,7 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -1465,6 +1359,165 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
+  /// Tarjeta de "Estado de resultados".
+  ///
+  /// Con **una sola moneda** pinta exactamente lo de siempre. Si el período
+  /// mezcla monedas:
+  ///  - sin tasa disponible (A) → no se imprimen ingresos, gastos ni
+  ///    resultado globales (serían cifras falsas): se muestran los totales
+  ///    de cada moneda por separado.
+  ///  - con todas las tasas (B) → un único total convertido a la moneda de
+  ///    Ajustes, marcado como "al cambio de hoy".
+  Widget _statementCard(
+    BuildContext context,
+    TransactionProvider tx,
+    AppLocalizations l10n,
+    List<Transaction> records,
+    PeriodCurrencyTotals periodTotals,
+    ConvertedPeriodTotals? converted,
+  ) {
+    final showMixedTotals = periodTotals.isMixed && converted == null;
+
+    final expenses = records
+        .where((t) => t.type.isExpense)
+        .fold<double>(0, (a, t) => a + t.amount);
+    final incomes = records
+        .where((t) => !t.type.isExpense)
+        .fold<double>(0, (a, t) => a + t.amount);
+    final totalIncomes = converted?.incomes ?? incomes;
+    final totalExpenses = converted?.expenses ?? expenses;
+    final balance = totalIncomes - totalExpenses;
+    final incomeRows = _categoryRows(tx, TransactionType.income, l10n);
+    final expenseRows = _categoryRows(tx, TransactionType.expense, l10n);
+    final margen = totalIncomes > 0 ? (balance / totalIncomes) * 100 : null;
+    final ratio = totalIncomes > 0 ? (totalExpenses / totalIncomes) * 100 : null;
+
+    // P2: precio de venta por kilo vs costo por kilo. Dos datos que ya
+    // existen en la app (solo salían en PDF y Excel, nunca en pantalla).
+    const metrics = ReportHarvestMetrics();
+    final costByKg =
+        metrics.periodCostPerKg(totalExpenses, _periodHarvests(tx));
+    final priceByKg = metrics.avgSalePricePerKg(records);
+
+    final breakdown = CurrencyBreakdown(
+      incomes: periodTotals.incomes,
+      expenses: periodTotals.expenses,
+      l10n: l10n,
+      locale: tx.settings.locale,
+    );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.incomeStatementTitle,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.glossaryTitle,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () =>
+                      showTerminologyGuide(context, highlight: 'margen'),
+                  icon: const Icon(Icons.info_outline, size: 18),
+                ),
+                _PeriodTag(label: _periodChipLabel(l10n)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Moneda mixta sin tasa: los totales van por moneda arriba del
+            // detalle y no se pinta ninguna cifra global.
+            if (showMixedTotals) ...[
+              breakdown,
+              const SizedBox(height: 12),
+            ],
+            if (!showMixedTotals)
+              _statementLine(context, tx, l10n.incomeLabel, totalIncomes,
+                  Theme.of(context).colorScheme.primary),
+            if (incomeRows.isEmpty)
+              _hintLine(l10n.noIncomePeriod),
+            ...incomeRows.map((r) => _categoryLine(context, tx, r, incomes,
+                Theme.of(context).colorScheme.primary)),
+            const SizedBox(height: 6),
+            if (!showMixedTotals)
+              _statementLine(context, tx, l10n.operatingExpensesLabel,
+                  -totalExpenses, Theme.of(context).colorScheme.error),
+            if (expenseRows.isEmpty)
+              _hintLine(l10n.noExpensesPeriod),
+            ..._groupedExpenseLines(
+                context, tx, l10n, expenseRows, expenses),
+            if (!showMixedTotals) ...[
+              const Divider(height: 24),
+              _resultLine(context, tx, l10n, balance,
+                  valueLabel: converted == null
+                      ? null
+                      : l10n.currencyConvertedTotal(
+                          _effectiveCurrency,
+                          _accounting(context, tx, balance,
+                              currency: _effectiveCurrency),
+                        )),
+              if (converted != null) ...[
+                const SizedBox(height: 4),
+                _hintLine(l10n.currencyRateNote),
+              ],
+              const SizedBox(height: 10),
+              _metricLine(
+                context,
+                l10n.marginLabel,
+                margen != null ? '${_pct(margen)}%' : '—',
+                signal: signalOfMargin(marginVerdict(margen)),
+                caption: _marginCaption(l10n, margen),
+              ),
+              _metricLine(
+                context,
+                l10n.ratioLabel,
+                ratio != null ? '${_pct(ratio)}%' : '—',
+                signal: signalOfRatio(ratioVerdict(ratio)),
+                caption: _ratioCaption(l10n, ratio),
+              ),
+              // Si no hay nada que comparar (ni cosecha ni kilos en las
+              // ventas) la línea se omite en vez de llenar el reporte de
+              // "no se puede calcular".
+              if (costByKg != null || priceByKg != null)
+                _metricLine(
+                  context,
+                  l10n.metricCostPriceLabel,
+                  priceByKg != null
+                      ? _accounting(context, tx, priceByKg,
+                          currency: _effectiveCurrency)
+                      : '—',
+                  signal: signalOfCostPrice(
+                      costPriceVerdict(costByKg, priceByKg)),
+                  caption: _costPriceCaption(
+                    l10n,
+                    costPriceVerdict(costByKg, priceByKg),
+                    costByKg == null
+                        ? ''
+                        : _accounting(context, tx, costByKg,
+                            currency: _effectiveCurrency),
+                  ),
+                ),
+            ],
+            // Con tasa, el desglose por moneda queda como referencia.
+            if (periodTotals.isMixed && !showMixedTotals) ...[
+              const SizedBox(height: 12),
+              breakdown,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _statementLine(BuildContext context, TransactionProvider tx,
       String label, double value, Color color) {
     return Padding(
@@ -1619,8 +1672,13 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  Widget _resultLine(
-      BuildContext context, TransactionProvider tx, AppLocalizations l10n, double balance) {
+  /// Cabecera de "RESULTADO DEL PERÍODO".
+  ///
+  /// [valueLabel] sustituye al importe pelado (se usa cuando el total viene
+  /// convertido a la moneda de Ajustes: `currencyConvertedTotal`).
+  Widget _resultLine(BuildContext context, TransactionProvider tx,
+      AppLocalizations l10n, double balance,
+      {String? valueLabel}) {
     final scheme = Theme.of(context).colorScheme;
     final source = balance < 0
         ? scheme.error
@@ -1652,7 +1710,8 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
           Text(
-            _accounting(context, tx, balance, currency: _effectiveCurrency),
+            valueLabel ??
+                _accounting(context, tx, balance, currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.bold,
@@ -2095,88 +2154,3 @@ class _CropBreakdownTile extends StatelessWidget {
   }
 }
 
-class _CurrencyBreakdown extends StatelessWidget {
-  final Map<String, double> expenseByCurrency;
-  final Map<String, double> incomeByCurrency;
-  final AppLocalizations l10n;
-  final String locale;
-
-  const _CurrencyBreakdown({
-    required this.expenseByCurrency,
-    required this.incomeByCurrency,
-    required this.l10n,
-    required this.locale,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final allCurrencies = {...expenseByCurrency.keys, ...incomeByCurrency.keys}
-      .toList()
-      ..sort();
-    final scheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.monetization_on_outlined,
-                  size: 16, color: scheme.primary),
-              const SizedBox(width: 6),
-              Text(
-                l10n.currencyMixedHint(allCurrencies.length),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: scheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          for (final cur in allCurrencies) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    currencyInfo(cur).code,
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                if (expenseByCurrency.containsKey(cur))
-                  Text(
-                    formatAmount(-expenseByCurrency[cur]!,
-                        currency: cur, locale: locale),
-                    style: TextStyle(
-                        fontSize: 12, color: scheme.error),
-                  ),
-                if (expenseByCurrency.containsKey(cur) &&
-                    incomeByCurrency.containsKey(cur))
-                  const SizedBox(width: 12),
-                if (incomeByCurrency.containsKey(cur))
-                  Text(
-                    formatAmount(incomeByCurrency[cur]!,
-                        currency: cur, locale: locale),
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w600),
-                  ),
-              ],
-            ),
-            if (cur != allCurrencies.last)
-              const SizedBox(height: 4),
-          ],
-        ],
-      ),
-    );
-  }
-}

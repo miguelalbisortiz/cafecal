@@ -9,13 +9,17 @@ import '../providers/auth_provider.dart';
 import '../providers/sync_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
-import '../models/currencies.dart';
+import '../services/currency_conversion.dart';
+import '../services/currency_totals.dart';
 import '../services/next_step_service.dart';
+import '../utils/format.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/cash_box_card.dart';
 import '../widgets/category_breakdown.dart';
+import '../widgets/currency_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/next_step_card.dart';
+import '../widgets/period_totals.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/welcome_onboarding_card.dart';
 import 'movements_screen.dart';
@@ -364,29 +368,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final year = now.year;
     final month = now.month;
 
-    final monthExpenses = tx.totalExpenses(year: year, month: month);
-    final monthIncomes = tx.totalIncomes(year: year, month: month);
-    final monthBalance = monthIncomes - monthExpenses;
-    final yearExpenses = tx.totalExpenses(year: year);
-    final yearIncomes = tx.totalIncomes(year: year);
-    final yearBalance = yearIncomes - yearExpenses;
     final monthLabel = '${l10n.monthFull[month - 1]} $year';
 
-    // Monedas efectivas por período
-    final monthCurrency = _effectiveCurrency(
-        tx.sumByCurrency(TransactionType.income, year: year, month: month),
-        tx.sumByCurrency(TransactionType.expense, year: year, month: month));
-    final yearCurrency = _effectiveCurrency(
-        tx.sumByCurrency(TransactionType.income, year: year),
-        tx.sumByCurrency(TransactionType.expense, year: year));
-    final hasMixedMonth = monthCurrency == null;
-    final hasMixedYear = yearCurrency == null;
-    final effectiveMonthCurrency = monthCurrency ?? tx.settings.currency;
-    final effectiveYearCurrency = yearCurrency ?? tx.settings.currency;
+    // A — totales por moneda: nunca se suman monedas distintas.
+    final monthTotals =
+        PeriodCurrencyTotals.fromRecords(tx.where(year: year, month: month));
+    final yearTotals = PeriodCurrencyTotals.fromRecords(tx.where(year: year));
 
-    return RefreshIndicator(
-      onRefresh: () => context.read<SyncProvider>().sync(),
-      child: Center(
+    // B — la conversión llega sola, sin bloquear la pantalla: mientras no
+    // haya tasa (o si falta alguna) se muestran los totales por moneda.
+    return PeriodTotalsBuilder(
+      totals: monthTotals,
+      targetCurrency: tx.settings.currency,
+      builder: (context, monthConverted) => PeriodTotalsBuilder(
+        totals: yearTotals,
+        targetCurrency: tx.settings.currency,
+        builder: (context, yearConverted) => RefreshIndicator(
+          onRefresh: () => context.read<SyncProvider>().sync(),
+          child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1120),
           child: ListView(
@@ -414,31 +413,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           AlertsBanner(alerts: alerts.bySeverity),
-          if (hasMixedMonth)
-            _MixedCurrencyBanner(
-              currencies: {
-                ...tx.sumByCurrency(TransactionType.income, year: year, month: month).keys,
-                ...tx.sumByCurrency(TransactionType.expense, year: year, month: month).keys,
-              },
-            ),
           _SectionHeader(title: l10n.sectionThisMonth),
           const SizedBox(height: 12),
-          _threeCards(l10n, monthIncomes, monthExpenses, monthBalance,
-              effectiveMonthCurrency, tx.settings.locale),
+          _totalsBlock(l10n, tx, monthTotals, monthConverted),
           // Caja menor del mes en curso (se oculta sin monto configurado).
           const CashBoxCard(),
           const SizedBox(height: 24),
-          if (hasMixedYear)
-            _MixedCurrencyBanner(
-              currencies: {
-                ...tx.sumByCurrency(TransactionType.income, year: year).keys,
-                ...tx.sumByCurrency(TransactionType.expense, year: year).keys,
-              },
-            ),
           _SectionHeader(title: l10n.sectionInYear(year)),
           const SizedBox(height: 12),
-          _threeCards(l10n, yearIncomes, yearExpenses, yearBalance,
-              effectiveYearCurrency, tx.settings.locale),
+          _totalsBlock(l10n, tx, yearTotals, yearConverted),
           const SizedBox(height: 24),
           Card(
             child: Padding(
@@ -476,17 +459,83 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         ),
       ),
+    ),
+        ),
     );
   }
 
-  /// Si todas las transacciones del período son una moneda → esa moneda.
-  /// Si hay mixtas → null (el caller usa settings.currency como fallback).
-  String? _effectiveCurrency(
-      Map<String, double> incomeByCur, Map<String, double> expenseByCur) {
-    final all = {...incomeByCur.keys, ...expenseByCur.keys};
-    if (all.length == 1) return all.first;
-    if (all.isEmpty) return null;
-    return null;
+  /// Resumen de un período: las tres tarjetas de siempre cuando hay una
+  /// sola moneda (o cuando ya se pudo convertir), o los totales de cada
+  /// moneda por separado cuando **no** hay tasa disponible.
+  Widget _totalsBlock(AppLocalizations l10n, TransactionProvider tx,
+      PeriodCurrencyTotals totals, ConvertedPeriodTotals? converted) {
+    if (totals.isMixed && converted == null) {
+      return CurrencyBreakdown(
+        incomes: totals.incomes,
+        expenses: totals.expenses,
+        l10n: l10n,
+        locale: tx.settings.locale,
+      );
+    }
+
+    final incomes = converted?.incomes ??
+        totals.incomes.values.fold<double>(0, (a, b) => a + b);
+    final expenses = converted?.expenses ??
+        totals.expenses.values.fold<double>(0, (a, b) => a + b);
+    final currency = converted?.currency ??
+        (totals.currencies.length == 1
+            ? totals.currencies.first
+            : tx.settings.currency);
+    final balance = incomes - expenses;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _threeCards(
+            l10n, incomes, expenses, balance, currency, tx.settings.locale),
+        if (converted != null) ...[
+          const SizedBox(height: 8),
+          _convertedNote(l10n, tx, converted),
+        ],
+      ],
+    );
+  }
+
+  /// Aviso de que el total va al cambio de hoy y de que cada movimiento
+  /// sigue guardado en la moneda en que se registró.
+  Widget _convertedNote(
+      AppLocalizations l10n, TransactionProvider tx, ConvertedPeriodTotals c) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.currencyConvertedTotal(
+              c.currency,
+              formatAmount(c.result,
+                  currency: c.currency, locale: tx.settings.locale),
+            ),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: scheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.currencyRateNote,
+            style: TextStyle(fontSize: 11, color: scheme.onPrimaryContainer),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _threeCards(AppLocalizations l10n, double incomes, double expenses,
@@ -581,45 +630,6 @@ class _PeriodChip extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: scheme.onSecondaryContainer,
         ),
-      ),
-    );
-  }
-}
-
-class _MixedCurrencyBanner extends StatelessWidget {
-  final Set<String> currencies;
-
-  const _MixedCurrencyBanner({required this.currencies});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-    final labels = currencies.map((c) {
-      final info = currencyInfo(c);
-      return '${info.symbol} ${info.code}';
-    }).join(', ');
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: scheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, size: 16, color: scheme.tertiary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '${l10n.currencyMixedHint(currencies.length)}: $labels',
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onTertiaryContainer,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

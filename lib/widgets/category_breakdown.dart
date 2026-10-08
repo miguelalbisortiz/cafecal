@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../services/currency_totals.dart';
 import '../utils/format.dart';
 
 /// Muestra las categorías de un período ordenadas de mayor a menor.
@@ -78,6 +79,10 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
     }
 
     final total = rows.fold<double>(0, (s, r) => s + r.amount);
+    // Totales por moneda del mismo período: si mezcla monedas no se suman.
+    final byCurrency = amountsByCurrency(
+        tx.where(type: widget.type, year: widget.year, month: widget.month));
+    final mixed = byCurrency.length > 1;
     final maxAmount = rows.first.amount;
     final typeColor =
         widget.type.isExpense ? Colors.red.shade600 : Colors.green.shade700;
@@ -121,7 +126,11 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
             ),
             const SizedBox(width: 6),
             Text(
-              l10n.categoryBreakdownTotal(formatMoney(context, total)),
+              // Moneda mixta: no se suma una sola cifra (sería falsa),
+              // se lista el total de cada moneda por separado.
+              mixed
+                  ? '${l10n.currencyMixedHint(byCurrency.length)}: ${byCurrency.entries.map((e) => '${formatAmount(e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}').join(' · ')}'
+                  : l10n.categoryBreakdownTotal(formatMoney(context, total)),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

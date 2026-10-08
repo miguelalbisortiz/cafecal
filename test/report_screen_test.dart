@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,8 +12,12 @@ import 'package:mi_cafetal/models/sowing.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/report_screen.dart';
+import 'package:mi_cafetal/services/currency_conversion.dart';
+import 'package:mi_cafetal/services/currency_rates_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/utils/format.dart';
+import 'package:mi_cafetal/widgets/currency_breakdown.dart';
+import 'package:mi_cafetal/widgets/period_totals.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -415,5 +421,183 @@ void main() {
             of: desglose, matching: find.text(l10n.cropBreakdownSummaryI)),
         findsOneWidget,
         reason: 'la fila del cultivo sigue mostrando sus ingresos');
+  });
+
+  // ---- Monedas del período: nunca se suman (A) ni se inventa (B) ----
+
+  Widget pantalla(TransactionProvider provider, CurrencyConversionService? fx) {
+    Widget tree = const MaterialApp(
+      locale: Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: ReportScreen(),
+    );
+    if (fx != null) tree = CurrencyConversionScope(service: fx, child: tree);
+    return ChangeNotifierProvider.value(value: provider, child: tree);
+  }
+
+  /// Deja pasar los reintentos de la tasa (400 ms + 800 ms) por si el
+  /// proveedor no contesta: la pantalla no se bloquea esperando.
+  Future<void> asentar(WidgetTester tester) async {
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 2000));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> mezclar(TransactionProvider provider) async {
+    final hoy = DateTime.now();
+    await provider.addTransaction(
+        type: TransactionType.income,
+        category: 'venta_cafe',
+        amount: 5000,
+        date: hoy);
+    await provider.addTransaction(
+        type: TransactionType.expense,
+        category: 'fertilizante',
+        amount: 1000,
+        date: hoy);
+    await provider.addTransaction(
+        type: TransactionType.income,
+        category: 'venta_otro',
+        amount: 200,
+        currency: 'EUR',
+        date: hoy);
+    await provider.addTransaction(
+        type: TransactionType.expense,
+        category: 'transporte',
+        amount: 50,
+        currency: 'EUR',
+        date: hoy);
+  }
+
+  testWidgets('moneda única: el resultado del período se pinta como siempre',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    await provider.addTransaction(
+        type: TransactionType.income,
+        category: 'venta_cafe',
+        amount: 5000,
+        date: hoy);
+    await provider.addTransaction(
+        type: TransactionType.expense,
+        category: 'fertilizante',
+        amount: 1000,
+        date: hoy);
+
+    await tester.pumpWidget(pantalla(provider, null));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.resultPeriodLabel), findsOneWidget);
+    // El mismo importe puede salir en otras tarjetas (la de Caja, por
+    // ejemplo): lo que importa es que la fila de resultado lo muestre.
+    final statement =
+        find.ancestor(of: find.text(l10n.resultPeriodLabel), matching: find.byType(Card));
+    expect(
+        find.descendant(
+            of: statement,
+            matching:
+                find.text(formatAmount(4000, currency: 'COP', locale: 'es_CO'))),
+        findsOneWidget,
+        reason: '5.000 − 1.000 = 4.000 en la única moneda del período');
+    expect(find.byType(CurrencyBreakdown), findsNothing);
+    expect(find.text(l10n.currencyRateNote), findsNothing,
+        reason: 'sin mezcla no hay conversión que avisar');
+  });
+
+  testWidgets(
+      'mezcla sin tasa: no aparece un balance global falso, '
+      'sí los totales de cada moneda', (tester) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    await mezclar(provider);
+
+    final fx = CurrencyConversionService(
+      rates:
+          CurrencyRatesService(client: MockClient((_) async => throw Exception('sin red'))),
+      prefs: () async => prefs,
+    );
+
+    await tester.pumpWidget(pantalla(provider, fx));
+    await asentar(tester);
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.resultPeriodLabel), findsNothing,
+        reason: 'no debe imprimirse un resultado global de monedas mezcladas');
+    expect(
+        find.text(formatAmount(5150, currency: 'COP', locale: 'es_CO')),
+        findsNothing,
+        reason: 'la cifra falsa 6.200 − 1.050 = 5.150 no aparece');
+    expect(find.text(l10n.currencyRateNote), findsNothing,
+        reason: 'sin tasa no se promete ningún total convertido');
+
+    expect(find.byType(CurrencyBreakdown), findsOneWidget);
+    expect(
+        find.textContaining(l10n.currencyMixedHint(2)), findsOneWidget,
+        reason: 'los totales salen separados por moneda');
+    expect(find.textContaining('COP · Peso colombiano'), findsOneWidget);
+    expect(find.textContaining('EUR · Euro'), findsOneWidget);
+    expect(
+        find.text(formatAmount(4000, currency: 'COP', locale: 'es_CO')),
+        findsOneWidget,
+        reason: 'resultado de COP: 5.000 − 1.000');
+    expect(
+        find.text(formatAmount(150, currency: 'EUR', locale: 'es_CO')),
+        findsOneWidget,
+        reason: 'resultado de EUR: 200 − 50');
+  });
+
+  testWidgets(
+      'mezcla con tasa simulada: un solo total convertido en la moneda '
+      'de Ajustes', (tester) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    await mezclar(provider);
+
+    final fx = CurrencyConversionService(
+      rates: CurrencyRatesService(
+          client: MockClient((_) async => http.Response(
+                '{"result":"success","rates":{"COP":4.0}}',
+                200,
+                headers: {'content-type': 'application/json'},
+              ))),
+      prefs: () async => prefs,
+    );
+
+    await tester.pumpWidget(pantalla(provider, fx));
+    await asentar(tester);
+
+    final l10n = stringsFor('es');
+    String money(double v) => formatAmount(v, currency: 'COP', locale: 'es_CO');
+
+    expect(find.text(l10n.resultPeriodLabel), findsOneWidget);
+    expect(
+      find.text(l10n.currencyConvertedTotal('COP', money(4600))),
+      findsOneWidget,
+      reason: 'ingresos 5.800 − gastos 1.200 = 4.600 convertidos a COP',
+    );
+    expect(find.text(l10n.currencyRateNote), findsOneWidget,
+        reason: 'avisa de que es al cambio de hoy');
+    expect(find.text(money(5800)), findsOneWidget,
+        reason: 'la línea de ingresos usa el total convertido');
+    expect(find.byType(CurrencyBreakdown), findsOneWidget,
+        reason: 'el desglose por moneda sigue como referencia');
   });
 }

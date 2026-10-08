@@ -174,7 +174,7 @@
   "helpEstablishment": "Cuánto te costó plantar este cultivo la primera vez (plantas, terreno, siembra).",
   "areaHaLabel": "Área (hectáreas)",
   "livePlantsLabel": "Plantas vivas",
-  "establishmentCostLabel": "Costo del establecimiento ($)",
+  "establishmentCostLabel": "Costo del establecimiento",
   "editCropTitle": "Editar cultivo",
   "sowingTitle": "Siembras",
   "sowingEmpty": "Aún no hay siembras registradas.",
@@ -666,9 +666,14 @@
   "converting": "Convirtiendo…",
   "rateErrorMsg": "No se pudo obtener la tasa de cambio. Verifica tu conexión e inténtalo de nuevo.",
   "@currencyChangedMsg": {
+    "description": "Se muestra al cambiar la moneda de reportes en Ajustes",
     "placeholders": { "currency": { "type": "String" } }
   },
-  "currencyChangedMsg": "Moneda cambiada a {currency}. Montos convertidos al cambio actual.",
+  "currencyChangedMsg": "Moneda de reportes cambiada a {currency}. Los montos que ya registraste siguen guardados en la moneda en que los anotaste; ahora los totales se muestran en {currency}.",
+  "currencyRateNote": "Total al cambio de hoy. Cada movimiento sigue guardado en su propia moneda.",
+  "@currencyRateNote": {
+    "description": "Aviso bajo un total convertido con la tasa de hoy"
+  },
   "settingsSavedMsg": "Configuración guardada",
 
   "noExpensesPeriod": "Sin gastos en este período.",
@@ -726,7 +731,7 @@
   "@alertNoIncomeMessage": {
     "placeholders": { "spent": { "type": "String" } }
   },
-  "alertNoIncomeMessage": "El problema: hay {spent} en gastos y $0 en ventas, así que el balance está en pérdida.",
+  "alertNoIncomeMessage": "El problema: hay {spent} en gastos y ninguna venta, así que el balance está en pérdida.",
   "alertNoIncomeSuggestion": "Cuando vendas tu cosecha, regístrala como ingreso para que el balance muestre tu ganancia real.",
   "@alertNoSalesTitle": {
     "placeholders": { "days": { "type": "int" } }

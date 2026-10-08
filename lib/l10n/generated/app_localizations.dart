@@ -1082,7 +1082,7 @@ abstract class AppLocalizations {
   /// No description provided for @establishmentCostLabel.
   ///
   /// In es, this message translates to:
-  /// **'Costo del establecimiento (\$)'**
+  /// **'Costo del establecimiento'**
   String get establishmentCostLabel;
 
   /// No description provided for @editCropTitle.
@@ -3221,11 +3221,17 @@ abstract class AppLocalizations {
   /// **'No se pudo obtener la tasa de cambio. Verifica tu conexión e inténtalo de nuevo.'**
   String get rateErrorMsg;
 
-  /// No description provided for @currencyChangedMsg.
+  /// Se muestra al cambiar la moneda de reportes en Ajustes
   ///
   /// In es, this message translates to:
-  /// **'Moneda cambiada a {currency}. Montos convertidos al cambio actual.'**
+  /// **'Moneda de reportes cambiada a {currency}. Los montos que ya registraste siguen guardados en la moneda en que los anotaste; ahora los totales se muestran en {currency}.'**
   String currencyChangedMsg(String currency);
+
+  /// Aviso bajo un total convertido con la tasa de hoy
+  ///
+  /// In es, this message translates to:
+  /// **'Total al cambio de hoy. Cada movimiento sigue guardado en su propia moneda.'**
+  String get currencyRateNote;
 
   /// No description provided for @settingsSavedMsg.
   ///
@@ -3452,7 +3458,7 @@ abstract class AppLocalizations {
   /// No description provided for @alertNoIncomeMessage.
   ///
   /// In es, this message translates to:
-  /// **'El problema: hay {spent} en gastos y \$0 en ventas, así que el balance está en pérdida.'**
+  /// **'El problema: hay {spent} en gastos y ninguna venta, así que el balance está en pérdida.'**
   String alertNoIncomeMessage(String spent);
 
   /// No description provided for @alertNoIncomeSuggestion.

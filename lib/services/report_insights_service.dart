@@ -35,6 +35,9 @@ class ReportInsightsService {
   /// - [yearRecords] todos los registros del año (para comparar meses).
   /// - [now] fecha de referencia para la ventana de 30 días.
   /// - [money] formatea un monto según la moneda activa de la app.
+  /// - [mixedTotals] el período toca más de una moneda: entonces **no** se
+  ///   emite la conclusión de balance, porque sumaría monedas distintas y
+  ///   el número sería falso. Nunca se inventa una cifra.
   List<ReportInsight> build({
     required DateTime now,
     required List<Transaction> current,
@@ -45,6 +48,7 @@ class ReportInsightsService {
     List<Crop> crops = const [],
     required AppLocalizations l10n,
     required String Function(double) money,
+    bool mixedTotals = false,
   }) {
     final insights = <ReportInsight>[];
     final currentYear = yearRecords.where((t) => t.date.year == year).toList();
@@ -57,7 +61,9 @@ class ReportInsightsService {
       return insights;
     }
 
-    _balance(current, previousMonth, month, l10n, money, insights);
+    if (!mixedTotals) {
+      _balance(current, previousMonth, month, l10n, money, insights);
+    }
     _topExpense(current, l10n, money, insights, crops);
     _sales(current, currentYear, now, l10n, money, insights, crops);
     _bestMonth(month, currentYear, l10n, money, insights);

@@ -174,7 +174,7 @@
   "helpEstablishment": "How much it cost to plant this crop the first time (plants, land, planting).",
   "areaHaLabel": "Area (hectares)",
   "livePlantsLabel": "Live plants",
-  "establishmentCostLabel": "Establishment cost ($)",
+  "establishmentCostLabel": "Establishment cost",
   "editCropTitle": "Edit crop",
   "sowingTitle": "Plantings",
   "sowingEmpty": "No plantings recorded yet.",
@@ -611,7 +611,15 @@
   "saveButton": "Save",
   "converting": "Converting…",
   "rateErrorMsg": "Could not get the exchange rate. Check your connection and try again.",
-  "currencyChangedMsg": "Currency changed to {currency}. Amounts converted at the current rate.",
+  "@currencyChangedMsg": {
+    "description": "Shown when the report currency is changed in Settings",
+    "placeholders": { "currency": { "type": "String" } }
+  },
+  "currencyChangedMsg": "Report currency changed to {currency}. Amounts you already saved stay in the currency you recorded them in; totals are now shown in {currency}.",
+  "currencyRateNote": "Total at today's rate. Each entry stays in its own currency.",
+  "@currencyRateNote": {
+    "description": "Note under a total converted at today's rate"
+  },
   "settingsSavedMsg": "Settings saved",
 
   "noExpensesPeriod": "No expenses in this period.",
@@ -653,7 +661,7 @@
   "alertExcessMessage": "The problem: this month you have {current} in {category}, versus an average of {avg} per month.",
   "alertExcessSuggestion": "Check what caused the increase. If it was a large one-off expense, record it in parts so it does not distort your averages.",
   "alertNoIncomeTitle": "Expenses recorded, but zero sales",
-  "alertNoIncomeMessage": "The problem: there are {spent} in expenses and $0 in sales, so the balance is at a loss.",
+  "alertNoIncomeMessage": "The problem: there are {spent} in expenses and no sales, so the balance is at a loss.",
   "alertNoIncomeSuggestion": "When you sell your harvest, record it as income so the balance shows your real profit.",
   "alertNoSalesTitle": "No sales recorded for {days} days",
   "alertNoSalesMessage": "The problem: you have not sold since {date}. Your income has been stagnant since then.",

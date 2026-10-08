@@ -503,7 +503,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get livePlantsLabel => 'Plantas vivas';
 
   @override
-  String get establishmentCostLabel => 'Costo del establecimiento (\$)';
+  String get establishmentCostLabel => 'Costo del establecimiento';
 
   @override
   String get editCropTitle => 'Editar cultivo';
@@ -1651,8 +1651,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String currencyChangedMsg(String currency) {
-    return 'Moneda cambiada a $currency. Montos convertidos al cambio actual.';
+    return 'Moneda de reportes cambiada a $currency. Los montos que ya registraste siguen guardados en la moneda en que los anotaste; ahora los totales se muestran en $currency.';
   }
+
+  @override
+  String get currencyRateNote => 'Total al cambio de hoy. Cada movimiento sigue guardado en su propia moneda.';
 
   @override
   String get settingsSavedMsg => 'Configuración guardada';
@@ -1803,7 +1806,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String alertNoIncomeMessage(String spent) {
-    return 'El problema: hay $spent en gastos y \$0 en ventas, así que el balance está en pérdida.';
+    return 'El problema: hay $spent en gastos y ninguna venta, así que el balance está en pérdida.';
   }
 
   @override
