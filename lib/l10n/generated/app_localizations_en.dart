@@ -323,7 +323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPaybackTitle => 'How is the establishment investment recovered?';
 
   @override
-  String get helpPaybackIntro => 'When editing a crop you can record the Establishment cost: what you invested in planting and raising the crop (seedlings, labor, initial fertilization…).';
+  String get helpPaybackIntro => 'When editing a crop you can record the Total investment: what you invested in planting and raising the crop (seedlings, labor, initial fertilization…).';
 
   @override
   String get helpPaybackTitlePercent => '% recovered';
@@ -494,7 +494,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPlants => 'How many plants of this crop do you have. Approximate if unsure.';
 
   @override
-  String get helpEstablishment => 'How much it cost to plant this crop the first time (plants, land, planting).';
+  String get helpEstablishment => 'What you invested to get this crop ready. Used to know when it pays off. If you leave it empty, the app sums it from your initial planting expenses (excluding replanting).';
 
   @override
   String get areaHaLabel => 'Area (hectares)';
@@ -503,7 +503,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get livePlantsLabel => 'Live plants';
 
   @override
-  String get establishmentCostLabel => 'Establishment cost';
+  String get establishmentCostLabel => 'Total investment';
+
+  @override
+  String get cropLockedHint => 'Calculated from your sowings';
+
+  @override
+  String get cropLossRegister => 'Record loss';
+
+  @override
+  String cropLossCurrent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plants',
+      one: '$count plant',
+    );
+    return 'Right now the app calculates $_temp0';
+  }
+
+  @override
+  String get cropLossRemainingLabel => 'Plants remaining';
+
+  @override
+  String get cropLossRemainingHelp => 'Count the ones you see in the field and enter the total.';
+
+  @override
+  String get cropLossInvalid => 'Enter a valid number of plants.';
+
+  @override
+  String get cropLossNoChange => 'That is the number already there: nothing changes.';
+
+  @override
+  String cropLossPreviewDied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plants lost',
+      one: '$count plant lost',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cropLossPreviewAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count extra plants',
+      one: '$count extra plant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cropLossSaved => 'Loss recorded';
 
   @override
   String get editCropTitle => 'Edit crop';
@@ -554,7 +608,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingCostLabel => 'Cost (optional)';
 
   @override
-  String get sowingCostHint => 'If you record a cost, a linked expense is created for this planting.';
+  String get sowingCostHint => 'If you record a cost, a linked expense is created for this planting or replanting.';
+
+  @override
+  String get sowingCostInvalid => 'Enter a valid cost (numbers only).';
 
   @override
   String get helpUnitShort => 'Unit you harvest or sell this crop in.';
@@ -578,7 +635,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPlantsShort => 'Approximate';
 
   @override
-  String get helpEstablishmentShort => 'Initial cost';
+  String get helpEstablishmentShort => 'Filled from your planting expenses';
 
   @override
   String get helpSowingPlantsShort => 'Approximate';
@@ -594,6 +651,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plantsInvalid => 'Enter a valid number of plants';
+
+  @override
+  String get sowingPlantsOrLost => 'Enter the plants you sowed or the ones that died.';
 
   @override
   String get sowingRecordSaved => 'Planting saved';

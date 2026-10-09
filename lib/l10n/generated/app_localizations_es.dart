@@ -323,7 +323,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpPaybackTitle => '¿Cómo sé cuándo recupero lo invertido?';
 
   @override
-  String get helpPaybackIntro => 'Cuando editas un cultivo puedes poner el Costo del establecimiento: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cuánto ya recuperaste.';
+  String get helpPaybackIntro => 'Cuando editas un cultivo puedes poner la Inversión total: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cuánto ya recuperaste.';
 
   @override
   String get helpPaybackTitlePercent => '% recuperado';
@@ -494,7 +494,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpPlants => 'Cuántas plantas tenés de este cultivo. Si no sabés exacto, aproximá.';
 
   @override
-  String get helpEstablishment => 'Cuánto te costó plantar este cultivo la primera vez (plantas, terreno, siembra).';
+  String get helpEstablishment => 'Lo que invertiste en dejar este cultivo listo. Sirve para saber cuándo se paga. Si lo dejas vacío, la app lo suma de tus gastos de siembra inicial (sin resiembras).';
 
   @override
   String get areaHaLabel => 'Área (hectáreas)';
@@ -503,7 +503,61 @@ class AppLocalizationsEs extends AppLocalizations {
   String get livePlantsLabel => 'Plantas vivas';
 
   @override
-  String get establishmentCostLabel => 'Costo del establecimiento';
+  String get establishmentCostLabel => 'Inversión total';
+
+  @override
+  String get cropLockedHint => 'Calculado desde tus siembras';
+
+  @override
+  String get cropLossRegister => 'Registrar pérdida';
+
+  @override
+  String cropLossCurrent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plantas',
+      one: '$count planta',
+    );
+    return 'Hoy la app calcula $_temp0';
+  }
+
+  @override
+  String get cropLossRemainingLabel => 'Plantas que quedan';
+
+  @override
+  String get cropLossRemainingHelp => 'Cuenta las que ves en la finca y anota el total.';
+
+  @override
+  String get cropLossInvalid => 'Ingresa un número de plantas válido.';
+
+  @override
+  String get cropLossNoChange => 'Ese es el número que ya estaba: no cambia nada.';
+
+  @override
+  String cropLossPreviewDied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plantas perdidas',
+      one: '$count planta perdida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cropLossPreviewAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plantas más',
+      one: '$count planta más',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cropLossSaved => 'Pérdida registrada';
 
   @override
   String get editCropTitle => 'Editar cultivo';
@@ -554,7 +608,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingCostLabel => 'Costo (opcional)';
 
   @override
-  String get sowingCostHint => 'Si registras un costo, se crea un gasto vinculado a esta siembra.';
+  String get sowingCostHint => 'Si registras un costo, se crea un gasto vinculado a esta siembra o resiembra.';
+
+  @override
+  String get sowingCostInvalid => 'Ingresa un costo válido (solo números).';
 
   @override
   String get helpUnitShort => 'Unidad con la que cosechás o vendés este cultivo.';
@@ -578,7 +635,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpPlantsShort => 'Aproximado';
 
   @override
-  String get helpEstablishmentShort => 'Costo inicial';
+  String get helpEstablishmentShort => 'Se rellena con tus gastos de siembra';
 
   @override
   String get helpSowingPlantsShort => 'Aproximado';
@@ -594,6 +651,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plantsInvalid => 'Ingresa un número de plantas válido';
+
+  @override
+  String get sowingPlantsOrLost => 'Pon las plantas que sembraste o las que se te murieron.';
 
   @override
   String get sowingRecordSaved => 'Siembra guardada';

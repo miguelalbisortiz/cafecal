@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/harvest.dart';
+import 'package:mi_cafetal/models/sowing.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/local_store.dart';
@@ -528,6 +529,126 @@ void main() {
       expect(gastos.first.harvestId, isNull,
           reason: 'B4: solo pierde el vínculo con la cosecha borrada');
       expect(provider.totalExpenses(year: 2026), 50000);
+    });
+  });
+
+  group('F3 — Inversión total', () {
+    Future<TransactionProvider> newProvider() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      return TransactionProvider(LocalStore(prefs));
+    }
+
+    test('suma los gastos de siembra inicial del cultivo', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final s = await provider.addSowing(
+          cropId: crop.id, date: DateTime(2026, 3, 1), plants: 500);
+
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 300000,
+          cropId: crop.id,
+          sowingId: s.id);
+      // Un gasto de siembra a mano, sin siembra que lo respalde, también
+      // cuenta: es plata que salió para plantar.
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 200000,
+          cropId: crop.id);
+
+      expect(provider.initialSowingCost(crop.id), 500000);
+    });
+
+    test('las resiembras no son inversión de establecimiento', () async {
+      // Son recambio de plantas muertas, no dejar el cultivo listo. Sí
+      // cuentan para el costo por kilo, pero aquí se apartan.
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final inicial = await provider.addSowing(
+          cropId: crop.id, date: DateTime(2026, 3, 1), plants: 500);
+      final recambio = await provider.addSowing(
+          cropId: crop.id,
+          date: DateTime(2026, 5, 1),
+          kind: SowingKind.resiembra,
+          plants: 40,
+          lostPlants: 40);
+
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 300000,
+          cropId: crop.id,
+          sowingId: inicial.id);
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 100000,
+          cropId: crop.id,
+          sowingId: recambio.id);
+
+      expect(provider.initialSowingCost(crop.id), 300000);
+    });
+
+    test('sin gastos devuelve null, nunca 0', () async {
+      // Regla de oro: null → oculto, nunca 0. Un 0 pintaría "ya te pagaste"
+      // cuando en realidad no se anotó nada.
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      expect(provider.initialSowingCost(crop.id), isNull);
+    });
+
+    test('los gastos de otro cultivo no se cuelan', () async {
+      final provider = await newProvider();
+      final cafe = await provider.addCrop('Café');
+      final platano = await provider.addCrop('Plátano');
+
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 300000,
+          cropId: cafe.id);
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 70000,
+          cropId: platano.id);
+
+      expect(provider.initialSowingCost(cafe.id), 300000);
+      expect(provider.initialSowingCost(platano.id), 70000);
+    });
+
+    test('los gastos borrados no cuentan', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final viva = await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 300000,
+          cropId: crop.id);
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: kExpenseCategorySowing,
+          amount: 999999,
+          cropId: crop.id);
+      await provider.deleteTransaction(viva.id);
+
+      expect(provider.initialSowingCost(crop.id), 999999);
+    });
+
+    test('un gasto que no es de siembra no entra en la inversión', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      await provider.addTransaction(
+          type: TransactionType.expense,
+          category: 'fertilizante',
+          amount: 80000,
+          cropId: crop.id);
+
+      expect(provider.initialSowingCost(crop.id), isNull,
+          reason: 'abonar el mes siguiente no es dejarlo listo');
     });
   });
 }

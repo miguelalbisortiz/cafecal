@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/currencies.dart';
+import 'crop_loss_dialog.dart';
 
 /// Editor de cultivo (crear y editar). Permite configurar fase/ciclo, unidad
 /// preferida, área y plantas vivas. Al confirmar devuelve los valores editados.
@@ -10,7 +11,25 @@ class CropEditorDialog extends StatefulWidget {
   final Crop? crop;
   final List<String> existingNames;
 
-  const CropEditorDialog({super.key, this.crop, required this.existingNames});
+  /// F3 · Suma sugerida de los gastos de siembra inicial del cultivo.
+  ///
+  /// Solo se usa si el campo de *Inversión total* viene vacío, y queda
+  /// editable por si falta algo que no nació de un gasto de siembra
+  /// (preparación de tierra, cercas, mano de obra).
+  final double? suggestedEstablishmentCost;
+
+  /// F4 · true cuando el número de plantas y el área **no los escribe** él:
+  /// salen de las siembras, y cualquier cosa tecleada aquí se pierde en la
+  /// próxima siembra. En ese caso los dos campos quedan en solo lectura.
+  final bool sowingsLocked;
+
+  const CropEditorDialog({
+    super.key,
+    this.crop,
+    required this.existingNames,
+    this.suggestedEstablishmentCost,
+    this.sowingsLocked = false,
+  });
 
   @override
   State<CropEditorDialog> createState() => _CropEditorDialogState();
@@ -49,9 +68,36 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       if (c.areaHa != null) _areaController.text = c.areaHa.toString();
       if (c.livePlants != null) _plantsController.text = c.livePlants.toString();
       if (c.establishmentCost != null) {
-        _establishmentController.text = c.establishmentCost.toString();
+        _establishmentController.text = _importe(c.establishmentCost!);
       }
     }
+    // F3: si no había inversión anotada, se propone la suma de los gastos de
+    // siembra inicial. Nunca pisa lo que el productor ya puso a mano.
+    if (_establishmentController.text.isEmpty &&
+        widget.suggestedEstablishmentCost != null) {
+      _establishmentController.text =
+          _importe(widget.suggestedEstablishmentCost!);
+    }
+  }
+
+  /// Importe para el campo, sin el ".0" que sueltan los doubles.
+  static String _importe(double v) =>
+      v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
+  /// F4 · Puerta de salida del bloqueo: el productor anota cuántas plantas
+  /// quedan y la app escribe la resiembra que corresponda (0 plantas nuevas
+  /// si hay mortandad). Al volver se refresca el contador en solo lectura.
+  Future<void> _registerLoss() async {
+    final crop = widget.crop;
+    final actuales = crop?.livePlants;
+    if (crop == null || actuales == null) return;
+
+    final nuevo = await showDialog<int>(
+      context: context,
+      builder: (_) => CropLossDialog(crop: crop, currentPlants: actuales),
+    );
+    if (nuevo == null || !mounted) return;
+    setState(() => _plantsController.text = nuevo.toString());
   }
 
   @override
@@ -233,11 +279,15 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
             const SizedBox(height: 12),
             TextField(
               controller: _areaController,
+              // F4: el área la fija la siembra inicial; escribirla aquí no
+              // tendría efecto, así que se muestra y no se toca.
+              enabled: !widget.sowingsLocked,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: l10n.areaHaLabel,
-                helperText: l10n.helpAreaShort,
+                helperText:
+                    widget.sowingsLocked ? l10n.cropLockedHint : l10n.helpAreaShort,
                 prefixIcon: const Icon(Icons.square_foot_outlined),
                 suffixIcon: Tooltip(
                   message: l10n.helpArea,
@@ -249,10 +299,13 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
             const SizedBox(height: 12),
             TextField(
               controller: _plantsController,
+              // F4: las plantas vivas se recalculan con cada siembra.
+              enabled: !widget.sowingsLocked,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: l10n.livePlantsLabel,
-                helperText: l10n.helpPlantsShort,
+                helperText:
+                    widget.sowingsLocked ? l10n.cropLockedHint : l10n.helpPlantsShort,
                 prefixIcon: const Icon(Icons.park_outlined),
                 suffixIcon: Tooltip(
                   message: l10n.helpPlants,
@@ -261,6 +314,19 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            // F4: el contador ya no lo escribe él, pero no se queda sin
+            // salida — aquí anota cuántas plantas quedan.
+            if (widget.sowingsLocked && widget.crop?.livePlants != null) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _registerLoss,
+                  icon: const Icon(Icons.trending_down, size: 18),
+                  label: Text(l10n.cropLossRegister),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             TextField(
               controller: _establishmentController,

@@ -722,7 +722,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPaybackIntro.
   ///
   /// In es, this message translates to:
-  /// **'Cuando editas un cultivo puedes poner el Costo del establecimiento: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cuánto ya recuperaste.'**
+  /// **'Cuando editas un cultivo puedes poner la Inversión total: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cuánto ya recuperaste.'**
   String get helpPaybackIntro;
 
   /// No description provided for @helpPaybackTitlePercent.
@@ -1064,7 +1064,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpEstablishment.
   ///
   /// In es, this message translates to:
-  /// **'Cuánto te costó plantar este cultivo la primera vez (plantas, terreno, siembra).'**
+  /// **'Lo que invertiste en dejar este cultivo listo. Sirve para saber cuándo se paga. Si lo dejas vacío, la app lo suma de tus gastos de siembra inicial (sin resiembras).'**
   String get helpEstablishment;
 
   /// No description provided for @areaHaLabel.
@@ -1082,8 +1082,68 @@ abstract class AppLocalizations {
   /// No description provided for @establishmentCostLabel.
   ///
   /// In es, this message translates to:
-  /// **'Costo del establecimiento'**
+  /// **'Inversión total'**
   String get establishmentCostLabel;
+
+  /// No description provided for @cropLockedHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Calculado desde tus siembras'**
+  String get cropLockedHint;
+
+  /// No description provided for @cropLossRegister.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar pérdida'**
+  String get cropLossRegister;
+
+  /// Plantas que la app calcula para este cultivo antes de registrar la pérdida
+  ///
+  /// In es, this message translates to:
+  /// **'Hoy la app calcula {count, plural, one{{count} planta} other{{count} plantas}}'**
+  String cropLossCurrent(int count);
+
+  /// No description provided for @cropLossRemainingLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Plantas que quedan'**
+  String get cropLossRemainingLabel;
+
+  /// No description provided for @cropLossRemainingHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta las que ves en la finca y anota el total.'**
+  String get cropLossRemainingHelp;
+
+  /// No description provided for @cropLossInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un número de plantas válido.'**
+  String get cropLossInvalid;
+
+  /// No description provided for @cropLossNoChange.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese es el número que ya estaba: no cambia nada.'**
+  String get cropLossNoChange;
+
+  /// Plantas muertas que quedan registradas tras el ajuste
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} planta perdida} other{{count} plantas perdidas}}'**
+  String cropLossPreviewDied(int count);
+
+  /// Plantas de más en el recuento frente a lo que la app calculaba
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} planta más} other{{count} plantas más}}'**
+  String cropLossPreviewAdded(int count);
+
+  /// No description provided for @cropLossSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Pérdida registrada'**
+  String get cropLossSaved;
 
   /// No description provided for @editCropTitle.
   ///
@@ -1184,8 +1244,14 @@ abstract class AppLocalizations {
   /// No description provided for @sowingCostHint.
   ///
   /// In es, this message translates to:
-  /// **'Si registras un costo, se crea un gasto vinculado a esta siembra.'**
+  /// **'Si registras un costo, se crea un gasto vinculado a esta siembra o resiembra.'**
   String get sowingCostHint;
+
+  /// No description provided for @sowingCostInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un costo válido (solo números).'**
+  String get sowingCostInvalid;
 
   /// No description provided for @helpUnitShort.
   ///
@@ -1232,7 +1298,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpEstablishmentShort.
   ///
   /// In es, this message translates to:
-  /// **'Costo inicial'**
+  /// **'Se rellena con tus gastos de siembra'**
   String get helpEstablishmentShort;
 
   /// No description provided for @helpSowingPlantsShort.
@@ -1264,6 +1330,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingresa un número de plantas válido'**
   String get plantsInvalid;
+
+  /// No description provided for @sowingPlantsOrLost.
+  ///
+  /// In es, this message translates to:
+  /// **'Pon las plantas que sembraste o las que se te murieron.'**
+  String get sowingPlantsOrLost;
 
   /// No description provided for @sowingRecordSaved.
   ///

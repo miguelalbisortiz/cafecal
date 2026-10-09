@@ -303,6 +303,38 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// F3 · Suma de los gastos de siembra **iniciales** de [cropId], sin las
+  /// resiembras.
+  ///
+  /// Es el número con el que se auto-rellena *Inversión total* en el editor de
+  /// cultivo cuando el campo viene vacío: el productor no tiene que escribir
+  /// dos veces lo mismo. Las resiembras quedan fuera a propósito — son
+  /// recambio, no dejar el cultivo listo — aunque sí cuentan para el costo
+  /// por kilo.
+  ///
+  /// Devuelve `null` si no hay ningún gasto: `null` → oculto, nunca 0.
+  double? initialSowingCost(String cropId) {
+    // Tipo de cada siembra del cultivo, para poder apartar las resiembras.
+    final kindBySowingId = <String, SowingKind>{
+      for (final s in _sowings)
+        if (s.cropId == cropId) s.id: s.kind,
+    };
+    double? sum;
+    for (final t in _transactions) {
+      if (t.deleted || t.type != TransactionType.expense) continue;
+      if (t.cropId != cropId) continue;
+      // Es gasto de siembra por categoría o por traer su sowingId: los mismos
+      // dos caminos que `report_harvest_metrics` cuenta para el costo por kilo.
+      if (t.category != kExpenseCategorySowing && t.sowingId == null) continue;
+      if (t.sowingId != null &&
+          kindBySowingId[t.sowingId] == SowingKind.resiembra) {
+        continue;
+      }
+      sum = (sum ?? 0) + t.amount;
+    }
+    return sum;
+  }
+
   Future<void> deleteCrop(String id) async {
     // Antes de nada: los ids de las siembras y cosechas que se van a borrar.
     // Los movimientos guardan harvest_id/sowing_id, y si quedaran apuntando a

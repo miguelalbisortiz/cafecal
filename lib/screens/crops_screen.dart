@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
+import '../models/sowing.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/crop_editor_dialog.dart';
 
@@ -100,6 +101,8 @@ class CropsScreen extends StatelessWidget {
       builder: (_) => CropEditorDialog(
         crop: crop,
         existingNames: tx.crops.map((c) => c.name).toList(),
+        suggestedEstablishmentCost: tx.initialSowingCost(crop.id),
+        sowingsLocked: _hasInitialSowing(tx, crop),
       ),
     );
     if (form == null || !context.mounted) return;
@@ -147,6 +150,12 @@ class CropsScreen extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
     await tx.deleteCrop(crop.id);
   }
+
+  /// F4 · true cuando el contador de plantas ya no lo escribe el usuario:
+  /// sale de las siembras, así que lo tecleado en el editor se perdería en la
+  /// próxima. Solo la siembra inicial fija el número (una resiembra lo mueve).
+  static bool _hasInitialSowing(TransactionProvider tx, Crop crop) => tx.sowings
+      .any((s) => s.cropId == crop.id && s.kind == SowingKind.siembra);
 
   /// Formato corto de hectáreas en lenguaje llano: `0,4 ha`, `2 ha`.
   static String _ha(TransactionProvider tx, double v) =>

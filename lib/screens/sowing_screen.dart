@@ -350,23 +350,25 @@ class _SowingFormState extends State<_SowingForm> {
       }
     }
 
-    // Costo opcional: solo siembra inicial con costo > 0 → crea gasto vinculado.
-    if (_kind == SowingKind.siembra) {
-      final costText = _costController.text.trim().replaceAll(',', '.');
-      final cost = costText.isEmpty ? null : double.tryParse(costText);
-      if (cost != null && cost > 0) {
-        final cropName = _cropNames[_cropId]?.trim() ?? '';
-        await tx.addTransaction(
-          type: TransactionType.expense,
-          category: kExpenseCategorySowing,
-          cropId: _cropId,
-          amount: cost,
-          description:
-              cropName.isEmpty ? l10n.sowingTitle : '${l10n.sowingTitle} · $cropName',
-          date: _date,
-          sowingId: sowingId,
-        );
-      }
+    // Costo opcional con costo > 0 → crea gasto vinculado a la siembra o a
+    // la resiembra (F2). Entra al costo por kilo, porque report_harvest_metrics
+    // suma los gastos que traen sowingId; en cambio NO cuenta para la
+    // "Inversión total" del cultivo (F3), que sigue sumando solo siembras
+    // iniciales.
+    final costText = _costController.text.trim().replaceAll(',', '.');
+    final cost = costText.isEmpty ? null : double.tryParse(costText);
+    if (cost != null && cost > 0) {
+      final cropName = _cropNames[_cropId]?.trim() ?? '';
+      await tx.addTransaction(
+        type: TransactionType.expense,
+        category: kExpenseCategorySowing,
+        cropId: _cropId,
+        amount: cost,
+        description:
+            cropName.isEmpty ? l10n.sowingTitle : '${l10n.sowingTitle} · $cropName',
+        date: _date,
+        sowingId: sowingId,
+      );
     }
 
     if (!mounted) return;
@@ -459,8 +461,20 @@ class _SowingFormState extends State<_SowingForm> {
                   border: const OutlineInputBorder(),
                 ),
                 validator: (v) {
-                  final n = int.tryParse((v ?? '').trim());
-                  if (n == null || n <= 0) return l10n.plantsInvalid;
+                  final raw = (v ?? '').trim();
+                  final n = raw.isEmpty ? 0 : int.tryParse(raw);
+                  if (n == null || n < 0) return l10n.plantsInvalid;
+                  if (!isResiembra) {
+                    // La siembra inicial sí exige plantar algo.
+                    if (n == 0) return l10n.plantsInvalid;
+                    return null;
+                  }
+                  // F4: la mortandad se registra aunque no se repongan
+                  // plantas (hoy estaba prohibido y la pérdida se perdía).
+                  // Aun así hay que decirnos algo: o siembras o mueren.
+                  final perdidas =
+                      int.tryParse(_lostController.text.trim()) ?? 0;
+                  if (n == 0 && perdidas <= 0) return l10n.sowingPlantsOrLost;
                   return null;
                 },
               ),
@@ -479,6 +493,15 @@ class _SowingFormState extends State<_SowingForm> {
                     ),
                     border: const OutlineInputBorder(),
                   ),
+                  validator: (v) {
+                    final raw = (v ?? '').trim();
+                    if (raw.isEmpty) return null;
+                    final n = int.tryParse(raw);
+                    // Se reutiliza el mensaje de plantas: es el mismo tipo
+                    // de dato y así no hace falta otra clave.
+                    if (n == null || n < 0) return l10n.plantsInvalid;
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -528,23 +551,32 @@ class _SowingFormState extends State<_SowingForm> {
                     border: const OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _costController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: l10n.sowingCostLabel,
-                    helperText: l10n.sowingCostHintShort,
-                    prefixIcon: const Icon(Icons.attach_money),
-                    suffixIcon: Tooltip(
-                      message: l10n.sowingCostHint,
-                      child: const Icon(Icons.info_outline, size: 20),
-                    ),
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
               ],
+              // F2: el costo va en la siembra y también en la resiembra —
+              // el recambio de plátano o un cafetal renovado también cuesta.
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _costController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (v) {
+                  final t = (v ?? '').trim().replaceAll(',', '.');
+                  if (t.isEmpty) return null;
+                  final n = double.tryParse(t);
+                  if (n == null || n < 0) return l10n.sowingCostInvalid;
+                  return null;
+                },
+                decoration: InputDecoration(
+                  labelText: l10n.sowingCostLabel,
+                  helperText: l10n.sowingCostHintShort,
+                  prefixIcon: const Icon(Icons.attach_money),
+                  suffixIcon: Tooltip(
+                    message: l10n.sowingCostHint,
+                    child: const Icon(Icons.info_outline, size: 20),
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
             ],
           ),
         ),

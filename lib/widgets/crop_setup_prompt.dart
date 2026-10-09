@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
+import '../models/sowing.dart';
 import '../providers/transaction_provider.dart';
 import 'crop_editor_dialog.dart';
 
@@ -79,6 +80,9 @@ class CropSetupPrompt {
       builder: (_) => CropEditorDialog(
         crop: crop,
         existingNames: tx.crops.map((c) => c.name).toList(),
+        suggestedEstablishmentCost: tx.initialSowingCost(crop.id),
+        sowingsLocked: tx.sowings
+            .any((s) => s.cropId == crop.id && s.kind == SowingKind.siembra),
       ),
     );
     if (form == null || !context.mounted) return;

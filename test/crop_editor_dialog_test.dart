@@ -39,6 +39,43 @@ void main() {
     return holder;
   }
 
+  /// Abre el editor con [crop] y la sugerencia de *Inversión total* (F3).
+  Future<_Holder> openCon(
+    WidgetTester tester, {
+    required Crop crop,
+    double? sugerencia,
+    List<String> existentes = const [],
+  }) async {
+    final holder = _Holder();
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: FilledButton(
+              onPressed: () async {
+                holder.value = await showDialog<CropFormData>(
+                  context: context,
+                  builder: (_) => CropEditorDialog(
+                    crop: crop,
+                    existingNames: existentes,
+                    suggestedEstablishmentCost: sugerencia,
+                  ),
+                );
+              },
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    return holder;
+  }
+
   testWidgets('el campo de costo del establecimiento es opcional', (tester) async {
     tester.view.physicalSize = const Size(900, 2200);
     tester.view.devicePixelRatio = 1.0;
@@ -278,5 +315,74 @@ void main() {
     expect(holder.value!.cycle, CropCycle.anual);
     expect(holder.value!.phase, CropPhase.produccion,
         reason: 'el invariante anual -> producción se aplica al guardar');
+  });
+
+  testWidgets('F3: se auto-rellena con la suma de los gastos de siembra',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(id: 'c1', name: 'Café'),
+        existentes: ['Café'],
+        sugerencia: 450000);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    final campo = find.byType(TextField).at(3);
+    expect(tester.widget<TextField>(campo).controller!.text, '450000',
+        reason: 'él no tiene que escribir dos veces la misma plata');
+
+    // Sigue editable: si falta preparación de tierra o cercas, lo cambia.
+    await tester.enterText(campo, '500000');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.establishmentCost, 500000,
+        reason: 'lo que él escriba manda sobre la sugerencia');
+  });
+
+  testWidgets('F3: nunca pisa la inversión que ya estaba anotada',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(id: 'c1', name: 'Café', establishmentCost: 999.0),
+        existentes: ['Café'],
+        sugerencia: 450000);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    final campo = find.byType(TextField).at(3);
+    expect(tester.widget<TextField>(campo).controller!.text, '999',
+        reason: 'la sugerencia solo entra si el campo viene vacío');
+
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+    expect(holder.value!.establishmentCost, 999.0);
+  });
+
+  testWidgets('F3: sin sugerencia ni inversión anotada el campo queda vacío, '
+      'nunca en 0', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(id: 'c1', name: 'Café'),
+        existentes: ['Café']);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    final campo = find.byType(TextField).at(3);
+    expect(tester.widget<TextField>(campo).controller!.text, isEmpty,
+        reason: 'regla de oro: null → oculto, nunca 0');
+
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+    expect(holder.value!.establishmentCost, isNull);
   });
 }
