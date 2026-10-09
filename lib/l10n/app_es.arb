@@ -268,6 +268,18 @@
   "harvestEquivalentKgLabel": "¿Cuántos kilos hacen?",
   "harvestEquivalentKgHint": "Opcional. Peso total de los racimos recolectados.",
   "harvestEquivalentKgInvalid": "Ingresa un número mayor que 0.",
+  "@harvestPriceLabel": {
+    "description": "Precio por unidad de la cosecha; la unidad va al final",
+    "placeholders": { "unit": { "type": "String" } }
+  },
+  "harvestPriceLabel": "Precio por {unit}",
+  "harvestPriceHint": "Si ya te pagaron, anótalo aquí y la app registra la venta sola. Déjalo vacío si aún no cobras.",
+  "harvestPriceInvalid": "Ingresa un precio válido (solo números).",
+  "@harvestSalePreview": {
+    "description": "Importe que se registrará como venta al guardar la cosecha",
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "harvestSalePreview": "Se registra la venta: {amount}",
 
   "reportPayrollSection": "Nómina del período",
   "reportPayrollWorker": "Trabajador",

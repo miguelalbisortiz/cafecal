@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/harvest.dart';
+import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../utils/format.dart';
 
 class HarvestScreen extends StatelessWidget {
   const HarvestScreen({super.key});
@@ -50,6 +52,7 @@ class HarvestScreen extends StatelessWidget {
         crops: crops,
         cropById: cropById,
         editing: editing,
+        linkedSale: editing == null ? null : _linkedSale(tx, editing),
       ),
     );
     if (result != true || !context.mounted) return;
@@ -59,6 +62,20 @@ class HarvestScreen extends StatelessWidget {
           : AppLocalizations.of(context)!.harvestRecordUpdated),
       duration: const Duration(seconds: 1),
     ));
+  }
+
+  /// F1 · Venta que la app creó a partir de esta cosecha, si existe. Sirve
+  /// para precargar el precio al editar; si el productor cambió el importe en
+  /// Movimientos, el precio por unidad manda y se reajusta el total.
+  static Transaction? _linkedSale(TransactionProvider tx, Harvest h) {
+    for (final t in tx.transactions) {
+      if (!t.deleted &&
+          t.type == TransactionType.income &&
+          t.harvestId == h.id) {
+        return t;
+      }
+    }
+    return null;
   }
 
   Widget _row(BuildContext context, TransactionProvider tx, Harvest h,
@@ -145,10 +162,14 @@ class _HarvestForm extends StatefulWidget {
   final Map<String, Crop> cropById;
   final Harvest? editing;
 
+  /// Venta que la app ligó a esta cosecha (F1), si ya existe.
+  final Transaction? linkedSale;
+
   const _HarvestForm({
     required this.crops,
     required this.cropById,
     this.editing,
+    this.linkedSale,
   });
 
   @override
@@ -160,6 +181,9 @@ class _HarvestFormState extends State<_HarvestForm> {
   final _amountController = TextEditingController();
   final _workersController = TextEditingController();
   final _equivalentKgController = TextEditingController();
+
+  /// F1 · Precio por unidad con el que el productor vendió esta cosecha.
+  final _priceController = TextEditingController();
 
   String? _cropId;
   DateTime _date = DateTime.now();
@@ -183,6 +207,12 @@ class _HarvestFormState extends State<_HarvestForm> {
         _equivalentKgController.text =
             eq % 1 == 0 ? eq.toInt().toString() : eq.toString();
       }
+      // F1: precargamos el precio de la venta que ya creó la app.
+      final price = widget.linkedSale?.pricePerUnit;
+      if (price != null) {
+        _priceController.text =
+            price % 1 == 0 ? price.toInt().toString() : price.toString();
+      }
     } else if (widget.crops.isNotEmpty) {
       _cropId = widget.crops.first.id;
       final defUnit = widget.crops.first.defaultUnit;
@@ -195,6 +225,7 @@ class _HarvestFormState extends State<_HarvestForm> {
     _amountController.dispose();
     _workersController.dispose();
     _equivalentKgController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -206,6 +237,28 @@ class _HarvestFormState extends State<_HarvestForm> {
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (picked != null) setState(() => _date = picked);
+  }
+
+  /// Precio escrito, ya normalizado. Vacío o inválido → null.
+  double? _parsedPrice() {
+    final t = _priceController.text.trim().replaceAll(',', '.');
+    if (t.isEmpty) return null;
+    final n = double.tryParse(t);
+    return (n == null || n <= 0) ? null : n;
+  }
+
+  /// Vista previa de la venta que se registrará al guardar, o null si no hay
+  /// con qué calcularla. Se recalcula al escribir cantidad o precio.
+  String? _salePreview(BuildContext context, AppLocalizations l10n) {
+    final price = _parsedPrice();
+    if (price == null) return null;
+    final qty =
+        double.tryParse(_amountController.text.trim().replaceAll(',', '.'));
+    if (qty == null || qty <= 0) return null;
+    final currency = widget.cropById[_cropId]?.currency ??
+        context.read<TransactionProvider>().settings.currency;
+    return l10n.harvestSalePreview(
+        formatMoneyFor(context, qty * price, currency: currency));
   }
 
   Future<void> _save() async {
@@ -225,9 +278,14 @@ class _HarvestFormState extends State<_HarvestForm> {
       if (eqText.isNotEmpty) equivalentKg = double.tryParse(eqText);
     }
 
+    double? price;
+    final priceText = _priceController.text.trim().replaceAll(',', '.');
+    if (priceText.isNotEmpty) price = double.tryParse(priceText);
+
     final editing = widget.editing;
+    final Harvest saved;
     if (editing != null) {
-      await tx.updateHarvest(editing.copyWith(
+      final updated = editing.copyWith(
         cropId: _cropId,
         date: _date,
         amount: amount,
@@ -235,9 +293,11 @@ class _HarvestFormState extends State<_HarvestForm> {
         destination: _destination,
         workers: workers,
         equivalentKg: equivalentKg,
-      ));
+      );
+      await tx.updateHarvest(updated);
+      saved = updated;
     } else {
-      await tx.addHarvest(
+      saved = await tx.addHarvest(
         cropId: _cropId,
         date: _date,
         amount: amount ?? 0,
@@ -247,6 +307,12 @@ class _HarvestFormState extends State<_HarvestForm> {
         equivalentKg: equivalentKg,
       );
     }
+
+    // F1: la venta nace de la cosecha; con destino "pérdida" se va la que
+    // hubiera, y sin precio no se inventa ninguna (B1: se borra con la
+    // cosecha cuando el productor la elimina).
+    await tx.reconcileHarvestSale(harvest: saved, pricePerUnit: price);
+
     if (!mounted) return;
     Navigator.pop(context, true);
   }
@@ -265,6 +331,7 @@ class _HarvestFormState extends State<_HarvestForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final salePreview = _salePreview(context, l10n);
     return AlertDialog(
       title: Text(widget.editing != null
           ? l10n.harvestTitle
@@ -313,6 +380,8 @@ class _HarvestFormState extends State<_HarvestForm> {
                 controller: _amountController,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
+                // F1: la vista previa de la venta depende de la cantidad.
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: l10n.harvestAmountLabel,
                   prefixIcon: const Icon(Icons.scale_outlined),
@@ -369,6 +438,49 @@ class _HarvestFormState extends State<_HarvestForm> {
                 onChanged: (v) =>
                     setState(() => _destination = v ?? HarvestDestination.vendido),
               ),
+              // F1 · precio por unidad: solo tiene sentido si se vendió.
+              if (_destination == HarvestDestination.vendido) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.harvestPriceLabel(_unitLabel(_unit, l10n)),
+                    helperText: l10n.harvestPriceHint,
+                    prefixIcon: const Icon(Icons.attach_money_outlined),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (v) {
+                    final t = (v ?? '').trim().replaceAll(',', '.');
+                    if (t.isEmpty) return null;
+                    final n = double.tryParse(t);
+                    if (n == null || n < 0) return l10n.harvestPriceInvalid;
+                    return null;
+                  },
+                ),
+                if (salePreview != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      salePreview,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
               const SizedBox(height: 12),
               TextFormField(
                 controller: _workersController,

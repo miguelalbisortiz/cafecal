@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/employee.dart';
 import '../models/harvest.dart';
@@ -401,15 +402,101 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// F1 · Venta ligada a la cosecha.
+  ///
+  /// Si la cosecha está en [HarvestDestination.vendido] y trae precio, crea —o
+  /// actualiza si ya existía— la venta correspondiente:
+  /// `importe = cantidad × precio`. La venta hereda la moneda del cultivo y
+  /// lleva `quantity`/`unit`/`pricePerUnit`, que es lo que el precio por kilo
+  /// y la alerta de "ventas sin kilos" esperan encontrar.
+  ///
+  /// Si el destino es [HarvestDestination.perdida], la venta ligada se borra:
+  /// no se puede vender una pérdida. Con destino `vendido` pero **sin precio**
+  /// no se inventa la venta, pero tampoco se borra la que ya exista — sacar
+  /// dinero de los libros por editar un campo sería peor que dejarlo.
+  ///
+  /// Solo puede haber ingresos con `harvestId` porque nacen de aquí: el
+  /// registro manual anula ese id en los ingresos (`register_screen.dart:285`),
+  /// así que toda venta con `harvestId` es de la app. Los gastos de recolección
+  /// comparten el mismo id y `report_harvest_metrics.dart` los aparta con
+  /// `isExpense`, así que el costo por kilo no se afecta.
+  Future<Transaction?> reconcileHarvestSale({
+    required Harvest harvest,
+    double? pricePerUnit,
+    String description = '',
+  }) async {
+    Transaction? linked;
+    for (final t in _transactions) {
+      if (!t.deleted &&
+          t.type == TransactionType.income &&
+          t.harvestId == harvest.id) {
+        linked = t;
+        break;
+      }
+    }
+
+    final sells = harvest.destination == HarvestDestination.vendido;
+    final price =
+        (pricePerUnit != null && pricePerUnit > 0) ? pricePerUnit : null;
+
+    if (!sells) {
+      if (linked != null) await deleteTransaction(linked.id);
+      return null;
+    }
+    // Sin precio no hay con qué calcular el importe: se deja como está.
+    if (price == null) return linked;
+
+    final amount = harvest.amount * price;
+    if (linked != null) {
+      final updated = linked.copyWith(
+        cropId: harvest.cropId,
+        amount: amount,
+        date: harvest.date,
+        quantity: harvest.amount,
+        unit: harvest.unit,
+        pricePerUnit: price,
+      );
+      await updateTransaction(updated);
+      return updated;
+    }
+
+    String? currency;
+    for (final c in _crops) {
+      if (c.id == harvest.cropId) {
+        currency = c.currency;
+        break;
+      }
+    }
+    return addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      cropId: harvest.cropId,
+      amount: amount,
+      currency: currency,
+      description: description,
+      date: harvest.date,
+      quantity: harvest.amount,
+      unit: harvest.unit,
+      pricePerUnit: price,
+      harvestId: harvest.id,
+    );
+  }
+
+  /// B1 · Al borrar la cosecha se va también la venta que la app creó a partir
+  /// de ella: si la cosecha ya no existe, la venta también era un error. Los
+  /// gastos de recolección **no** se borran — esa plata ya salió y sigue
+  /// siendo cierta; solo pierden el vínculo (B4).
   Future<void> deleteHarvest(String id) async {
     _harvests = _harvests.where((h) => h.id != id).toList();
     await _store.saveHarvests(_harvests);
-    // B4: desvincular transacciones que referencian esta cosecha
-    _transactions = _transactions
-        .map((t) => t.harvestId == id
-            ? t.copyWith(harvestId: null, pendingSync: true)
-            : t)
-        .toList();
+    _transactions = _transactions.map((t) {
+      if (t.harvestId != id) return t;
+      if (t.type == TransactionType.income && !t.deleted) {
+        return t.copyWith(deleted: true, harvestId: null, pendingSync: true);
+      }
+      // B4: desvincular transacciones que referencian esta cosecha
+      return t.copyWith(harvestId: null, pendingSync: true);
+    }).toList();
     await _store.saveTransactions(_transactions);
     notifyListeners();
   }

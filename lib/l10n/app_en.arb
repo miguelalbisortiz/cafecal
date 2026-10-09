@@ -268,6 +268,18 @@
   "harvestEquivalentKgLabel": "How many kilos does that make?",
   "harvestEquivalentKgHint": "Optional. Total weight of the collected bunches.",
   "harvestEquivalentKgInvalid": "Enter a number greater than 0.",
+  "@harvestPriceLabel": {
+    "description": "Price per unit of the harvest; the unit goes at the end",
+    "placeholders": { "unit": { "type": "String" } }
+  },
+  "harvestPriceLabel": "Price per {unit}",
+  "harvestPriceHint": "If you already got paid, write it here and the app records the sale for you. Leave it empty if you haven't been paid yet.",
+  "harvestPriceInvalid": "Enter a valid price (numbers only).",
+  "@harvestSalePreview": {
+    "description": "Amount that will be recorded as a sale when saving the harvest",
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "harvestSalePreview": "Sale recorded: {amount}",
 
   "reportPayrollSection": "Payroll of the period",
   "reportPayrollWorker": "Worker",

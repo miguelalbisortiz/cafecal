@@ -786,6 +786,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get harvestEquivalentKgInvalid => 'Enter a number greater than 0.';
 
   @override
+  String harvestPriceLabel(String unit) {
+    return 'Price per $unit';
+  }
+
+  @override
+  String get harvestPriceHint => 'If you already got paid, write it here and the app records the sale for you. Leave it empty if you haven\'t been paid yet.';
+
+  @override
+  String get harvestPriceInvalid => 'Enter a valid price (numbers only).';
+
+  @override
+  String harvestSalePreview(String amount) {
+    return 'Sale recorded: $amount';
+  }
+
+  @override
   String get reportPayrollSection => 'Payroll of the period';
 
   @override

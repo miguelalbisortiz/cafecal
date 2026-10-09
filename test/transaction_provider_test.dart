@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/crop.dart';
+import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/local_store.dart';
@@ -349,6 +351,183 @@ void main() {
           amount: 10);
       // Ninguna fase cambió porque ninguna cosecha estaba vinculada.
       expect(provider.crops.single.phase, CropPhase.establecimiento);
+    });
+  });
+
+  group('F1 — venta ligada a la cosecha', () {
+    Future<TransactionProvider> newProvider() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      return TransactionProvider(LocalStore(prefs));
+    }
+
+    /// Venta viva ligada a esa cosecha (null si no hay).
+    Transaction? saleOf(TransactionProvider p, String harvestId) {
+      for (final t in p.transactions) {
+        if (!t.deleted &&
+            t.type == TransactionType.income &&
+            t.harvestId == harvestId) {
+          return t;
+        }
+      }
+      return null;
+    }
+
+    List<Transaction> salesOf(TransactionProvider p) =>
+        p.transactions.where((t) => !t.deleted && t.type == TransactionType.income).toList();
+
+    test('con precio y destino vendido crea la venta (cantidad × precio)',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id,
+          date: DateTime(2026, 10, 1),
+          amount: 8,
+          unit: 'saco');
+
+      final sale =
+          await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 300000);
+
+      expect(sale, isNotNull);
+      expect(sale!.amount, 2400000);
+      expect(sale.type, TransactionType.income);
+      expect(sale.category, kIncomeCategorySale);
+      expect(sale.harvestId, h.id);
+      expect(sale.cropId, crop.id);
+      expect(sale.date, h.date);
+      // quantity/unit/pricePerUnit es lo que el precio por kilo y la alerta
+      // de "ventas sin kilos" necesitan encontrar.
+      expect(sale.quantity, 8);
+      expect(sale.unit, 'saco');
+      expect(sale.pricePerUnit, 300000);
+      expect(provider.totalIncomes(year: 2026), 2400000);
+    });
+
+    test('sin precio no se inventa la venta', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+
+      expect(await provider.reconcileHarvestSale(harvest: h), isNull);
+      expect(salesOf(provider), isEmpty);
+      expect(provider.totalIncomes(year: 2026), 0);
+    });
+
+    test('cambiar el precio actualiza la venta en vez de crear otra',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 300000);
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 500000);
+
+      expect(salesOf(provider), hasLength(1));
+      expect(saleOf(provider, h.id)!.amount, 4000000);
+      expect(provider.totalIncomes(year: 2026), 4000000);
+    });
+
+    test('editar la cantidad de la cosecha recalcula el importe de la venta',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 300000);
+
+      final mas = h.copyWith(amount: 10);
+      await provider.reconcileHarvestSale(harvest: mas, pricePerUnit: 300000);
+
+      expect(salesOf(provider), hasLength(1));
+      expect(saleOf(provider, h.id)!.amount, 3000000);
+      expect(saleOf(provider, h.id)!.quantity, 10);
+    });
+
+    test('destino pérdida borra la venta ligada: no se vende una pérdida',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 300000);
+      expect(salesOf(provider), hasLength(1));
+
+      await provider.reconcileHarvestSale(
+          harvest: h.copyWith(destination: HarvestDestination.perdida),
+          pricePerUnit: 300000);
+
+      expect(salesOf(provider), isEmpty);
+      expect(provider.totalIncomes(year: 2026), 0);
+    });
+
+    test('quitar el precio no borra una venta que ya existía', () async {
+      // Sacar dinero de los libros por editar un campo sería peor que
+      // dejarlo: la plata sí se cobró.
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 300000);
+
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: null);
+
+      expect(salesOf(provider), hasLength(1));
+      expect(provider.totalIncomes(year: 2026), 2400000);
+    });
+
+    test('la venta hereda la moneda del cultivo', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café', currency: 'USD');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+
+      final sale =
+          await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 10);
+
+      expect(sale!.currency, 'USD');
+    });
+
+    test('B1: borrar la cosecha borra la venta que creó la app', () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+      await provider.reconcileHarvestSale(harvest: h, pricePerUnit: 300000);
+      expect(salesOf(provider), hasLength(1));
+
+      await provider.deleteHarvest(h.id);
+
+      expect(salesOf(provider), isEmpty);
+      expect(provider.totalIncomes(year: 2026), 0);
+    });
+
+    test('B1: el gasto de recolección se queda, solo pierde el vínculo',
+        () async {
+      final provider = await newProvider();
+      final crop = await provider.addCrop('Café');
+      final h = await provider.addHarvest(
+          cropId: crop.id, date: DateTime(2026, 10, 1), amount: 8);
+      await provider.addTransaction(
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 50000,
+        date: DateTime(2026, 10, 1),
+        harvestId: h.id,
+      );
+
+      await provider.deleteHarvest(h.id);
+
+      final gastos = provider.transactions
+          .where((t) => t.type == TransactionType.expense && !t.deleted)
+          .toList();
+      expect(gastos, hasLength(1),
+          reason: 'esa plata ya salió y sigue siendo cierta');
+      expect(gastos.first.harvestId, isNull,
+          reason: 'B4: solo pierde el vínculo con la cosecha borrada');
+      expect(provider.totalExpenses(year: 2026), 50000);
     });
   });
 }

@@ -1613,6 +1613,30 @@ abstract class AppLocalizations {
   /// **'Ingresa un número mayor que 0.'**
   String get harvestEquivalentKgInvalid;
 
+  /// Precio por unidad de la cosecha; la unidad va al final
+  ///
+  /// In es, this message translates to:
+  /// **'Precio por {unit}'**
+  String harvestPriceLabel(String unit);
+
+  /// No description provided for @harvestPriceHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Si ya te pagaron, anótalo aquí y la app registra la venta sola. Déjalo vacío si aún no cobras.'**
+  String get harvestPriceHint;
+
+  /// No description provided for @harvestPriceInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un precio válido (solo números).'**
+  String get harvestPriceInvalid;
+
+  /// Importe que se registrará como venta al guardar la cosecha
+  ///
+  /// In es, this message translates to:
+  /// **'Se registra la venta: {amount}'**
+  String harvestSalePreview(String amount);
+
   /// No description provided for @reportPayrollSection.
   ///
   /// In es, this message translates to:
