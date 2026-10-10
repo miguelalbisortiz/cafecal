@@ -200,7 +200,8 @@ void main() {
             farmName: 'Local',
             currency: 'USD',
             lowPriceThresholdPerKg: 8000,
-            cajaMenorMensual: 900000),
+            cajaMenorMensual: 900000,
+            sacoKg: 60),
         const FarmSettings(), // todo por defecto / nulo
       );
 
@@ -208,6 +209,17 @@ void main() {
       expect(merged.currency, 'USD');
       expect(merged.lowPriceThresholdPerKg, 8000);
       expect(merged.cajaMenorMensual, 900000);
+      // Un respaldo anterior a A2 manda 70 (el default): no debe
+      // reventar su costal de 60 kg.
+      expect(merged.sacoKg, 60);
+    });
+
+    test('el peso del archivo manda si no es el default', () {
+      final merged = mergeBackupSettings(
+        const FarmSettings(sacoKg: 70),
+        const FarmSettings(sacoKg: 60),
+      );
+      expect(merged.sacoKg, 60);
     });
   });
 }

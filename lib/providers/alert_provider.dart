@@ -34,6 +34,7 @@ class AlertProvider extends ChangeNotifier {
       harvests: _transactions.harvests,
       sowings: _transactions.sowings,
       cajaMensual: _transactions.settings.cajaMenorMensual,
+      sacoKg: _transactions.settings.sacoKg,
     );
     notifyListeners();
   }

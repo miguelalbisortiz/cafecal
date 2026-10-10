@@ -346,10 +346,10 @@ class PdfExportService {
           ],
           pw.SizedBox(height: 20),
           _harvestSection(periodTx, periodHarvests, crops, sowings,
-              currency, l10n),
+              currency, settings.sacoKg, l10n),
           pw.SizedBox(height: 20),
-          _soldVsHarvestedSection(
-              periodTx, periodHarvests, crops, sowings, currency, l10n),
+          _soldVsHarvestedSection(periodTx, periodHarvests, crops, sowings,
+              currency, settings.sacoKg, l10n),
           pw.SizedBox(height: 20),
           _payrollSection(periodTx, currency, l10n),
           pw.SizedBox(height: 20),
@@ -365,7 +365,7 @@ class PdfExportService {
           ),
           pw.SizedBox(height: 20),
           _recommendationsSection(
-              periodTx, crops, harvests, sowings, l10n),
+              periodTx, crops, harvests, sowings, settings.sacoKg, l10n),
           pw.SizedBox(height: 12),
           pw.Text(
             l10n.pdfRoiFootnote,
@@ -647,8 +647,9 @@ class PdfExportService {
       List<Crop> crops,
       List<Sowing> sowings,
       String currency,
+      double sacoKg,
       AppLocalizations l10n) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     if (periodHarvests.isEmpty) return pw.SizedBox.shrink();
 
     final srcTx = source.toList();
@@ -701,7 +702,7 @@ class PdfExportService {
         ],
         // Costo total por kg e indicadores por cultivo (producción).
         ..._perCropHarvestRows(byCrop, crops, periodHarvests, srcTx, sowings,
-            currency, l10n, mixedCurrencies),
+            currency, sacoKg, l10n, mixedCurrencies),
         // Personal y kilos por cosecha (si se registraron).
         ..._staffHarvestRows(periodHarvests, crops, l10n),
         if (mixedCurrencies.isNotEmpty)
@@ -717,9 +718,10 @@ class PdfExportService {
       List<Transaction> transactions,
       List<Sowing> sowings,
       String currency,
+      double sacoKg,
       AppLocalizations l10n,
       Set<String> mixedCurrencies) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final cropById = {for (final c in crops) c.id: c};
     final out = <pw.Widget>[];
 
@@ -785,8 +787,9 @@ class PdfExportService {
       List<Crop> crops,
       List<Sowing> sowings,
       String currency,
+      double sacoKg,
       AppLocalizations l10n) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final rows = metrics.soldVsHarvested(
         source.toList(), periodHarvests, crops, DateTime.now());
     if (rows.isEmpty) return pw.SizedBox.shrink();
@@ -1057,6 +1060,7 @@ class PdfExportService {
       List<Crop> crops,
       List<Harvest> harvests,
       List<Sowing> sowings,
+      double sacoKg,
       AppLocalizations l10n) {
     final alerts = const AlertService().evaluate(
       source.toList(),
@@ -1064,6 +1068,7 @@ class PdfExportService {
       l10n,
       harvests: harvests,
       sowings: sowings,
+      sacoKg: sacoKg,
     );
     final recommendations = const RecommendationService().derive(alerts, 4);
     if (recommendations.isEmpty) return pw.SizedBox.shrink();

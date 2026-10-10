@@ -20,6 +20,28 @@ void main() {
     });
   });
 
+  group('A2 · peso del saco configurable', () {
+    test('por defecto sigue siendo 70, el de la norma', () {
+      expect(kSacoKgPorDefecto, 70);
+      expect(unitToKg('saco'), 70);
+    });
+
+    test('el peso configurado manda para el saco', () {
+      // En la finca el costal pesa 60, no 70.
+      expect(unitToKg('saco', sacoKg: 60), 60);
+      expect(unitToKg('saco', sacoKg: 75.5), 75.5);
+    });
+
+    test('el peso no toca ninguna otra unidad', () {
+      expect(unitToKg('kg', sacoKg: 60), 1);
+      expect(unitToKg('lb', sacoKg: 60), 0.453592);
+      expect(unitToKg('arroba', sacoKg: 60), 12.5);
+      expect(unitToKg('carga', sacoKg: 60), 27.2155);
+      expect(unitToKg(null, sacoKg: 60), 1);
+      expect(unitToKg('racimo', sacoKg: 60), 1);
+    });
+  });
+
   group('kgToCargas', () {
     test('convierte kg a cargas (1 carga = 60 lbs ≈ 27.2155 kg)', () {
       // 27.2155 kg = 1 carga exacta

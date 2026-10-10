@@ -46,6 +46,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   CropCycle _cycle = CropCycle.perenne;
   String? _defaultUnit;
   String _currency = 'COP';
+  DateTime? _plantedAt;
   final _areaController = TextEditingController();
   final _plantsController = TextEditingController();
   final _establishmentController = TextEditingController();
@@ -65,6 +66,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       _cycle = c.cycle;
       _defaultUnit = c.defaultUnit;
       _currency = c.currency ?? 'COP';
+      _plantedAt = c.plantedAt;
       if (c.areaHa != null) _areaController.text = c.areaHa.toString();
       if (c.livePlants != null) _plantsController.text = c.livePlants.toString();
       if (c.establishmentCost != null) {
@@ -83,6 +85,50 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   /// Importe para el campo, sin el ".0" que sueltan los doubles.
   static String _importe(double v) =>
       v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
+  /// C2 · edad a la que el café empieza a producir: la primera cosecha cae
+  /// hacia el tercer año, así que por encima de eso no puede seguir en
+  /// establecimiento.
+  static const _anosParaProduccion = 3;
+
+  /// C1 · el campo es opcional, así que cancelar o borrar dejan `null`.
+  Future<void> _pickPlantedAt() async {
+    final hoy = DateTime.now();
+    final elegida = await showDatePicker(
+      context: context,
+      initialDate: _plantedAt ?? hoy,
+      firstDate: DateTime(1950, 1, 1),
+      lastDate: hoy,
+    );
+    if (!mounted || elegida == null) return;
+    setState(() {
+      _plantedAt = DateTime(elegida.year, elegida.month, elegida.day);
+      _deducePhaseIfCreating();
+    });
+  }
+
+  void _clearPlantedAt() {
+    setState(() {
+      _plantedAt = null;
+      _deducePhaseIfCreating();
+    });
+  }
+
+  /// C2 · al **crear**, la fecha que acaba de anotar decide la fase.
+  ///
+  /// Al **editar** no se re-deduces jamás: la fase de un cultivo que ya existe
+  /// viene de su historial y de la primera cosecha (`_promotePhaseOnHarvest`),
+  /// y pisarla aquí sería un regreso. Sin fecha la fase vuelve a su valor por
+  /// defecto de P3, `establecimiento`.
+  void _deducePhaseIfCreating() {
+    if (widget.crop != null) return;
+    if (_cycle != CropCycle.perenne) return; // un anual no tiene fases de cafetal
+    final f = _plantedAt;
+    final anios = f == null ? 0 : aniosCumplidos(f, DateTime.now());
+    _phase = anios >= _anosParaProduccion
+        ? CropPhase.produccion
+        : CropPhase.establecimiento;
+  }
 
   /// F4 · Puerta de salida del bloqueo: el productor anota cuántas plantas
   /// quedan y la app escribe la resiembra que corresponda (0 plantas nuevas
@@ -143,6 +189,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       livePlants: plants,
       establishmentCost: establishmentCost,
       currency: _currency,
+      plantedAt: _plantedAt,
     ));
   }
 
@@ -223,6 +270,39 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               }),
             ),
             if (_cycle == CropCycle.perenne) ...[
+              // C1 · opcional. Si el cultivo ya tiene siembras ni siquiera
+              // se enseña: ahí manda la fecha de la última, la que él anotó
+              // en el campo, y preguntarle otra cosa sería contradecirla.
+              if (!widget.sowingsLocked) ...[
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: _pickPlantedAt,
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: l10n.plantedAtLabel,
+                      helperText: l10n.helpPlantedAtShort,
+                      prefixIcon: const Icon(Icons.calendar_today_outlined),
+                      suffixIcon: _plantedAt == null
+                          ? null
+                          : IconButton(
+                              tooltip: l10n.plantedAtClear,
+                              icon: const Icon(Icons.clear, size: 20),
+                              onPressed: _clearPlantedAt,
+                            ),
+                      border: const OutlineInputBorder(),
+                    ),
+                    child: Text(
+                      _plantedAt == null
+                          ? l10n.plantedAtEmpty
+                          : MaterialLocalizations.of(context)
+                              .formatShortDate(_plantedAt!),
+                      style: _plantedAt == null
+                          ? TextStyle(color: Theme.of(context).hintColor)
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               DropdownButtonFormField<CropPhase>(
                 value: _phase,
@@ -390,6 +470,10 @@ class CropFormData {
   final double? establishmentCost;
   final String currency;
 
+  /// C1 · `null` = el productor no la quiso poner (o el cultivo ya tenía
+  /// siembras y el campo ni siquiera se le enseñó).
+  final DateTime? plantedAt;
+
   const CropFormData({
     required this.name,
     required this.icon,
@@ -401,5 +485,6 @@ class CropFormData {
     this.livePlants,
     this.establishmentCost,
     this.currency = 'COP',
+    this.plantedAt,
   });
 }

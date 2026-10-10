@@ -194,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitsTitle => 'Units';
 
   @override
-  String get helpUnitsBody => 'Use kg, pounds (lb), arroba (12.5 kg), bag (70 kg) or load (27.2 kg). The app converts everything to kg for comparison.';
+  String get helpUnitsBody => 'Use kg, pounds (lb), arroba (12.5 kg), sacks or load (27.2 kg). The app converts everything to kg for comparison, using the sack weight you set in Settings.';
 
   @override
   String get helpUnitsTableTitle => 'Equivalences';
@@ -215,7 +215,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitsSacoRow => 'Bag (saco)';
 
   @override
-  String get helpUnitsSacoRowDesc => '70 kg. For coffee in bags.';
+  String get helpUnitsSacoRowDesc => 'For coffee in sacks. Change the weight in Settings.';
 
   @override
   String get helpUnitsCargaRow => 'Load (carga)';
@@ -482,7 +482,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phaseHelp => 'Establishment = young plantation that does not produce yet (seedlings). The app will not flag losses in this stage.';
 
   @override
-  String get helpUnit => 'What unit do you sell in: kg, lb, arroba (≈12.5 kg), bag (≈70 kg), load (≈27.2 kg), bunch (plantain) or crate?';
+  String get helpUnit => 'What unit do you sell in: kg, lb, arroba (≈12.5 kg), sack, load (≈27.2 kg), bunch (plantain) or crate?';
 
   @override
   String get helpCycle => 'Perennial = lives many years (coffee, plantain). Annual = planted and harvested in the same year (tomato, corn).';
@@ -558,6 +558,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cropLossSaved => 'Loss recorded';
+
+  @override
+  String get plantedAtLabel => 'When was it planted?';
+
+  @override
+  String get helpPlantedAtShort => 'Optional. Leave it empty if you don\'t remember.';
+
+  @override
+  String get plantedAtEmpty => 'No date';
+
+  @override
+  String get plantedAtClear => 'Clear the date';
+
+  @override
+  String cropAge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years',
+      one: '$count year',
+      zero: 'Less than a year',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get editCropTitle => 'Edit crop';
@@ -1210,7 +1234,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitArroba => 'Arrobas (12.5 kg)';
 
   @override
-  String get unitSaco => 'Bags (70 kg)';
+  String get unitSaco => 'Bags';
 
   @override
   String get unitLb => 'Pounds (lb)';
@@ -1235,6 +1259,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lowPriceThresholdHelper => 'Optional. Alert when selling coffee below this price (per kg). Leave empty to use only your history.';
+
+  @override
+  String get sacoKgLabel => 'Weight of a sack (kg)';
+
+  @override
+  String get sacoKgHelper => 'Converts sacks to kilograms in reports, PDF and alerts. The coffee standard is 70.';
 
   @override
   String get excelColQty => 'Quantity';

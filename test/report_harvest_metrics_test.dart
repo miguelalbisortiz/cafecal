@@ -123,6 +123,30 @@ void main() {
       // 2 arrobas = 25 kg + 10 kg = 35 kg
       expect(cafe.kg, 35);
     });
+
+    test('A2: el kg de un saco sale del peso configurado', () {
+      final harvests = [
+        _h(id: 'h1', cropId: 'cafe', date: DateTime(2026, 5, 1),
+            amount: 3, unit: 'saco'),
+      ];
+
+      final norma = const ReportHarvestMetrics().totalsByCrop(harvests, crops);
+      final suCostal = const ReportHarvestMetrics(sacoKg: 60)
+          .totalsByCrop(harvests, crops);
+
+      // 3 sacos: 210 kg con la norma, 180 kg si su costal pesa 60.
+      expect(norma.firstWhere((c) => c.cropId == 'cafe').kg, 210);
+      expect(suCostal.firstWhere((c) => c.cropId == 'cafe').kg, 180);
+      // Las unidades que no son saco no se enteran del ajuste.
+      final kilos = [
+        _h(id: 'h2', cropId: 'cafe', date: DateTime(2026, 5, 2),
+            amount: 5, unit: 'kg'),
+      ];
+      expect(const ReportHarvestMetrics(sacoKg: 60)
+          .totalsByCrop(kilos, crops)
+          .firstWhere((c) => c.cropId == 'cafe')
+          .kg, 5);
+    });
   });
 
   group('totalsByDestination', () {

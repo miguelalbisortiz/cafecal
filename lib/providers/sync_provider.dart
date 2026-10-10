@@ -275,6 +275,8 @@ class SyncProvider extends ChangeNotifier {
         'last_crop_id': s.lastCropId,
         'low_price_threshold_per_kg': s.lowPriceThresholdPerKg,
         'caja_menor_mensual': s.cajaMenorMensual,
+        // A2: nunca null, así que siempre sale el peso del saco.
+        'saco_kg': s.sacoKg,
       };
 
   /// Payload que sale hacia `transactions`.
@@ -348,6 +350,9 @@ class SyncProvider extends ChangeNotifier {
         'live_plants': c.livePlants,
         'establishment_cost': c.establishmentCost,
         'currency': c.currency,
+        // C1: si falta la columna, Postgrest responde PGRST204 y se cae la
+        // subida completa (mismo caso que `currency` — ver migración).
+        'planted_at': c.plantedAt?.toIso8601String().substring(0, 10),
       };
 
   Future<void> _upsertRemoteCrop(SupabaseService supabase, Crop c) async {
@@ -459,7 +464,7 @@ class SyncProvider extends ChangeNotifier {
 
     final cropLocalIds = _txProvider.crops.map((c) => c.id).toSet();
     final remoteCropMapped = (remoteCrops as List)
-        .map((e) => _remoteToCrop(e as Map<String, dynamic>))
+        .map((e) => remoteToCrop(e as Map<String, dynamic>))
         .where((c) => !cropLocalIds.contains(c.id))
         .toList();
     if (remoteCropMapped.isNotEmpty) {
@@ -517,7 +522,10 @@ class SyncProvider extends ChangeNotifier {
     });
   }
 
-  Crop _remoteToCrop(Map<String, dynamic> row) {
+  /// Fila de `crops` → [Crop]. Pública para poder probar que lo que baja de
+  /// Supabase conserva todo (mismo motivo que [buildCropPayload]).
+  @visibleForTesting
+  Crop remoteToCrop(Map<String, dynamic> row) {
     return Crop.fromJson({
       'id': row['id'] as String,
       'name': row['name'] as String,
@@ -531,6 +539,7 @@ class SyncProvider extends ChangeNotifier {
       'live_plants': (row['live_plants'] as num?)?.toInt(),
       'establishment_cost': (row['establishment_cost'] as num?)?.toDouble(),
       'currency': row['currency'] as String?,
+      'planted_at': row['planted_at'] as String?,
     });
   }
 

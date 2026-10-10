@@ -7,7 +7,12 @@ import '../models/units.dart';
 /// Métricas de cosecha para la sección "Cosechas" del reporte.
 /// Funciones puras sobre datos locales (testables sin UI).
 class ReportHarvestMetrics {
-  const ReportHarvestMetrics();
+  /// [sacoKg] · peso real del saco en kg (A2). La norma dice 70, en la finca
+  /// puede ser 60, y de aquí sale el kg de cada cosecha. Ver
+  /// `FarmSettings.sacoKg`.
+  const ReportHarvestMetrics({this.sacoKg = kSacoKgPorDefecto});
+
+  final double sacoKg;
 
   /// Total cosechado por cultivo, en su unidad original y normalizado a kg.
   /// [harvests] ya debe estar filtrado al rango de fechas del reporte.
@@ -25,7 +30,7 @@ class ReportHarvestMetrics {
                   : (nameById[h.cropId] ?? h.cropId!),
               unit: h.unit));
       a.amount += h.amount;
-      a.kg += h.amount * unitToKg(h.unit);
+      a.kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
     final out = acc.entries
         .map((e) => CropHarvestTotal(
@@ -59,7 +64,7 @@ class ReportHarvestMetrics {
     double kg = 0;
     double pickup = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit);
+      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
     for (final t in transactions) {
       if (t.deleted || !t.type.isExpense || t.harvestId == null) continue;
@@ -103,7 +108,7 @@ class ReportHarvestMetrics {
         crop.phase == CropPhase.produccion) {
       double kg = 0;
       for (final h in cropHarvests) {
-        kg += h.amount * unitToKg(h.unit);
+        kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
       }
       if (kg <= 0) return null;
       if (cropAmountCurrencies(cropExpenses).length > 1) return null;
@@ -163,7 +168,7 @@ class ReportHarvestMetrics {
   double? periodCostPerKg(double expenses, List<Harvest> harvests) {
     double kg = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit);
+      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
     return kg > 0 ? expenses / kg : null;
   }
@@ -180,7 +185,7 @@ class ReportHarvestMetrics {
       if (t.deleted || t.type.isExpense) continue;
       final qty = t.quantity ?? 0;
       if (qty <= 0) continue;
-      kg += qty * unitToKg(t.unit);
+      kg += qty * unitToKg(t.unit, sacoKg: sacoKg);
       money += t.amount;
     }
     return kg > 0 ? money / kg : null;
@@ -192,7 +197,7 @@ class ReportHarvestMetrics {
     if (areaHa == null || areaHa <= 0) return null;
     double kg = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit);
+      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
     return kg > 0 ? kg / areaHa : null;
   }
@@ -201,7 +206,7 @@ class ReportHarvestMetrics {
     if (livePlants == null || livePlants <= 0) return null;
     double kg = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit);
+      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
     return kg > 0 ? kg / livePlants : null;
   }
@@ -283,7 +288,7 @@ class ReportHarvestMetrics {
                   ? 'Sin cultivo'
                   : (nameById[t.cropId] ?? t.cropId!),
               cropId: t.cropId));
-      a.soldKg += (t.quantity ?? 0) * unitToKg(t.unit);
+      a.soldKg += (t.quantity ?? 0) * unitToKg(t.unit, sacoKg: sacoKg);
     }
     for (final h in harvests) {
       if (!h.date.isAfter(cutoff)) continue;
@@ -294,7 +299,7 @@ class ReportHarvestMetrics {
                   ? 'Sin cultivo'
                   : (nameById[h.cropId] ?? h.cropId!),
               cropId: h.cropId));
-      a.harvestedKg += h.amount * unitToKg(h.unit);
+      a.harvestedKg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
     return acc.entries
         .map((e) => SoldVsHarvested(

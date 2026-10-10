@@ -272,6 +272,7 @@ class TransactionProvider extends ChangeNotifier {
     double? areaHa,
     int? livePlants,
     double? establishmentCost,
+    DateTime? plantedAt,
   }) async {
     final crop = Crop(
       id: _uuid.v4(),
@@ -285,6 +286,7 @@ class TransactionProvider extends ChangeNotifier {
       areaHa: areaHa,
       livePlants: livePlants,
       establishmentCost: establishmentCost,
+      plantedAt: plantedAt,
       pendingSync: true,
     );
     _crops = [..._crops, crop];

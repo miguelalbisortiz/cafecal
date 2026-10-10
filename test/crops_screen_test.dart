@@ -140,4 +140,31 @@ void main() {
     expect(provider.crops.map((c) => c.id), [otras.id],
         reason: 'debe borrarse solo el cultivo elegido');
   });
+
+  testWidgets('F5: pinta la edad junto a la fase cuando hay datos',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    // Hace exactamente 7 años y un mes: van 7 años cumplidos.
+    final hoy = DateTime.now();
+    final plantado = DateTime(hoy.year - 7, hoy.month, hoy.day)
+        .subtract(const Duration(days: 30));
+    await provider.addCrop('Café', plantedAt: plantado);
+
+    await pump(tester, provider);
+
+    final l10n = l10nOf(tester);
+    expect(find.textContaining(l10n.cropAge(7)), findsOneWidget,
+        reason: 'C1: sin siembras, la fecha que anotó en el editor da la edad');
+  });
+
+  testWidgets('F5: sin siembras ni fecha no se inventa una edad',
+      (tester) async {
+    final provider = await makeProvider();
+    await pump(tester, provider);
+
+    expect(find.textContaining('año'), findsNothing,
+        reason: 'regla de oro: null → oculto, nunca un 0 que no significa nada');
+  });
 }

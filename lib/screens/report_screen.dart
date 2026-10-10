@@ -359,6 +359,7 @@ class _ReportScreenState extends State<ReportScreen> {
               periodTransactions: _recordsFor(tx),
               periodHarvests: _periodHarvests(tx),
               allTransactions: tx.transactions,
+              sacoKg: tx.settings.sacoKg,
             ),
             const SizedBox(height: 20),
             _builtRecommendationsCard(context, tx, l10n),
@@ -508,7 +509,7 @@ class _ReportScreenState extends State<ReportScreen> {
   /// y uno con dos o más monedas no llega a imprimir un neto ni un ROI
   /// falsos (se desglosa por moneda en su tarjeta).
   List<_CropRow> _cropRows(TransactionProvider tx, AppLocalizations l10n) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
     final records = _recordsFor(tx);
     final totals = <String?, _CropRow>{
       for (final r in cropBreakdownRows(
@@ -731,7 +732,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _builtHarvestCard(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
     final harvests = _periodHarvests(tx);
     final byCrop = metrics.totalsByCrop(harvests, tx.crops);
     final byDestination = metrics.totalsByDestination(harvests);
@@ -1054,7 +1055,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _builtSoldVsHarvestedCard(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
     final rows = metrics.soldVsHarvested(
         tx.transactions, _periodHarvests(tx), tx.crops, DateTime.now());
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -1127,6 +1128,7 @@ class _ReportScreenState extends State<ReportScreen> {
       l10n,
       harvests: tx.harvests,
       sowings: tx.sowings,
+      sacoKg: tx.settings.sacoKg,
     );
     final recommendations =
         const RecommendationService().derive(alerts, 4);
@@ -1468,7 +1470,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
     // P2: precio de venta por kilo vs costo por kilo. Dos datos que ya
     // existen en la app (solo salían en PDF y Excel, nunca en pantalla).
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
     final costByKg =
         metrics.periodCostPerKg(totalExpenses, _periodHarvests(tx));
     final priceByKg = metrics.avgSalePricePerKg(records);

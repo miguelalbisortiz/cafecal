@@ -74,4 +74,35 @@ void main() {
       expect(original.copyWith(farmName: 'Otra').cajaMenorMensual, 650000);
     });
   });
+
+  group('A2 · sacoKg', () {
+    test('por defecto es 70, el de la norma', () {
+      expect(const FarmSettings().sacoKg, 70);
+      expect(const FarmSettings().toJson()['saco_kg'], 70);
+    });
+
+    test('round-trip conserva el peso', () {
+      const original = FarmSettings(sacoKg: 60);
+      final restored = FarmSettings.fromJson(original.toJson());
+      expect(restored.sacoKg, 60);
+    });
+
+    test('JSON viejo sin la clave → 70, nunca null ni un 0', () {
+      final json = const FarmSettings().toJson()..remove('saco_kg');
+      expect(FarmSettings.fromJson(json).sacoKg, 70);
+    });
+
+    test('copyWith cambia el peso sin tocar el resto', () {
+      const original = FarmSettings(farmName: 'La Finca');
+      final changed = original.copyWith(sacoKg: 60);
+      expect(changed.sacoKg, 60);
+      expect(changed.farmName, 'La Finca');
+    });
+
+    test('copyWith sin args lo conserva', () {
+      const original = FarmSettings(sacoKg: 65);
+      expect(original.copyWith().sacoKg, 65);
+      expect(original.copyWith(currency: 'USD').sacoKg, 65);
+    });
+  });
 }

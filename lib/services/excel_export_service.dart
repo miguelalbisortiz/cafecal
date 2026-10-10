@@ -151,6 +151,7 @@ class ExcelExportService {
         sowings: sowings,
         harvests: harvests,
         currency: currency,
+        sacoKg: settings.sacoKg,
         l10n: l10n);
 
     final bytes =
@@ -939,10 +940,11 @@ class ExcelExportService {
     required List<Sowing> sowings,
     required List<Harvest> harvests,
     required String currency,
+    required double sacoKg,
     required AppLocalizations l10n,
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final cropById = {for (final c in crops) c.id: c};
 
     row([TextCellValue(l10n.reportHarvestSection)]);
@@ -1109,6 +1111,7 @@ class ExcelExportService {
       l10n,
       harvests: harvests,
       sowings: sowings,
+      sacoKg: sacoKg,
     );
     final recommendations = const RecommendationService().derive(alerts, 4);
     if (recommendations.isEmpty) {

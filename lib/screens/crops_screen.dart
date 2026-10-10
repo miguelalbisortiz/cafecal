@@ -70,6 +70,7 @@ class CropsScreen extends StatelessWidget {
         areaHa: form.areaHa,
         livePlants: form.livePlants,
         establishmentCost: form.establishmentCost,
+        plantedAt: form.plantedAt,
       );
       if (!wasEmpty || !context.mounted) return;
       // Primer cultivo: el onboarding invita a agregar varios existentes.
@@ -117,6 +118,9 @@ class CropsScreen extends StatelessWidget {
       // C1: antes la moneda se descartaba en silencio al editar (solo se
       // guardaba al crear).
       currency: form.currency,
+      // C1: lo mismo con la fecha. Solo se enseña el campo cuando no hay
+      // siembras; si las hay, se devuelve tal cual la que ya traía.
+      plantedAt: form.plantedAt,
     ));
   }
 
@@ -168,6 +172,10 @@ class CropsScreen extends StatelessWidget {
           CropPhase.produccion => l10n.phaseProduccion,
           CropPhase.renovacion => l10n.phaseRenovacion,
         };
+    // F5 · edad junto a la fase. Si no hay datos (nada sembrado y sin fecha
+    // en el editor) no se pinta nada: mejor callar que inventar un 0.
+    final edad = edadDeCrop(crop, tx.sowings);
+
     // L2.3 (patrón H10): la fase se ve con icono de forma distinta + texto,
     // nunca solo con color.
     IconData phaseIcon(CropPhase p) => switch (p) {
@@ -234,6 +242,17 @@ class CropsScreen extends StatelessWidget {
                         fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                 ),
+                if (edad != null) ...[
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '· ${l10n.cropAge(edad)}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ],
             ),
             if (details.isNotEmpty)

@@ -22,6 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _farmName;
   late final TextEditingController _threshold;
   late final TextEditingController _cajaMenor;
+  late final TextEditingController _sacoKg;
   String _currency = 'COP';
   String _language = 'es';
   bool _exportingBackup = false;
@@ -48,13 +49,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? s.cajaMenorMensual!.toInt().toString()
               : s.cajaMenorMensual.toString()),
     );
+    // A2: siempre hay un número (70 es la norma), así que el campo nunca
+    // arranca vacío — es un "ajústalo", no un "opcional".
+    _sacoKg = TextEditingController(text: _num(s.sacoKg));
   }
+
+  /// Formatea sin el ".0" que sueltan los doubles, y con coma si el
+  /// separador decimal del aparato es el de siempre.
+  static String _num(double v) => v % 1 == 0 ? v.toInt().toString() : '$v';
 
   @override
   void dispose() {
     _farmName.dispose();
     _threshold.dispose();
     _cajaMenor.dispose();
+    _sacoKg.dispose();
     super.dispose();
   }
 
@@ -67,6 +76,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         thresholdText.isEmpty ? null : double.tryParse(thresholdText);
     final cajaText = _cajaMenor.text.trim().replaceAll(',', '.');
     final caja = cajaText.isEmpty ? null : double.tryParse(cajaText);
+    // A2: no se puede dejar sin número. Campo vacío o ilegible = no se
+    // cambia (se conserva el que ya había) — nunca un 0 que partiría todos
+    // los kg a la mitad.
+    final sacoText = _sacoKg.text.trim().replaceAll(',', '.');
+    final saco = (double.tryParse(sacoText) ?? 0) > 0
+        ? double.parse(sacoText)
+        : null;
 
     await tx.updateSettings(tx.settings.copyWith(
       farmName: _farmName.text.trim().isEmpty
@@ -76,6 +92,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       language: _language,
       lowPriceThresholdPerKg: threshold,
       cajaMenorMensual: caja,
+      sacoKg: saco,
     ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -279,6 +296,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               labelText: l10n.lowPriceThresholdLabel,
               helperText: l10n.lowPriceThresholdHelper,
               prefixIcon: const Icon(Icons.trending_down),
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _sacoKg,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.sacoKgLabel,
+              helperText: l10n.sacoKgHelper,
+              prefixIcon: const Icon(Icons.shopping_bag_outlined),
               border: const OutlineInputBorder(),
             ),
           ),

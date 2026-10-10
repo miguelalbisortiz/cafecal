@@ -95,6 +95,7 @@ class CropSetupPrompt {
       livePlants: form.livePlants,
       establishmentCost: form.establishmentCost,
       currency: form.currency,
+      plantedAt: form.plantedAt,
     ));
   }
 }

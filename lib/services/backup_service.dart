@@ -291,6 +291,9 @@ FarmSettings mergeBackupSettings(FarmSettings local, FarmSettings backup) {
     lowPriceThresholdPerKg:
         backup.lowPriceThresholdPerKg ?? local.lowPriceThresholdPerKg,
     cajaMenorMensual: backup.cajaMenorMensual ?? local.cajaMenorMensual,
+    // Misma regla de arriba: un respaldo viejo (sin la clave, así que con el
+    // 70 de la norma) **no** puede pisarle el 60 que ya configuró aquí.
+    sacoKg: backup.sacoKg == defaults.sacoKg ? local.sacoKg : backup.sacoKg,
   );
 }
 

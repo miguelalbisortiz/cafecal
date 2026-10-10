@@ -45,6 +45,7 @@ void main() {
     required Crop crop,
     double? sugerencia,
     List<String> existentes = const [],
+    bool sowingsLocked = false,
   }) async {
     final holder = _Holder();
     await tester.pumpWidget(MaterialApp(
@@ -62,6 +63,7 @@ void main() {
                     crop: crop,
                     existingNames: existentes,
                     suggestedEstablishmentCost: sugerencia,
+                    sowingsLocked: sowingsLocked,
                   ),
                 );
               },
@@ -384,5 +386,188 @@ void main() {
     await tester.tap(find.text(l10n.add));
     await tester.pumpAndSettle();
     expect(holder.value!.establishmentCost, isNull);
+  });
+
+  /// Abre el calendario (que arranca en hoy, porque el campo viene vacío) y
+  /// lo confirma. El rótulo del botón se lee de las localizaciones de
+  /// Material para no depender del idioma de la prueba.
+  Future<void> confirmarFechaDeHoy(WidgetTester t, String campoVacio) async {
+    await t.tap(find.text(campoVacio));
+    await t.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsOneWidget,
+        reason: 'el campo de C1 abre el calendario');
+    final mat =
+        MaterialLocalizations.of(t.element(find.byType(DatePickerDialog)));
+    await t.tap(find.text(mat.okButtonLabel));
+    await t.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsNothing);
+  }
+
+  testWidgets('F4: con siembra inicial, área y plantas quedan en solo lectura',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(
+      tester,
+      crop: const Crop(id: 'c1', name: 'Café', areaHa: 0.5, livePlants: 500),
+      sowingsLocked: true,
+    );
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    final nombre = tester.widget<TextField>(find.byType(TextField).at(0));
+    final area = tester.widget<TextField>(find.byType(TextField).at(1));
+    final plantas = tester.widget<TextField>(find.byType(TextField).at(2));
+
+    // `TextField.enabled` es nullable: null = hereda (es decir, editable).
+    expect(nombre.enabled ?? true, isTrue, reason: 'el nombre sí lo escribe él');
+    expect(area.enabled ?? true, isFalse,
+        reason: 'la fija la siembra: escribirla aquí no tendría efecto');
+    expect(plantas.enabled ?? true, isFalse,
+        reason: 'lo que teclee lo borraría la próxima siembra');
+    expect(find.text(l10n.cropLockedHint), findsNWidgets(2));
+
+    // Y la puerta de salida está ahí, no se queda encerrado.
+    expect(find.text(l10n.cropLossRegister), findsOneWidget);
+
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.livePlants, 500, reason: 'se conserva el calculado');
+    expect(holder.value!.areaHa, 0.5);
+  });
+
+  testWidgets('F4: sin siembras (ruta "ya está plantado") todo es editable',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop:
+            const Crop(id: 'c1', name: 'Café', areaHa: 0.5, livePlants: 500));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(tester.widget<TextField>(find.byType(TextField).at(1)).enabled ??
+        true, isTrue);
+    expect(tester.widget<TextField>(find.byType(TextField).at(2)).enabled ??
+        true, isTrue);
+    expect(find.text(l10n.cropLockedHint), findsNothing);
+    expect(find.text(l10n.cropLossRegister), findsNothing,
+        reason: 'sin siembras no hay contador que corregir');
+
+    await tester.enterText(find.byType(TextField).at(1), '1,5');
+    await tester.enterText(find.byType(TextField).at(2), '800');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.areaHa, 1.5);
+    expect(holder.value!.livePlants, 800);
+  });
+
+  testWidgets('F5: el campo de fecha se ofrece en un perenne sin siembras',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await openCon(tester, crop: const Crop(id: 'c1', name: 'Café'));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(find.text(l10n.plantedAtLabel), findsOneWidget);
+    expect(find.text(l10n.plantedAtEmpty), findsOneWidget,
+        reason: 'opcional: sin fecha dice "Sin fecha", no se inventa una');
+  });
+
+  testWidgets('F5: no se pide la fecha si el cultivo ya tiene siembras',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await openCon(tester,
+        crop: const Crop(id: 'c1', name: 'Café'),
+        sowingsLocked: true);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(find.text(l10n.plantedAtLabel), findsNothing,
+        reason: 'ahí manda la fecha de la última siembra, la de la finca');
+    expect(find.byType(DropdownButtonFormField<CropPhase>), findsOneWidget,
+        reason: 'la fase sí sigue a la vista');
+  });
+
+  testWidgets('F5: un cultivo anual no pregunta cuándo está plantado',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await openCon(tester, crop: const Crop(
+        id: 'c1', name: 'Maíz', cycle: CropCycle.anual));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(find.text(l10n.plantedAtLabel), findsNothing,
+        reason: 'la edad de cafetal no aplica al anual');
+  });
+
+  testWidgets('C2: al crear, la fecha que anota decide la fase',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openDialog(tester);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    // A mano elige renovación…
+    await tester.tap(find.byType(DropdownButtonFormField<CropPhase>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.phaseRenovacion));
+    await tester.pumpAndSettle();
+
+    // …pero al decirle que está plantado hoy (0 años) la fase la decide la
+    // edad: recién plantado, no puede ser renovación.
+    await confirmarFechaDeHoy(tester, l10n.plantedAtEmpty);
+
+    await tester.enterText(find.byType(TextField).at(0), 'Café');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.plantedAt, isNotNull,
+        reason: 'C1: la fecha sí se guarda');
+    expect(holder.value!.phase, CropPhase.establecimiento,
+        reason: 'C2: en un cultivo nuevo la edad manda sobre lo tecleado');
+  });
+
+  testWidgets('C2: al editar, la fecha no re-deduces la fase',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(
+            id: 'c1', name: 'Café', phase: CropPhase.produccion));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    // Pone una fecha de hoy: si se re-dedujera, la bajaría a establecimiento.
+    await confirmarFechaDeHoy(tester, l10n.plantedAtEmpty);
+
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.plantedAt, isNotNull);
+    expect(holder.value!.phase, CropPhase.produccion,
+        reason: 'editar nunca re-deduces: la fase sale de su historial');
   });
 }

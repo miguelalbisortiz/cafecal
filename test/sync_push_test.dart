@@ -197,6 +197,42 @@ void main() {
       expect(payload.containsKey('currency'), isTrue);
       expect(payload['currency'], 'COP');
     });
+
+    // C1: si la columna no existe, Postgrest responde PGRST204 y se cae la
+    // subida COMPLETA — el mismo percance que tuvo `currency`.
+    test('el payload de cultivo incluye planted_at con la fecha corta',
+        () async {
+      final payload = (await newSync()).buildCropPayload(
+          Crop(id: cropUuid, name: 'Café', plantedAt: DateTime(2019, 3, 1)),
+          uid);
+
+      expect(payload['planted_at'], '2019-03-01',
+          reason: 'la columna es date: manda YYYY-MM-DD, no el ISO completo');
+    });
+
+    test('sin fecha el payload manda null, no una fecha inventada', () async {
+      final payload = (await newSync())
+          .buildCropPayload(const Crop(id: cropUuid, name: 'Café'), uid);
+      expect(payload['planted_at'], isNull);
+    });
+
+    test('lo que baja de Supabase conserva planted_at', () async {
+      final c = (await newSync()).remoteToCrop({
+        'id': cropUuid,
+        'name': 'Café',
+        'planted_at': '2019-03-01',
+      });
+      expect(c.plantedAt, isNotNull);
+      expect(c.plantedAt!.year, 2019);
+      expect(c.plantedAt!.month, 3);
+      expect(c.plantedAt!.day, 1);
+    });
+
+    test('una fila vieja sin planted_at sigue cargando', () async {
+      final c =
+          (await newSync()).remoteToCrop({'id': cropUuid, 'name': 'Café'});
+      expect(c.plantedAt, isNull);
+    });
   });
 
   group('markAllSynced(selectivo)', () {
@@ -301,7 +337,7 @@ void main() {
       expect(SyncProvider.shouldPushSettings(tx.settingsDirty), isTrue);
     });
 
-    test('el payload manda las 8 columnas, incluidas las nulas', () async {
+    test('el payload manda las 9 columnas, incluidas las nulas', () async {
       final tx = await newProvider();
       final p = SyncProvider(tx)
           .buildSettingsPayload(tx.settings, uid);
@@ -315,10 +351,21 @@ void main() {
         'last_crop_id',
         'low_price_threshold_per_kg',
         'caja_menor_mensual',
+        // A2: si falta la columna, PGRST204 tumba el subido entero.
+        'saco_kg',
       });
       expect(p['user_id'], uid);
       // Sin escribir la clave, un null explícito borra el valor remoto.
       expect(p['caja_menor_mensual'], isNull);
+      expect(p['saco_kg'], 70);
+    });
+
+    test('el peso del saco editado viaja en el payload', () async {
+      final tx = await newProvider();
+      await tx.updateSettings(tx.settings.copyWith(sacoKg: 60));
+
+      final p = SyncProvider(tx).buildSettingsPayload(tx.settings, uid);
+      expect(p['saco_kg'], 60);
     });
 
     test('la caja menor editada viaja entera en el payload', () async {

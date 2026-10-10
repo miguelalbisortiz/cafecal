@@ -189,6 +189,28 @@ void main() {
       expect(alerts.any((a) => a.rule == AlertRule.lowPrice), isTrue);
     });
 
+    test('A2: el peso del saco decide si la alerta dispara', () {
+      // 1 saco vendido a $5.000.000 contra un umbral de 80.000/kg.
+      // Con la norma (70 kg) eso son 71.428/kg → está por debajo: avisa.
+      // Con el costal real de 60 kg son 83.333/kg → no hay nada que avisar.
+      final txns = [
+        _txn(type: TransactionType.income, amount: 5000000, quantity: 1,
+            unit: 'saco', date: DateTime(2026, 6, 1), category: 'venta_cafe'),
+      ];
+
+      final conNorma = AlertService(now: now)
+          .evaluate(txns, _crops(), _es, manualThresholdPerKg: 80000);
+      final conSuCostal = AlertService(now: now).evaluate(
+          txns, _crops(), _es, manualThresholdPerKg: 80000, sacoKg: 60);
+
+      expect(conNorma.any((a) => a.rule == AlertRule.lowPrice), isTrue);
+      expect(
+        conSuCostal.any((a) => a.rule == AlertRule.lowPrice),
+        isFalse,
+        reason: '60 kg suben el precio por kilo por encima del umbral',
+      );
+    });
+
     test('ignora subvenciones y ventas sin cantidad: solo compara ventas con volumen', () {
       final txns = [
         _txn(type: TransactionType.income, amount: 1000000, quantity: 10, unit: 'kg', date: DateTime(2026, 1, 10), category: 'venta_cafe'),

@@ -194,7 +194,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpUnitsTitle => '¿Qué unidad uso?';
 
   @override
-  String get helpUnitsBody => 'Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos (1 saco = 70 kg) o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.';
+  String get helpUnitsBody => 'Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar, con el peso del saco que defines en Ajustes. Usa la unidad con la que trabajes normalmente.';
 
   @override
   String get helpUnitsTableTitle => 'Equivalencias';
@@ -215,7 +215,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpUnitsSacoRow => 'Saco';
 
   @override
-  String get helpUnitsSacoRowDesc => '70 kg. Para café en sacos.';
+  String get helpUnitsSacoRowDesc => 'Para café en sacos. El peso lo cambias en Ajustes.';
 
   @override
   String get helpUnitsCargaRow => 'Carga';
@@ -482,7 +482,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get phaseHelp => 'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.';
 
   @override
-  String get helpUnit => 'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco (≈70 kg café), carga (≈27.2 kg), racimo (plátano) o cajón.';
+  String get helpUnit => 'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco, carga (≈27.2 kg), racimo (plátano) o cajón.';
 
   @override
   String get helpCycle => 'Perenne = vive muchos años (café, plátano). Anual = se siembra y cosecha en el mismo año (tomate, maíz).';
@@ -558,6 +558,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cropLossSaved => 'Pérdida registrada';
+
+  @override
+  String get plantedAtLabel => '¿Desde cuándo está plantado?';
+
+  @override
+  String get helpPlantedAtShort => 'Opcional. Si no la recuerdas, déjala vacía.';
+
+  @override
+  String get plantedAtEmpty => 'Sin fecha';
+
+  @override
+  String get plantedAtClear => 'Borrar la fecha';
+
+  @override
+  String cropAge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count años',
+      one: '$count año',
+      zero: 'Menos de un año',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get editCropTitle => 'Editar cultivo';
@@ -1210,7 +1234,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get unitArroba => 'Arrobas (12.5 kg)';
 
   @override
-  String get unitSaco => 'Sacos (70 kg)';
+  String get unitSaco => 'Sacos';
 
   @override
   String get unitLb => 'Libras (lb)';
@@ -1235,6 +1259,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get lowPriceThresholdHelper => 'Opcional. Si vendes café por debajo de este precio (por kg), se mostrará una alerta. Déjalo vacío para usar solo tu historial.';
+
+  @override
+  String get sacoKgLabel => 'Peso de un saco (kg)';
+
+  @override
+  String get sacoKgHelper => 'Pasa los sacos a kilogramos en reportes, PDF y alertas. El estándar del café es 70.';
 
   @override
   String get excelColQty => 'Cantidad';

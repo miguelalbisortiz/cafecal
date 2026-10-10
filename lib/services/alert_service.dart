@@ -34,6 +34,10 @@ class AlertService {
     List<Harvest> harvests = const [],
     List<Sowing> sowings = const [],
     double? cajaMensual,
+    // A2 · se recibe en cada llamada (igual que el umbral) porque las alertas
+    // viven o mueren según el peso real del saco: 60 en vez de 70 sube el
+    // precio por kg de toda venta hecha en sacos.
+    double sacoKg = kSacoKgPorDefecto,
   }) {
     final now = _now ?? DateTime.now();
     final alerts = <FarmAlert>[];
@@ -43,9 +47,10 @@ class AlertService {
     _checkNoIncome(active, now, l10n, alerts);
     _checkConsecutiveLosses(active, now, l10n, alerts);
     _checkLowPrice(active, now, l10n, alerts,
-        manualThresholdPerKg: manualThresholdPerKg);
+        manualThresholdPerKg: manualThresholdPerKg, sacoKg: sacoKg);
     _checkDeficitCrop(active, crops, l10n, alerts);
-    _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts);
+    _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts,
+        sacoKg: sacoKg);
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
     _checkCashBox(active, now, l10n, alerts, cajaMensual: cajaMensual);
@@ -224,7 +229,7 @@ class AlertService {
 
   void _checkLowPrice(List<Transaction> txns, DateTime now,
       AppLocalizations l10n, List<FarmAlert> out,
-      {double? manualThresholdPerKg}) {
+      {double? manualThresholdPerKg, double sacoKg = kSacoKgPorDefecto}) {
     final sales = txns
         .where((t) =>
             !t.type.isExpense &&
@@ -240,7 +245,7 @@ class AlertService {
     if (_currenciesOf(sales).length > 1) return;
 
     double pricePerKg(Transaction t) =>
-        t.amount / (t.quantity! * unitToKg(t.unit));
+        t.amount / (t.quantity! * unitToKg(t.unit, sacoKg: sacoKg));
 
     if (manualThresholdPerKg != null && manualThresholdPerKg > 0) {
       final below = sales
@@ -385,8 +390,11 @@ class AlertService {
     List<Harvest> harvests,
     DateTime now,
     AppLocalizations l10n,
-    List<FarmAlert> out,
-  ) {
+    List<FarmAlert> out, {
+    // A2: lo vendido y lo cosechado se miden en kg, y el kg de un saco
+    // depende del peso que él haya configurado.
+    double sacoKg = kSacoKgPorDefecto,
+  }) {
     final cutoff = DateTime(now.year - 1, now.month, now.day);
     final cropMap = {for (final c in crops) c.id: c};
 
@@ -396,7 +404,7 @@ class AlertService {
       if (t.date.isBefore(cutoff)) continue;
       final cid = t.cropId ?? '_none_';
       final qty = (t.quantity ?? 0);
-      salesByCrop[cid] = (salesByCrop[cid] ?? 0) + qty * unitToKg(t.unit);
+      salesByCrop[cid] = (salesByCrop[cid] ?? 0) + qty * unitToKg(t.unit, sacoKg: sacoKg);
     }
 
     final harvestedByCrop = <String, double>{};
@@ -407,7 +415,7 @@ class AlertService {
       if (h.destination == HarvestDestination.perdida) continue;
       final cid = h.cropId ?? '_none_';
       harvestedByCrop[cid] =
-          (harvestedByCrop[cid] ?? 0) + h.amount * unitToKg(h.unit);
+          (harvestedByCrop[cid] ?? 0) + h.amount * unitToKg(h.unit, sacoKg: sacoKg);
     }
 
     final allCropIds = {...salesByCrop.keys, ...harvestedByCrop.keys};

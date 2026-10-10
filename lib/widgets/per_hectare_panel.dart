@@ -5,6 +5,7 @@ import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/transaction.dart';
 import '../services/report_harvest_metrics.dart';
+import '../models/units.dart';
 import '../utils/format.dart';
 
 /// Panel "Por hectárea" del reporte: normaliza producción y finanzas de cada
@@ -19,17 +20,22 @@ class PerHectarePanel extends StatelessWidget {
   final List<Harvest> periodHarvests;
   final List<Transaction> allTransactions;
 
+  /// A2 · peso real del saco. El panel es puro (sin provider) para poder
+  /// probarlo con datos sueltos, así que el peso entra por aquí.
+  final double sacoKg;
+
   const PerHectarePanel({
     super.key,
     required this.crops,
     required this.periodTransactions,
     required this.periodHarvests,
     required this.allTransactions,
+    this.sacoKg = kSacoKgPorDefecto,
   });
 
   @override
   Widget build(BuildContext context) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final l10n = AppLocalizations.of(context)!;
 
     final withArea = crops.where((c) => c.areaHa != null && c.areaHa! > 0);
@@ -183,7 +189,7 @@ class PerHectarePanel extends StatelessWidget {
 
   Widget _recoveryBlock(BuildContext context, _CropMetrics r,
       AppLocalizations l10n) {
-    const metrics = ReportHarvestMetrics();
+    final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final scheme = Theme.of(context).colorScheme;
     final investment = r.crop.establishmentCost!;
 

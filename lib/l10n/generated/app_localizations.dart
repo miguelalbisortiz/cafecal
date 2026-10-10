@@ -464,7 +464,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpUnitsBody.
   ///
   /// In es, this message translates to:
-  /// **'Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos (1 saco = 70 kg) o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar. Usa la unidad con la que trabajes normalmente.'**
+  /// **'Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar, con el peso del saco que defines en Ajustes. Usa la unidad con la que trabajes normalmente.'**
   String get helpUnitsBody;
 
   /// No description provided for @helpUnitsTableTitle.
@@ -506,7 +506,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpUnitsSacoRowDesc.
   ///
   /// In es, this message translates to:
-  /// **'70 kg. Para café en sacos.'**
+  /// **'Para café en sacos. El peso lo cambias en Ajustes.'**
   String get helpUnitsSacoRowDesc;
 
   /// No description provided for @helpUnitsCargaRow.
@@ -1040,7 +1040,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpUnit.
   ///
   /// In es, this message translates to:
-  /// **'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco (≈70 kg café), carga (≈27.2 kg), racimo (plátano) o cajón.'**
+  /// **'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco, carga (≈27.2 kg), racimo (plátano) o cajón.'**
   String get helpUnit;
 
   /// No description provided for @helpCycle.
@@ -1144,6 +1144,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Pérdida registrada'**
   String get cropLossSaved;
+
+  /// No description provided for @plantedAtLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Desde cuándo está plantado?'**
+  String get plantedAtLabel;
+
+  /// No description provided for @helpPlantedAtShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Si no la recuerdas, déjala vacía.'**
+  String get helpPlantedAtShort;
+
+  /// No description provided for @plantedAtEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin fecha'**
+  String get plantedAtEmpty;
+
+  /// No description provided for @plantedAtClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar la fecha'**
+  String get plantedAtClear;
+
+  /// Edad del cultivo, junto a la fase. Se muestra solo si hay datos.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{Menos de un año} one{{count} año} other{{count} años}}'**
+  String cropAge(int count);
 
   /// No description provided for @editCropTitle.
   ///
@@ -2396,7 +2426,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitSaco.
   ///
   /// In es, this message translates to:
-  /// **'Sacos (70 kg)'**
+  /// **'Sacos'**
   String get unitSaco;
 
   /// No description provided for @unitLb.
@@ -2446,6 +2476,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Opcional. Si vendes café por debajo de este precio (por kg), se mostrará una alerta. Déjalo vacío para usar solo tu historial.'**
   String get lowPriceThresholdHelper;
+
+  /// No description provided for @sacoKgLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Peso de un saco (kg)'**
+  String get sacoKgLabel;
+
+  /// No description provided for @sacoKgHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasa los sacos a kilogramos en reportes, PDF y alertas. El estándar del café es 70.'**
+  String get sacoKgHelper;
 
   /// No description provided for @excelColQty.
   ///
