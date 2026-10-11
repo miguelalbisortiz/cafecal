@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
@@ -727,6 +727,96 @@ void main() {
           .evaluate(txns, _crops(), _es, cajaMensual: 600);
       expect(alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
           reason: 'mayo no puede agotar la caja de junio');
+    });
+  });
+
+  group('Regla 11 - Ventas por cobrar (E1)', () {
+    Transaction sale({
+      required double amount,
+      required DateTime date,
+      bool paid = true,
+      double? quantity,
+      String currency = 'COP',
+    }) =>
+        Transaction(
+          id: 'sale_${amount}_${date.millisecondsSinceEpoch}_${currency}_$paid',
+          type: TransactionType.income,
+          category: 'venta',
+          amount: amount,
+          quantity: quantity,
+          unit: 'kg',
+          currency: currency,
+          date: date,
+          createdAt: DateTime(2026, 1, 1),
+          paid: paid,
+        );
+
+    test('una venta por cobrar avisa, pero como información', () {
+      final txns = [
+        sale(
+            amount: 2000000, date: DateTime(2026, 6, 10), paid: false,
+            quantity: 400),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      final found = alerts.where((a) => a.rule == AlertRule.unpaidSales);
+      expect(found, hasLength(1));
+      expect(found.single.severity, AlertSeverity.info,
+          reason: 'una deuda recién nacida es dato, no alarma');
+    });
+
+    test('con más de 30 días sin cobrar sube a warning', () {
+      final txns = [
+        sale(
+            amount: 2000000, date: DateTime(2026, 5, 1), paid: false,
+            quantity: 400),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      final found = alerts.firstWhere((a) => a.rule == AlertRule.unpaidSales);
+      expect(found.severity, AlertSeverity.warning,
+          reason: 'no por el monto sino por el tiempo sin cobrarse');
+    });
+
+    test('una venta pagada no avisa', () {
+      final txns = [
+        sale(amount: 2000000, date: DateTime(2026, 6, 10), quantity: 400),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(alerts.where((a) => a.rule == AlertRule.unpaidSales), isEmpty,
+          reason: 'por defecto todo ingreso ya estaba pagado');
+    });
+
+    test('los ingresos que no son venta no cuentan', () {
+      final txns = [
+        Transaction(
+          id: 'subvencion',
+          type: TransactionType.income,
+          category: 'subvenciones',
+          amount: 500000,
+          date: DateTime(2026, 6, 1),
+          createdAt: DateTime(2026, 1, 1),
+          paid: false,
+        ),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(alerts.where((a) => a.rule == AlertRule.unpaidSales), isEmpty);
+    });
+
+    test('con moneda mixta no se cita ningún total', () {
+      final txns = [
+        sale(
+            amount: 100,
+            date: DateTime(2026, 6, 10),
+            currency: 'COP',
+            quantity: 400),
+        sale(
+            amount: 200,
+            date: DateTime(2026, 6, 11),
+            currency: 'USD',
+            quantity: 400),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      expect(alerts.where((a) => a.rule == AlertRule.unpaidSales), isEmpty,
+          reason: 'sumar COP y USD daría una cifra mentirosa');
     });
   });
 }

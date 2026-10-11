@@ -1192,6 +1192,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».';
 
   @override
+  String get deductionSwitchLabel => 'El comprador me descontó';
+
+  @override
+  String get deductionHint => 'En café no siempre se paga lo que se entrega: impureza, humedad o piedras.';
+
+  @override
+  String get deductionQtyLabel => 'Cantidad descontada';
+
+  @override
+  String get deductionQtyInvalid => 'Poné la cantidad que te descontaron';
+
+  @override
+  String get deductionReasonLabel => 'Motivo del descuento';
+
+  @override
+  String get deductionReasonHint => 'impureza, humedad, piedras…';
+
+  @override
+  String get deductionRegisteredLabel => 'Entregado';
+
+  @override
+  String get deductionDeductedLabel => 'Descontado';
+
+  @override
+  String get deductionPaidLabel => 'Pagado';
+
+  @override
+  String get deductionOverQuantity => 'Te descontaron más de lo que entregaste: revisá la cantidad.';
+
+  @override
+  String get paidStatusTitle => 'Estado de pago';
+
+  @override
+  String get paidStatusPaid => 'Pagado';
+
+  @override
+  String get paidStatusPending => 'Por cobrar';
+
+  @override
   String get categoryFieldLabel => 'Categoría';
 
   @override
@@ -2297,6 +2336,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertMissingQtySuggestion => 'Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.';
+
+  @override
+  String get alertUnpaidTitle => 'Hay ventas por cobrar';
+
+  @override
+  String alertUnpaidMessage(int count, String amount, int days) {
+    return 'El problema: $count ventas suman $amount que todavía no te pagaron, la más vieja con $days días.';
+  }
+
+  @override
+  String get alertUnpaidSuggestion => 'Cobrá antes de que se pase: cuando la plata entre, editá la venta y cambia su estado a «Pagado».';
 
   @override
   String alertCashBoxWarningTitle(String month, String percent) {

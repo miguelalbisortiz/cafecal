@@ -22,7 +22,8 @@ enum AlertRule {
   harvestVsSales,
   cropRecentlyPlanted,
   missingQuantity,
-  cajaMenor;
+  cajaMenor,
+  unpaidSales;
 
   String get key => name;
 }

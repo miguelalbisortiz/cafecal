@@ -2339,6 +2339,84 @@ abstract class AppLocalizations {
   /// **'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».'**
   String get sowingCategoryHint;
 
+  /// No description provided for @deductionSwitchLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'El comprador me descontó'**
+  String get deductionSwitchLabel;
+
+  /// No description provided for @deductionHint.
+  ///
+  /// In es, this message translates to:
+  /// **'En café no siempre se paga lo que se entrega: impureza, humedad o piedras.'**
+  String get deductionHint;
+
+  /// No description provided for @deductionQtyLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cantidad descontada'**
+  String get deductionQtyLabel;
+
+  /// No description provided for @deductionQtyInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Poné la cantidad que te descontaron'**
+  String get deductionQtyInvalid;
+
+  /// No description provided for @deductionReasonLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Motivo del descuento'**
+  String get deductionReasonLabel;
+
+  /// No description provided for @deductionReasonHint.
+  ///
+  /// In es, this message translates to:
+  /// **'impureza, humedad, piedras…'**
+  String get deductionReasonHint;
+
+  /// No description provided for @deductionRegisteredLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Entregado'**
+  String get deductionRegisteredLabel;
+
+  /// No description provided for @deductionDeductedLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Descontado'**
+  String get deductionDeductedLabel;
+
+  /// No description provided for @deductionPaidLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Pagado'**
+  String get deductionPaidLabel;
+
+  /// No description provided for @deductionOverQuantity.
+  ///
+  /// In es, this message translates to:
+  /// **'Te descontaron más de lo que entregaste: revisá la cantidad.'**
+  String get deductionOverQuantity;
+
+  /// No description provided for @paidStatusTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado de pago'**
+  String get paidStatusTitle;
+
+  /// No description provided for @paidStatusPaid.
+  ///
+  /// In es, this message translates to:
+  /// **'Pagado'**
+  String get paidStatusPaid;
+
+  /// No description provided for @paidStatusPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Por cobrar'**
+  String get paidStatusPending;
+
   /// No description provided for @categoryFieldLabel.
   ///
   /// In es, this message translates to:
@@ -4240,6 +4318,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.'**
   String get alertMissingQtySuggestion;
+
+  /// No description provided for @alertUnpaidTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay ventas por cobrar'**
+  String get alertUnpaidTitle;
+
+  /// No description provided for @alertUnpaidMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: {count} ventas suman {amount} que todavía no te pagaron, la más vieja con {days} días.'**
+  String alertUnpaidMessage(int count, String amount, int days);
+
+  /// No description provided for @alertUnpaidSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Cobrá antes de que se pase: cuando la plata entre, editá la venta y cambia su estado a «Pagado».'**
+  String get alertUnpaidSuggestion;
 
   /// No description provided for @alertCashBoxWarningTitle.
   ///

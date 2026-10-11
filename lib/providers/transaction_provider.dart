@@ -199,6 +199,9 @@ class TransactionProvider extends ChangeNotifier {
     String? provider,
     String? harvestId,
     String? sowingId,
+    double? deductionQty,
+    String? deductionReason,
+    bool paid = true,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -218,6 +221,9 @@ class TransactionProvider extends ChangeNotifier {
       provider: provider,
       harvestId: harvestId,
       sowingId: sowingId,
+      deductionQty: deductionQty,
+      deductionReason: deductionReason,
+      paid: paid,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
@@ -480,7 +486,19 @@ class TransactionProvider extends ChangeNotifier {
     // Sin precio no hay con qué calcular el importe: se deja como está.
     if (price == null) return linked;
 
-    final amount = harvest.amount * price;
+    // E1 · lo que entra es lo neto. Si la venta ya tiene un descuento
+    // registrado (el comprador descontó impureza o humedad), el bruto menos
+    // ese descuento es lo que se paga — el monto deja de ser simplemente
+    // "cantidad cosechada × precio".
+    //
+    // La unidad del descuento es la de la venta, que es la de la cosecha, así
+    // que las dos cantidades siempre hablan lo mismo: no se descuentan kilos
+    // de una venta hecha en racimos.
+    final deduction = linked?.deductionQty;
+    final double netQty = (deduction == null || deduction <= 0)
+        ? harvest.amount
+        : (harvest.amount - deduction).clamp(0.0, double.infinity).toDouble();
+    final amount = netQty * price;
     if (linked != null) {
       final updated = linked.copyWith(
         cropId: harvest.cropId,

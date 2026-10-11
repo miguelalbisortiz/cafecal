@@ -430,6 +430,19 @@
   "cropNewOption": "+ New crop…",
   "cropGroupHint": "Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.",
   "sowingCategoryHint": "If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn't exist yet, tap “+ New crop…”.",
+  "deductionSwitchLabel": "The buyer deducted before paying",
+  "deductionHint": "Coffee isn't always paid in full: impurity, moisture or stones.",
+  "deductionQtyLabel": "Deducted quantity",
+  "deductionQtyInvalid": "Enter the quantity they deducted",
+  "deductionReasonLabel": "Reason for the deduction",
+  "deductionReasonHint": "impurity, moisture, stones…",
+  "deductionRegisteredLabel": "Delivered",
+  "deductionDeductedLabel": "Deducted",
+  "deductionPaidLabel": "Paid",
+  "deductionOverQuantity": "They deducted more than you delivered: check the quantity.",
+  "paidStatusTitle": "Payment status",
+  "paidStatusPaid": "Paid",
+  "paidStatusPending": "Unpaid",
   "categoryFieldLabel": "Category",
   "amountFieldLabel": "Amount",
   "amountInvalid": "Enter a valid amount",
@@ -876,6 +889,17 @@
   },
   "alertMissingQtyMessage": "The problem: in the last 90 days you recorded {count} sales without the sold quantity. Without that figure, the app cannot calculate your price per kilo or your profitability.",
   "alertMissingQtySuggestion": "Edit those sales and enter the kilos sold. That way your price and profitability reports become reliable.",
+
+  "@alertUnpaidMessage": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "amount": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "alertUnpaidTitle": "Sales still unpaid",
+  "alertUnpaidMessage": "The problem: {count} sales add up to {amount} that hasn't been paid yet, the oldest one {days} days old.",
+  "alertUnpaidSuggestion": "Collect before it slips: once the money arrives, edit the sale and switch its status to “Paid”.",
 
   "@alertCashBoxWarningTitle": {
     "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }

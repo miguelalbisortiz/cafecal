@@ -54,6 +54,7 @@ class AlertService {
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
     _checkCashBox(active, now, l10n, alerts, cajaMensual: cajaMensual);
+    _checkUnpaidSales(active, now, l10n, alerts);
 
     return alerts;
   }
@@ -555,6 +556,47 @@ class AlertService {
         suggestion: l10n.alertCashBoxWarningSuggestion,
       ));
     }
+  }
+
+  // ---- Regla 11 (E1): ventas por cobrar ----
+
+  /// El dinero que ya salió de la finca pero todavía no entró.
+  ///
+  /// Es la contraparte de todas las reglas de ingreso: hasta ahora solo se
+  /// veía lo que había entrado, y una venta por cobrar se contaba como
+  /// ganacia igual que una pagada. Aquí se avisa aparte, y la severidad
+  /// sube cuando la deuda cumple un mes — no por el monto, sino por el
+  /// tiempo que lleva sin cobrarse.
+  ///
+  /// Regla de moneda mixta: si las ventas sin pagar están en más de una
+  /// moneda no se cita ningún total, porque la suma sería mentira.
+  void _checkUnpaidSales(List<Transaction> txns, DateTime now,
+      AppLocalizations l10n, List<FarmAlert> out) {
+    final unpaid = txns
+        .where((t) =>
+            !t.type.isExpense &&
+            !t.paid &&
+            isSaleCategory(t.category) &&
+            t.amount > 0)
+        .toList();
+    if (unpaid.isEmpty) return;
+    if (_currenciesOf(unpaid).length > 1) return;
+
+    final total = unpaid.fold<double>(0, (a, t) => a + t.amount);
+    final oldest =
+        unpaid.map((t) => t.date).reduce((a, b) => a.isBefore(b) ? a : b);
+    final days = now.difference(oldest).inDays;
+
+    out.add(FarmAlert(
+      id: 'unpaid_sales',
+      rule: AlertRule.unpaidSales,
+      // Una venta recién hecha y sin pagar es normal; un mes sin cobrar ya
+      // no lo es.
+      severity: days >= 30 ? AlertSeverity.warning : AlertSeverity.info,
+      title: l10n.alertUnpaidTitle,
+      message: l10n.alertUnpaidMessage(unpaid.length, _money(total), days),
+      suggestion: l10n.alertUnpaidSuggestion,
+    ));
   }
 }
 

@@ -1192,6 +1192,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingCategoryHint => 'If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn\'t exist yet, tap “+ New crop…”.';
 
   @override
+  String get deductionSwitchLabel => 'The buyer deducted before paying';
+
+  @override
+  String get deductionHint => 'Coffee isn\'t always paid in full: impurity, moisture or stones.';
+
+  @override
+  String get deductionQtyLabel => 'Deducted quantity';
+
+  @override
+  String get deductionQtyInvalid => 'Enter the quantity they deducted';
+
+  @override
+  String get deductionReasonLabel => 'Reason for the deduction';
+
+  @override
+  String get deductionReasonHint => 'impurity, moisture, stones…';
+
+  @override
+  String get deductionRegisteredLabel => 'Delivered';
+
+  @override
+  String get deductionDeductedLabel => 'Deducted';
+
+  @override
+  String get deductionPaidLabel => 'Paid';
+
+  @override
+  String get deductionOverQuantity => 'They deducted more than you delivered: check the quantity.';
+
+  @override
+  String get paidStatusTitle => 'Payment status';
+
+  @override
+  String get paidStatusPaid => 'Paid';
+
+  @override
+  String get paidStatusPending => 'Unpaid';
+
+  @override
   String get categoryFieldLabel => 'Category';
 
   @override
@@ -2297,6 +2336,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertMissingQtySuggestion => 'Edit those sales and enter the kilos sold. That way your price and profitability reports become reliable.';
+
+  @override
+  String get alertUnpaidTitle => 'Sales still unpaid';
+
+  @override
+  String alertUnpaidMessage(int count, String amount, int days) {
+    return 'The problem: $count sales add up to $amount that hasn\'t been paid yet, the oldest one $days days old.';
+  }
+
+  @override
+  String get alertUnpaidSuggestion => 'Collect before it slips: once the money arrives, edit the sale and switch its status to “Paid”.';
 
   @override
   String alertCashBoxWarningTitle(String month, String percent) {

@@ -304,6 +304,11 @@ class SyncProvider extends ChangeNotifier {
         'provider': t.provider,
         'harvest_id': _uuidOrNull(t.harvestId),
         'sowing_id': _uuidOrNull(t.sowingId),
+        // E1 · la venta real. `paid` nunca es null (la columna es not null),
+        // por eso sale con ?? true.
+        'deduction_qty': t.deductionQty,
+        'deduction_reason': t.deductionReason,
+        'paid': t.paid,
       };
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -519,6 +524,9 @@ class SyncProvider extends ChangeNotifier {
       'provider': row['provider'] as String?,
       'harvest_id': row['harvest_id'] as String?,
       'sowing_id': row['sowing_id'] as String?,
+      'deduction_qty': (row['deduction_qty'] as num?)?.toDouble(),
+      'deduction_reason': row['deduction_reason'] as String?,
+      'paid': (row['paid'] as bool?) ?? true,
     });
   }
 

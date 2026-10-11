@@ -34,6 +34,24 @@ class Transaction {
   final String? harvestId;
   final String? sowingId;
 
+  // ---- La venta real (E1) ----
+  /// Kilos que el comprador descontó antes de pagar: impureza, humedad,
+  /// piedras. En café real no siempre se paga lo que se entregó, y sin este
+  /// dato no se puede decir "coseché 480 kg, me descontaron 80, me pagaron
+  /// por 400". Null = ningún descuento.
+  final double? deductionQty;
+
+  /// Motivo del descuento, en palabras del usuario ("impureza", "húmedo").
+  /// Se guarda tal cual: no hay una lista cerrada de motivos.
+  final String? deductionReason;
+
+  /// ¿La plata ya entró? `false` = por cobrar.
+  ///
+  /// `true` por defecto a propósito: un movimiento de ingreso que no viene
+  /// marcado es plata que ya estaba en la caja, y así quedan los datos
+  /// antiguos — nadie hereda un "por cobrar" inventado.
+  final bool paid;
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -53,7 +71,27 @@ class Transaction {
     this.provider,
     this.harvestId,
     this.sowingId,
+    this.deductionQty,
+    this.deductionReason,
+    this.paid = true,
   });
+
+  /// Lo que realmente se pagó: lo entregado menos lo descontado.
+  ///
+  /// Sin descuento devuelve [quantity] tal cual, así que los movimientos
+  /// viejos y los nuevos sin descuento dan exactamente el mismo número.
+  double? get netQuantity {
+    final q = quantity;
+    if (q == null) return null;
+    final d = deductionQty;
+    if (d == null || d <= 0) return q;
+    final net = q - d;
+    return net < 0 ? 0 : net;
+  }
+
+  /// ¿Tiene algún descuento registrado?
+  bool get hasDeduction =>
+      deductionQty != null && deductionQty! > 0 && !deleted;
 
   /// Marcador para distinguir "no tocar este campo" (`copyWith()`) de "borrarlo"
   /// (`copyWith(cropId: null)`). Sin él el null se interpretaba como "conserva el
@@ -81,6 +119,9 @@ class Transaction {
     String? provider,
     Object? harvestId = _keep,
     Object? sowingId = _keep,
+    Object? deductionQty = _keep,
+    Object? deductionReason = _keep,
+    bool? paid,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -101,6 +142,15 @@ class Transaction {
       provider: provider ?? this.provider,
       harvestId: harvestId == _keep ? this.harvestId : harvestId as String?,
       sowingId: sowingId == _keep ? this.sowingId : sowingId as String?,
+      deductionQty: deductionQty == _keep
+          ? this.deductionQty
+          // num → double: el parámetro es Object? para poder limpiar con
+          // null, y un literal entero (deductionQty: 80) no debe reventar.
+          : (deductionQty as num?)?.toDouble(),
+      deductionReason: deductionReason == _keep
+          ? this.deductionReason
+          : deductionReason as String?,
+      paid: paid ?? this.paid,
     );
   }
 
@@ -123,6 +173,9 @@ class Transaction {
         'provider': provider,
         'harvest_id': harvestId,
         'sowing_id': sowingId,
+        'deduction_qty': deductionQty,
+        'deduction_reason': deductionReason,
+        'paid': paid,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -145,6 +198,10 @@ class Transaction {
       provider: json['provider'] as String?,
       harvestId: json['harvest_id'] as String?,
       sowingId: json['sowing_id'] as String?,
+      deductionQty: (json['deduction_qty'] as num?)?.toDouble(),
+      deductionReason: json['deduction_reason'] as String?,
+      // true por defecto: un dato viejo sin marca es plata que entró.
+      paid: (json['paid'] as bool?) ?? true,
     );
   }
 }

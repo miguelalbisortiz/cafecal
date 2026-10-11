@@ -436,6 +436,19 @@
   "cropNewOption": "+ Nueva variedad…",
   "cropGroupHint": "Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.",
   "sowingCategoryHint": "Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».",
+  "deductionSwitchLabel": "El comprador me descontó",
+  "deductionHint": "En café no siempre se paga lo que se entrega: impureza, humedad o piedras.",
+  "deductionQtyLabel": "Cantidad descontada",
+  "deductionQtyInvalid": "Poné la cantidad que te descontaron",
+  "deductionReasonLabel": "Motivo del descuento",
+  "deductionReasonHint": "impureza, humedad, piedras…",
+  "deductionRegisteredLabel": "Entregado",
+  "deductionDeductedLabel": "Descontado",
+  "deductionPaidLabel": "Pagado",
+  "deductionOverQuantity": "Te descontaron más de lo que entregaste: revisá la cantidad.",
+  "paidStatusTitle": "Estado de pago",
+  "paidStatusPaid": "Pagado",
+  "paidStatusPending": "Por cobrar",
   "categoryFieldLabel": "Categoría",
   "amountFieldLabel": "Monto",
   "amountInvalid": "Ingresa un monto válido",
@@ -1013,6 +1026,17 @@
   },
   "alertMissingQtyMessage": "El problema: en los últimos 90 días registraste {count} ventas sin la cantidad vendida. Sin ese dato, la app no puede calcular tu precio por kilo ni tu rentabilidad.",
   "alertMissingQtySuggestion": "Edita esas ventas e ingresa los kilos vendidos. Así tus informes de precio y rentabilidad serán confiables.",
+
+  "@alertUnpaidMessage": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "amount": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "alertUnpaidTitle": "Hay ventas por cobrar",
+  "alertUnpaidMessage": "El problema: {count} ventas suman {amount} que todavía no te pagaron, la más vieja con {days} días.",
+  "alertUnpaidSuggestion": "Cobrá antes de que se pase: cuando la plata entre, editá la venta y cambia su estado a «Pagado».",
 
   "@alertCashBoxWarningTitle": {
     "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }

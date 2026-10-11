@@ -45,6 +45,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _jornalWorkerValue;
   int _jornalDropKey = 0;
 
+  // ---- E1 · la venta real ----
+  final _deductionQtyController = TextEditingController();
+  final _deductionReasonController = TextEditingController();
+
+  /// ¿El comprador descontó antes de pagar? Impureza, humedad, piedras.
+  bool _hasDeduction = false;
+
+  /// ¿La plata ya entró? `false` = por cobrar.
+  bool _paid = true;
+
   TransactionType _type = TransactionType.expense;
   String? _category;
   String? _cropId;
@@ -97,6 +107,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
       if (e.client != null) _clientController.text = e.client!;
       if (e.provider != null) _providerController.text = e.provider!;
+      // E1 · la venta real: descuento y estado de pago.
+      _hasDeduction = e.deductionQty != null && e.deductionQty! > 0;
+      _paid = e.paid;
+      if (e.deductionQty != null) {
+        _deductionQtyController.text = (e.deductionQty! % 1 == 0)
+            ? e.deductionQty!.toInt().toString()
+            : e.deductionQty!.toString();
+      }
+      if (e.deductionReason != null) {
+        _deductionReasonController.text = e.deductionReason!;
+      }
       // Jornal: restaurar trabajador, días y valor día desde el snapshot.
       if (e.type == TransactionType.expense && e.category == 'mano_obra') {
         if (e.quantity != null) {
@@ -155,7 +176,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _jornalOtherNameController.dispose();
     _jornalDaysController.dispose();
     _jornalRateController.dispose();
+    _deductionQtyController.dispose();
+    _deductionReasonController.dispose();
     super.dispose();
+  }
+
+  /// E1 · lo que de verdad se pagó: lo entregado menos lo descontado.
+  ///
+  /// Sin descuento devuelve la cantidad tal cual, así que el precio por
+  /// unidad que ya se mostraba antes de E1 sigue siendo idéntico — nadie ve
+  /// un número cambiado por este cambio.
+  double? _netSaleQuantity() {
+    final q = double.tryParse(
+        _quantityController.text.trim().replaceAll(',', '.'));
+    if (q == null) return null;
+    if (!_hasDeduction) return q;
+    final d = double.tryParse(
+        _deductionQtyController.text.trim().replaceAll(',', '.'));
+    if (d == null || d <= 0) return q;
+    final net = q - d;
+    return net < 0 ? 0 : net;
   }
 
   Future<void> _createCrop() async {
@@ -284,6 +324,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     final harvestId = _type == TransactionType.expense ? _harvestId : null;
 
+    // E1 · la venta real. El descuento y el estado de pago solo aplican a
+    // ventas: en un gasto no hay nada que descontar, y la plata ya salió, así
+    // que "por cobrar" no significaría nada. Si el interruptor está apagado o
+    // la cantidad viene vacía, queda null — y null, en esta app, es oculto.
+    final isSaleTxn =
+        _type == TransactionType.income && _saleCategories.contains(_category);
+    double? deductionQty;
+    String? deductionReason;
+    if (isSaleTxn && _hasDeduction) {
+      deductionQty = double.tryParse(
+          _deductionQtyController.text.trim().replaceAll(',', '.'));
+      if (deductionQty != null && deductionQty <= 0) deductionQty = null;
+      final reason = _deductionReasonController.text.trim();
+      deductionReason = reason.isEmpty ? null : reason;
+    }
+    final paid = isSaleTxn ? _paid : true;
+
     final editing = widget.editing;
     if (editing != null) {
       // Construimos el objeto directamente (no copyWith) para que los campos
@@ -308,6 +365,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         provider: provider,
         harvestId: harvestId,
         sowingId: editing.sowingId,
+        deductionQty: deductionQty,
+        deductionReason: deductionReason,
+        paid: paid,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -334,6 +394,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       client: client,
       provider: provider,
       harvestId: harvestId,
+      deductionQty: deductionQty,
+      deductionReason: deductionReason,
+      paid: paid,
     );
 
     // Recuerda el cultivo elegido para preseleccionarlo la próxima vez.
@@ -354,9 +417,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _jornalOtherNameController.clear();
     _jornalDaysController.clear();
     _jornalRateController.clear();
+    _deductionQtyController.clear();
+    _deductionReasonController.clear();
     setState(() {
       _unit = (isSale && quantity != null) ? _unit : null;
       _jornalWorkerValue = null;
+      // Una venta guardada no arrastra el descuento ni el estado de pago de
+      // la anterior: cada registro empieza limpio.
+      _hasDeduction = false;
+      _paid = true;
     });
   }
 
@@ -641,16 +710,86 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Precio por unidad (auto)
+            // Precio por unidad (auto). Se calcula sobre lo que de verdad se
+            // pagó, no sobre lo que se entregó: si hubo descuento, el precio
+            // que importa es el de la unidad que entró a la caja.
             _PricePerUnitInfo(
               amount: double.tryParse(
                   _amountController.text.trim().replaceAll(',', '.')),
-              quantity: double.tryParse(
-                  _quantityController.text.trim().replaceAll(',', '.')),
+              quantity: _netSaleQuantity(),
               unit: _unit,
               currency: _currency,
               locale: tx.settings.locale,
               l10n: l10n,
+            ),
+            const SizedBox(height: 12),
+
+            // E1 · ¿el comprador descontó antes de pagar?
+            SwitchListTile(
+              value: _hasDeduction,
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.deductionSwitchLabel),
+              subtitle: Text(l10n.deductionHint),
+              onChanged: (v) => setState(() => _hasDeduction = v),
+            ),
+            if (_hasDeduction) ...[
+              TextFormField(
+                controller: _deductionQtyController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.deductionQtyLabel,
+                  prefixIcon: const Icon(Icons.trending_down),
+                  border: const OutlineInputBorder(),
+                  // La unidad es la de la venta, que es la de la cosecha: no
+                  // se descuentan kilos de una venta hecha en racimos.
+                  suffixText: _unit,
+                ),
+                validator: (v) {
+                  if (!_hasDeduction) return null;
+                  final n =
+                      double.tryParse((v ?? '').trim().replaceAll(',', '.'));
+                  if (n == null || n <= 0) return l10n.deductionQtyInvalid;
+                  return null;
+                },
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _deductionReasonController,
+                decoration: InputDecoration(
+                  labelText: l10n.deductionReasonLabel,
+                  prefixIcon: const Icon(Icons.notes_outlined),
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.deductionReasonHint,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _DeductionSummary(
+                quantity: double.tryParse(_quantityController.text
+                    .trim()
+                    .replaceAll(',', '.')),
+                deduction: double.tryParse(
+                    _deductionQtyController.text.trim().replaceAll(',', '.')),
+                reason: _deductionReasonController.text.trim(),
+                unit: _unit,
+                l10n: l10n,
+              ),
+            ],
+            const SizedBox(height: 16),
+
+            // E1 · estado de pago. Dos estados a propósito: "parcial" se
+            // resuelve registrando lo que ya entró como otro ingreso.
+            _ProdSectionHeader(label: l10n.paidStatusTitle),
+            const SizedBox(height: 12),
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(value: true, label: Text(l10n.paidStatusPaid)),
+                ButtonSegment(
+                    value: false, label: Text(l10n.paidStatusPending)),
+              ],
+              selected: {_paid},
+              onSelectionChanged: (s) => setState(() => _paid = s.first),
             ),
             const SizedBox(height: 16),
           ],
@@ -1028,6 +1167,103 @@ class _JornalTotalInfo extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// E1 · recuento visible del descuento: entregado, descontado y pagado.
+///
+/// Existe como widget aparte porque es la única parte del formulario que
+/// **no** es un campo que se llena, sino una cuenta que se lee. Regla de oro
+/// aplicada: si falta la cantidad o el descuento, no se muestra nada — nunca
+/// un "0" inventado.
+class _DeductionSummary extends StatelessWidget {
+  final double? quantity;
+  final double? deduction;
+  final String reason;
+  final String? unit;
+  final AppLocalizations l10n;
+
+  const _DeductionSummary({
+    required this.quantity,
+    required this.deduction,
+    required this.reason,
+    required this.unit,
+    required this.l10n,
+  });
+
+  static String _fmt(double v) =>
+      (v % 1 == 0) ? v.toInt().toString() : v.toString();
+
+  @override
+  Widget build(BuildContext context) {
+    final q = quantity;
+    final d = deduction;
+    if (q == null || q <= 0 || d == null || d <= 0) {
+      return const SizedBox.shrink();
+    }
+    final net = (q - d).clamp(0.0, double.infinity).toDouble();
+    final suffix = (unit == null || unit!.isEmpty) ? '' : ' ${unit!}';
+    final over = d > q;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: over
+            ? Theme.of(context).colorScheme.errorContainer
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row(l10n.deductionRegisteredLabel, '${_fmt(q)}$suffix'),
+          _row(l10n.deductionRegisteredLabel, '${_fmt(q)}$suffix'),
+          _row(l10n.deductionDeductedLabel, '-${_fmt(d)}$suffix'),
+          if (reason.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 4),
+              child: Text(
+                reason,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          const Divider(height: 12),
+          _row(
+            l10n.deductionPaidLabel,
+            '${_fmt(net)}$suffix',
+            bold: true,
+          ),
+          if (over)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                l10n.deductionOverQuantity,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String label, String value, {bool bold = false}) {
+    final style = TextStyle(
+      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: style),
+          Text(value, style: style),
         ],
       ),
     );

@@ -190,6 +190,39 @@ void main() {
       expect(harvest['crop_id'], isNull);
     });
 
+    // E1 · la venta real. Estas tres columnas viajan a mano en el payload:
+    // si no existen en la tabla, Postgrest responde PGRST204 y se cae el
+    // subido COMPLETO. El test existe para que nadie las quite del payload
+    // sin darse cuenta.
+    group('Payload: la venta real (E1)', () {
+      test('deduction_qty, deduction_reason y paid salen siempre', () async {
+        final payload = (await newSync()).buildTransactionPayload(
+          txn(id: 't1').copyWith(
+            quantity: 480,
+            deductionQty: 80,
+            deductionReason: 'impureza',
+            paid: false,
+          ),
+          uid,
+        );
+
+        expect(payload['deduction_qty'], 80);
+        expect(payload['deduction_reason'], 'impureza');
+        expect(payload['paid'], isFalse);
+      });
+
+      test('paid nunca es null: la columna es not null', () async {
+        final payload = (await newSync()).buildTransactionPayload(
+          txn(id: 't1'),
+          uid,
+        );
+
+        expect(payload['paid'], isTrue);
+        expect(payload['deduction_qty'], isNull);
+        expect(payload['deduction_reason'], isNull);
+      });
+    });
+
     test('el payload de cultivo incluye currency', () async {
       final payload = (await newSync()).buildCropPayload(
           const Crop(id: cropUuid, name: 'Café', currency: 'COP'), uid);
