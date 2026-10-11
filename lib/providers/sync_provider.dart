@@ -313,6 +313,10 @@ class SyncProvider extends ChangeNotifier {
         'deduction_qty': t.deductionQty,
         'deduction_reason': t.deductionReason,
         'paid': t.paid,
+        // E3 · la labor. Va completa (incluida null) por la misma razón que
+        // los demás nullable: si el productor le quitó la labor a un jornal,
+        // hay que reflejarlo y no dejar pisado el valor anterior.
+        'task': t.task,
       };
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -531,6 +535,7 @@ class SyncProvider extends ChangeNotifier {
       'deduction_qty': (row['deduction_qty'] as num?)?.toDouble(),
       'deduction_reason': row['deduction_reason'] as String?,
       'paid': (row['paid'] as bool?) ?? true,
+      'task': row['task'] as String?,
     });
   }
 

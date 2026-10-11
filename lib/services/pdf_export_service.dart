@@ -11,6 +11,7 @@ import '../models/currencies.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
+import '../models/tasks.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
@@ -377,6 +378,8 @@ class PdfExportService {
             currency,
             l10n,
           ),
+          pw.SizedBox(height: 20),
+          _workSheetSection(periodTx, crops, currency, l10n),
           pw.SizedBox(height: 20),
           _recommendationsSection(
               periodTx, crops, harvests, sowings, settings.sacoKg, l10n),
@@ -926,6 +929,80 @@ class PdfExportService {
   /// Sección "Caja menor": una fila por mes del período con presupuesto,
   /// jornales, extras, total y saldo. Solo con monto configurado
   /// (el saldo no se acumula entre meses: cada mes reinicia).
+  /// E3 · la planilla en el PDF: en qué se gastó la gente, agrupada por
+  /// labor y cultivo. Mismo criterio que la pantalla y el Excel — si los
+  /// tres calculan distinto, uno de los tres miente.
+  pw.Widget _workSheetSection(Iterable<Transaction> source, List<Crop> crops,
+      String currency, AppLocalizations l10n) {
+    final rows = const ReportPayrollMetrics().workSheetRows(
+      periodTx: source,
+      cropNames: {for (final c in crops) c.id: c.name},
+      unlabeledTaskName: l10n.workSheetUnlabeled,
+    );
+    if (rows.isEmpty) return pw.SizedBox.shrink();
+
+    pw.Widget cell(String text, {bool bold = false}) => pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: pw.Text(
+            text,
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+            ),
+          ),
+        );
+
+    String daysLabel(double d) {
+      final n = d % 1 == 0 ? d.toInt().toString() : '$d';
+      return '$n ${d == 1 ? l10n.workSheetDayPlural : l10n.workSheetDayOther}';
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          l10n.workSheetTitle,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Table(
+          columnWidths: const {
+            0: pw.FlexColumnWidth(2.2),
+            1: pw.FlexColumnWidth(1.6),
+            2: pw.FlexColumnWidth(1.4),
+            3: pw.FlexColumnWidth(1.4),
+            4: pw.FlexColumnWidth(1.8),
+          },
+          children: [
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              children: [
+                cell(l10n.taskFieldLabel, bold: true),
+                cell(l10n.pdfColCrop, bold: true),
+                cell(l10n.reportPayrollWorker, bold: true),
+                cell(l10n.reportPayrollDays, bold: true),
+                cell(l10n.reportPayrollSubtotal, bold: true),
+              ],
+            ),
+            for (final r in rows)
+              pw.TableRow(
+                children: [
+                  cell('${taskIcon(r.task)} ${taskLabel(r.task)}'),
+                  cell(r.cropName),
+                  cell(r.workers > 0 ? '${r.workers}' : '—'),
+                  cell(r.days > 0 ? daysLabel(r.days) : '—'),
+                  r.isMixed
+                      ? cell(byCurrencyText(
+                          r.byCurrency, (v, c) => formatMoneyLabel(v, c)))
+                      : cell(formatMoneyLabel(r.total, currency)),
+                ],
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   /// E3 · sección de presupuesto de obra en el PDF: solo mano de obra,
   /// contra su propio presupuesto. Si no está configurado no se imprime.
   pw.Widget _workBudgetSection(

@@ -1576,6 +1576,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get workBudgetBalance => 'Saldo de obra';
 
   @override
+  String get taskFieldLabel => 'Qué labor';
+
+  @override
+  String get taskFieldHint => '¿Qué se hizo?';
+
+  @override
+  String get taskOtherOption => '✏️ Otra…';
+
+  @override
+  String get taskOtherLabel => 'Nombre de la labor';
+
+  @override
+  String get taskOtherHint => 'Escríbela como la digas';
+
+  @override
+  String get workSheetTitle => 'Planilla del mes';
+
+  @override
+  String get workSheetWorkers => 'personas';
+
+  @override
+  String get workSheetDayPlural => 'día';
+
+  @override
+  String get workSheetDayOther => 'días';
+
+  @override
+  String get workSheetUnlabeled => 'Sin labor';
+
+  @override
+  String get workSheetNoTasks => 'Todavía no anotaste labores en un jornal. Cuando registres uno, elegí «Qué labor» y va a salir aquí.';
+
+  @override
   String get segMonth => 'Mes';
 
   @override

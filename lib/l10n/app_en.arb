@@ -570,6 +570,18 @@
   "workBudgetRemaining": "Remaining",
   "workBudgetBalance": "Work balance",
 
+  "taskFieldLabel": "What work",
+  "taskFieldHint": "What was done?",
+  "taskOtherOption": "✏️ Other…",
+  "taskOtherLabel": "Task name",
+  "taskOtherHint": "Write it your way",
+  "workSheetTitle": "Monthly timesheet",
+  "workSheetWorkers": "people",
+  "workSheetDayPlural": "day",
+  "workSheetDayOther": "days",
+  "workSheetUnlabeled": "No task",
+  "workSheetNoTasks": "You haven't logged a task on any day labor yet. When you record one, pick “What work” and it will show up here.",
+
   "segMonth": "Month",
   "segYear": "Year",
   "segAll": "All",

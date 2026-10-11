@@ -1576,6 +1576,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workBudgetBalance => 'Work balance';
 
   @override
+  String get taskFieldLabel => 'What work';
+
+  @override
+  String get taskFieldHint => 'What was done?';
+
+  @override
+  String get taskOtherOption => '✏️ Other…';
+
+  @override
+  String get taskOtherLabel => 'Task name';
+
+  @override
+  String get taskOtherHint => 'Write it your way';
+
+  @override
+  String get workSheetTitle => 'Monthly timesheet';
+
+  @override
+  String get workSheetWorkers => 'people';
+
+  @override
+  String get workSheetDayPlural => 'day';
+
+  @override
+  String get workSheetDayOther => 'days';
+
+  @override
+  String get workSheetUnlabeled => 'No task';
+
+  @override
+  String get workSheetNoTasks => 'You haven\'t logged a task on any day labor yet. When you record one, pick “What work” and it will show up here.';
+
+  @override
   String get segMonth => 'Month';
 
   @override

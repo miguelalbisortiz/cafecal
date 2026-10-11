@@ -1,4 +1,5 @@
 import '../models/categories.dart';
+import '../models/tasks.dart';
 import '../models/transaction.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'week_utils.dart';
@@ -58,6 +59,46 @@ class PayrollSummary {
   bool get isMixed => totalByCurrency.length > 1;
 
   bool get isEmpty => rows.isEmpty;
+}
+
+/// Una línea de la **planilla** del mes (E3): una labor, en un cultivo, con
+/// la gente que la hizo.
+///
+/// Es lo que antes no se podía responder: no solo cuánto se gastó en gente,
+/// sino **en qué se la gastó**. Se agrupa por (labor, cultivo) — no por
+/// persona — porque el plan del mes se lee así: "Descolgar café, 4 hombres
+/// 2 días, $400.000".
+class WorkSheetRow {
+  /// Tecla de `farmTasks` o texto libre. Null = jornal viejo sin labor.
+  final String? task;
+
+  final String? cropId;
+
+  /// Nombre ya resuelto para pintar (cultivo encontrado, o la leyenda de
+  /// "sin cultivo" que pase el caller).
+  final String cropName;
+
+  /// Personas distintas que hicieron esta labor en este cultivo.
+  final int workers;
+
+  /// Día-persona totales: si 4 hombres trabajaron 2 días, son 8.
+  final double days;
+
+  /// Montos **por moneda**. Nunca se suman monedas distintas.
+  final Map<String, double> byCurrency;
+
+  WorkSheetRow({
+    required this.task,
+    required this.cropId,
+    required this.cropName,
+    required this.workers,
+    required this.days,
+    Map<String, double>? byCurrency,
+  }) : byCurrency = byCurrency ?? <String, double>{};
+
+  double get total => byCurrency.values.fold<double>(0, (a, b) => a + b);
+  Set<String> get currencies => byCurrency.keys.toSet();
+  bool get isMixed => currencies.length > 1;
 }
 
 /// Consumo del **presupuesto de obra** de un mes calendario (E3).
@@ -280,6 +321,101 @@ class ReportPayrollMetrics {
         laborByCurrency: Map.of(labor[key] ?? const {}),
       );
     }).toList();
+  }
+
+  /// E3 · la planilla del período: agrupa la mano de obra por (labor, cultivo).
+  ///
+  /// Cada línea responde "¿en qué se gastó la gente?" — que era la pregunta
+  /// que no se podía hacer con la nómina por trabajador.
+  ///
+  /// Los jornales **sin labor** no se descartan: salen agrupados aparte con
+  /// [unlabeledTaskName]. Si se los tirara, la planilla mentiría sobre cuánto
+  /// se gastó (el total dejaría de cuadrar con el presupuesto de obra).
+  List<WorkSheetRow> workSheetRows({
+    required Iterable<Transaction> periodTx,
+    required Map<String, String> cropNames,
+    String unlabeledTaskName = '',
+  }) {
+    final workersByGroup = <String, Set<String>>{};
+    final daysByGroup = <String, double>{};
+    final amountsByGroup = <String, Map<String, double>>{};
+    final metaByGroup = <String, (String?, String)>{}; // (cropId, cropName)
+
+    for (final t in periodTx) {
+      if (t.deleted || !t.type.isExpense || t.category != 'mano_obra') {
+        continue;
+      }
+      // Sin cantidad no hay días que sumar: igual que en la nómina, cuenta
+      // con 0 días y su monto igual entra, para que el total no se pierda.
+      final cropName = t.cropId == null ? '' : (cropNames[t.cropId] ?? '');
+      final group = '${t.task ?? '\u0000'}|${t.cropId ?? '\u0000'}';
+      metaByGroup[group] = (t.cropId, cropName);
+
+      final days = t.quantity;
+      daysByGroup[group] = (daysByGroup[group] ?? 0) + (days ?? 0);
+
+      final provider = t.provider?.trim();
+      if (provider != null && provider.isNotEmpty) {
+        workersByGroup
+            .putIfAbsent(group, () => <String>{})
+            .add(provider.toLowerCase());
+      }
+
+      final byCurrency =
+          amountsByGroup.putIfAbsent(group, () => <String, double>{});
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
+    }
+
+    final out = amountsByGroup.keys.map((group) {
+      final meta = metaByGroup[group]!;
+      return WorkSheetRow(
+        task: group.split('|').first == '\u0000'
+            ? null
+            : group.split('|').first,
+        cropId: meta.$1,
+        cropName: meta.$2,
+        workers: workersByGroup[group]?.length ?? 0,
+        days: daysByGroup[group] ?? 0,
+        byCurrency: Map.of(amountsByGroup[group] ?? const {}),
+      );
+    }).toList();
+
+    // Lo de la lista sale en el orden en que se trabaja; lo sin labor y lo
+    // de texto libre al final, que es donde le toca.
+    final order = <String, int>{
+      for (var i = 0; i < farmTasks.length; i++) farmTasks[i].key: i,
+    };
+    int rank(String? task) {
+      if (task == null) return 1000;
+      if (isFreeTask(task)) return 999;
+      return order[task] ?? 999;
+    }
+
+    out.sort((a, b) {
+      final ra = rank(a.task);
+      final rb = rank(b.task);
+      if (ra != rb) return ra - rb;
+      final cmp = b.total.compareTo(a.total);
+      return cmp != 0 ? cmp : a.cropName.compareTo(b.cropName);
+    });
+
+    // La leyenda de "sin labor" se aplica ya resuelta: el campo es final a
+    // propósito (una fila de planilla no cambia después de nacer).
+    if (unlabeledTaskName.isEmpty) return out;
+    return [
+      for (final r in out)
+        if (r.task == null)
+          WorkSheetRow(
+            task: unlabeledTaskName,
+            cropId: r.cropId,
+            cropName: r.cropName,
+            workers: r.workers,
+            days: r.days,
+            byCurrency: Map.of(r.byCurrency),
+          )
+        else
+          r,
+    ];
   }
 
   /// Meses del período a sembrar, para que aparezcan aunque no tengan

@@ -576,6 +576,18 @@
   "workBudgetRemaining": "Restante",
   "workBudgetBalance": "Saldo de obra",
 
+  "taskFieldLabel": "Qué labor",
+  "taskFieldHint": "¿Qué se hizo?",
+  "taskOtherOption": "✏️ Otra…",
+  "taskOtherLabel": "Nombre de la labor",
+  "taskOtherHint": "Escríbela como la digas",
+  "workSheetTitle": "Planilla del mes",
+  "workSheetWorkers": "personas",
+  "workSheetDayPlural": "día",
+  "workSheetDayOther": "días",
+  "workSheetUnlabeled": "Sin labor",
+  "workSheetNoTasks": "Todavía no anotaste labores en un jornal. Cuando registres uno, elegí «Qué labor» y va a salir aquí.",
+
   "segMonth": "Mes",
   "segYear": "Año",
   "segAll": "Todo",

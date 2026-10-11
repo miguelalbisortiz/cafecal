@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/categories.dart';
+import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/register_screen.dart';
@@ -127,5 +128,61 @@ void main() {
     expect(find.text(_es.cropGroupHint), findsOneWidget);
     expect(find.text(_es.commonCostsHint), findsNothing);
     expect(_es.cropGroupHint, contains('+ Nueva variedad…'));
+  });
+
+  testWidgets('el bloque jornal pregunta qué labor', (tester) async {
+    final provider = await makeProvider();
+    await pumpRegister(tester, provider,
+        editing: Transaction(
+          id: 't1',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: 'abonar',
+          date: DateTime(2026, 9, 1),
+          createdAt: DateTime(2026, 9, 1),
+        ));
+
+    // La labor guardada se marca en la lista, con su icono.
+    final abonar = farmTasks.firstWhere((t) => t.key == 'abonar');
+    expect(find.text(_es.taskFieldLabel), findsOneWidget);
+    expect(find.text('${abonar.icon} ${abonar.name}'), findsOneWidget);
+    expect(find.text(_es.taskOtherLabel), findsNothing,
+        reason: 'el campo de texto solo aparece con "Otra…"');
+  });
+
+  testWidgets('"Otra…" abre el campo y una labor libre se recarga ahí',
+      (tester) async {
+    final provider = await makeProvider();
+    await pumpRegister(tester, provider,
+        editing: Transaction(
+          id: 't1',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          // Una labor que no está en la lista: al editar no se pierde.
+          task: 'desbrotar a mano',
+          date: DateTime(2026, 9, 1),
+          createdAt: DateTime(2026, 9, 1),
+        ));
+
+    final otra = farmTasks.firstWhere((t) => t.key == kTaskOther);
+    expect(find.text('${otra.icon} ${otra.name}'), findsOneWidget);
+
+    // El campo de texto cae más abajo que el viewport, y un ListView no
+    // construye lo que no se ve: bajarlo antes de buscarlo.
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_es.taskOtherLabel), findsOneWidget);
+    expect(find.text('desbrotar a mano'), findsOneWidget);
   });
 }

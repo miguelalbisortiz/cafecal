@@ -10,6 +10,7 @@ import '../models/currencies.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
+import '../models/tasks.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
@@ -798,6 +799,41 @@ class ExcelExportService {
       for (var c = 1; c <= 3; c++) {
         _applyCurrencyFormat(sheet, currency, c, workFrom, workTo);
       }
+    }
+
+    // ── Planilla del período: en qué se gastó la gente (E3) ──
+    final cropNames = {for (final c in crops) c.id: c.name};
+    final planilla = const ReportPayrollMetrics().workSheetRows(
+      periodTx: periodTx,
+      cropNames: cropNames,
+      unlabeledTaskName: l10n.workSheetUnlabeled,
+    );
+    if (planilla.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.workSheetTitle)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 6, _excelBrown);
+      row([
+        TextCellValue(l10n.taskFieldLabel),
+        TextCellValue(l10n.pdfColCrop),
+        TextCellValue(l10n.reportPayrollWorker),
+        TextCellValue(l10n.reportPayrollDays),
+        TextCellValue(l10n.reportPayrollSubtotal),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 5);
+      final wsFrom = sheet.maxRows;
+      for (final r in planilla) {
+        row([
+          TextCellValue('${taskIcon(r.task)} ${taskLabel(r.task)}'),
+          TextCellValue(r.cropName),
+          r.workers > 0 ? IntCellValue(r.workers) : TextCellValue('—'),
+          r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
+          r.isMixed
+              ? TextCellValue(byCurrencyText(
+                  r.byCurrency, (v, c) => formatMoneyLabel(v, c)))
+              : DoubleCellValue(r.total),
+        ]);
+      }
+      _applyCurrencyFormat(sheet, currency, 4, wsFrom, sheet.maxRows - 1);
     }
 
     sheet.setColumnWidth(0, 42);

@@ -3083,6 +3083,72 @@ abstract class AppLocalizations {
   /// **'Saldo de obra'**
   String get workBudgetBalance;
 
+  /// No description provided for @taskFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué labor'**
+  String get taskFieldLabel;
+
+  /// No description provided for @taskFieldHint.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué se hizo?'**
+  String get taskFieldHint;
+
+  /// No description provided for @taskOtherOption.
+  ///
+  /// In es, this message translates to:
+  /// **'✏️ Otra…'**
+  String get taskOtherOption;
+
+  /// No description provided for @taskOtherLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la labor'**
+  String get taskOtherLabel;
+
+  /// No description provided for @taskOtherHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Escríbela como la digas'**
+  String get taskOtherHint;
+
+  /// No description provided for @workSheetTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Planilla del mes'**
+  String get workSheetTitle;
+
+  /// No description provided for @workSheetWorkers.
+  ///
+  /// In es, this message translates to:
+  /// **'personas'**
+  String get workSheetWorkers;
+
+  /// No description provided for @workSheetDayPlural.
+  ///
+  /// In es, this message translates to:
+  /// **'día'**
+  String get workSheetDayPlural;
+
+  /// No description provided for @workSheetDayOther.
+  ///
+  /// In es, this message translates to:
+  /// **'días'**
+  String get workSheetDayOther;
+
+  /// No description provided for @workSheetUnlabeled.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin labor'**
+  String get workSheetUnlabeled;
+
+  /// No description provided for @workSheetNoTasks.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no anotaste labores en un jornal. Cuando registres uno, elegí «Qué labor» y va a salir aquí.'**
+  String get workSheetNoTasks;
+
   /// No description provided for @segMonth.
   ///
   /// In es, this message translates to:

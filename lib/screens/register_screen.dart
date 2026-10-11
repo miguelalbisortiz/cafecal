@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/currencies.dart';
 import '../models/harvest.dart';
+import '../models/tasks.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
@@ -42,6 +43,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _jornalOtherNameController = TextEditingController();
   final _jornalDaysController = TextEditingController();
   final _jornalRateController = TextEditingController();
+
+  /// E3 · la labor del jornal. Tecla de `farmTasks`, o [_jornalTaskOtherOption]
+  /// si eligió "Otra…" (y entonces el texto vive en
+  /// [_jornalTaskOtherController]).
+  String? _jornalTaskValue;
+  final _jornalTaskOtherController = TextEditingController();
+
+  /// Valor del dropdown que significa "estoy escribiendo la mía".
+  static const _jornalTaskOtherOption = '__task_otra__';
   String? _jornalWorkerValue;
   int _jornalDropKey = 0;
 
@@ -150,6 +160,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _jornalOtherNameController.text = name;
           }
         }
+        // E3 · la labor guardada. Si está en la lista se marca su tecla; si
+        // no (texto libre de "Otra…", o una tecla que ya no existe), se marca
+        // "Otra…" y se recarga el texto — así editar no la pierde.
+        final savedTask = e.task;
+        if (savedTask != null && savedTask.isNotEmpty) {
+          if (taskByKey(savedTask) != null) {
+            _jornalTaskValue = savedTask;
+          } else {
+            _jornalTaskValue = _jornalTaskOtherOption;
+            _jornalTaskOtherController.text = savedTask;
+          }
+        }
       }
     } else {
       // Preselecciona el último cultivo usado para agilizar los gastos
@@ -176,6 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _jornalOtherNameController.dispose();
     _jornalDaysController.dispose();
     _jornalRateController.dispose();
+    _jornalTaskOtherController.dispose();
     _deductionQtyController.dispose();
     _deductionReasonController.dispose();
     super.dispose();
@@ -292,6 +315,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     double? pricePerUnit;
     String? client;
     String? provider;
+    // E3 · la labor solo existe en un jornal: un gasto que no es mano de
+    // obra no tiene nada que anotar, y si el movimiento se edita para dejar
+    // de ser jornal, la labor se limpia (no queda colgando).
+    String? task;
     if (_isJornal) {
       // Bloque jornal: total = días × valor día (Monto es solo lectura).
       final days = double.parse(
@@ -312,6 +339,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         provider = null;
       }
       client = null;
+      // "Otra…" guarda lo que escribió, tal cual: es la forma de anotar una
+      // labor que no está en la lista sin romper la agrupación de la de
+      // siempre. Vacío = sin labor declarada.
+      if (_jornalTaskValue == _jornalTaskOtherOption) {
+        final free = _jornalTaskOtherController.text.trim();
+        task = free.isEmpty ? null : free;
+      } else {
+        task = _jornalTaskValue;
+      }
     } else {
       amount = double.parse(_amountController.text.replaceAll(',', '.'));
       final qtyText = _quantityController.text.trim().replaceAll(',', '.');
@@ -368,6 +404,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         deductionQty: deductionQty,
         deductionReason: deductionReason,
         paid: paid,
+        task: task,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -397,6 +434,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       deductionQty: deductionQty,
       deductionReason: deductionReason,
       paid: paid,
+      task: task,
     );
 
     // Recuerda el cultivo elegido para preseleccionarlo la próxima vez.
@@ -417,6 +455,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _jornalOtherNameController.clear();
     _jornalDaysController.clear();
     _jornalRateController.clear();
+    _jornalTaskValue = null;
+    _jornalTaskOtherController.clear();
     _deductionQtyController.clear();
     _deductionReasonController.clear();
     setState(() {
@@ -874,6 +914,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     border: const OutlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
+                ),
+              ],
+              const SizedBox(height: 12),
+
+              // E3 · qué se hizo. Lista cerrada para que la planilla pueda
+              // agrupar: "Descolgar" y "descolgar" tienen que ser el mismo
+              // renglón. "Otra…" abre un campo de texto para lo demás.
+              DropdownButtonFormField<String>(
+                value: _jornalTaskValue,
+                decoration: InputDecoration(
+                  labelText: l10n.taskFieldLabel,
+                  prefixIcon: const Icon(Icons.checklist_outlined),
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.taskFieldHint,
+                ),
+                items: [
+                  for (final t in farmTasks)
+                    DropdownMenuItem<String>(
+                      value: t.key,
+                      child: Text('${t.icon} ${t.name}'),
+                    ),
+                  DropdownMenuItem<String>(
+                    value: _jornalTaskOtherOption,
+                    child: Text(l10n.taskOtherOption),
+                  ),
+                ],
+                onChanged: (v) => setState(() {
+                  _jornalTaskValue = v;
+                  if (v != _jornalTaskOtherOption) {
+                    _jornalTaskOtherController.clear();
+                  }
+                }),
+              ),
+              if (_jornalTaskValue == _jornalTaskOtherOption) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _jornalTaskOtherController,
+                  decoration: InputDecoration(
+                    labelText: l10n.taskOtherLabel,
+                    prefixIcon: const Icon(Icons.edit_outlined),
+                    border: const OutlineInputBorder(),
+                    hintText: l10n.taskOtherHint,
+                  ),
                 ),
               ],
               const SizedBox(height: 12),

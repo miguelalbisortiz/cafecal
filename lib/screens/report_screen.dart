@@ -11,6 +11,7 @@ import '../models/farm_alert.dart';
 import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/sowing.dart';
+import '../models/tasks.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
@@ -355,6 +356,8 @@ class _ReportScreenState extends State<ReportScreen> {
             _builtCashBoxCard(context, tx, l10n),
             const SizedBox(height: 20),
             _builtWorkBudgetCard(context, tx, l10n),
+            const SizedBox(height: 20),
+            _builtWorkSheetCard(context, tx, l10n),
             const SizedBox(height: 20),
             PerHectarePanel(
               crops: tx.crops,
@@ -1064,6 +1067,107 @@ class _ReportScreenState extends State<ReportScreen> {
         ),
       ),
     );
+  }
+
+  /// E3 · la planilla del período: en qué se gastó la gente, agrupado por
+  /// labor y cultivo. Es la respuesta a la pregunta que la nómina por
+  /// trabajador no podía dar.
+  ///
+  /// Sin jornales en el período no se pinta nada — no se enseña un cuadro
+  /// vacío a quien todavía no anotó labores.
+  Widget _builtWorkSheetCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final periodTx = _recordsFor(tx).toList();
+    final hasJornal =
+        periodTx.any((t) => !t.deleted && t.category == 'mano_obra');
+    if (!hasJornal) return const SizedBox.shrink();
+
+    final cropIcon = {for (final c in tx.crops) c.id: c.icon};
+    final cropNames = {for (final c in tx.crops) c.id: c.name};
+    final rows = const ReportPayrollMetrics().workSheetRows(
+      periodTx: periodTx,
+      cropNames: cropNames,
+      unlabeledTaskName: l10n.workSheetUnlabeled,
+    );
+    final scheme = Theme.of(context).colorScheme;
+    final mixed = rows.any((r) => r.isMixed);
+    final currency = tx.settings.currency;
+
+    String money(double v, String code) =>
+        formatMoneyFor(context, v, currency: code);
+    String byCur(Map<String, double> amounts) => byCurrencyText(amounts,
+        (v, c) => formatMoneyFor(context, v, currency: c));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.workSheetTitle,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            for (final r in rows)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        // El icono de la labor primero: es lo que se busca
+                        // al pasar la vista por encima.
+                        Text(taskIcon(r.task),
+                            style: const TextStyle(fontSize: 16)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '${taskLabel(r.task)} · '
+                            '${cropIcon[r.cropId] ?? ''} ${r.cropName}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${r.workers > 0 ? '${r.workers} ${l10n.workSheetWorkers} · ' : ''}'
+                      '${_daysLabel(r.days, l10n)} · '
+                      '${r.isMixed ? byCur(r.byCurrency) : money(r.total, currency)}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            if (mixed)
+              Text(
+                l10n.currencyMixedByCurrencyNote(
+                    rows.expand((r) => r.currencies).toSet().length),
+                style: TextStyle(
+                    fontSize: 11, height: 1.3, color: scheme.onSurfaceVariant),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// "8 días" / "0.5 días", con la forma plural que toque.
+  String _daysLabel(double days, AppLocalizations l10n) {
+    final n = days % 1 == 0 ? days.toInt().toString() : '$days';
+    final plural = days == 1 ? l10n.workSheetDayPlural : l10n.workSheetDayOther;
+    return '$n $plural';
   }
 
   /// E3 · la tarjeta de obra del período: solo mano de obra, contra su

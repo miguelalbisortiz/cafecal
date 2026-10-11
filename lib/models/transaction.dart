@@ -52,6 +52,20 @@ class Transaction {
   /// antiguos — nadie hereda un "por cobrar" inventado.
   final bool paid;
 
+  // ---- La obra del día (E3) ----
+
+  /// Qué labor se hizo en este jornal.
+  ///
+  /// Es una tecla de [farmTasks] (`descolgar`, `abonar`…) o texto libre si
+  /// eligió "Otra…". Se guarda la tecla y no el nombre mostrado a propósito:
+  /// el nombre cambia con el idioma y la planilla tendría que agrupar por
+  /// lo que hay en la BD.
+  ///
+  /// Null = sin labor declarada. Un gasto de mano de obra viejo (anterior a
+  /// E3) nace así y sigue contando en la nómina: la planilla lo agrupa bajo
+  /// "Sin labor" en vez de inventarle uno.
+  final String? task;
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -74,6 +88,7 @@ class Transaction {
     this.deductionQty,
     this.deductionReason,
     this.paid = true,
+    this.task,
   });
 
   /// Lo que realmente se pagó: lo entregado menos lo descontado.
@@ -122,6 +137,7 @@ class Transaction {
     Object? deductionQty = _keep,
     Object? deductionReason = _keep,
     bool? paid,
+    Object? task = _keep,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -151,6 +167,10 @@ class Transaction {
           ? this.deductionReason
           : deductionReason as String?,
       paid: paid ?? this.paid,
+      // Sentinela igual que los tres ids: sin ella no habría forma de
+      // QUITARLE la labor a un jornal, que es lo que pasa al cambiarlo de
+      // categoría a algo que no es mano de obra.
+      task: task == _keep ? this.task : task as String?,
     );
   }
 
@@ -176,6 +196,7 @@ class Transaction {
         'deduction_qty': deductionQty,
         'deduction_reason': deductionReason,
         'paid': paid,
+        'task': task,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -202,6 +223,8 @@ class Transaction {
       deductionReason: json['deduction_reason'] as String?,
       // true por defecto: un dato viejo sin marca es plata que entró.
       paid: (json['paid'] as bool?) ?? true,
+      // Respaldos anteriores a E3 no traen la clave → null → sin labor.
+      task: json['task'] as String?,
     );
   }
 }

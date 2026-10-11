@@ -223,6 +223,35 @@ void main() {
       });
     });
 
+    // E3 · la labor del jornal. Igual que las de E1: columna escrita a mano
+    // en el payload, así que si no existe en la tabla tumba el subido entero.
+    group('Payload: la obra del día (E3)', () {
+      test('task sale siempre, incluida cuando es null', () async {
+        final sync = await newSync();
+
+        final withTask = sync.buildTransactionPayload(
+          txn(id: 't1').copyWith(task: 'descolgar'),
+          uid,
+        );
+        expect(withTask['task'], 'descolgar');
+
+        // Sin labor: null explícito, para poder quitarle la labor a un
+        // jornal y que se refleje en la BD en vez de quedar pisada.
+        final without = sync.buildTransactionPayload(txn(id: 't2'), uid);
+        expect(without.containsKey('task'), isTrue);
+        expect(without['task'], isNull);
+      });
+
+      test('la labor libre de "Otra…" viaja tal cual', () async {
+        final payload = (await newSync()).buildTransactionPayload(
+          txn(id: 't1').copyWith(task: 'desbrotar a mano'),
+          uid,
+        );
+
+        expect(payload['task'], 'desbrotar a mano');
+      });
+    });
+
     test('el payload de cultivo incluye currency', () async {
       final payload = (await newSync()).buildCropPayload(
           const Crop(id: cropUuid, name: 'Café', currency: 'COP'), uid);
