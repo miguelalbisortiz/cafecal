@@ -23,6 +23,7 @@ void main() {
     test('producción = lo que hace crecer el cultivo', () {
       const keys = [
         'siembra',
+        'cercas_preparacion',
         'semillas_insumos',
         'fertilizante',
         'mano_obra',
@@ -49,6 +50,8 @@ void main() {
         'equipo',
         'mantenimiento',
         'impuestos',
+        'credito_intereses',
+        'seguros',
       ];
       for (final k in keys) {
         expect(expenseGroupOf(k), ExpenseGroup.fijos, reason: k);

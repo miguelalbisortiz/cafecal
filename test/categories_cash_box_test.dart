@@ -64,10 +64,41 @@ void main() {
         'impuestos',
         'empaque',
         'equipo',
+        // H5 · categorías nuevas: son inversión o costo fijo, no caja chica.
+        'cercas_preparacion',
+        'credito_intereses',
+        'seguros',
       ];
       for (final key in noDescuentan) {
         expect(discountsCashBox(key), isFalse,
             reason: '$key es inversión de producción, no gasto de caja');
+      }
+    });
+
+    test('"otro" SÍ descuenta: decisión H7 (2026-10-11), a propósito', () {
+      // En la planilla de papel, "caja" es plata chica para la mano de obra y
+      // cualquier gasto adicional que no cabe en una categoría fija. Si 'otro'
+      // no descontara, esa plata quedaría por fuera del presupuesto mensual.
+      // El riesgo de una compra grande mal clasificada es preferible a
+      // perderla de vista. Si alguien "arregla" esto, este test debe fallar.
+      expect(kCashBoxExtraCategories.contains('otro'), isTrue,
+          reason: 'decisión H7: "otro" cubre lo que no está en la lista');
+      expect(discountsCashBox('otro'), isTrue);
+    });
+
+    test('categorías nuevas H5 existen y se localizan', () {
+      const nuevas = {
+        'cercas_preparacion': ('Cercas y preparación', 'Fences & land prep'),
+        'credito_intereses': ('Crédito e intereses', 'Credit & interest'),
+        'seguros': ('Seguros', 'Insurance'),
+      };
+      final es = stringsFor('es');
+      final en = stringsFor('en');
+      for (final entry in nuevas.entries) {
+        expect(expenseCategories.any((c) => c.key == entry.key), isTrue,
+            reason: '${entry.key} debe estar en la lista');
+        expect(es.expenseCategory(entry.key), entry.value.$1);
+        expect(en.expenseCategory(entry.key), entry.value.$2);
       }
     });
 

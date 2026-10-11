@@ -2333,6 +2333,12 @@ abstract class AppLocalizations {
   /// **'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.'**
   String get cropGroupHint;
 
+  /// No description provided for @sowingCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».'**
+  String get sowingCategoryHint;
+
   /// No description provided for @categoryFieldLabel.
   ///
   /// In es, this message translates to:
@@ -4019,6 +4025,12 @@ abstract class AppLocalizations {
   /// **'Siembra'**
   String get catSiembra;
 
+  /// No description provided for @catCercasPreparacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Cercas y preparación'**
+  String get catCercasPreparacion;
+
   /// No description provided for @catSemillasInsumos.
   ///
   /// In es, this message translates to:
@@ -4102,6 +4114,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Impuestos y tasas'**
   String get catImpuestos;
+
+  /// No description provided for @catCreditoIntereses.
+  ///
+  /// In es, this message translates to:
+  /// **'Crédito e intereses'**
+  String get catCreditoIntereses;
+
+  /// No description provided for @catSeguros.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguros'**
+  String get catSeguros;
 
   /// No description provided for @catOtro.
   ///

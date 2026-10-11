@@ -38,6 +38,7 @@ extension L10nMonths on AppLocalizations {
 extension L10nCategories on AppLocalizations {
   String expenseCategory(String key) => switch (key) {
         kExpenseCategorySowing => catSiembra,
+        'cercas_preparacion' => catCercasPreparacion,
         'semillas_insumos' => catSemillasInsumos,
         'fertilizante' => catFertilizante,
         'mano_obra' => catManoObra,
@@ -52,6 +53,8 @@ extension L10nCategories on AppLocalizations {
         'mantenimiento' => catMantenimiento,
         'arriendo' => catArriendo,
         'impuestos' => catImpuestos,
+        'credito_intereses' => catCreditoIntereses,
+        'seguros' => catSeguros,
         'otro' => catOtro,
         _ => key,
       };

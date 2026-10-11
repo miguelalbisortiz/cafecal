@@ -1189,6 +1189,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropGroupHint => 'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.';
 
   @override
+  String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».';
+
+  @override
   String get categoryFieldLabel => 'Categoría';
 
   @override
@@ -2170,6 +2173,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get catSiembra => 'Siembra';
 
   @override
+  String get catCercasPreparacion => 'Cercas y preparación';
+
+  @override
   String get catSemillasInsumos => 'Semillas e insumos';
 
   @override
@@ -2210,6 +2216,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get catImpuestos => 'Impuestos y tasas';
+
+  @override
+  String get catCreditoIntereses => 'Crédito e intereses';
+
+  @override
+  String get catSeguros => 'Seguros';
 
   @override
   String get catOtro => 'Otro';

@@ -546,6 +546,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 .toList(),
             onChanged: (v) => setState(() => _category = v),
           ),
+
+          // H4 · El camino corto ya existía y nadie lo veía: anotar colinos o
+          // plantas compradas como gasto de "Siembra" y asignarles el cultivo
+          // es equivalente a abrir una siembra — cuenta como inversión y entra
+          // en el costo/kg. Solo faltaba decirlo, en el momento exacto en que
+          // se elige la categoría.
+          if (isExpense && _category == kExpenseCategorySowing) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.sowingCategoryHint,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
 
           // Datos de producción (solo ventas)

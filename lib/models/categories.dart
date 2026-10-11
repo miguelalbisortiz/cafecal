@@ -26,10 +26,19 @@ class IncomeCategory {
   });
 }
 
-/// Clave de la categoría de gasto generada por el flujo de siembra: al
-/// registrar una siembra con costo, la pantalla crea un gasto vinculado
-/// bajo esta categoría (única vía de entrada: no se elige manualmente en el
-/// editor de gastos porque el costo nace de la propia siembra).
+/// Clave de la categoría de gasto "Siembra".
+///
+/// Tiene **dos** vías de entrada, y las dos son válidas:
+///  1. El flujo de siembra: al registrar una siembra con costo, la pantalla
+///     crea un gasto vinculado bajo esta categoría.
+///  2. El editor de gastos: **se elige a mano**. Es el camino corto para
+///     anotar colinos, semillones o plantas compradas sin abrir una siembra.
+///
+/// La vía 2 no es un hueco: el gasto igual cuenta como inversión del
+/// cultivo y entra en su costo/kg
+/// (`report_harvest_metrics.dart`, `transaction_provider.dart`). Sin ella,
+/// registrar 30 colinos de plátano obligaría a fingir una "siembra" solo
+/// por anotar la plata.
 const String kExpenseCategorySowing = 'siembra';
 
 /// Clave de la categoría de gasto de recolección. Es la contraparte de
@@ -42,6 +51,14 @@ const String kExpenseCategoryHarvest = 'cosecha';
 /// planilla: energía, agua, imprevistos y arreglos. Insumos, abonos y
 /// fertilizantes NO están aquí (son inversión de producción).
 /// Ajustable: agregar una categoría a este set la hace descontar de caja.
+///
+/// **Decisión 2026-10-11 (H7): `otro` sigue descontando, a propósito.**
+/// En la planilla de papel, "caja" es plata chica para todo lo que no es un
+/// insumo: la mano de obra y **cualquier gasto adicional que no cabe en una
+/// categoría fija**. Si `otro` no descontara, esa plata quedaría por fuera
+/// del presupuesto mensual y dejaría de vigilarse. El riesgo de que una
+/// compra grande mal clasificada dispare la barra es preferible a perderla
+/// de vista.
 const Set<String> kCashBoxExtraCategories = {
   'energia',
   'agua',
@@ -67,6 +84,9 @@ bool isSaleCategory(String category) =>
 
 const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: kExpenseCategorySowing, name: 'Siembra', icon: '🌱', color: '#2E7D32'),
+  // H5 · inversión inicial del terreno: lo que se gasta ANTES de que el
+  // cultivo arranque (cerca, tapia, desmonte, preparación de camellones).
+  ExpenseCategory(key: 'cercas_preparacion', name: 'Cercas y preparación', icon: '🚧', color: '#5D4037'),
   ExpenseCategory(key: 'semillas_insumos', name: 'Semillas e insumos', icon: '🌾', color: '#7CB342'),
   ExpenseCategory(key: 'fertilizante', name: 'Fertilizante', icon: '🧪', color: '#43A047'),
   ExpenseCategory(key: 'mano_obra', name: 'Mano de obra', icon: '👷', color: '#1E88E5'),
@@ -81,18 +101,23 @@ const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: 'mantenimiento', name: 'Mantenimiento', icon: '🛠️', color: '#6D4C41'),
   ExpenseCategory(key: 'arriendo', name: 'Arriendo de tierras', icon: '🏞️', color: '#78909C'),
   ExpenseCategory(key: 'impuestos', name: 'Impuestos y tasas', icon: '🧾', color: '#546E7A'),
+  // H5 · lo que se pide prestado y lo que cuesta mantenerse asegurado:
+  // el interés no es insumo, es el precio de haber tenido plata antes.
+  ExpenseCategory(key: 'credito_intereses', name: 'Crédito e intereses', icon: '💸', color: '#8D6E63'),
+  ExpenseCategory(key: 'seguros', name: 'Seguros', icon: '🛡️', color: '#00838F'),
   ExpenseCategory(key: 'otro', name: 'Otro', icon: '📦', color: '#757575'),
 ];
 
 /// Bloques en que se agrupan los gastos en el estado de resultados (P5).
 ///
 /// La idea es responder "¿cuánto me costó producir?" sin sumar a mano las
-/// 16 categorías. `otros` recoge la clave `otro` y cualquier clave legada no
+/// categorías. `otros` recoge la clave `otro` y cualquier clave legada no
 /// reconocida, para que ningún gasto se pierda de vista.
 enum ExpenseGroup { produccion, venta, fijos, otros }
 
 const Set<String> _productionKeys = {
   'siembra',
+  'cercas_preparacion',
   'semillas_insumos',
   'fertilizante',
   'mano_obra',
@@ -113,6 +138,8 @@ const Set<String> _fixedKeys = {
   'equipo',
   'mantenimiento',
   'impuestos',
+  'credito_intereses',
+  'seguros',
 };
 
 /// Grupo de una categoría de gasto. Ver [expenseGroupOf].
