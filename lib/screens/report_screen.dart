@@ -364,6 +364,9 @@ class _ReportScreenState extends State<ReportScreen> {
               periodTransactions: _recordsFor(tx),
               periodHarvests: _periodHarvests(tx),
               allTransactions: tx.transactions,
+              // E4 · el promedio anual sale de TODAS las cosechas, no del
+              // período: un mes no puede promediar contra un año.
+              allHarvests: tx.harvests,
               sacoKg: tx.settings.sacoKg,
             ),
             const SizedBox(height: 20),

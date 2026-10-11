@@ -20,6 +20,14 @@ class PerHectarePanel extends StatelessWidget {
   final List<Harvest> periodHarvests;
   final List<Transaction> allTransactions;
 
+  /// E4 · **todas** las cosechas de todos los años.
+  ///
+  /// El histórico no sale del período: un promedio anual necesit años
+  /// cerrados, y el período del reporte puede ser una semana. Va aparte de
+  /// [periodHarvests] para que la diferencia entre "lo de ahora" y "lo que
+  /// da mi tierra" quede explícita en el código y no se confunda en la UI.
+  final List<Harvest> allHarvests;
+
   /// A2 · peso real del saco. El panel es puro (sin provider) para poder
   /// probarlo con datos sueltos, así que el peso entra por aquí.
   final double sacoKg;
@@ -30,6 +38,7 @@ class PerHectarePanel extends StatelessWidget {
     required this.periodTransactions,
     required this.periodHarvests,
     required this.allTransactions,
+    this.allHarvests = const [],
     this.sacoKg = kSacoKgPorDefecto,
   });
 
@@ -38,9 +47,11 @@ class PerHectarePanel extends StatelessWidget {
     final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final l10n = AppLocalizations.of(context)!;
 
-    final withArea = crops.where((c) => c.areaHa != null && c.areaHa! > 0);
+    final withBase = crops.where((c) =>
+        (c.areaHa != null && c.areaHa! > 0) ||
+        (c.livePlants != null && c.livePlants! > 0));
     final rows = <_CropMetrics>[];
-    for (final c in withArea) {
+    for (final c in withBase) {
       final periodTxs =
           periodTransactions.where((t) => t.cropId == c.id).toList();
       final periodHs = periodHarvests.where((h) => h.cropId == c.id).toList();
@@ -69,12 +80,24 @@ class PerHectarePanel extends StatelessWidget {
           : null;
 
       final yieldPerHa = metrics.yieldPerArea(periodHs, c.areaHa);
+      // E4 · kg/planta no depende del área: un productor que contó las
+      // matas pero nunca midió el terreno igual tiene rendimiento que ver.
+      final yieldPerPlant = metrics.yieldPerPlant(periodHs, c.livePlants);
+      // E4 · su propia tierra: el promedio de los años cerrados. Se calcula
+      // sobre TODAS las cosechas, nunca sobre el período.
+      final historical = metrics.historicalYield(
+        harvests: allHarvests.where((h) => h.cropId == c.id).toList(),
+        areaHa: c.areaHa,
+        livePlants: c.livePlants,
+      );
       final revenue = metrics.revenuePerHa(periodTxs, c.areaHa);
       final cost = metrics.costPerHa(periodTxs, c.areaHa);
       // El margen resta ingresos y gastos: solo es cierto si las dos cifras
       // están en la misma moneda (o no hay ninguna de las dos).
       final margin = moneyMixed ? null : metrics.marginPerHa(revenue, cost);
       final hasKpis = yieldPerHa != null ||
+          yieldPerPlant != null ||
+          historical.kgPerHa != null ||
           revenue != null ||
           cost != null ||
           moneyMixed;
@@ -85,6 +108,8 @@ class PerHectarePanel extends StatelessWidget {
       rows.add(_CropMetrics._(
         crop: c,
         yieldPerHa: yieldPerHa,
+        yieldPerPlant: yieldPerPlant,
+        historical: historical,
         revenuePerHa: revenue,
         costPerHa: cost,
         marginPerHa: margin,
@@ -153,7 +178,17 @@ class PerHectarePanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${r.crop.name} · ${r.crop.areaHa!.toStringAsFixed(2)} ha',
+            // El encabezado se arma con lo que haya: un lote puede tener
+            // área sin matas contadas, o matas contadas sin área medida.
+            // Antes el `areaHa!` dejaba el panel entero fuera de los
+            // segundos.
+            [
+              r.crop.name,
+              if (r.crop.areaHa != null && r.crop.areaHa! > 0)
+                '${r.crop.areaHa!.toStringAsFixed(2)} ha',
+              if (r.crop.livePlants != null && r.crop.livePlants! > 0)
+                '${r.crop.livePlants} matas',
+            ].join(' · '),
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
@@ -162,6 +197,39 @@ class PerHectarePanel extends StatelessWidget {
               l10n.perHaYieldLabel,
               '${r.yieldPerHa!.toStringAsFixed(1)} kg/ha',
               color: scheme.primary,
+            ),
+          // E4 · kg/planta va con el mismo peso que kg/ha. Un productor que
+          // contó las matas pero nunca midió el terreno igual tiene
+          // rendimiento que ver, y antes no lo podía.
+          if (r.yieldPerPlant != null)
+            _line(
+              l10n.perHaYieldPlantLabel,
+              '${r.yieldPerPlant!.toStringAsFixed(2)} kg/planta',
+              color: scheme.primary,
+            ),
+          // E4 · la referencia de este panel es SU tierra, no una tabla de
+          // Cenicafé. Sale en tono apagado y sin aviso: es contexto, no un
+          // veredicto. La app no le dice al productor cómo va su tierra —
+          // le pone al lado lo que su propia tierra ha dado.
+          if (r.historical.kgPerHa != null)
+            _line(
+              l10n.yieldAvgHaLabel(r.historical.years),
+              '${r.historical.kgPerHa!.toStringAsFixed(1)} kg/ha',
+              color: scheme.onSurfaceVariant,
+            ),
+          if (r.historical.kgPerPlant != null)
+            _line(
+              l10n.yieldAvgPlantLabel(r.historical.years),
+              '${r.historical.kgPerPlant!.toStringAsFixed(2)} kg/planta',
+              color: scheme.onSurfaceVariant,
+            ),
+          // E4 · la meta es SU número, escrita por él. Tampoco se juzga:
+          // si no llegó es porque él aún no llegó, y eso él ya lo sabe.
+          if (r.crop.expectedYieldPerHa != null)
+            _line(
+              l10n.yieldGoalLabel,
+              '${r.crop.expectedYieldPerHa!.toStringAsFixed(1)} kg/ha',
+              color: scheme.onSurfaceVariant,
             ),
           // Cada cifra de dinero solo se pinta si salió de una sola moneda y
           // con ESA moneda al lado; el aviso explica lo que no se suma.
@@ -334,6 +402,14 @@ class PerHectarePanel extends StatelessWidget {
 class _CropMetrics {
   final Crop crop;
   final double? yieldPerHa;
+
+  /// E4 · kg cosechados por mata en el período.
+  final double? yieldPerPlant;
+
+  /// E4 · el promedio de los años cerrados, o todo null si no hay dos
+  /// temporadas cerradas. No se inventa un "promedio" con un solo año.
+  final ({double? kgPerHa, double? kgPerPlant, int years}) historical;
+
   final double? revenuePerHa;
   final double? costPerHa;
   final double? marginPerHa;
@@ -356,6 +432,8 @@ class _CropMetrics {
   const _CropMetrics._({
     required this.crop,
     required this.yieldPerHa,
+    required this.yieldPerPlant,
+    required this.historical,
     required this.revenuePerHa,
     required this.costPerHa,
     required this.marginPerHa,

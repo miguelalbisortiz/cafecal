@@ -346,7 +346,7 @@ class PdfExportService {
                 context, active.where((t) => t.date.year == year), crops, currency, l10n),
           ],
           pw.SizedBox(height: 20),
-          _harvestSection(periodTx, periodHarvests, crops, sowings,
+          _harvestSection(periodTx, periodHarvests, harvests, crops, sowings,
               currency, settings.sacoKg, l10n),
           pw.SizedBox(height: 20),
           _soldVsHarvestedSection(periodTx, periodHarvests, crops, sowings,
@@ -661,6 +661,10 @@ class PdfExportService {
   pw.Widget _harvestSection(
       Iterable<Transaction> source,
       List<Harvest> periodHarvests,
+      // E4 · TODAS las cosechas. El promedio anual necesita años cerrados y
+      // el período del reporte puede ser una semana: no se promedia con lo
+      // mismo con lo que se mide el período.
+      List<Harvest> allHarvests,
       List<Crop> crops,
       List<Sowing> sowings,
       String currency,
@@ -718,7 +722,8 @@ class PdfExportService {
           ),
         ],
         // Costo total por kg e indicadores por cultivo (producción).
-        ..._perCropHarvestRows(byCrop, crops, periodHarvests, srcTx, sowings,
+        ..._perCropHarvestRows(byCrop, crops, periodHarvests, allHarvests,
+            srcTx, sowings,
             currency, sacoKg, l10n, mixedCurrencies),
         // Personal y kilos por cosecha (si se registraron).
         ..._staffHarvestRows(periodHarvests, crops, l10n),
@@ -732,6 +737,8 @@ class PdfExportService {
       List<CropHarvestTotal> byCrop,
       List<Crop> crops,
       List<Harvest> harvests,
+      // E4 · el histórico, aparte del período, para el promedio anual.
+      List<Harvest> allHarvests,
       List<Transaction> transactions,
       List<Sowing> sowings,
       String currency,
@@ -790,6 +797,35 @@ class PdfExportService {
           out.add(_statementRow(
             '    ${crop.name} — ${l10n.reportYieldPerPlant}',
             '${_numKg(yieldPlant)}${hasResiembra ? ' ${l10n.reportApprox}' : ''}',
+            small: true,
+          ));
+        }
+        // E4 · la referencia no es una tabla: es la finca del productor y
+        // la meta que puso él. Va en el export igual que en pantalla — si
+        // uno decía y el otro no, alguno estaría mintiendo.
+        final hist = metrics.historicalYield(
+          harvests: allHarvests.where((h) => h.cropId == crop.id).toList(),
+          areaHa: crop.areaHa,
+          livePlants: crop.livePlants,
+        );
+        if (hist.kgPerHa != null) {
+          out.add(_statementRow(
+            '    ${crop.name} — ${l10n.yieldAvgHaLabel(hist.years)}',
+            _numKg(hist.kgPerHa!),
+            small: true,
+          ));
+        }
+        if (hist.kgPerPlant != null) {
+          out.add(_statementRow(
+            '    ${crop.name} — ${l10n.yieldAvgPlantLabel(hist.years)}',
+            _numKg(hist.kgPerPlant!),
+            small: true,
+          ));
+        }
+        if (crop.expectedYieldPerHa != null) {
+          out.add(_statementRow(
+            '    ${crop.name} — ${l10n.yieldGoalLabel}',
+            _numKg(crop.expectedYieldPerHa!),
             small: true,
           ));
         }

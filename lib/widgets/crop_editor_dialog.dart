@@ -50,6 +50,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   final _areaController = TextEditingController();
   final _plantsController = TextEditingController();
   final _establishmentController = TextEditingController();
+
+  /// E4 · "kg/ha que quiero sacar de este lote".
+  ///
+  /// Su meta, escrita por él — no una tabla de referencia que la app le
+  /// imponga. Vacío = sin meta.
+  final _goalController = TextEditingController();
   String? _error;
 
   static const _unitOptions = ['kg', 'lb', 'arroba', 'saco', 'carga', 'racimo', 'cajon'];
@@ -71,6 +77,10 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       if (c.livePlants != null) _plantsController.text = c.livePlants.toString();
       if (c.establishmentCost != null) {
         _establishmentController.text = _importe(c.establishmentCost!);
+      }
+      // La meta llega con el mismo "sin .0" que la inversión.
+      if (c.expectedYieldPerHa != null) {
+        _goalController.text = _importe(c.expectedYieldPerHa!);
       }
     }
     // F3: si no había inversión anotada, se propone la suma de los gastos de
@@ -152,6 +162,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     _areaController.dispose();
     _plantsController.dispose();
     _establishmentController.dispose();
+    _goalController.dispose();
     super.dispose();
   }
 
@@ -178,6 +189,11 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     final estText = _establishmentController.text.trim().replaceAll(',', '.');
     final establishmentCost =
         estText.isEmpty ? null : double.tryParse(estText);
+    // Opcional y borrable: vacío o escrito mal → null → sin meta, y la app
+    // no pinta nada (regla de oro: null → oculto, nunca 0).
+    final goalText = _goalController.text.trim().replaceAll(',', '.');
+    final expectedYieldPerHa =
+        goalText.isEmpty ? null : double.tryParse(goalText);
     Navigator.pop(context, CropFormData(
       name: n,
       icon: _icon,
@@ -190,6 +206,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       establishmentCost: establishmentCost,
       currency: _currency,
       plantedAt: _plantedAt,
+      expectedYieldPerHa: expectedYieldPerHa,
     ));
   }
 
@@ -423,6 +440,27 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            // E4 · su meta, solo al editar. Al crear todavía no hay nada que
+            // apuntar, y la regla manda: si se puede pedir después, no se
+            // pide ahora. Es opcional y se puede borrar.
+            if (editing) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _goalController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.expectedYieldLabel,
+                  helperText: l10n.helpExpectedYieldShort,
+                  prefixIcon: const Icon(Icons.flag_outlined),
+                  suffixIcon: Tooltip(
+                    message: l10n.helpExpectedYield,
+                    child: const Icon(Icons.info_outline, size: 20),
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _currency,
@@ -474,6 +512,10 @@ class CropFormData {
   /// siembras y el campo ni siquiera se le enseñó).
   final DateTime? plantedAt;
 
+  /// E4 · `null` = no puso meta (o el cultivo es nuevo y ni siquiera se le
+  /// enseñó el campo).
+  final double? expectedYieldPerHa;
+
   const CropFormData({
     required this.name,
     required this.icon,
@@ -486,5 +528,6 @@ class CropFormData {
     this.establishmentCost,
     this.currency = 'COP',
     this.plantedAt,
+    this.expectedYieldPerHa,
   });
 }

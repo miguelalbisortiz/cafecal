@@ -570,4 +570,84 @@ void main() {
     expect(holder.value!.phase, CropPhase.produccion,
         reason: 'editar nunca re-deduces: la fase sale de su historial');
   });
+
+  // ---- E4 · la meta de rendimiento ----
+
+  testWidgets('E4: al crear no se le pide la meta todavía', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await openDialog(tester);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(find.text(l10n.expectedYieldLabel), findsNothing,
+        reason: 'si se puede pedir después, no se pide ahora');
+    // Y sin eso, la inversión sigue siendo el último campo numérico.
+    expect(find.byType(TextField), findsNWidgets(4));
+  });
+
+  testWidgets('E4: al editar la meta se lee y se guarda', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(
+            id: 'c1',
+            name: 'Café',
+            areaHa: 0.5,
+            livePlants: 300,
+            expectedYieldPerHa: 1200));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(find.text(l10n.expectedYieldLabel), findsOneWidget);
+    // Índice 4: nombre(0) · área(1) · plantas(2) · inversión(3) · meta(4).
+    await tester.enterText(find.byType(TextField).at(0), 'Café');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.expectedYieldPerHa, 1200,
+        reason: 'la meta que ya traía se conserva si no se toca');
+  });
+
+  testWidgets('E4: vaciar el campo BORRA la meta', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(
+            id: 'c1', name: 'Café', areaHa: 0.5, expectedYieldPerHa: 1200));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    await tester.enterText(find.byType(TextField).at(4), '');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.expectedYieldPerHa, isNull,
+        reason: 'un campo vacío significa "no tengo meta", no "la de antes"');
+  });
+
+  testWidgets('E4: la meta se puede escribir y se entiende con coma decimal',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(id: 'c1', name: 'Café', areaHa: 0.5));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    // Misma convención que área e inversión: la coma es el decimal.
+    await tester.enterText(find.byType(TextField).at(4), '1500,5');
+    await tester.tap(find.text(l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.expectedYieldPerHa, closeTo(1500.5, 0.001));
+  });
 }

@@ -49,6 +49,29 @@ Transaction _tx(String id, {required double amount, TransactionType type = Trans
       createdAt: DateTime(2026, 8, 1),
     );
 
+  /// E4 · cosechas de dos años cerrados (500 y 700 kg), y opcionalmente una
+  /// más del año en curso — que **no** debe contar en el promedio.
+  ///
+  /// Las fechas se calculan contra el reloj para que el test no envejezca.
+  List<Harvest> _historico(int anio, {double? extra}) => [
+        Harvest(
+            id: 'h1',
+            cropId: 'cafe',
+            date: DateTime(anio - 1, 8, 10),
+            amount: 500),
+        Harvest(
+            id: 'h2',
+            cropId: 'cafe',
+            date: DateTime(anio - 2, 8, 10),
+            amount: 700),
+        if (extra != null)
+          Harvest(
+              id: 'hx',
+              cropId: 'cafe',
+              date: DateTime(anio, 8, 10),
+              amount: extra),
+      ];
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -161,8 +184,7 @@ void main() {
         reason: 'el aviso explica por qué faltan las cifras');
   });
 
-  testWidgets(
-      'histórico mixto: muestra la inversión pero sin % recuperado inventado',
+  testWidgets('histórico mixto: muestra la inversión pero sin % recuperado inventado',
       (tester) async {
     final l10n = stringsFor('es');
     final txs = [
@@ -190,5 +212,116 @@ void main() {
         reason: 'ingresos por ha medidos solo en USD');
     expect(find.textContaining('COP'), findsOneWidget,
         reason: 'gastos por ha medidos solo en COP');
+  });
+
+  // ---- E4 · El rendimiento: la referencia es SU tierra ----
+
+  testWidgets('E4: muestra el promedio de su tierra y su propia meta',
+      (tester) async {
+    final l10n = stringsFor('es');
+    final anio = DateTime.now().year;
+    final periodHs = [
+      Harvest(id: 'h0', cropId: 'cafe', date: DateTime(anio, 8, 10), amount: 50),
+    ];
+    final txs = [
+      _tx('e1', amount: 200000),
+      _tx('i1', amount: 1000000, type: TransactionType.income),
+    ];
+    await tester.pumpWidget(_wrap(await _provider(), PerHectarePanel(
+      crops: const [
+        Crop(
+            id: 'cafe',
+            name: 'Café',
+            areaHa: 0.5,
+            livePlants: 300,
+            expectedYieldPerHa: 1500),
+      ],
+      periodTransactions: txs,
+      periodHarvests: periodHs,
+      allTransactions: txs,
+      allHarvests: _historico(anio, extra: 50),
+    )));
+    await tester.pump();
+
+    expect(find.text('Por hectárea'), findsOneWidget);
+    // Lo del período sale como siempre.
+    expect(find.text('100.0 kg/ha'), findsOneWidget, reason: '50 kg / 0,5 ha');
+
+    // Lo de su tierra: (500 + 700) / 2 = 600 kg por año → 1.200 kg/ha.
+    expect(find.text(l10n.yieldAvgHaLabel(2)), findsOneWidget);
+    expect(find.text('1200.0 kg/ha'), findsOneWidget,
+        reason: 'sale de los años cerrados, no del período');
+    expect(find.text(l10n.yieldAvgPlantLabel(2)), findsOneWidget);
+    expect(find.text('2.00 kg/planta'), findsOneWidget, reason: '600 / 300');
+
+    // Su meta, puesta por él. Sin tabla de Cenicafé en ningún lado.
+    expect(find.text(l10n.yieldGoalLabel), findsOneWidget);
+    expect(find.text('1500.0 kg/ha'), findsOneWidget);
+  });
+
+  testWidgets('E4: sin dos años cerrados no se inventa un promedio',
+      (tester) async {
+    final l10n = stringsFor('es');
+    final anio = DateTime.now().year;
+    await tester.pumpWidget(_wrap(await _provider(), PerHectarePanel(
+      crops: const [
+        Crop(id: 'cafe', name: 'Café', areaHa: 0.5, livePlants: 300),
+      ],
+      periodTransactions: const [],
+      periodHarvests: [
+        Harvest(id: 'h0', cropId: 'cafe', date: DateTime(anio, 8, 10), amount: 50),
+      ],
+      allTransactions: const [],
+      allHarvests: [
+        Harvest(
+            id: 'h0', cropId: 'cafe', date: DateTime(anio, 8, 10), amount: 50),
+        Harvest(
+            id: 'h1',
+            cropId: 'cafe',
+            date: DateTime(anio - 1, 8, 10),
+            amount: 500),
+      ],
+    )));
+    await tester.pump();
+
+    expect(find.text('Por hectárea'), findsOneWidget);
+    expect(find.text(l10n.yieldAvgHaLabel(1)), findsNothing,
+        reason: 'un año cerrado no es un promedio');
+    expect(find.text(l10n.yieldAvgHaLabel(2)), findsNothing);
+    expect(find.text(l10n.yieldGoalLabel), findsNothing,
+        reason: 'no puso meta → no se pinta nada, nunca un 0');
+  });
+
+  testWidgets('E4: con matas contadas y sin área se ve kg/planta',
+      (tester) async {
+    final l10n = stringsFor('es');
+    final anio = DateTime.now().year;
+    final txs = [
+      _tx('e1', amount: 200000),
+      _tx('i1', amount: 1000000, type: TransactionType.income),
+    ];
+    await tester.pumpWidget(_wrap(await _provider(), PerHectarePanel(
+      // Contó las matas, nunca midió el terreno: igual tiene rendimiento
+      // que ver, y antes el panel entero se le quedaba en blanco.
+      crops: const [Crop(id: 'cafe', name: 'Café', livePlants: 300)],
+      periodTransactions: txs,
+      periodHarvests: [
+        Harvest(id: 'h0', cropId: 'cafe', date: DateTime(anio, 8, 10), amount: 50),
+      ],
+      allTransactions: txs,
+      allHarvests: _historico(anio, extra: 50),
+    )));
+    await tester.pump();
+
+    expect(find.text('Por hectárea'), findsOneWidget);
+    expect(find.text('Café · 300 matas'), findsOneWidget,
+        reason: 'el encabezado no puede exigir un área que no existe');
+    expect(find.text(l10n.perHaYieldPlantLabel), findsOneWidget);
+    expect(find.text('0.17 kg/planta'), findsOneWidget);
+    expect(find.text(l10n.yieldAvgPlantLabel(2)), findsOneWidget);
+    expect(find.text('2.00 kg/planta'), findsOneWidget);
+    // Lo que sí necesita área no se pinta.
+    expect(find.text('1200.0 kg/ha'), findsNothing);
+    expect(find.textContaining('kg/ha'), findsNothing);
   });
 }

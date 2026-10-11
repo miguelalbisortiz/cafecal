@@ -1085,6 +1085,18 @@ abstract class AppLocalizations {
   /// **'Inversión total'**
   String get establishmentCostLabel;
 
+  /// No description provided for @expectedYieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento meta (kg/ha)'**
+  String get expectedYieldLabel;
+
+  /// No description provided for @helpExpectedYield.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que querés sacar de este lote por año. Es TU número, no una tabla de nadie: la app no mide contra Cenicafé ni contra nadie más, mide contra lo que vos pusiste. Vacío = no se compara nada.'**
+  String get helpExpectedYield;
+
   /// No description provided for @cropLockedHint.
   ///
   /// In es, this message translates to:
@@ -1330,6 +1342,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Se rellena con tus gastos de siembra'**
   String get helpEstablishmentShort;
+
+  /// No description provided for @helpExpectedYieldShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional, tu propia meta'**
+  String get helpExpectedYieldShort;
 
   /// No description provided for @helpSowingPlantsShort.
   ///
@@ -1822,6 +1840,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Rendimiento'**
   String get perHaYieldLabel;
+
+  /// No description provided for @perHaYieldPlantLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento por planta'**
+  String get perHaYieldPlantLabel;
+
+  /// Promedio anual del propio productor. No es una tabla externa: sale de sus cosechas de años cerrados
+  ///
+  /// In es, this message translates to:
+  /// **'Tu promedio anual ({years} años)'**
+  String yieldAvgHaLabel(int years);
+
+  /// Mismo promedio, medida por planta en vez de por hectárea
+  ///
+  /// In es, this message translates to:
+  /// **'Tu promedio por planta ({years} años)'**
+  String yieldAvgPlantLabel(int years);
+
+  /// No description provided for @yieldGoalLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Meta anual'**
+  String get yieldGoalLabel;
 
   /// No description provided for @perHaRevenueLabel.
   ///

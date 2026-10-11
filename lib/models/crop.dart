@@ -19,6 +19,17 @@ class Crop {
   final int? livePlants;
   final double? establishmentCost;
 
+  /// E4 · **su meta**, no una tabla de referencia.
+  ///
+  /// Es "kg/ha que quiero sacar de este lote", escritos por el productor.
+  /// La app tiene que servir a cualquier agricultor de cualquier región: una
+  /// tabla precargada (Cenicafé, por ejemplo) le pondría a todos un número
+  /// que no aplica a su altitud, su lluvia ni su sombra, y lo peor es que
+  /// parecería autoridad.
+  ///
+  /// `null` = sin meta → no se pinta nada, nunca un 0.
+  final double? expectedYieldPerHa;
+
   /// Moneda del cultivo — todos los gastos/ingresos vinculados heredan esta
   /// moneda. Si es null, se usa la moneda de configuración.
   final String? currency;
@@ -44,6 +55,7 @@ class Crop {
     this.establishmentCost,
     this.currency,
     this.plantedAt,
+    this.expectedYieldPerHa,
   });
 
   Crop copyWith({
@@ -60,6 +72,7 @@ class Crop {
     double? establishmentCost,
     Object? currency = _sentinel,
     Object? plantedAt = _sentinel,
+    Object? expectedYieldPerHa = _sentinel,
   }) {
     return Crop(
       id: id ?? this.id,
@@ -78,6 +91,12 @@ class Crop {
       // **borrar** la fecha. Con `DateTime?` a secas, `copyWith(plantedAt: null)`
       // habría conservado la anterior.
       plantedAt: plantedAt == _sentinel ? this.plantedAt : plantedAt as DateTime?,
+      // Sentinela por lo mismo que plantedAt: la meta es opcional y se puede
+      // BORRAR. Con `double?` a secas, `copyWith(expectedYieldPerHa: null)`
+      // habría conservado la anterior y no habría forma de quitarla.
+      expectedYieldPerHa: expectedYieldPerHa == _sentinel
+          ? this.expectedYieldPerHa
+          : (expectedYieldPerHa as num?)?.toDouble(),
     );
   }
 
@@ -95,6 +114,7 @@ class Crop {
         'establishment_cost': establishmentCost,
         'currency': currency,
         'planted_at': plantedAt?.toIso8601String(),
+        'expected_yield_kg_ha': expectedYieldPerHa,
       };
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -121,6 +141,8 @@ class Crop {
       // 'YYYY-MM-DD', y una fecha corrupta no debe tumbar la carga de todos
       // los cultivos — peor caso, se queda sin edad.
       plantedAt: _fechaDe(json['planted_at']),
+      // Respaldo anterior a E4 no trae la clave → null → sin meta.
+      expectedYieldPerHa: (json['expected_yield_kg_ha'] as num?)?.toDouble(),
     );
   }
 

@@ -1134,6 +1134,32 @@ class ExcelExportService {
             DoubleCellValue(yieldPlant),
           ]);
         }
+        // E4 · la referencia: su propia tierra y su meta. Igual que en la
+        // pantalla y en el PDF — los tres decimos lo mismo.
+        final hist = metrics.historicalYield(
+          harvests: harvests.where((h) => h.cropId == crop.id).toList(),
+          areaHa: crop.areaHa,
+          livePlants: crop.livePlants,
+        );
+        if (hist.kgPerHa != null) {
+          row([
+            TextCellValue('${crop.name} — ${l10n.yieldAvgHaLabel(hist.years)}'),
+            DoubleCellValue(hist.kgPerHa!),
+          ]);
+        }
+        if (hist.kgPerPlant != null) {
+          row([
+            TextCellValue(
+                '${crop.name} — ${l10n.yieldAvgPlantLabel(hist.years)}'),
+            DoubleCellValue(hist.kgPerPlant!),
+          ]);
+        }
+        if (crop.expectedYieldPerHa != null) {
+          row([
+            TextCellValue('${crop.name} — ${l10n.yieldGoalLabel}'),
+            DoubleCellValue(crop.expectedYieldPerHa!),
+          ]);
+        }
       }
     }
 

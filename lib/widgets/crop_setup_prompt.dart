@@ -96,6 +96,8 @@ class CropSetupPrompt {
       establishmentCost: form.establishmentCost,
       currency: form.currency,
       plantedAt: form.plantedAt,
+      // E4: ídem crops_screen — el null del campo vacío borra la meta.
+      expectedYieldPerHa: form.expectedYieldPerHa,
     ));
   }
 }

@@ -175,6 +175,8 @@
   "areaHaLabel": "Área (hectáreas)",
   "livePlantsLabel": "Plantas vivas",
   "establishmentCostLabel": "Inversión total",
+  "expectedYieldLabel": "Rendimiento meta (kg/ha)",
+  "helpExpectedYield": "Lo que querés sacar de este lote por año. Es TU número, no una tabla de nadie: la app no mide contra Cenicafé ni contra nadie más, mide contra lo que vos pusiste. Vacío = no se compara nada.",
   "cropLockedHint": "Calculado desde tus siembras",
   "cropLossRegister": "Registrar pérdida",
   "@cropLossCurrent": {
@@ -232,6 +234,7 @@
   "helpAreaShort": "Opcional, en ha",
   "helpPlantsShort": "Aproximado",
   "helpEstablishmentShort": "Se rellena con tus gastos de siembra",
+  "helpExpectedYieldShort": "Opcional, tu propia meta",
   "helpSowingPlantsShort": "Aproximado",
   "helpSowingLostPlantsShort": "Muertas o dañadas",
   "helpSowingAreaShort": "En hectáreas",
@@ -333,6 +336,18 @@
   "perHaSection": "Por hectárea",
   "perHaNoAreaHint": "Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.",
   "perHaYieldLabel": "Rendimiento",
+  "perHaYieldPlantLabel": "Rendimiento por planta",
+  "@yieldAvgHaLabel": {
+    "description": "Promedio anual del propio productor. No es una tabla externa: sale de sus cosechas de años cerrados",
+    "placeholders": { "years": { "type": "int" } }
+  },
+  "yieldAvgHaLabel": "Tu promedio anual ({years} años)",
+  "@yieldAvgPlantLabel": {
+    "description": "Mismo promedio, medida por planta en vez de por hectárea",
+    "placeholders": { "years": { "type": "int" } }
+  },
+  "yieldAvgPlantLabel": "Tu promedio por planta ({years} años)",
+  "yieldGoalLabel": "Meta anual",
   "perHaRevenueLabel": "Ventas por ha",
   "perHaCostLabel": "Gastos por ha",
   "perHaMarginLabel": "Margen por ha",

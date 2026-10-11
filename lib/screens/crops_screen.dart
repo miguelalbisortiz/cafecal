@@ -71,6 +71,7 @@ class CropsScreen extends StatelessWidget {
         livePlants: form.livePlants,
         establishmentCost: form.establishmentCost,
         plantedAt: form.plantedAt,
+        expectedYieldPerHa: form.expectedYieldPerHa,
       );
       if (!wasEmpty || !context.mounted) return;
       // Primer cultivo: el onboarding invita a agregar varios existentes.
@@ -121,6 +122,10 @@ class CropsScreen extends StatelessWidget {
       // C1: lo mismo con la fecha. Solo se enseña el campo cuando no hay
       // siembras; si las hay, se devuelve tal cual la que ya traía.
       plantedAt: form.plantedAt,
+      // E4: aquí SÍ pasa el null del campo vacío, a propósito. El resto de
+      // los campos usan `??` y conservan el valor anterior, pero la meta se
+      // puede BORRAR — si el `??` la conservara, borrarla sería imposible.
+      expectedYieldPerHa: form.expectedYieldPerHa,
     ));
   }
 

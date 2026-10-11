@@ -366,6 +366,8 @@ class SyncProvider extends ChangeNotifier {
         // C1: si falta la columna, Postgrest responde PGRST204 y se cae la
         // subida completa (mismo caso que `currency` — ver migración).
         'planted_at': c.plantedAt?.toIso8601String().substring(0, 10),
+        // E4: ídem — la migración 202610110003 va ANTES del deploy.
+        'expected_yield_kg_ha': c.expectedYieldPerHa,
       };
 
   Future<void> _upsertRemoteCrop(SupabaseService supabase, Crop c) async {
@@ -557,6 +559,8 @@ class SyncProvider extends ChangeNotifier {
       'establishment_cost': (row['establishment_cost'] as num?)?.toDouble(),
       'currency': row['currency'] as String?,
       'planted_at': row['planted_at'] as String?,
+      'expected_yield_kg_ha':
+          (row['expected_yield_kg_ha'] as num?)?.toDouble(),
     });
   }
 

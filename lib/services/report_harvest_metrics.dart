@@ -211,6 +211,61 @@ class ReportHarvestMetrics {
     return kg > 0 ? kg / livePlants : null;
   }
 
+  /// E4 · **su propia tierra**: el rendimiento anual promedio de este cultivo.
+  ///
+  /// La referencia de E4 no es una tabla de Cenicafé — es la finca del
+  /// productor. Sirve a cualquier agricultor de cualquier región porque sale
+  /// de sus propias cosechas: no hay que adivinar la especie, ni la altitud,
+  /// ni la lluvia, ni el país.
+  ///
+  /// Reglas que hacen que no mienta:
+  ///
+  ///  * Solo cuentan años calendario **completos** (anteriores al año en
+  ///    curso). Promediar un mes contra un año sería comparar peras con
+  ///    manzanas, y el período del reporte puede ser semana, mes o año.
+  ///  * [minYears] = 2 por defecto: con un solo año no hay "promedio", hay
+  ///    ese año. Y como los años completos excluyen al actual, esto pide
+  ///    **dos temporadas cerradas** antes de enseñar nada.
+  ///  * El área y las plantas que se usan son las actuales. Si creció o
+  ///    redujo, el histórico es aproximado — y por eso el copy lo dice.
+  ///  * Todo lo que no se pueda calcular sale `null`. La UI lo oculta, nunca
+  ///    pinta un 0 inventado.
+  ///
+  /// Devuelve [years] junto con las cifras para que la línea pueda decir
+  /// "Tu promedio anual (3 años)" y el productor sepa sobre cuánto pesa.
+  ({double? kgPerHa, double? kgPerPlant, int years}) historicalYield({
+    required List<Harvest> harvests,
+    required double? areaHa,
+    required int? livePlants,
+    int minYears = 2,
+  }) {
+    final anioEnCurso = DateTime.now().year;
+    final kgPorAnio = <int, double>{};
+    for (final h in harvests) {
+      // El año en curso va incompleto: entraría a medias contra años
+      // cerrados y bajaría el promedio solo por haber sido tarde.
+      if (h.date.year >= anioEnCurso) continue;
+      kgPorAnio[h.date.year] =
+          (kgPorAnio[h.date.year] ?? 0) +
+              h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+    }
+
+    final cerrados = kgPorAnio.keys.where((y) => kgPorAnio[y]! > 0).toList();
+    if (cerrados.length < minYears) {
+      return (kgPerHa: null, kgPerPlant: null, years: 0);
+    }
+
+    final promedioKg =
+        cerrados.fold<double>(0, (a, y) => a + kgPorAnio[y]!) / cerrados.length;
+    return (
+      kgPerHa: (areaHa != null && areaHa > 0) ? promedioKg / areaHa : null,
+      kgPerPlant: (livePlants != null && livePlants > 0)
+          ? promedioKg / livePlants
+          : null,
+      years: cerrados.length,
+    );
+  }
+
   /// Ingresos del cultivo por hectárea. Solo si [areaHa] > 0 y hay ingresos
   /// no eliminados; si no, null (la UI oculta, nunca muestra 0).
   ///

@@ -295,6 +295,42 @@ void main() {
           (await newSync()).remoteToCrop({'id': cropUuid, 'name': 'Café'});
       expect(c.plantedAt, isNull);
     });
+
+    // E4 · la meta de rendimiento. Columna escrita a mano en el payload, así
+    // que si no existe en la tabla tumba la subida de CULTIVOS entera — que
+    // es peor que la de transacciones: desaparecen las variedades.
+    group('Payload: la meta de rendimiento (E4)', () {
+      test('expected_yield_kg_ha sale siempre, con null incluido', () async {
+        final sync = await newSync();
+
+        final conMeta = sync.buildCropPayload(
+            const Crop(id: cropUuid, name: 'Café', expectedYieldPerHa: 1200),
+            uid);
+        expect(conMeta['expected_yield_kg_ha'], 1200);
+
+        // Sin meta: null explícito, para poder BORRAR la meta y que se
+        // refleje en la BD en vez de quedar pisada con el valor anterior.
+        final sinMeta =
+            sync.buildCropPayload(const Crop(id: cropUuid, name: 'Café'), uid);
+        expect(sinMeta.containsKey('expected_yield_kg_ha'), isTrue);
+        expect(sinMeta['expected_yield_kg_ha'], isNull);
+      });
+
+      test('lo que baja de Supabase conserva la meta', () async {
+        final c = (await newSync()).remoteToCrop({
+          'id': cropUuid,
+          'name': 'Café',
+          'expected_yield_kg_ha': 900,
+        });
+        expect(c.expectedYieldPerHa, 900);
+      });
+
+      test('una fila vieja sin la columna sigue cargando, sin meta', () async {
+        final c =
+            (await newSync()).remoteToCrop({'id': cropUuid, 'name': 'Café'});
+        expect(c.expectedYieldPerHa, isNull);
+      });
+    });
   });
 
   group('markAllSynced(selectivo)', () {

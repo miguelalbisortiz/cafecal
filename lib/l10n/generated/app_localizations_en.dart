@@ -506,6 +506,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get establishmentCostLabel => 'Total investment';
 
   @override
+  String get expectedYieldLabel => 'Target yield (kg/ha)';
+
+  @override
+  String get helpExpectedYield => 'What you want to get from this lot per year. It\'s YOUR number, not someone else\'s table: the app doesn\'t measure you against Cenicafé or anyone else, it measures against what you set. Empty = nothing is compared.';
+
+  @override
   String get cropLockedHint => 'Calculated from your sowings';
 
   @override
@@ -660,6 +666,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpEstablishmentShort => 'Filled from your planting expenses';
+
+  @override
+  String get helpExpectedYieldShort => 'Optional, your own goal';
 
   @override
   String get helpSowingPlantsShort => 'Approximate';
@@ -928,6 +937,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get perHaYieldLabel => 'Yield';
+
+  @override
+  String get perHaYieldPlantLabel => 'Yield per plant';
+
+  @override
+  String yieldAvgHaLabel(int years) {
+    return 'Your annual average ($years years)';
+  }
+
+  @override
+  String yieldAvgPlantLabel(int years) {
+    return 'Your per-plant average ($years years)';
+  }
+
+  @override
+  String get yieldGoalLabel => 'Annual goal';
 
   @override
   String get perHaRevenueLabel => 'Sales per ha';
