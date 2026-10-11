@@ -1189,6 +1189,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropGroupHint => 'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.';
 
   @override
+  String get commonCosts => 'Costos comunes';
+
+  @override
+  String get commonCostsHint => 'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.';
+
+  @override
   String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».';
 
   @override

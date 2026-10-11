@@ -156,4 +156,40 @@ void main() {
       expect(byCurrencyText({}, (v, c) => '$v'), '');
     });
   });
+
+  // E2 · "Costos comunes".
+  //
+  // Antes esa fila se llamaba "Sin especificar" y aparecía donde saliera.
+  // Ahora el caller decide el nombre y la fila se pinta al final, para que no
+  // se lea como si fuera un cultivo más.
+  group('E2 · la fila sin cultivo', () {
+    test('lleva el nombre que el caller pidió', () {
+      final rows = cropBreakdownRows(
+        records: [
+          tx(
+              type: TransactionType.expense,
+              amount: 900,
+              category: 'transporte'),
+        ],
+        crops: const [cafe, platano],
+        unspecifiedName: 'Costos comunes',
+      );
+
+      expect(rows.last.cropId, isNull);
+      expect(rows.last.name, 'Costos comunes');
+    });
+
+    test('va después de cada cultivo, aunque su monto sea el mayor', () {
+      final rows = rowsOf([
+        tx(type: TransactionType.income, amount: 5000, cropId: 'cafe'),
+        // Un gasto de la finca entera más grande que todo lo del café: si el
+        // orden fuera por monto, aparecería arriba y mentiría sobre qué es.
+        tx(type: TransactionType.expense, amount: 999999, category: 'mano_obra'),
+      ]);
+
+      expect(rows.last.cropId, isNull,
+          reason: 'los costos comunes son de la finca, no de un lote');
+      expect(rows.first.cropId, 'cafe');
+    });
+  });
 }

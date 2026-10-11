@@ -562,7 +562,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             items: [
               DropdownMenuItem<String>(
                 value: null,
-                child: Text(l10n.cropUnspecified),
+                // E2 · "Sin especificar" no le decía nada a nadie. Al ser el
+                // único grupo que NO es de un cultivo, se llama por lo que es.
+                child: Text(l10n.commonCosts),
               ),
               DropdownMenuItem<String>(
                 value: _newCropOption,
@@ -593,8 +595,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             },
           ),
           const SizedBox(height: 4),
+          // E2 · el aviso cambia con la elección: si el movimiento no es de
+          // ningún cultivo, lo que hay que explicar es lo que eso implica.
+          // Si sí lo es, se mantiene el de siempre.
           Text(
-            l10n.cropGroupHint,
+            _cropId == null ? l10n.commonCostsHint : l10n.cropGroupHint,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),

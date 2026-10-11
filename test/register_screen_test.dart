@@ -97,12 +97,35 @@ void main() {
     expect(find.text('☕ Venta café'), findsWidgets);
   });
 
-  testWidgets('el campo cultivo explica cómo crear una variedad nueva',
+  testWidgets('sin cultivo elegido el aviso explica los costos de la finca',
       (tester) async {
     final provider = await makeProvider();
     await pumpRegister(tester, provider);
 
+    // E2 · sin cultivo el movimiento es de toda la finca, y eso es lo que
+    // hay que explicar. "Sin especificar" no le decía nada a nadie.
+    expect(_es.commonCosts, 'Costos comunes');
+    expect(find.text(_es.commonCostsHint), findsOneWidget);
+    expect(find.text(_es.cropGroupHint), findsNothing);
+  });
+
+  testWidgets('con un cultivo elegido vuelve el aviso de crear variedades',
+      (tester) async {
+    final provider = await makeProvider();
+    final crop = await provider.addCrop('Café');
+    await pumpRegister(tester, provider,
+        editing: Transaction(
+          id: 't1',
+          cropId: crop.id,
+          type: TransactionType.expense,
+          category: 'fertilizante',
+          amount: 900,
+          date: DateTime(2026, 9, 1),
+          createdAt: DateTime(2026, 9, 1),
+        ));
+
     expect(find.text(_es.cropGroupHint), findsOneWidget);
+    expect(find.text(_es.commonCostsHint), findsNothing);
     expect(_es.cropGroupHint, contains('+ Nueva variedad…'));
   });
 }

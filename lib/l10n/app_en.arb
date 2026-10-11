@@ -429,6 +429,8 @@
   "cropUnspecified": "Not specified",
   "cropNewOption": "+ New crop…",
   "cropGroupHint": "Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.",
+  "commonCosts": "Common costs",
+  "commonCostsHint": "It's a farm-wide expense (fence, road, electricity). It doesn't affect any crop's cost/kg, but it does affect the bottom line.",
   "sowingCategoryHint": "If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn't exist yet, tap “+ New crop…”.",
   "deductionSwitchLabel": "The buyer deducted before paying",
   "deductionHint": "Coffee isn't always paid in full: impurity, moisture or stones.",

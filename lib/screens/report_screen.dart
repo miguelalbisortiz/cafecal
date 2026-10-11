@@ -515,7 +515,7 @@ class _ReportScreenState extends State<ReportScreen> {
       for (final r in cropBreakdownRows(
         records: records,
         crops: tx.crops,
-        unspecifiedName: l10n.cropUnspecified,
+        unspecifiedName: l10n.commonCosts,
       ))
         r.cropId: _CropRow(r),
     };
@@ -530,9 +530,16 @@ class _ReportScreenState extends State<ReportScreen> {
       row.investment = split.investment;
       row.operation = split.operation;
     }
+    // E2 · "Costos comunes" se pinta al final, después de cada cultivo.
+    // Son gastos de la finca entera: ordenarlos solo por monto podría dejarlos
+    // arriba de un cultivo y leerse como si fueran un lote más.
     return totals.values.where((r) => r.expenses > 0 || r.incomes > 0).toList()
-      ..sort((a, b) =>
-          (b.expenses + b.incomes).compareTo(a.expenses + a.incomes));
+      ..sort((a, b) {
+        final an = a.totals.cropId == null;
+        final bn = b.totals.cropId == null;
+        if (an != bn) return an ? 1 : -1;
+        return (b.expenses + b.incomes).compareTo(a.expenses + a.incomes);
+      });
   }
 
   // ---- Nivel 2: secciÃ³n cosechas, vendido vs cosechado, y "QuÃ© hacer" ----

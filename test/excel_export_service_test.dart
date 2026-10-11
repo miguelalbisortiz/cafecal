@@ -526,13 +526,14 @@ void main() {
       expect(t0(rows[t + 1][0]), _es.pdfColCategory);
       expect(t0(rows[t + 1][1]), _es.pdfColCrop);
       expect(t0(rows[t + 1][2]), _es.pdfColAmount);
-      // fertilizante totaliza 2800 → primero; dentro: Café 2000 > Sin
-      // especificar 800.
+      // fertilizante totaliza 2800 → primero; dentro: Café 2000 > Costos
+      // comunes 800.
       expect(t0(rows[t + 2][0]), _es.expenseCategory('fertilizante'));
       expect(t0(rows[t + 2][1]), 'Café');
       expect(cv(rows[t + 2][2]), 2000.0);
       expect(t0(rows[t + 3][0]), _es.expenseCategory('fertilizante'));
-      expect(t0(rows[t + 3][1]), _es.cropUnspecified);
+      expect(t0(rows[t + 3][1]), _es.commonCosts,
+          reason: 'E2: un gasto sin cultivo es de la finca, no "sin especificar"');
       expect(cv(rows[t + 3][2]), 800.0);
       // riego totaliza 300 → después.
       expect(t0(rows[t + 4][0]), _es.expenseCategory('riego'));

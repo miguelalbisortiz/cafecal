@@ -99,7 +99,19 @@ List<CropBreakdownRow> cropBreakdownRows({
     final target = t.type.isExpense ? row.expenses : row.incomes;
     target[t.currency] = (target[t.currency] ?? 0) + t.amount;
   }
-  return rows.values.toList();
+  // E2 · la fila sin cultivo ("Costos comunes") va al FINAL, después de cada
+  // cultivo. Son gastos de la finca entera, no de un lote: si se ordenaran
+  // solo por inserción aparecerían arriba y se leerían como un cultivo más.
+  // Se fija aquí y no en cada pantalla para que Reportes, el PDF y el Excel
+  // los tres pinten el mismo orden sin acordarse entre ellos.
+  final list = rows.values.toList()
+    ..sort((a, b) {
+      final an = a.cropId == null;
+      final bn = b.cropId == null;
+      if (an != bn) return an ? 1 : -1;
+      return 0;
+    });
+  return list;
 }
 
 /// Montos de un mapa `moneda → monto` en una sola línea, cada moneda con su

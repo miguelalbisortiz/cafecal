@@ -1189,6 +1189,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cropGroupHint => 'Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.';
 
   @override
+  String get commonCosts => 'Common costs';
+
+  @override
+  String get commonCostsHint => 'It\'s a farm-wide expense (fence, road, electricity). It doesn\'t affect any crop\'s cost/kg, but it does affect the bottom line.';
+
+  @override
   String get sowingCategoryHint => 'If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn\'t exist yet, tap “+ New crop…”.';
 
   @override

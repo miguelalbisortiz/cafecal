@@ -621,7 +621,7 @@ class ExcelExportService {
           row([
             TextCellValue(l10n.expenseCategory(cat)),
             TextCellValue(e.key == null
-                ? l10n.cropUnspecified
+                ? l10n.commonCosts
                 : (nameById[e.key] ?? e.key!)),
             mixedHeader
                 ? TextCellValue(byCurrency(e.value))
@@ -786,7 +786,7 @@ class ExcelExportService {
     final breakdown = cropBreakdownRows(
       records: periodTx,
       crops: crops,
-      unspecifiedName: l10n.cropUnspecified,
+      unspecifiedName: l10n.commonCosts,
     );
     const startRow = 1;
     var r = startRow;
@@ -876,8 +876,13 @@ class ExcelExportService {
     const startRow = 1;
     var r = startRow;
     for (final t in periodTx) {
+      // E2 · "Costos comunes" nomina a los gastos de la finca. Un ingreso sin
+      // cultivo (un subsidio, por ejemplo) no es un costo, así que no se le
+      // pone ese nombre: se queda como "Sin especificar".
       final cropName = t.cropId == null
-          ? l10n.cropUnspecified
+          ? (t.type.isExpense
+              ? l10n.commonCosts
+              : l10n.cropUnspecified)
           : (nameById[t.cropId] ?? t.cropId!);
       final pricePerUnit = (t.quantity != null && t.quantity! > 0)
           ? DoubleCellValue(t.amount / t.quantity!)

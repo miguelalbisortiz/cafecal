@@ -609,7 +609,7 @@ class PdfExportService {
     final rows = cropBreakdownRows(
       records: source,
       crops: crops,
-      unspecifiedName: l10n.cropUnspecified,
+      unspecifiedName: l10n.commonCosts,
     );
 
     return rows.where((r) => r.hasAnyAmount).map((r) {

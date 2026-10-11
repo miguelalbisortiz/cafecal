@@ -2333,6 +2333,18 @@ abstract class AppLocalizations {
   /// **'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.'**
   String get cropGroupHint;
 
+  /// No description provided for @commonCosts.
+  ///
+  /// In es, this message translates to:
+  /// **'Costos comunes'**
+  String get commonCosts;
+
+  /// No description provided for @commonCostsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.'**
+  String get commonCostsHint;
+
   /// No description provided for @sowingCategoryHint.
   ///
   /// In es, this message translates to:
