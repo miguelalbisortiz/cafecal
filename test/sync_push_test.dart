@@ -370,7 +370,7 @@ void main() {
       expect(SyncProvider.shouldPushSettings(tx.settingsDirty), isTrue);
     });
 
-    test('el payload manda las 9 columnas, incluidas las nulas', () async {
+    test('el payload manda las 10 columnas, incluidas las nulas', () async {
       final tx = await newProvider();
       final p = SyncProvider(tx)
           .buildSettingsPayload(tx.settings, uid);
@@ -384,13 +384,37 @@ void main() {
         'last_crop_id',
         'low_price_threshold_per_kg',
         'caja_menor_mensual',
+        // E3: si falta la columna, PGRST204 tumba el subido entero.
+        'presupuesto_obra_mensual',
         // A2: si falta la columna, PGRST204 tumba el subido entero.
         'saco_kg',
       });
       expect(p['user_id'], uid);
       // Sin escribir la clave, un null explícito borra el valor remoto.
       expect(p['caja_menor_mensual'], isNull);
+      // E3 · obra sin configurar viaja como null, no como 0: null es
+      // "sin presupuesto" (la caja mide lo de siempre), 0 sería agotado.
+      expect(p['presupuesto_obra_mensual'], isNull);
       expect(p['saco_kg'], 70);
+    });
+
+    test('el presupuesto de obra editado viaja en el payload', () async {
+      final tx = await newProvider();
+      await tx.updateSettings(tx.settings.copyWith(presupuestoObraMensual: 1000000));
+
+      final p = SyncProvider(tx).buildSettingsPayload(tx.settings, uid);
+      expect(p['presupuesto_obra_mensual'], 1000000);
+    });
+
+    test('vaciar el presupuesto de obra lo sube como null (E3)', () async {
+      final tx = await newProvider();
+      await tx.updateSettings(tx.settings.copyWith(presupuestoObraMensual: 1000000));
+      await tx.updateSettings(
+          tx.settings.copyWith(presupuestoObraMensual: null));
+
+      final p = SyncProvider(tx).buildSettingsPayload(tx.settings, uid);
+      expect(p['presupuesto_obra_mensual'], isNull,
+          reason: 'borrarlo es volver al comportamiento de la caja de siempre');
     });
 
     test('el peso del saco editado viaja en el payload', () async {

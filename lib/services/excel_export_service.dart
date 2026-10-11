@@ -679,12 +679,16 @@ class ExcelExportService {
     }
 
     // ── Caja menor por mes (solo con monto configurado) ──
+    // E3 · con presupuesto de obra configurado la gente tiene su propia
+    // tabla: contarla también en la caja inflaría el gasto de caja.
+    final laborSeparate = (settings.presupuestoObraMensual ?? 0) > 0;
     final cashRows = const ReportPayrollMetrics().cashBoxByMonth(
       periodTx: periodTx,
       budget: settings.cajaMenorMensual,
       period: period,
       year: year,
       month: month,
+      includeLabor: !laborSeparate,
     );
     if (cashRows.isNotEmpty) {
       row([null, null, null]);
@@ -753,6 +757,46 @@ class ExcelExportService {
         row([
           TextCellValue(l10n.currencyMixedByCurrencyNote(cashMixed.length)),
         ]);
+      }
+    }
+
+    // ── Presupuesto de obra por mes (E3, solo con monto configurado) ──
+    final workRows = const ReportPayrollMetrics().workBudgetByMonth(
+      periodTx: periodTx,
+      budget: settings.presupuestoObraMensual,
+      period: period,
+      year: year,
+      month: month,
+    );
+    if (workRows.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.workBudgetTitle)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 6, _excelBrown);
+      row([
+        TextCellValue(l10n.segMonth),
+        TextCellValue(l10n.reportCashBoxBudget),
+        TextCellValue(l10n.jornalTotalLabel),
+        TextCellValue(l10n.workBudgetBalance),
+      ]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 4);
+      final workMultiYear = workRows.map((r) => r.year).toSet().length > 1;
+      final workFrom = sheet.maxRows;
+      for (final r in workRows) {
+        row([
+          TextCellValue(workMultiYear
+              ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+              : l10n.monthFull[r.month - 1]),
+          DoubleCellValue(r.budget),
+          r.isMixed
+              ? TextCellValue(byCurrencyText(
+                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c)))
+              : DoubleCellValue(r.used),
+          r.isMixed ? TextCellValue('—') : DoubleCellValue(r.balance),
+        ]);
+      }
+      final workTo = sheet.maxRows - 1;
+      for (var c = 1; c <= 3; c++) {
+        _applyCurrencyFormat(sheet, currency, c, workFrom, workTo);
       }
     }
 

@@ -60,6 +60,40 @@ class PayrollSummary {
   bool get isEmpty => rows.isEmpty;
 }
 
+/// Consumo del **presupuesto de obra** de un mes calendario (E3).
+///
+/// Solo cuenta mano de obra: es la contraparte de [CashBoxMonthRow], que es
+/// la caja. Existen aparte porque "gasté mucho en gente" y "gasté mucho en
+/// misceláneos" son señales opuestas y no deben compartir barra.
+class WorkMonthRow {
+  final int year;
+  final int month; // 1-12
+  final double budget;
+
+  /// Mano de obra del mes **por moneda**. Nunca se suman monedas distintas.
+  final Map<String, double> laborByCurrency;
+
+  const WorkMonthRow({
+    required this.year,
+    required this.month,
+    required this.budget,
+    required this.laborByCurrency,
+  });
+
+  /// Suma aritmética: solo comparable con [budget] si hay una sola moneda
+  /// y es la del presupuesto.
+  double get used => laborByCurrency.values.fold<double>(0, (a, b) => a + b);
+
+  /// Positivo = lo que queda de presupuesto; negativo = obra agotada.
+  double get balance => budget - used;
+
+  Set<String> get currencies => laborByCurrency.keys.toSet();
+
+  /// true → la mano de obra del mes mezcla monedas: no se compara con el
+  /// presupuesto ni se imprime un porcentaje.
+  bool get isMixed => currencies.length > 1;
+}
+
 /// Consumo de caja menor de un mes calendario dentro del período.
 class CashBoxMonthRow {
   final int year;
@@ -157,7 +191,62 @@ class ReportPayrollMetrics {
   /// Los meses sin gastos también aparecen (control anual mes a mes); el
   /// saldo NO se acumula entre meses: cada fila se reinicia con su presupuesto.
   /// Devuelve vacío si no hay presupuesto (caja desactivada).
+  ///
+  /// [includeLabor] · E3. `true` (por defecto) cuenta jornales + extras, que
+  /// es lo que la caja hacía siempre. `false` deja afuera la mano de obra:
+  /// eso solo pasa cuando hay un **presupuesto de obra** configurado, porque
+  /// entonces la gente tiene su propia barra y contarla dos veces inventaría
+  /// un gasto.
   List<CashBoxMonthRow> cashBoxByMonth({
+    required Iterable<Transaction> periodTx,
+    required double? budget,
+    required ReportPeriod period,
+    required int year,
+    int? month,
+    DateTime? now,
+    bool includeLabor = true,
+  }) {
+    final b = budget;
+    if (b == null || b <= 0) return const [];
+    final ref = now ?? DateTime.now();
+
+    final labor = <String, Map<String, double>>{};
+    final extras = <String, Map<String, double>>{};
+    for (final t in periodTx) {
+      if (t.deleted || !t.type.isExpense || !discountsCashBox(t.category)) {
+        continue;
+      }
+      final isLabor = t.category == 'mano_obra';
+      if (isLabor && !includeLabor) continue;
+      final key = '${t.date.year}-${t.date.month}';
+      final byCurrency = (isLabor ? labor : extras)
+          .putIfAbsent(key, () => <String, double>{});
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
+    }
+
+    final keys = <String>{...labor.keys, ...extras.keys};
+    _seedMonths(keys, period: period, year: year, month: month, ref: ref);
+
+    final out = <CashBoxMonthRow>[];
+    for (final key in _sortedMonthKeys(keys)) {
+      final parts = key.split('-');
+      out.add(CashBoxMonthRow(
+        year: int.parse(parts[0]),
+        month: int.parse(parts[1]),
+        budget: b,
+        laborByCurrency: Map.of(labor[key] ?? const {}),
+        extrasByCurrency: Map.of(extras[key] ?? const {}),
+      ));
+    }
+    return out;
+  }
+
+  /// E3 · lo mismo que [cashBoxByMonth], pero solo para la **obra**.
+  ///
+  /// Existe porque la obra tiene su propio presupuesto y su propia barra: si
+  /// la gente se contara también dentro de la caja, el mismo jornal
+  /// aparecería gastado dos veces.
+  List<WorkMonthRow> workBudgetByMonth({
     required Iterable<Transaction> periodTx,
     required double? budget,
     required ReportPeriod period,
@@ -170,18 +259,38 @@ class ReportPayrollMetrics {
     final ref = now ?? DateTime.now();
 
     final labor = <String, Map<String, double>>{};
-    final extras = <String, Map<String, double>>{};
     for (final t in periodTx) {
-      if (t.deleted || !t.type.isExpense || !discountsCashBox(t.category)) {
+      if (t.deleted || !t.type.isExpense || t.category != 'mano_obra') {
         continue;
       }
       final key = '${t.date.year}-${t.date.month}';
-      final byCurrency = (t.category == 'mano_obra' ? labor : extras)
-          .putIfAbsent(key, () => <String, double>{});
+      final byCurrency = labor.putIfAbsent(key, () => <String, double>{});
       byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
     }
 
-    final keys = <String>{...labor.keys, ...extras.keys};
+    final keys = <String>{...labor.keys};
+    _seedMonths(keys, period: period, year: year, month: month, ref: ref);
+
+    return _sortedMonthKeys(keys).map((key) {
+      final parts = key.split('-');
+      return WorkMonthRow(
+        year: int.parse(parts[0]),
+        month: int.parse(parts[1]),
+        budget: b,
+        laborByCurrency: Map.of(labor[key] ?? const {}),
+      );
+    }).toList();
+  }
+
+  /// Meses del período a sembrar, para que aparezcan aunque no tengan
+  /// gastos (control mes a mes del año entero).
+  static void _seedMonths(
+    Set<String> keys, {
+    required ReportPeriod period,
+    required int year,
+    required int? month,
+    required DateTime ref,
+  }) {
     void seed(int y, int m) => keys.add('$y-$m');
 
     switch (period) {
@@ -201,27 +310,16 @@ class ReportPayrollMetrics {
           seed(year, m);
         }
     }
-
-    // Orden numérico (año, mes); el orden lexicográfico pondría "10" antes
-    // que "2".
-    final sorted = keys.toList()
-      ..sort((a, b) {
-        final pa = a.split('-');
-        final pb = b.split('-');
-        final cmp = int.parse(pa[0]).compareTo(int.parse(pb[0]));
-        return cmp != 0 ? cmp : int.parse(pa[1]).compareTo(int.parse(pb[1]));
-      });
-    final out = <CashBoxMonthRow>[];
-    for (final key in sorted) {
-      final parts = key.split('-');
-      out.add(CashBoxMonthRow(
-        year: int.parse(parts[0]),
-        month: int.parse(parts[1]),
-        budget: b,
-        laborByCurrency: Map.of(labor[key] ?? const {}),
-        extrasByCurrency: Map.of(extras[key] ?? const {}),
-      ));
-    }
-    return out;
   }
+
+  /// Orden numérico (año, mes); el orden lexicográfico pondría "10" antes
+  /// que "2".
+  static List<String> _sortedMonthKeys(Iterable<String> keys) =>
+      keys.toList()
+        ..sort((a, b) {
+          final pa = a.split('-');
+          final pb = b.split('-');
+          final cmp = int.parse(pa[0]).compareTo(int.parse(pb[0]));
+          return cmp != 0 ? cmp : int.parse(pa[1]).compareTo(int.parse(pb[1]));
+        });
 }

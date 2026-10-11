@@ -1556,6 +1556,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashBoxExtras => 'Extras';
 
   @override
+  String get workBudgetLabel => 'Monthly work budget';
+
+  @override
+  String get workBudgetHelp => 'How much you plan to spend on labor each month. Leave it empty and labor keeps counting inside the cash box, as always.';
+
+  @override
+  String get workBudgetTitle => 'Work budget';
+
+  @override
+  String workBudgetOf(String used, String total) {
+    return '$used of $total';
+  }
+
+  @override
+  String get workBudgetRemaining => 'Remaining';
+
+  @override
+  String get workBudgetBalance => 'Work balance';
+
+  @override
   String get segMonth => 'Month';
 
   @override
@@ -2353,6 +2373,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertUnpaidSuggestion => 'Collect before it slips: once the money arrives, edit the sale and switch its status to “Paid”.';
+
+  @override
+  String alertWorkBudgetWarningTitle(String month, String percent) {
+    return 'This month\'s work is at $percent';
+  }
+
+  @override
+  String alertWorkBudgetWarningMessage(String used, String total, String remaining) {
+    return 'The problem: this month you\'ve spent $used of $total on labor. $remaining left before it runs out.';
+  }
+
+  @override
+  String get alertWorkBudgetWarningSuggestion => 'If the month isn\'t over yet, spread the tasks out better or raise the work budget.';
+
+  @override
+  String alertWorkBudgetDangerTitle(String month) {
+    return 'Work budget exhausted in $month';
+  }
+
+  @override
+  String alertWorkBudgetDangerMessage(String used, String total, String percent) {
+    return 'The problem: this month you\'ve spent $used of $total on labor ($percent). You\'re already over budget.';
+  }
+
+  @override
+  String get alertWorkBudgetDangerSuggestion => 'Review the day labor you logged and consider adjusting next month\'s work budget.';
 
   @override
   String alertCashBoxWarningTitle(String month, String percent) {

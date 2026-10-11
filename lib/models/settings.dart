@@ -19,6 +19,19 @@ class FarmSettings {
   /// mes). `null` = desactivado (sin widget de caja ni alerta).
   final double? cajaMenorMensual;
 
+  /// E3 · presupuesto de obra del mes: cuánto se pensaba gastar en **gente**
+  /// (mano de obra) durante el mes.
+  ///
+  /// Existe aparte porque "gasté mucho en trabajadores" y "gasté mucho en
+  /// misceláneos" son señales opuestas, y la caja menor mezclaba las dos en
+  /// una sola barra: al 80% no se sabía cuál de las dos había pasado.
+  ///
+  /// **Opt-in**: `null` = no configurado, y en ese caso la caja menor sigue
+  /// contando jornales + extras **exactamente igual que siempre**. La
+  /// separación solo aparece quien la pide. `null` también se reinicia solo
+  /// con el calendario, igual que la caja.
+  final double? presupuestoObraMensual;
+
   /// A2 · peso real de un saco de café, en kg.
   ///
   /// La norma dice 70, pero en la finca el costal puede pesar 60. Este número
@@ -41,6 +54,7 @@ class FarmSettings {
     this.lastCropId,
     this.lowPriceThresholdPerKg,
     this.cajaMenorMensual,
+    this.presupuestoObraMensual,
     this.sacoKg = 70,
   });
 
@@ -52,6 +66,7 @@ class FarmSettings {
     Object? lastCropId = _sentinel,
     Object? lowPriceThresholdPerKg = _sentinel,
     Object? cajaMenorMensual = _sentinel,
+    Object? presupuestoObraMensual = _sentinel,
     double? sacoKg,
   }) {
     return FarmSettings(
@@ -68,6 +83,13 @@ class FarmSettings {
       cajaMenorMensual: cajaMenorMensual == _sentinel
           ? this.cajaMenorMensual
           : cajaMenorMensual as double?,
+      // Igual que caja: hace falta sentinela para poder VACIARLO, que es la
+      // forma de desactivar la obra y volver al comportamiento de siempre.
+      // num → double: el parámetro es Object? para aceptar null, y un literal
+      // entero (presupuestoObraMensual: 1000000) no debe reventar.
+      presupuestoObraMensual: presupuestoObraMensual == _sentinel
+          ? this.presupuestoObraMensual
+          : (presupuestoObraMensual as num?)?.toDouble(),
       // Como nunca es null no necesita sentinela: `??` basta, igual que
       // `farmName` más arriba — solo se cambia si se pasa un valor.
       sacoKg: sacoKg ?? this.sacoKg,
@@ -84,6 +106,10 @@ class FarmSettings {
           'low_price_threshold_per_kg': lowPriceThresholdPerKg,
         if (cajaMenorMensual != null)
           'caja_menor_mensual': cajaMenorMensual,
+        // Solo si está configurado: un valor vacío quiere decir "obra sin
+        // presupuesto", y eso es null, no 0.
+        if (presupuestoObraMensual != null)
+          'presupuesto_obra_mensual': presupuestoObraMensual,
         'saco_kg': sacoKg,
       };
 
@@ -97,6 +123,10 @@ class FarmSettings {
       lowPriceThresholdPerKg:
           (json['low_price_threshold_per_kg'] as num?)?.toDouble(),
       cajaMenorMensual: (json['caja_menor_mensual'] as num?)?.toDouble(),
+      // Respaldos y bajadas viejas no traen la clave → null → obra sin
+      // presupuesto → la caja menor actúa como siempre.
+      presupuestoObraMensual:
+          (json['presupuesto_obra_mensual'] as num?)?.toDouble(),
       // Respaldos viejos no traen la clave → 70, el de la norma.
       sacoKg: (json['saco_kg'] as num?)?.toDouble() ?? 70,
     );

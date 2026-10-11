@@ -34,6 +34,10 @@ class AlertService {
     List<Harvest> harvests = const [],
     List<Sowing> sowings = const [],
     double? cajaMensual,
+    // E3 · presupuesto de obra del mes. Mientras sea null la caja menor se
+    // comporta igual que siempre; cuando se configura, la gente pasa a tener
+    // su propia barra y la caja deja de contarla.
+    double? workBudgetMensual,
     // A2 · se recibe en cada llamada (igual que el umbral) porque las alertas
     // viven o mueren según el peso real del saco: 60 en vez de 70 sube el
     // precio por kg de toda venta hecha en sacos.
@@ -53,7 +57,9 @@ class AlertService {
         sacoKg: sacoKg);
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
-    _checkCashBox(active, now, l10n, alerts, cajaMensual: cajaMensual);
+    _checkCashBox(active, now, l10n, alerts,
+        cajaMensual: cajaMensual, workBudgetMensual: workBudgetMensual);
+    _checkWorkBudget(active, now, l10n, alerts, workBudget: workBudgetMensual);
     _checkUnpaidSales(active, now, l10n, alerts);
 
     return alerts;
@@ -504,9 +510,14 @@ class AlertService {
 
   void _checkCashBox(List<Transaction> txns, DateTime now,
       AppLocalizations l10n, List<FarmAlert> out,
-      {double? cajaMensual}) {
+      {double? cajaMensual, double? workBudgetMensual}) {
     // Sin monto configurado (o inválido) la regla no se evalúa.
     if (cajaMensual == null || cajaMensual <= 0) return;
+
+    // E3 · con presupuesto de obra configurado, la gente tiene su propia
+    // barra: contarla también aquí inflaría el gasto de caja. Sin presupuesto
+    // de obra, la caja sigue midiendo lo de siempre (jornales + extras).
+    final includeLabor = workBudgetMensual == null || workBudgetMensual <= 0;
 
     // Solo el mes calendario vigente: el saldo no se acumula entre meses
     // (reinicio automático al cambiar de mes). Descuentan jornales + extras.
@@ -515,7 +526,8 @@ class AlertService {
             t.type.isExpense &&
             t.date.year == now.year &&
             t.date.month == now.month &&
-            discountsCashBox(t.category))
+            discountsCashBox(t.category) &&
+            (includeLabor || t.category != 'mano_obra'))
         .toList();
     // El presupuesto de caja es de una sola moneda: si el mes mezcla, la
     // comparación (y el saldo) sería mentira.
@@ -554,6 +566,65 @@ class AlertService {
           _money(cajaMensual - used),
         ),
         suggestion: l10n.alertCashBoxWarningSuggestion,
+      ));
+    }
+  }
+
+  // ---- Regla 12 (E3): presupuesto de obra ≥80% / >100% ----
+
+  /// La barra de la gente, separada de la de los misceláneos.
+  ///
+  /// Mismos umbrales que la caja (80 % warning, >100 % danger) a propósito:
+  /// si los dos avisos hablaran distinto no se podrían leer juntos. Solo se
+  /// evalúa si configuraron presupuesto; sin eso, la mano de obra sigue
+  /// contando dentro de la caja como siempre.
+  void _checkWorkBudget(List<Transaction> txns, DateTime now,
+      AppLocalizations l10n, List<FarmAlert> out,
+      {double? workBudget}) {
+    final b = workBudget;
+    if (b == null || b <= 0) return;
+
+    final usedTx = txns
+        .where((t) =>
+            t.type.isExpense &&
+            t.category == 'mano_obra' &&
+            t.date.year == now.year &&
+            t.date.month == now.month)
+        .toList();
+    // Una sola moneda o no hay cifra que citar: restar pesos de dólares
+    // daría un saldo mentiroso.
+    if (usedTx.isEmpty || _currenciesOf(usedTx).length > 1) return;
+    final used = usedTx.fold<double>(0, (a, t) => a + t.amount);
+    if (used <= 0) return;
+
+    final ratio = used / b;
+    if (ratio < 0.8) return;
+
+    final month = l10n.monthFull[now.month - 1];
+    final percent = _percentage(ratio * 100);
+
+    if (ratio > 1.0) {
+      out.add(FarmAlert(
+        id: 'work_budget',
+        rule: AlertRule.workBudget,
+        severity: AlertSeverity.danger,
+        title: l10n.alertWorkBudgetDangerTitle(month),
+        message:
+            l10n.alertWorkBudgetDangerMessage(_money(used), _money(b), percent),
+        suggestion: l10n.alertWorkBudgetDangerSuggestion,
+      ));
+    } else {
+      out.add(FarmAlert(
+        id: 'work_budget',
+        rule: AlertRule.workBudget,
+        severity: AlertSeverity.warning,
+        title: l10n.alertWorkBudgetWarningTitle(month, percent),
+        message: l10n.alertWorkBudgetWarningMessage(
+          _money(used),
+          _money(b),
+          _money(b - used),
+        ),
+        suggestion: l10n.alertWorkBudgetWarningSuggestion,
       ));
     }
   }

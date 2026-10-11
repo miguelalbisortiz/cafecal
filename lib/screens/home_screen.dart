@@ -15,6 +15,7 @@ import '../services/next_step_service.dart';
 import '../utils/format.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/cash_box_card.dart';
+import '../widgets/work_budget_card.dart';
 import '../widgets/category_breakdown.dart';
 import '../widgets/currency_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
@@ -418,6 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _totalsBlock(l10n, tx, monthTotals, monthConverted),
           // Caja menor del mes en curso (se oculta sin monto configurado).
           const CashBoxCard(),
+          const WorkBudgetCard(),
           const SizedBox(height: 24),
           _SectionHeader(title: l10n.sectionInYear(year)),
           const SizedBox(height: 12),

@@ -353,9 +353,23 @@ class PdfExportService {
           pw.SizedBox(height: 20),
           _payrollSection(periodTx, currency, l10n),
           pw.SizedBox(height: 20),
+          // E3 · con presupuesto de obra, la gente tiene su propia sección
+          // en el PDF: contarla también en la caja inflaría el gasto de caja.
           _cashBoxSection(
             periodTx,
             settings.cajaMenorMensual,
+            period,
+            year,
+            month,
+            now,
+            currency,
+            l10n,
+            includeLabor: (settings.presupuestoObraMensual ?? 0) <= 0,
+          ),
+          pw.SizedBox(height: 20),
+          _workBudgetSection(
+            periodTx,
+            settings.presupuestoObraMensual,
             period,
             year,
             month,
@@ -912,7 +926,9 @@ class PdfExportService {
   /// Sección "Caja menor": una fila por mes del período con presupuesto,
   /// jornales, extras, total y saldo. Solo con monto configurado
   /// (el saldo no se acumula entre meses: cada mes reinicia).
-  pw.Widget _cashBoxSection(
+  /// E3 · sección de presupuesto de obra en el PDF: solo mano de obra,
+  /// contra su propio presupuesto. Si no está configurado no se imprime.
+  pw.Widget _workBudgetSection(
     Iterable<Transaction> source,
     double? budget,
     ReportPeriod period,
@@ -922,6 +938,97 @@ class PdfExportService {
     String currency,
     AppLocalizations l10n,
   ) {
+    final rows = const ReportPayrollMetrics().workBudgetByMonth(
+      periodTx: source,
+      budget: budget,
+      period: period,
+      year: year,
+      month: month,
+      now: now,
+    );
+    if (rows.isEmpty) return pw.SizedBox.shrink();
+    final multiYear = rows.map((r) => r.year).toSet().length > 1;
+    final mixed = <String>{
+      for (final r in rows)
+        if (r.isMixed) ...r.currencies,
+    };
+
+    pw.Widget cell(String text, {bool bold = false}) => pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: pw.Text(
+            text,
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+            ),
+          ),
+        );
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          l10n.workBudgetTitle,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Table(
+          columnWidths: const {
+            0: pw.FlexColumnWidth(1.8),
+            1: pw.FlexColumnWidth(1.6),
+            2: pw.FlexColumnWidth(1.6),
+            3: pw.FlexColumnWidth(1.4),
+          },
+          children: [
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              children: [
+                cell(l10n.segMonth, bold: true),
+                cell(l10n.reportCashBoxBudget, bold: true),
+                cell(l10n.jornalTotalLabel, bold: true),
+                cell(l10n.workBudgetBalance, bold: true),
+              ],
+            ),
+            for (final r in rows)
+              pw.TableRow(
+                children: [
+                  cell(multiYear
+                      ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+                      : l10n.monthFull[r.month - 1]),
+                  cell(formatMoneyLabel(r.budget, currency)),
+                  r.isMixed
+                      ? cell(byCurrencyText(
+                          r.laborByCurrency, (v, c) => formatMoneyLabel(v, c)))
+                      : cell(formatMoneyLabel(r.used, currency)),
+                  r.isMixed
+                      ? cell('—')
+                      : cell(formatMoneyLabel(r.balance, currency)),
+                ],
+              ),
+          ],
+        ),
+        if (mixed.isNotEmpty) ...[
+          pw.SizedBox(height: 4),
+          pw.Text(
+            l10n.currencyMixedByCurrencyNote(mixed.length),
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.blue700),
+          ),
+        ],
+      ],
+    );
+  }
+
+  pw.Widget _cashBoxSection(
+    Iterable<Transaction> source,
+    double? budget,
+    ReportPeriod period,
+    int year,
+    int? month,
+    DateTime now,
+    String currency,
+    AppLocalizations l10n, {
+    bool includeLabor = true,
+  }) {
     final rows = const ReportPayrollMetrics().cashBoxByMonth(
       periodTx: source,
       budget: budget,
@@ -929,6 +1036,7 @@ class PdfExportService {
       year: year,
       month: month,
       now: now,
+      includeLabor: includeLabor,
     );
     if (rows.isEmpty) return pw.SizedBox.shrink();
     final multiYear = rows.map((r) => r.year).toSet().length > 1;

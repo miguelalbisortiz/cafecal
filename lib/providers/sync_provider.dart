@@ -275,6 +275,10 @@ class SyncProvider extends ChangeNotifier {
         'last_crop_id': s.lastCropId,
         'low_price_threshold_per_kg': s.lowPriceThresholdPerKg,
         'caja_menor_mensual': s.cajaMenorMensual,
+        // E3 · va completo (incluido null) por la misma razón que caja: si el
+        // productor vació el campo, hay que reflejarlo en la BD y no dejar
+        // pisado el valor anterior.
+        'presupuesto_obra_mensual': s.presupuestoObraMensual,
         // A2: nunca null, así que siempre sale el peso del saco.
         'saco_kg': s.sacoKg,
       };

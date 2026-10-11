@@ -23,7 +23,8 @@ enum AlertRule {
   cropRecentlyPlanted,
   missingQuantity,
   cajaMenor,
-  unpaidSales;
+  unpaidSales,
+  workBudget;
 
   String get key => name;
 }

@@ -354,6 +354,8 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(height: 20),
             _builtCashBoxCard(context, tx, l10n),
             const SizedBox(height: 20),
+            _builtWorkBudgetCard(context, tx, l10n),
+            const SizedBox(height: 20),
             PerHectarePanel(
               crops: tx.crops,
               periodTransactions: _recordsFor(tx),
@@ -937,12 +939,16 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _builtCashBoxCard(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    // E3 · con presupuesto de obra configurado, la gente tiene su propia
+    // tarjeta: contarla también en la caja inflaría el gasto de caja.
+    final laborSeparate = (tx.settings.presupuestoObraMensual ?? 0) > 0;
     final rows = const ReportPayrollMetrics().cashBoxByMonth(
       periodTx: _recordsFor(tx),
       budget: tx.settings.cajaMenorMensual,
       period: _reportPeriod,
       year: _year,
       month: _reportPeriodArg,
+      includeLabor: !laborSeparate,
     );
     if (rows.isEmpty) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
@@ -1045,6 +1051,115 @@ class _ReportScreenState extends State<ReportScreen> {
                       '${l10n.cashBoxLabor} ${byCur(r.laborByCurrency)}'
                       '${r.extrasByCurrency.isEmpty ? '' : ' · ${l10n.cashBoxExtras} ${byCur(r.extrasByCurrency)}'}'
                       ' · ${l10n.reportCashBoxBudget} ${money(r.budget, budgetCurrency)}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// E3 · la tarjeta de obra del período: solo mano de obra, contra su
+  /// propio presupuesto. Se pinta solo si lo configuraron; sin eso no hay
+  /// cifra que mostrar y la caja menor sigue midiendo lo de siempre.
+  Widget _builtWorkBudgetCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final budget = tx.settings.presupuestoObraMensual;
+    if (budget == null || budget <= 0) return const SizedBox.shrink();
+
+    final rows = const ReportPayrollMetrics().workBudgetByMonth(
+      periodTx: _recordsFor(tx),
+      budget: budget,
+      period: _reportPeriod,
+      year: _year,
+      month: _reportPeriodArg,
+    );
+    if (rows.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    final multiYear = rows.map((r) => r.year).toSet().length > 1;
+    final mixed = rows.any((r) => r.isMixed);
+    final budgetCurrency = tx.settings.currency;
+
+    String money(double v, String currency) =>
+        formatMoneyFor(context, v, currency: currency);
+    String byCur(Map<String, double> amounts) => byCurrencyText(amounts,
+        (v, c) => formatMoneyFor(context, v, currency: c));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.workBudgetTitle,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            if (mixed) ...[
+              Text(
+                l10n.currencyMixedByCurrencyNote(
+                    rows.expand((r) => r.currencies).toSet().length),
+                style: TextStyle(
+                    fontSize: 11, height: 1.3, color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 6),
+            ],
+            ...rows.map((r) {
+              final monthLabel = multiYear
+                  ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+                  : l10n.monthFull[r.month - 1];
+              final comparable = r.currencies.isEmpty ||
+                  (!r.isMixed && r.currencies.first == budgetCurrency);
+              if (comparable) {
+                final negative = r.balance < 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _harvestLine(
+                        label: monthLabel,
+                        extra: l10n.workBudgetBalance,
+                        value: money(r.balance, budgetCurrency),
+                        color: negative ? scheme.error : scheme.primary,
+                        bold: true,
+                      ),
+                      Text(
+                        '${l10n.reportCashBoxBudget} ${money(r.budget, budgetCurrency)}'
+                        ' · ${l10n.jornalTotalLabel} ${money(r.used, budgetCurrency)}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _harvestLine(
+                      label: monthLabel,
+                      value: byCur(r.laborByCurrency),
+                      color: scheme.primary,
+                      bold: true,
+                    ),
+                    Text(
+                      '${l10n.reportCashBoxBudget} ${money(r.budget, budgetCurrency)}',
                       style: Theme.of(context)
                           .textTheme
                           .bodySmall

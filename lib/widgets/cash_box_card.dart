@@ -30,6 +30,10 @@ class CashBoxCard extends StatelessWidget {
     final tx = context.watch<TransactionProvider>();
     final budget = tx.settings.cajaMenorMensual;
     if (budget == null || budget <= 0) return const SizedBox.shrink();
+    // E3 · si hay presupuesto de obra, la gente tiene su propia tarjeta
+    // (WorkBudgetCard). Contarla también aquí inflaría el gasto de caja.
+    // Sin presupuesto de obra, la caja mide lo de siempre.
+    final laborSeparate = (tx.settings.presupuestoObraMensual ?? 0) > 0;
 
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
@@ -42,7 +46,9 @@ class CashBoxCard extends StatelessWidget {
     for (final t in tx.transactionsInMonth(now.year, now.month)) {
       if (t.type != TransactionType.expense) continue;
       if (!discountsCashBox(t.category)) continue;
-      final target = t.category == 'mano_obra' ? jornales : extras;
+      final isLabor = t.category == 'mano_obra';
+      if (isLabor && laborSeparate) continue;
+      final target = isLabor ? jornales : extras;
       target[t.currency] = (target[t.currency] ?? 0) + t.amount;
     }
 
