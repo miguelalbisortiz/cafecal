@@ -398,10 +398,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCommonTypeFix => 'Open the record and switch the type from Expense to Income (or the other way)';
 
   @override
-  String get helpCommonCurrency => 'I want to change the currency';
+  String get helpCommonCurrency => 'Can I change the currency?';
 
   @override
-  String get helpCommonCurrencyFix => 'Go to Settings and select the currency (COP, USD, EUR). Amounts convert automatically';
+  String get helpCommonCurrencyFix => 'No. It is chosen once, when you start, and cannot be changed — so all your amounts always match';
 
   @override
   String get helpCommonArea => 'I cannot see the \"Per hectare\" panel';
@@ -664,10 +664,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitShort => 'Unit you harvest or sell this crop in.';
 
   @override
-  String get helpCropCurrencyShort => 'Currency for this crop. Linked expenses and incomes use this currency.';
+  String get helpCropCurrencyShort => 'Your account currency. All your crops use the same one.';
 
   @override
-  String get helpCropCurrency => 'All expenses and incomes you record linked to this crop will use this currency. If you have crops in COP and others in USD, each keeps its own currency.';
+  String get helpCropCurrency => 'All your crops use your account currency. You can no longer pick a different currency per crop.';
 
   @override
   String get helpCycleShort => 'Perennial or annual';
@@ -1903,10 +1903,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyLabel => 'Currency';
 
   @override
-  String get currencyDisplayLabel => 'Report currency';
+  String get currencyDisplayLabel => 'Currency';
 
   @override
-  String get currencyDisplayHelper => 'Currency for report summaries. Each record keeps its original currency.';
+  String get currencyDisplayHelper => 'The one and only currency of your account and all your records.';
+
+  @override
+  String get currencyLockedHelper => 'You picked this currency when you started and it cannot be changed, so all your amounts always match.';
+
+  @override
+  String get currencyGateTitle => 'Which currency do you manage your accounts in?';
+
+  @override
+  String get currencyGateBody => 'This will be the only currency in your account and it cannot be changed later.';
+
+  @override
+  String currencyGateCta(String currency) {
+    return 'Start with $currency';
+  }
+
+  @override
+  String get currencyGateRequired => 'You need to pick a currency before you can record your first data.';
+
+  @override
+  String currencyRegisterHint(String currency) {
+    return 'Recorded in $currency.';
+  }
 
   @override
   String currencyMixedHint(int count) {

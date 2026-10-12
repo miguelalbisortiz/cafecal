@@ -212,6 +212,9 @@ class CropsScreen extends StatelessWidget {
           existingNames: tx.crops.map((c) => c.name).toList(),
           // W1: vacío → el campo del terreno ni se enseña.
           terrenos: tx.terrenos,
+          // Moneda única: el cultivo nuevo la hereda de la cuenta; el
+          // editor ya no la pregunta.
+          defaultCurrency: tx.settings.currency,
         ),
       );
       if (form == null || !context.mounted) return;

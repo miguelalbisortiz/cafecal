@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
-import '../models/currencies.dart';
 import '../models/terreno.dart';
 import 'crop_loss_dialog.dart';
 
@@ -43,6 +42,13 @@ class CropEditorDialog extends StatefulWidget {
   /// elija algo que todavía no existe.
   final List<Terreno> terrenos;
 
+  /// Moneda de la cuenta para un cultivo **nuevo**.
+  ///
+  /// La moneda es única y no se puede cambiar, así que el editor no la
+  /// pregunta: la toma de aquí. Quien edita un cultivo existente conserva
+  /// la suya propia sin tocarla.
+  final String defaultCurrency;
+
   const CropEditorDialog({
     super.key,
     this.crop,
@@ -51,6 +57,7 @@ class CropEditorDialog extends StatefulWidget {
     this.sowingsLocked = false,
     this.recienCreado = false,
     this.terrenos = const [],
+    this.defaultCurrency = 'COP',
   });
 
   @override
@@ -113,6 +120,11 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       if (c.expectedYieldPerHa != null) {
         _goalController.text = _importe(c.expectedYieldPerHa!);
       }
+    } else {
+      // Moneda única de la cuenta: un cultivo nuevo no elige moneda, la
+      // hereda. La de un cultivo ya existente se conserva tal cual, para
+      // no reescribir lo que ya está guardado.
+      _currency = widget.defaultCurrency;
     }
     // F3: si no había inversión anotada, se propone la suma de los gastos de
     // siembra inicial. Nunca pisa lo que el productor ya puso a mano.
@@ -593,27 +605,6 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 ),
               ),
             ],
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _currency,
-              decoration: InputDecoration(
-                labelText: l10n.currencyLabel,
-                helperText: l10n.helpCropCurrencyShort,
-                prefixIcon: const Icon(Icons.monetization_on_outlined),
-                suffixIcon: Tooltip(
-                  message: l10n.helpCropCurrency,
-                  child: const Icon(Icons.info_outline, size: 20),
-                ),
-                border: const OutlineInputBorder(),
-              ),
-              items: supportedCurrencies
-                  .map((c) => DropdownMenuItem(
-                        value: c.code,
-                        child: Text('${c.symbol} ${c.name} (${c.code})'),
-                      ))
-                  .toList(),
-              onChanged: (v) => setState(() => _currency = v ?? 'COP'),
-            ),
           ],
         ),
       ),

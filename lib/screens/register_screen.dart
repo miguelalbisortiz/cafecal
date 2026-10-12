@@ -619,17 +619,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               if (v == _newCropOption) {
                 _createCrop();
               } else {
+                // Moneda única: elegir cultivo ya no toca la moneda. Antes la
+                // cambiaba sola según el cultivo, y el registro podía salir
+                // en otra moneda que la que se había escrito, sin avisar.
                 setState(() {
                   _cropId = v;
                   _unit = null;
                   _harvestId = null;
-                  // Auto-usa la moneda del cultivo seleccionado
-                  if (v != null) {
-                    final match = tx.crops.where((c) => c.id == v).toList();
-                    if (match.isNotEmpty && match.first.currency != null) {
-                      _currency = match.first.currency!;
-                    }
-                  }
                 });
               }
             },
@@ -1092,21 +1088,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Moneda
-          DropdownButtonFormField<String>(
-            value: _currency,
-            decoration: InputDecoration(
-              labelText: l10n.currencyLabel,
-              prefixIcon: const Icon(Icons.monetization_on_outlined),
-              border: const OutlineInputBorder(),
-            ),
-            items: supportedCurrencies
-                .map((c) => DropdownMenuItem(
-                      value: c.code,
-                      child: Text('${c.symbol} ${c.name} (${c.code})'),
-                    ))
-                .toList(),
-            onChanged: (v) => setState(() => _currency = v ?? 'COP'),
+          // Moneda única de la cuenta: no hay nada que elegir. El símbolo
+          // del monto ya la dice, y aquí solo se aclara cuál es — para que
+          // quien edita un registro viejo en otra moneda sepa que se
+          // conserva la suya y no la de la cuenta.
+          Text(
+            l10n.currencyRegisterHint(
+                '${currencyInfo(_currency).name} (${currencyInfo(_currency).code})'),
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
 

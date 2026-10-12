@@ -139,8 +139,8 @@
   "helpCommonAssignedFix": "En Historial aparece \"X registros sin cultivo\". Pulsa \"Asignar cultivo ahora\" y elige a qué cultivo pertenece",
   "helpCommonType": "Confundí gasto con ingreso",
   "helpCommonTypeFix": "Abre el registro y cambia el tipo de Gasto a Ingreso (o al revés)",
-  "helpCommonCurrency": "Quiero cambiar la moneda",
-  "helpCommonCurrencyFix": "Ve a Configuración y selecciona la moneda (COP, USD, EUR). Los montos se convierten automáticamente",
+  "helpCommonCurrency": "¿Puedo cambiar la moneda?",
+  "helpCommonCurrencyFix": "No. Se elige una sola vez, al empezar, y no se puede cambiar: así todos tus montos coinciden siempre",
   "helpCommonArea": "No veo el panel \"Por hectárea\"",
   "helpCommonAreaFix": "Registra el área del cultivo: en Cultivos edita el cultivo y pon las hectáreas",
   "syncTooltip": "Sincronizar",
@@ -240,8 +240,8 @@
   "sowingCostHint": "Si registras un costo, se crea un gasto vinculado a esta siembra o resiembra.",
   "sowingCostInvalid": "Ingresa un costo válido (solo números).",
   "helpUnitShort": "Unidad con la que cosechás o vendés este cultivo.",
-  "helpCropCurrencyShort": "Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.",
-  "helpCropCurrency": "Todos los gastos e ingresos que registres vinculados a este cultivo usarán esta moneda. Si tenés cultivos en COP y otros en USD, cada uno mantiene su moneda.",
+  "helpCropCurrencyShort": "Moneda de tu cuenta. Todos tus cultivos usan la misma.",
+  "helpCropCurrency": "Todos tus cultivos usan la moneda de tu cuenta. Ya no se puede elegir otra moneda por cultivo.",
   "helpCycleShort": "Perenne o anual",
   "phaseHelpShort": "Fase del cultivo",
   "helpAreaShort": "Opcional, en ha",
@@ -773,10 +773,32 @@
 
   "farmNameLabel": "Nombre de la finca",
   "currencyLabel": "Moneda",
-  "currencyDisplayLabel": "Moneda de reportes",
-  "currencyDisplayHelper": "Moneda en que se resumen los reportes. Cada registro conserva su moneda original.",
+  "currencyDisplayLabel": "Moneda",
+  "currencyDisplayHelper": "Única moneda de tu cuenta y de todos tus registros.",
   "@currencyDisplayHelper": {
     "description": "Helper text for the display currency setting"
+  },
+  "currencyLockedHelper": "Elegiste esta moneda al empezar y no puede cambiarse, para que todos tus montos coincidan siempre.",
+  "currencyGateTitle": "¿En qué moneda manejas tus cuentas?",
+  "currencyGateBody": "Esta será la única moneda de tu cuenta y no podrá cambiarse después.",
+  "currencyGateCta": "Empezar con {currency}",
+  "@currencyGateCta": {
+    "description": "Botón de la pregunta inicial de moneda",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyGateRequired": "Necesitas elegir una moneda para poder registrar tus primeros datos.",
+  "currencyRegisterHint": "Se registra en {currency}.",
+  "@currencyRegisterHint": {
+    "description": "Texto bajo el campo Monto: dice en qué moneda queda el registro",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
   },
   "currencyMixedHint": "Se muestra en {count} monedas",
   "@currencyMixedHint": {

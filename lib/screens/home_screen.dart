@@ -21,6 +21,7 @@ import '../widgets/work_budget_card.dart';
 import '../widgets/category_breakdown.dart';
 import '../widgets/crop_editor_dialog.dart';
 import '../widgets/currency_breakdown.dart';
+import '../widgets/currency_setup_gate.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/next_step_card.dart';
 import '../widgets/period_totals.dart';
@@ -61,6 +62,13 @@ class _HomeScreenState extends State<HomeScreen> {
   /// abrir la app. Sin esto, el primer cultivo creado durante la sesión
   /// (que ya levanta `needsOnboarding`) cerraría la puerta por atrás.
   bool? _enteredEmpty;
+
+  /// Moneda única · la pregunta se queda abierta hasta que él elige.
+  ///
+  /// Se cierra solo con la elección, no con el primer registro: si se
+  /// cerrara al guardar un movimiento, un segundo dispositivo volvería a
+  /// preguntar ya sin dato que ofrecer.
+  bool _currencyChosen = false;
 
   /// Último error mostrado en pantalla: evita repetir el SnackBar en cada
   /// notifyListeners del mismo fallo (los iconos se redibujan muchas veces).
@@ -125,6 +133,13 @@ class _HomeScreenState extends State<HomeScreen> {
     // la finca estaba vacía al abrir la app. Quien ya cultivaba no la ve.
     _enteredEmpty ??= needsOnboarding(tx.crops, tx.sowings);
     final onboarding = _gatePending && _enteredEmpty == true;
+
+    // Moneda única · la pregunta solo existe en una cuenta que todavía no
+    // tiene ni cultivo ni registro. Quien ya trabaja no la ve nunca, y
+    // nadie que ya tiene datos se le vuelve a preguntar.
+    final needsCurrency = !_currencyChosen &&
+        tx.crops.isEmpty &&
+        !tx.transactions.any((t) => !t.deleted);
 
     // Al recuperarse de un error, se olvida para que el siguiente vuelva a avisar.
     if (!sync.hasError && _shownError != null) _shownError = null;
@@ -263,7 +278,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          body: onboarding
+          body: needsCurrency
+              ? CurrencySetupGate(
+                  onChosen: () => setState(() => _currencyChosen = true),
+                )
+              : onboarding
               ? _buildOnboarding()
               : wide
                   ? Row(

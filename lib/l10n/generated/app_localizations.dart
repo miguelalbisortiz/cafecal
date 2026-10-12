@@ -872,13 +872,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpCommonCurrency.
   ///
   /// In es, this message translates to:
-  /// **'Quiero cambiar la moneda'**
+  /// **'¿Puedo cambiar la moneda?'**
   String get helpCommonCurrency;
 
   /// No description provided for @helpCommonCurrencyFix.
   ///
   /// In es, this message translates to:
-  /// **'Ve a Configuración y selecciona la moneda (COP, USD, EUR). Los montos se convierten automáticamente'**
+  /// **'No. Se elige una sola vez, al empezar, y no se puede cambiar: así todos tus montos coinciden siempre'**
   String get helpCommonCurrencyFix;
 
   /// No description provided for @helpCommonArea.
@@ -1316,13 +1316,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpCropCurrencyShort.
   ///
   /// In es, this message translates to:
-  /// **'Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.'**
+  /// **'Moneda de tu cuenta. Todos tus cultivos usan la misma.'**
   String get helpCropCurrencyShort;
 
   /// No description provided for @helpCropCurrency.
   ///
   /// In es, this message translates to:
-  /// **'Todos los gastos e ingresos que registres vinculados a este cultivo usarán esta moneda. Si tenés cultivos en COP y otros en USD, cada uno mantiene su moneda.'**
+  /// **'Todos tus cultivos usan la moneda de tu cuenta. Ya no se puede elegir otra moneda por cultivo.'**
   String get helpCropCurrency;
 
   /// No description provided for @helpCycleShort.
@@ -3614,14 +3614,50 @@ abstract class AppLocalizations {
   /// No description provided for @currencyDisplayLabel.
   ///
   /// In es, this message translates to:
-  /// **'Moneda de reportes'**
+  /// **'Moneda'**
   String get currencyDisplayLabel;
 
   /// Helper text for the display currency setting
   ///
   /// In es, this message translates to:
-  /// **'Moneda en que se resumen los reportes. Cada registro conserva su moneda original.'**
+  /// **'Única moneda de tu cuenta y de todos tus registros.'**
   String get currencyDisplayHelper;
+
+  /// No description provided for @currencyLockedHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegiste esta moneda al empezar y no puede cambiarse, para que todos tus montos coincidan siempre.'**
+  String get currencyLockedHelper;
+
+  /// No description provided for @currencyGateTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿En qué moneda manejas tus cuentas?'**
+  String get currencyGateTitle;
+
+  /// No description provided for @currencyGateBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta será la única moneda de tu cuenta y no podrá cambiarse después.'**
+  String get currencyGateBody;
+
+  /// Botón de la pregunta inicial de moneda
+  ///
+  /// In es, this message translates to:
+  /// **'Empezar con {currency}'**
+  String currencyGateCta(String currency);
+
+  /// No description provided for @currencyGateRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitas elegir una moneda para poder registrar tus primeros datos.'**
+  String get currencyGateRequired;
+
+  /// Texto bajo el campo Monto: dice en qué moneda queda el registro
+  ///
+  /// In es, this message translates to:
+  /// **'Se registra en {currency}.'**
+  String currencyRegisterHint(String currency);
 
   /// Hint when transactions have mixed currencies
   ///

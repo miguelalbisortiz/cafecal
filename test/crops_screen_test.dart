@@ -11,8 +11,9 @@ import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/widgets/crop_editor_dialog.dart';
 
 /// Regresiones del lote 1 de correcciones (2026-10-03):
-/// C1 guardar la moneda al editar, C2 botón de eliminar con confirmación
-/// y C5 crear el cultivo con el formulario completo de una sola vez.
+/// C1 la moneda del cultivo no se toca al editar, C2 botón de eliminar con
+/// confirmación y C5 crear el cultivo con el formulario completo de una sola
+/// vez.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -46,7 +47,9 @@ void main() {
   AppLocalizations l10nOf(WidgetTester tester) =>
       AppLocalizations.of(tester.element(find.byType(CropsScreen)))!;
 
-  testWidgets('C1: al editar un cultivo se guarda la moneda', (tester) async {
+  testWidgets(
+      'moneda única: editar conserva la moneda y no ofrece cambiarla',
+      (tester) async {
     final provider = await makeProvider();
     await pump(tester, provider);
     final l10n = l10nOf(tester);
@@ -60,18 +63,16 @@ void main() {
         AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
     expect(find.text(dialogL10n.editCropTitle), findsOneWidget);
 
-    // El campo de moneda es el último desplegable de tipo String.
-    await tester.tap(find.byType(DropdownButtonFormField<String>).last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('(USD)').last);
-    await tester.pumpAndSettle();
+    // Moneda única: no hay dónde cambiarla. El editor no enseña el campo,
+    // porque dejar elegir y luego rechazar sería peor que no preguntar.
+    expect(find.text(dialogL10n.currencyLabel), findsNothing);
 
     await tester.tap(find.text(dialogL10n.save));
     await tester.pumpAndSettle();
 
     expect(find.byType(CropEditorDialog), findsNothing);
-    expect(provider.crops.single.currency, 'USD',
-        reason: 'C1: antes la moneda se descartaba en silencio al editar');
+    expect(provider.crops.single.currency, 'COP',
+        reason: 'la moneda del cultivo no se toca al editar');
     expect(provider.crops.single.name, 'Café');
   });
 

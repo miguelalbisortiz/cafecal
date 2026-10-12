@@ -139,8 +139,8 @@
   "helpCommonAssignedFix": "In History you will see \"X records without a crop\". Press \"Assign crops now\" and pick which crop it belongs to",
   "helpCommonType": "I mixed up expense and income",
   "helpCommonTypeFix": "Open the record and switch the type from Expense to Income (or the other way)",
-  "helpCommonCurrency": "I want to change the currency",
-  "helpCommonCurrencyFix": "Go to Settings and select the currency (COP, USD, EUR). Amounts convert automatically",
+  "helpCommonCurrency": "Can I change the currency?",
+  "helpCommonCurrencyFix": "No. It is chosen once, when you start, and cannot be changed — so all your amounts always match",
   "helpCommonArea": "I cannot see the \"Per hectare\" panel",
   "helpCommonAreaFix": "Set the crop area: in Crops edit the crop and enter the hectares",
   "syncTooltip": "Sync",
@@ -240,8 +240,8 @@
   "sowingCostHint": "If you record a cost, a linked expense is created for this planting or replanting.",
   "sowingCostInvalid": "Enter a valid cost (numbers only).",
   "helpUnitShort": "Unit you harvest or sell this crop in.",
-  "helpCropCurrencyShort": "Currency for this crop. Linked expenses and incomes use this currency.",
-  "helpCropCurrency": "All expenses and incomes you record linked to this crop will use this currency. If you have crops in COP and others in USD, each keeps its own currency.",
+  "helpCropCurrencyShort": "Your account currency. All your crops use the same one.",
+  "helpCropCurrency": "All your crops use your account currency. You can no longer pick a different currency per crop.",
   "helpCycleShort": "Perennial or annual",
   "phaseHelpShort": "Crop phase",
   "helpAreaShort": "Optional, in ha",
@@ -719,10 +719,32 @@
 
   "farmNameLabel": "Farm name",
   "currencyLabel": "Currency",
-  "currencyDisplayLabel": "Report currency",
-  "currencyDisplayHelper": "Currency for report summaries. Each record keeps its original currency.",
+  "currencyDisplayLabel": "Currency",
+  "currencyDisplayHelper": "The one and only currency of your account and all your records.",
   "@currencyDisplayHelper": {
     "description": "Helper text for the display currency setting"
+  },
+  "currencyLockedHelper": "You picked this currency when you started and it cannot be changed, so all your amounts always match.",
+  "currencyGateTitle": "Which currency do you manage your accounts in?",
+  "currencyGateBody": "This will be the only currency in your account and it cannot be changed later.",
+  "currencyGateCta": "Start with {currency}",
+  "@currencyGateCta": {
+    "description": "Button on the first-run currency question",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyGateRequired": "You need to pick a currency before you can record your first data.",
+  "currencyRegisterHint": "Recorded in {currency}.",
+  "@currencyRegisterHint": {
+    "description": "Text under the Amount field: says which currency the record is kept in",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
   },
   "currencyMixedHint": "Showing in {count} currencies",
   "@currencyMixedHint": {

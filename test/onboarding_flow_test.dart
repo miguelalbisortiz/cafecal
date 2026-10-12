@@ -11,6 +11,7 @@ import 'package:mi_cafetal/providers/sync_provider.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/home_screen.dart';
 import 'package:mi_cafetal/services/local_store.dart';
+import 'package:mi_cafetal/widgets/currency_setup_gate.dart';
 import 'package:mi_cafetal/widgets/next_step_card.dart';
 import 'package:mi_cafetal/widgets/summary_card.dart';
 import 'package:mi_cafetal/widgets/welcome_onboarding_card.dart';
@@ -62,12 +63,60 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Moneda única · la pregunta va antes de la puerta de cultivos: nadie
+  /// llega al resto de la app sin haber elegido moneda.
+  Future<void> elegirMoneda(WidgetTester tester) async {
+    final l10n = l10nOf(tester);
+    await tester.tap(find.text(l10n.currencyGateCta('Peso colombiano (COP)')));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('cuenta nueva: primero la moneda, y no se puede saltar',
+      (tester) async {
+    final (tx, auth) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+    final l10n = l10nOf(tester);
+
+    // Antes de todo dato está la moneda: sin elegir no hay puerta ni tablero.
+    expect(find.byType(CurrencySetupGate), findsOneWidget);
+    expect(find.text(l10n.currencyGateTitle), findsOneWidget);
+    expect(find.byType(WelcomeOnboardingCard), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
+
+    await elegirMoneda(tester);
+
+    expect(tx.settings.currency, 'COP');
+    expect(find.byType(CurrencySetupGate), findsNothing);
+    expect(find.byType(WelcomeOnboardingCard), findsOneWidget,
+        reason: 'elegida la moneda recién aparece la puerta de cultivos');
+  });
+
+  testWidgets('la moneda elegida se guarda en Ajustes', (tester) async {
+    final (tx, auth) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+    final l10n = l10nOf(tester);
+
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('(BOB)').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.currencyGateCta('Boliviano (BOB)')));
+    await tester.pumpAndSettle();
+
+    expect(tx.settings.currency, 'BOB',
+        reason: 'una sola fuente de verdad: lo que elige aquí lo lee todo');
+  });
+
   testWidgets('finca vacía: solo la puerta, sin resumen ni pestañas',
       (tester) async {
     final (tx, auth) = await makeProviders();
 
     await pumpHome(tester, tx, auth);
     final l10n = l10nOf(tester);
+    await elegirMoneda(tester);
 
     expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
     expect(find.text(l10n.welcomeTitle), findsOneWidget);
@@ -88,6 +137,7 @@ void main() {
     final (tx, auth) = await makeProviders();
 
     await pumpHome(tester, tx, auth);
+    await elegirMoneda(tester);
 
     await tester.tap(find.text('Agregar el primero'));
     await tester.pumpAndSettle();
@@ -108,6 +158,7 @@ void main() {
 
     await pumpHome(tester, tx, auth);
     final l10n = l10nOf(tester);
+    await elegirMoneda(tester);
 
     await agregarCultivo(tester, 'Café');
     expect(tx.crops.map((c) => c.name), contains('Café'));
@@ -137,6 +188,7 @@ void main() {
 
     await pumpHome(tester, tx, auth);
     final l10n = l10nOf(tester);
+    await elegirMoneda(tester);
 
     await tester.tap(find.text('Agregar el primero'));
     await tester.pumpAndSettle();
@@ -164,6 +216,7 @@ void main() {
 
     await pumpHome(tester, tx, auth);
     final l10n = l10nOf(tester);
+    await elegirMoneda(tester);
 
     await agregarCultivo(tester, 'Café');
 
@@ -181,6 +234,8 @@ void main() {
 
     await pumpHome(tester, tx, auth);
 
+    // Quien ya tiene datos no se le vuelve a preguntar la moneda.
+    expect(find.byType(CurrencySetupGate), findsNothing);
     expect(find.byType(WelcomeOnboardingCard), findsNothing);
     expect(find.byType(NextStepCard), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);

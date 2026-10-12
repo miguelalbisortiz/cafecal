@@ -398,10 +398,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCommonTypeFix => 'Abre el registro y cambia el tipo de Gasto a Ingreso (o al revés)';
 
   @override
-  String get helpCommonCurrency => 'Quiero cambiar la moneda';
+  String get helpCommonCurrency => '¿Puedo cambiar la moneda?';
 
   @override
-  String get helpCommonCurrencyFix => 'Ve a Configuración y selecciona la moneda (COP, USD, EUR). Los montos se convierten automáticamente';
+  String get helpCommonCurrencyFix => 'No. Se elige una sola vez, al empezar, y no se puede cambiar: así todos tus montos coinciden siempre';
 
   @override
   String get helpCommonArea => 'No veo el panel \"Por hectárea\"';
@@ -664,10 +664,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpUnitShort => 'Unidad con la que cosechás o vendés este cultivo.';
 
   @override
-  String get helpCropCurrencyShort => 'Moneda de este cultivo. Gastos e ingresos vinculados usan esta moneda.';
+  String get helpCropCurrencyShort => 'Moneda de tu cuenta. Todos tus cultivos usan la misma.';
 
   @override
-  String get helpCropCurrency => 'Todos los gastos e ingresos que registres vinculados a este cultivo usarán esta moneda. Si tenés cultivos en COP y otros en USD, cada uno mantiene su moneda.';
+  String get helpCropCurrency => 'Todos tus cultivos usan la moneda de tu cuenta. Ya no se puede elegir otra moneda por cultivo.';
 
   @override
   String get helpCycleShort => 'Perenne o anual';
@@ -1903,10 +1903,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get currencyLabel => 'Moneda';
 
   @override
-  String get currencyDisplayLabel => 'Moneda de reportes';
+  String get currencyDisplayLabel => 'Moneda';
 
   @override
-  String get currencyDisplayHelper => 'Moneda en que se resumen los reportes. Cada registro conserva su moneda original.';
+  String get currencyDisplayHelper => 'Única moneda de tu cuenta y de todos tus registros.';
+
+  @override
+  String get currencyLockedHelper => 'Elegiste esta moneda al empezar y no puede cambiarse, para que todos tus montos coincidan siempre.';
+
+  @override
+  String get currencyGateTitle => '¿En qué moneda manejas tus cuentas?';
+
+  @override
+  String get currencyGateBody => 'Esta será la única moneda de tu cuenta y no podrá cambiarse después.';
+
+  @override
+  String currencyGateCta(String currency) {
+    return 'Empezar con $currency';
+  }
+
+  @override
+  String get currencyGateRequired => 'Necesitas elegir una moneda para poder registrar tus primeros datos.';
+
+  @override
+  String currencyRegisterHint(String currency) {
+    return 'Se registra en $currency.';
+  }
 
   @override
   String currencyMixedHint(int count) {

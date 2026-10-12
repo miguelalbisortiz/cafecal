@@ -256,6 +256,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final tx = context.watch<TransactionProvider>();
+    // Moneda única · solo se puede elegir mientras no haya nada que
+    // ambiguar. Con cultivos o con registros ya guardados es lectura:
+    // cambiarla ahora partiría todos los montos en dos monedas sin remedio,
+    // que es exactamente lo que la app ya no debe permitirse.
+    final currencyEditable =
+        tx.crops.isEmpty && !tx.transactions.any((t) => !t.deleted);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.menuSettings)),
       body: Center(
@@ -272,19 +279,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: _currency,
-            decoration: InputDecoration(
-              labelText: l10n.currencyDisplayLabel,
-              helperText: l10n.currencyDisplayHelper,
-              border: const OutlineInputBorder(),
+          if (currencyEditable)
+            DropdownButtonFormField<String>(
+              value: _currency,
+              decoration: InputDecoration(
+                labelText: l10n.currencyDisplayLabel,
+                helperText: l10n.currencyDisplayHelper,
+                border: const OutlineInputBorder(),
+              ),
+              items: supportedCurrencies
+                  .map((c) => DropdownMenuItem(
+                      value: c.code, child: Text('${c.name} (${c.code})')))
+                  .toList(),
+              onChanged: (v) => setState(() => _currency = v ?? 'COP'),
+            )
+          else
+            InputDecorator(
+              decoration: InputDecoration(
+                labelText: l10n.currencyDisplayLabel,
+                helperText: l10n.currencyLockedHelper,
+                prefixIcon: const Icon(Icons.monetization_on_outlined),
+                suffixIcon: const Icon(Icons.lock_outline, size: 20),
+                border: const OutlineInputBorder(),
+              ),
+              child: Text(
+                '${currencyInfo(_currency).name} (${currencyInfo(_currency).code})',
+              ),
             ),
-            items: supportedCurrencies
-                .map((c) => DropdownMenuItem(
-                    value: c.code, child: Text('${c.name} (${c.code})')))
-                .toList(),
-            onChanged: (v) => setState(() => _currency = v ?? 'COP'),
-          ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             value: _language,
