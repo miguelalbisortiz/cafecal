@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/metric_signal.dart';
 import '../utils/format.dart';
 
 class SummaryCard extends StatelessWidget {
@@ -18,6 +19,17 @@ class SummaryCard extends StatelessWidget {
   /// Locale para formatear. Si es null usa la de settings.
   final String? locale;
 
+  /// B · variación contra el mes anterior ("subieron 12%"). `null` → la
+  /// línea no se pinta: nada que comparar, o tocaría cruzar monedas.
+  final String? deltaText;
+
+  /// Señal de esa variación. La UI la acompaña siempre de un icono de forma
+  /// distinta: el color nunca comunica solo (H10).
+  final MetricSignal? deltaSignal;
+
+  /// "vs. septiembre" — dice contra qué se compara el delta. `null` → oculta.
+  final String? comparisonLabel;
+
   const SummaryCard({
     super.key,
     required this.label,
@@ -27,6 +39,9 @@ class SummaryCard extends StatelessWidget {
     this.highlighted = false,
     this.currency,
     this.locale,
+    this.deltaText,
+    this.deltaSignal,
+    this.comparisonLabel,
   });
 
   String _displayValue(BuildContext context) {
@@ -104,9 +119,59 @@ class SummaryCard extends StatelessWidget {
                 ),
               ),
             ),
+            if (deltaText != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(_deltaIcon, size: 13, color: _deltaColor(isDark)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      deltaText!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: _deltaColor(isDark),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            if (comparisonLabel != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                comparisonLabel!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isDark ? Colors.white54 : Colors.grey[600],
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+
+  /// Icono distinto por señal: el color nunca va solo (H10).
+  IconData get _deltaIcon => switch (deltaSignal ?? MetricSignal.none) {
+        MetricSignal.positive => Icons.arrow_upward,
+        MetricSignal.negative => Icons.arrow_downward,
+        MetricSignal.neutral || MetricSignal.none => Icons.remove,
+      };
+
+  Color _deltaColor(bool isDark) =>
+      switch (deltaSignal ?? MetricSignal.none) {
+        MetricSignal.positive =>
+          isDark ? Colors.green.shade300 : Colors.green.shade700,
+        MetricSignal.negative =>
+          isDark ? Colors.red.shade300 : Colors.red.shade600,
+        MetricSignal.neutral || MetricSignal.none =>
+          isDark ? Colors.white70 : Colors.grey[600]!,
+      };
 }

@@ -402,6 +402,29 @@
   "expensesLabel": "Gastos",
   "resultLabel": "Resultado",
 
+  "summaryVsPrev": "vs. {month}",
+  "@summaryVsPrev": {
+    "description": "Bajo el delta de cada tarjeta del Resumen: contra qué mes se compara",
+    "placeholders": { "month": { "type": "String" } }
+  },
+  "summaryVsPrevNote": "Comparado con los mismos días de {month}.",
+  "@summaryVsPrevNote": {
+    "description": "Pie de la fila de tarjetas: aclara que la comparación usa el mismo tramo de días (B1)",
+    "placeholders": { "month": { "type": "String" } }
+  },
+  "summaryResultBetter": "mejoró {amount}",
+  "@summaryResultBetter": {
+    "description": "Delta del Resultado en monto, nunca en % (puede ser negativo o cruzar de cero)",
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "summaryResultWorse": "empeoró {amount}",
+  "@summaryResultWorse": {
+    "description": "Delta del Resultado en monto, nunca en % (puede ser negativo o cruzar de cero)",
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "summaryEmptyTitle": "Aún no registraste movimientos",
+  "summaryEmptyBody": "Cuando anotes un gasto o una venta, acá vas a ver cuánto ganaste, cuánto gastaste y qué te quedó.",
+
   "alertsTitle": "Alertas",
   "alertsTooltip": "¿Qué significan estas alertas?",
 
@@ -835,6 +858,15 @@
   "insightBalancePositive": "Resultado del período: ganancia de {balance} con {margin} de margen sobre las ventas.",
   "insightBalanceNegative": "Resultado del período: pérdida de {loss} con margen de {margin} sobre las ventas.",
   "insightVsPrev": "Frente a {month}: ventas {incChange} y gastos {expChange}.",
+  "insightVsPrevPartial": "Frente a {month} (mismos días): ventas {incChange} y gastos {expChange}.",
+  "@insightVsPrevPartial": {
+    "description": "B1: cuando el mes que se mira es el mes en curso, el mes anterior se recorta al mismo tramo de días",
+    "placeholders": {
+      "month": { "type": "String" },
+      "incChange": { "type": "String" },
+      "expChange": { "type": "String" }
+    }
+  },
   "insightChangeUp": "subieron {pct}",
   "insightChangeDown": "bajaron {pct}",
   "insightChangeFlat": "sin cambios",

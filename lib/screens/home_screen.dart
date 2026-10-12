@@ -13,6 +13,7 @@ import '../models/transaction.dart';
 import '../services/currency_conversion.dart';
 import '../services/currency_totals.dart';
 import '../services/next_step_service.dart';
+import '../services/period_delta.dart';
 import '../utils/format.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/cash_box_card.dart';
@@ -24,6 +25,7 @@ import '../widgets/monthly_trend_chart.dart';
 import '../widgets/next_step_card.dart';
 import '../widgets/period_totals.dart';
 import '../widgets/summary_card.dart';
+import '../widgets/summary_empty_card.dart';
 import '../widgets/welcome_onboarding_card.dart';
 import 'movements_screen.dart';
 import 'register_screen.dart';
@@ -449,6 +451,15 @@ class _HomeScreenState extends State<HomeScreen> {
         PeriodCurrencyTotals.fromRecords(tx.where(year: year, month: month));
     final yearTotals = PeriodCurrencyTotals.fromRecords(tx.where(year: year));
 
+    // A2 · sin ni un movimiento registrado no se pintan tres "$0": eso
+    // presentaría como *medido* algo que es *no registrado*.
+    final hasAnyRecord = tx.transactions.any((t) => !t.deleted);
+
+    // B · el mes en curso contra el mismo tramo de días del mes anterior.
+    final comparison = hasAnyRecord
+        ? _monthComparison(tx, monthTotals, now, l10n, tx.settings.locale)
+        : null;
+
     // B — la conversión llega sola, sin bloquear la pantalla: mientras no
     // haya tasa (o si falta alguna) se muestran los totales por moneda.
     return PeriodTotalsBuilder(
@@ -480,21 +491,40 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          NextStepCard(
-            onAction: _onNextStep,
-            onOpenGuide: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const HelpScreen()),
+          if (!hasAnyRecord) ...[
+            // A2 · guía primero: sin datos, lo que sirve es decir qué hacer.
+            NextStepCard(
+              onAction: _onNextStep,
+              onOpenGuide: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HelpScreen()),
+              ),
             ),
-          ),
-          AlertsBanner(alerts: alerts.bySeverity),
-          _SectionHeader(title: l10n.sectionThisMonth),
-          const SizedBox(height: 12),
-          _totalsBlock(l10n, tx, monthTotals, monthConverted),
-          // Caja menor del mes en curso (se oculta sin monto configurado).
-          const CashBoxCard(),
-          const WorkBudgetCard(),
-          const SizedBox(height: 24),
-          _SectionHeader(title: l10n.sectionInYear(year)),
+            AlertsBanner(alerts: alerts.bySeverity),
+            _SectionHeader(title: l10n.sectionThisMonth),
+            const SizedBox(height: 12),
+            SummaryEmptyCard(onRegister: _goRegister),
+          ] else ...[
+            // A1 · lo primero que se ve es la plata: el objetivo de la app
+            // no puede quedar debajo del pliegue de la pantalla.
+            _SectionHeader(title: l10n.sectionThisMonth),
+            const SizedBox(height: 12),
+            _totalsBlock(l10n, tx, monthTotals, monthConverted,
+                comparison: comparison),
+            // Caja menor del mes en curso (se oculta sin monto configurado).
+            const CashBoxCard(),
+            const WorkBudgetCard(),
+            const SizedBox(height: 16),
+            // Avisar que algo necesita atención pesa más que sugerir qué
+            // registrar: por eso las alertas van antes de la guía.
+            AlertsBanner(alerts: alerts.bySeverity),
+            NextStepCard(
+              onAction: _onNextStep,
+              onOpenGuide: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HelpScreen()),
+              ),
+            ),
+            const SizedBox(height: 24),
+            _SectionHeader(title: l10n.sectionInYear(year)),
           const SizedBox(height: 12),
           _totalsBlock(l10n, tx, yearTotals, yearConverted),
           const SizedBox(height: 24),
@@ -531,6 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           ],
+          ],
         ),
         ),
       ),
@@ -542,9 +573,18 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Resumen de un período: las tres tarjetas de siempre cuando hay una
   /// sola moneda (o cuando ya se pudo convertir), o los totales de cada
   /// moneda por separado cuando **no** hay tasa disponible.
+  ///
+  /// [comparison] solo llega para el mes en curso: lleva el delta contra el
+  /// mes anterior y el pie que explica con qué se compara. El bloque del año
+  /// no lo recibe (comparar un año por correr contra el anterior entero
+  /// tendría el mismo sesgo que B1).
   Widget _totalsBlock(AppLocalizations l10n, TransactionProvider tx,
-      PeriodCurrencyTotals totals, ConvertedPeriodTotals? converted) {
+      PeriodCurrencyTotals totals, ConvertedPeriodTotals? converted,
+      {MonthComparison? comparison}) {
     if (totals.isMixed && converted == null) {
+      // A3 · moneda mixta sin tasa: se listan los totales de cada moneda y
+      // no se pinta ninguna comparación — cruzaría meses en monedas
+      // distintas y el porcentaje sería falso.
       return CurrencyBreakdown(
         incomes: totals.incomes,
         expenses: totals.expenses,
@@ -566,13 +606,56 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _threeCards(
-            l10n, incomes, expenses, balance, currency, tx.settings.locale),
+        _threeCards(l10n, incomes, expenses, balance, currency,
+            tx.settings.locale,
+            comparison: comparison),
+        if (comparison != null) ...[
+          const SizedBox(height: 6),
+          _comparisonNote(comparison),
+        ],
         if (converted != null) ...[
           const SizedBox(height: 8),
           _convertedNote(l10n, tx, converted),
         ],
       ],
+    );
+  }
+
+  /// Pie de la fila de tarjetas: dice con qué se compara, para que
+  /// "bajaron 18%" no se lea como si el mes anterior estuviera entero.
+  Widget _comparisonNote(MonthComparison c) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.compare_arrows, size: 13, color: onSurface.withOpacity(0.6)),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            c.note,
+            style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.6)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// B · comparación del mes en curso contra el mes anterior **recortado al
+  /// mismo tramo de días** (B1). Devuelve `null` cuando no hay con qué
+  /// comparar: entonces no se pinta ninguna línea.
+  MonthComparison? _monthComparison(TransactionProvider tx,
+      PeriodCurrencyTotals current, DateTime now, AppLocalizations l10n,
+      String locale) {
+    final prevMonth = now.month == 1 ? 12 : now.month - 1;
+    final prevYear = now.month == 1 ? now.year - 1 : now.year;
+    final previous = PeriodCurrencyTotals.fromRecords(
+        sameDayWindow(tx.where(year: prevYear, month: prevMonth), now));
+    return buildMonthComparison(
+      current: current,
+      previous: previous,
+      locale: locale,
+      monthName: l10n.monthFull[prevMonth - 1],
+      l10n: l10n,
     );
   }
 
@@ -614,7 +697,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _threeCards(AppLocalizations l10n, double incomes, double expenses,
-      double balance, String currency, String locale) {
+      double balance, String currency, String locale,
+      {MonthComparison? comparison}) {
     final scheme = Theme.of(context).colorScheme;
     final noData = incomes == 0 && expenses == 0;
     final positive = scheme.primary;
@@ -629,6 +713,9 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.trending_up,
             currency: currency,
             locale: locale,
+            deltaText: comparison?.incomeText,
+            deltaSignal: comparison?.incomeSignal,
+            comparisonLabel: comparison?.vsLabel,
           ),
         ),
         const SizedBox(width: 10),
@@ -640,6 +727,9 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.trending_down,
             currency: currency,
             locale: locale,
+            deltaText: comparison?.expenseText,
+            deltaSignal: comparison?.expenseSignal,
+            comparisonLabel: comparison?.vsLabel,
           ),
         ),
         const SizedBox(width: 10),
@@ -660,6 +750,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     : Icons.warning_amber,
             currency: currency,
             locale: locale,
+            deltaText: comparison?.resultText,
+            deltaSignal: comparison?.resultSignal,
+            comparisonLabel: comparison?.vsLabel,
           ),
         ),
       ],

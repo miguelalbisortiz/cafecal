@@ -4,6 +4,7 @@ import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/transaction.dart';
 import 'currency_totals.dart';
+import 'period_delta.dart';
 
 /// Tono de cada conclusión para colorearla en la UI.
 enum InsightTone {
@@ -70,8 +71,16 @@ class ReportInsightsService {
       return insights;
     }
 
+    // B1 · si lo que se mira es el mes en curso, el mes anterior se recorta
+    // al mismo tramo de días: comparar 1–13 contra 1–30 diría que bajaron
+    // los gastos solo porque faltan días por anotar.
+    final partialWindow = month != null && isCurrentMonth(year, month, now);
+    final comparablePrevious =
+        partialWindow ? sameDayWindow(previousMonth, now) : previousMonth;
+
     if (!mixedTotals) {
-      _balance(current, previousMonth, month, l10n, money, insights);
+      _balance(current, comparablePrevious, month, l10n, money, insights,
+          partialWindow: partialWindow);
     }
     _topExpense(current, l10n, money, insights, crops, mixedTotals);
     _sales(current, currentYear, now, l10n, money, insights, crops, mixedTotals);
@@ -84,7 +93,8 @@ class ReportInsightsService {
 
   void _balance(List<Transaction> current, List<Transaction> previous,
       int? month, AppLocalizations l10n, String Function(double) money,
-      List<ReportInsight> out) {
+      List<ReportInsight> out,
+      {required bool partialWindow}) {
     final expenses = _sumBy(current, isExpense: true);
     final incomes = _sumBy(current, isExpense: false);
     final balance = incomes - expenses;
@@ -113,19 +123,27 @@ class ReportInsightsService {
       final prevExp = _sumBy(previous, isExpense: true);
       final prevInc = _sumBy(previous, isExpense: false);
       if (prevExp != 0 || prevInc != 0) {
-        final incDelta = prevInc > 0
-            ? (incomes - prevInc) / prevInc * 100
-            : (incomes > 0 ? 100.0 : 0.0);
-        final expDelta = prevExp > 0
-            ? (expenses - prevExp) / prevExp * 100
-            : (expenses > 0 ? 100.0 : 0.0);
+        final incDelta = percentChange(incomes, prevInc);
+        final expDelta = percentChange(expenses, prevExp);
+        // La frase compara contra el mes ANTERIOR —que es lo que trae
+        // `_previousMonthRecords`—, así que nombra a ese. Nombrar el mes
+        // visto decía "Frente a junio" mientras se comparaba contra mayo.
+        final monthName = l10n.monthFull[month == 1 ? 11 : month - 2];
+        // B1 · con el mes anterior recortado, la frase avisa de que los dos
+        // períodos cubren lo mismo, para que el % no se lea como 1–30.
         out.add(ReportInsight(
           tone: InsightTone.info,
-          text: l10n.insightVsPrev(
-            _change(expDelta, l10n),
-            _change(incDelta, l10n),
-            l10n.monthFull[month - 1],
-          ),
+          text: partialWindow
+              ? l10n.insightVsPrevPartial(
+                  monthName,
+                  changeText(incDelta, l10n),
+                  changeText(expDelta, l10n),
+                )
+              : l10n.insightVsPrev(
+                  changeText(expDelta, l10n),
+                  changeText(incDelta, l10n),
+                  monthName,
+                ),
         ));
       }
     }
@@ -270,12 +288,4 @@ class ReportInsightsService {
   String _signed(double? v) => v == null
       ? '0%'
       : '${v >= 0 ? '+' : ''}${v.toStringAsFixed(0)}%';
-
-  String _change(double delta, AppLocalizations l10n) {
-    if (delta.abs() < 0.5) return l10n.insightChangeFlat;
-    final pct = '${delta.abs().toStringAsFixed(0)}%';
-    return delta > 0
-        ? l10n.insightChangeUp(pct)
-        : l10n.insightChangeDown(pct);
-  }
 }

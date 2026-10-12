@@ -1057,6 +1057,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultLabel => 'Result';
 
   @override
+  String summaryVsPrev(String month) {
+    return 'vs. $month';
+  }
+
+  @override
+  String summaryVsPrevNote(String month) {
+    return 'Compared with the same days of $month.';
+  }
+
+  @override
+  String summaryResultBetter(String amount) {
+    return 'improved $amount';
+  }
+
+  @override
+  String summaryResultWorse(String amount) {
+    return 'worsened $amount';
+  }
+
+  @override
+  String get summaryEmptyTitle => 'You haven\'t recorded any movements yet';
+
+  @override
+  String get summaryEmptyBody => 'Once you note down an expense or a sale, this is where you\'ll see how much you earned, how much you spent, and what was left.';
+
+  @override
   String get alertsTitle => 'Alerts';
 
   @override
@@ -2014,6 +2040,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String insightVsPrev(Object expChange, Object incChange, Object month) {
     return 'Compared to $month: sales $incChange and expenses $expChange.';
+  }
+
+  @override
+  String insightVsPrevPartial(String month, String incChange, String expChange) {
+    return 'Compared to $month (same days): sales $incChange and expenses $expChange.';
   }
 
   @override

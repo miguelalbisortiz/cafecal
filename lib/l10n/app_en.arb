@@ -396,6 +396,29 @@
   "expensesLabel": "Expenses",
   "resultLabel": "Result",
 
+  "summaryVsPrev": "vs. {month}",
+  "@summaryVsPrev": {
+    "description": "Under each summary card's delta: which month it is compared against",
+    "placeholders": { "month": { "type": "String" } }
+  },
+  "summaryVsPrevNote": "Compared with the same days of {month}.",
+  "@summaryVsPrevNote": {
+    "description": "Footer under the card row: clarifies the comparison uses the same day range (B1)",
+    "placeholders": { "month": { "type": "String" } }
+  },
+  "summaryResultBetter": "improved {amount}",
+  "@summaryResultBetter": {
+    "description": "Result delta as an amount, never a % (it can be negative or cross zero)",
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "summaryResultWorse": "worsened {amount}",
+  "@summaryResultWorse": {
+    "description": "Result delta as an amount, never a % (it can be negative or cross zero)",
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "summaryEmptyTitle": "You haven't recorded any movements yet",
+  "summaryEmptyBody": "Once you note down an expense or a sale, this is where you'll see how much you earned, how much you spent, and what was left.",
+
   "alertsTitle": "Alerts",
   "alertsTooltip": "What do these alerts mean?",
 
@@ -781,6 +804,15 @@
   "insightBalancePositive": "Period result: {balance} gain with {margin} margin over sales.",
   "insightBalanceNegative": "Period result: {loss} with {margin} margin over sales.",
   "insightVsPrev": "Compared to {month}: sales {incChange} and expenses {expChange}.",
+  "insightVsPrevPartial": "Compared to {month} (same days): sales {incChange} and expenses {expChange}.",
+  "@insightVsPrevPartial": {
+    "description": "B1: when the month being viewed is the current one, the previous month is clipped to the same day range",
+    "placeholders": {
+      "month": { "type": "String" },
+      "incChange": { "type": "String" },
+      "expChange": { "type": "String" }
+    }
+  },
   "insightChangeUp": "went up {pct}",
   "insightChangeDown": "went down {pct}",
   "insightChangeFlat": "unchanged",

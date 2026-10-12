@@ -17,9 +17,11 @@ import 'package:mi_cafetal/services/currency_conversion.dart';
 import 'package:mi_cafetal/services/currency_rates_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/utils/format.dart';
+import 'package:mi_cafetal/widgets/alerts_banner.dart';
 import 'package:mi_cafetal/widgets/currency_breakdown.dart';
 import 'package:mi_cafetal/widgets/period_totals.dart';
 import 'package:mi_cafetal/widgets/summary_card.dart';
+import 'package:mi_cafetal/widgets/summary_empty_card.dart';
 
 /// Totales del resumen: nunca se suman monedas distintas (A) y, si hay
 /// tasa, se convierten a la moneda de Ajustes (B).
@@ -187,5 +189,61 @@ void main() {
         reason: 'cada total avisa de que va al cambio de hoy');
     expect(find.byType(CurrencyBreakdown), findsNothing,
         reason: 'con tasa no hace falta el desglose por moneda');
+  });
+
+  testWidgets('A1: con datos, las cifras del mes van encima de las alertas',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+    final hoy = DateTime.now();
+    // Una venta por cobrar dispara la alerta de la regla 11.
+    await tx.addTransaction(
+        type: TransactionType.income,
+        category: 'venta_cafe',
+        amount: 5000,
+        date: hoy,
+        paid: false);
+    await tx.addTransaction(
+        type: TransactionType.expense,
+        category: 'fertilizante',
+        amount: 1000,
+        date: hoy);
+
+    await pumpHome(tester, tx, auth);
+
+    expect(find.byType(AlertsBanner), findsOneWidget,
+        reason: 'la venta sin pagar debe levantar la alerta de por cobrar');
+    final dinero = tester.getTopLeft(find.byType(SummaryCard).first).dy;
+    final avisos = tester.getTopLeft(find.byType(AlertsBanner)).dy;
+    expect(dinero, lessThan(avisos),
+        reason: 'A1: el objetivo de la app es ver la plata antes que los '
+            'avisos, que hasta ahora quedaban arriba de todo');
+  });
+
+  testWidgets('A2: sin registros, el Resumen enseña el estado vacío y no \$0',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final (tx, auth, _) = await makeProviders();
+    // Un cultivo alcanza para salir de la puerta E6; todavía no hay plata.
+    await tx.addCrop('Café');
+
+    await pumpHome(tester, tx, auth);
+
+    final l10n = stringsFor('es');
+    expect(find.byType(SummaryEmptyCard), findsOneWidget);
+    expect(find.byType(SummaryCard), findsNothing,
+        reason: 'un "\$0" se leería como medido cuando es no registrado');
+    expect(find.text(l10n.summaryEmptyTitle), findsOneWidget);
+    expect(find.text(l10n.summaryEmptyBody), findsOneWidget);
+    expect(find.text(l10n.recordExpense), findsOneWidget,
+        reason: 'las dos puertas de entrada siguen a mano');
+    expect(find.text(l10n.recordIncome), findsOneWidget);
   });
 }

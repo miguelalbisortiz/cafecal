@@ -73,7 +73,7 @@ void main() {
         l10n: _es,
         money: _money,
       );
-      final vs = insights.firstWhere((i) => i.text.contains('Frente a Junio'));
+      final vs = insights.firstWhere((i) => i.text.contains('Frente a Mayo'));
       expect(vs.text, contains('subieron 25%'));
     });
 
@@ -99,6 +99,98 @@ void main() {
         reason: 'sin ventas debe avisarlo usando la etiqueta canónica del '
             'resultado (P4)',
       );
+    });
+  });
+
+  group('B1 · misma ventana de días', () {
+    test('recorta el mes anterior al día de hoy antes de comparar', () {
+      // now = 15 de junio: el gasto del 20 de mayo queda fuera del tramo.
+      final current = [
+        _txn(
+            type: TransactionType.expense,
+            amount: 1000,
+            date: DateTime(2026, 6, 2)),
+      ];
+      final previous = [
+        _txn(
+            type: TransactionType.expense,
+            amount: 5000,
+            date: DateTime(2026, 5, 20)),
+      ];
+      final insights = service.build(
+        now: now,
+        current: current,
+        previousMonth: previous,
+        yearRecords: [...current, ...previous],
+        year: 2026,
+        month: 6,
+        l10n: _es,
+        money: _money,
+      );
+
+      expect(
+        insights.any((i) => i.text.contains('Frente a')),
+        isFalse,
+        reason: 'sin datos del mismo tramo no se emite comparación',
+      );
+    });
+
+    test('viendo el mes en curso la frase aclara que es el mismo tramo', () {
+      final current = [
+        _txn(
+            type: TransactionType.income,
+            amount: 5000,
+            date: DateTime(2026, 6, 2)),
+      ];
+      final previous = [
+        _txn(
+            type: TransactionType.income,
+            amount: 4000,
+            date: DateTime(2026, 5, 10)),
+      ];
+      final insights = service.build(
+        now: now,
+        current: current,
+        previousMonth: previous,
+        yearRecords: [...current, ...previous],
+        year: 2026,
+        month: 6,
+        l10n: _es,
+        money: _money,
+      );
+
+      final vs = insights.firstWhere((i) => i.text.contains('Frente a Mayo'));
+      expect(vs.text, contains('mismos días'));
+      expect(vs.text, contains('subieron 25%'));
+    });
+
+    test('un mes ya cerrado se compara entero y sin el aviso', () {
+      final current = [
+        _txn(
+            type: TransactionType.income,
+            amount: 5000,
+            date: DateTime(2026, 5, 30)),
+      ];
+      final previous = [
+        _txn(
+            type: TransactionType.income,
+            amount: 4000,
+            date: DateTime(2026, 4, 25)),
+      ];
+      final insights = service.build(
+        now: now, // 15 de junio: mirando mayo, mes ya cerrado
+        current: current,
+        previousMonth: previous,
+        yearRecords: [...current, ...previous],
+        year: 2026,
+        month: 5,
+        l10n: _es,
+        money: _money,
+      );
+
+      final vs = insights.firstWhere((i) => i.text.contains('Frente a Abril'));
+      expect(vs.text, isNot(contains('mismos días')));
+      expect(vs.text, contains('subieron 25%'));
     });
   });
 

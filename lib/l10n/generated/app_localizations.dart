@@ -2039,6 +2039,42 @@ abstract class AppLocalizations {
   /// **'Resultado'**
   String get resultLabel;
 
+  /// Bajo el delta de cada tarjeta del Resumen: contra qué mes se compara
+  ///
+  /// In es, this message translates to:
+  /// **'vs. {month}'**
+  String summaryVsPrev(String month);
+
+  /// Pie de la fila de tarjetas: aclara que la comparación usa el mismo tramo de días (B1)
+  ///
+  /// In es, this message translates to:
+  /// **'Comparado con los mismos días de {month}.'**
+  String summaryVsPrevNote(String month);
+
+  /// Delta del Resultado en monto, nunca en % (puede ser negativo o cruzar de cero)
+  ///
+  /// In es, this message translates to:
+  /// **'mejoró {amount}'**
+  String summaryResultBetter(String amount);
+
+  /// Delta del Resultado en monto, nunca en % (puede ser negativo o cruzar de cero)
+  ///
+  /// In es, this message translates to:
+  /// **'empeoró {amount}'**
+  String summaryResultWorse(String amount);
+
+  /// No description provided for @summaryEmptyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no registraste movimientos'**
+  String get summaryEmptyTitle;
+
+  /// No description provided for @summaryEmptyBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuando anotes un gasto o una venta, acá vas a ver cuánto ganaste, cuánto gastaste y qué te quedó.'**
+  String get summaryEmptyBody;
+
   /// No description provided for @alertsTitle.
   ///
   /// In es, this message translates to:
@@ -3802,6 +3838,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Frente a {month}: ventas {incChange} y gastos {expChange}.'**
   String insightVsPrev(Object expChange, Object incChange, Object month);
+
+  /// B1: cuando el mes que se mira es el mes en curso, el mes anterior se recorta al mismo tramo de días
+  ///
+  /// In es, this message translates to:
+  /// **'Frente a {month} (mismos días): ventas {incChange} y gastos {expChange}.'**
+  String insightVsPrevPartial(String month, String incChange, String expChange);
 
   /// No description provided for @insightChangeUp.
   ///
