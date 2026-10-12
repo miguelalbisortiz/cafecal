@@ -7,6 +7,7 @@ import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
+import '../models/terreno.dart';
 import '../models/transaction.dart';
 
 class LocalStore {
@@ -17,6 +18,7 @@ class LocalStore {
   static const _kHarvests = 'harvests_v1';
   static const _kSowings = 'sowings_v1';
   static const _kEmployees = 'employees_v1';
+  static const _kTerrenos = 'terrenos_v1';
   static const _kSettingsDirty = 'settings_dirty_v1';
   static const _kDeletedCrops = 'deleted_crops_v1';
 
@@ -28,6 +30,7 @@ class LocalStore {
     _kHarvests,
     _kSowings,
     _kEmployees,
+    _kTerrenos,
     _kSettingsDirty,
     _kDeletedCrops,
   ];
@@ -201,6 +204,28 @@ class LocalStore {
   Future<void> saveEmployees(List<Employee> employees) async {
     final raw = jsonEncode(employees.map((e) => e.toJson()).toList());
     await _prefs.setString(_key(_kEmployees), raw);
+  }
+
+  // ---- Terrenos ----
+
+  List<Terreno> loadTerrenos() {
+    final raw = _prefs.getString(_key(_kTerrenos));
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list
+          .map((e) => Terreno.fromJson((e as Map).cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      // Un terreno corrupto no puede tumbar el arranque de la app entera:
+      // peor caso, se empieza sin terrenos y se vuelven a crear.
+      return [];
+    }
+  }
+
+  Future<void> saveTerrenos(List<Terreno> terrenos) async {
+    final raw = jsonEncode(terrenos.map((t) => t.toJson()).toList());
+    await _prefs.setString(_key(_kTerrenos), raw);
   }
 
   // ---- Settings ----

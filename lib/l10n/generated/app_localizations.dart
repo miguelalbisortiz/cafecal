@@ -4714,6 +4714,120 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo restaurar el respaldo. Inténtalo de nuevo.'**
   String get backupRestoreError;
+
+  /// No description provided for @terrenosSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus terrenos'**
+  String get terrenosSection;
+
+  /// No description provided for @terrenoNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo terreno'**
+  String get terrenoNew;
+
+  /// No description provided for @terrenoEdit.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar terreno'**
+  String get terrenoEdit;
+
+  /// No description provided for @terrenoDelete.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar terreno'**
+  String get terrenoDelete;
+
+  /// No description provided for @terrenoNameLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del terreno'**
+  String get terrenoNameLabel;
+
+  /// No description provided for @terrenoAreaLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Hectáreas del terreno'**
+  String get terrenoAreaLabel;
+
+  /// El área del terreno es opcional: se pregunta, pero no se exige
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Solo si las has medido; si no, déjalo vacío.'**
+  String get helpTerrenoArea;
+
+  /// No description provided for @terrenoCropsLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué cultivos van aquí?'**
+  String get terrenoCropsLabel;
+
+  /// Explica que las casillas no borran nada: solo mueven el cultivo de sitio
+  ///
+  /// In es, this message translates to:
+  /// **'Marca los que quieras poner en este terreno. Un mismo terreno puede tener café, plátano y sombra a la vez.'**
+  String get helpTerrenoCrops;
+
+  /// Cuando aún no existe ningún cultivo, el diálogo se queda sin casillas
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no tienes cultivos. Puedes crear el terreno y asignarlos después.'**
+  String get terrenoCropsEmpty;
+
+  /// No description provided for @terrenoNameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ponle nombre al terreno.'**
+  String get terrenoNameRequired;
+
+  /// No description provided for @terrenoNameTaken.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya hay un terreno con ese nombre.'**
+  String get terrenoNameTaken;
+
+  /// No description provided for @terrenoAreaInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese número de hectáreas no se puede leer.'**
+  String get terrenoAreaInvalid;
+
+  /// Cuántos cultivos hay dentro de un terreno
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} cultivo} other{{count} cultivos}}'**
+  String terrenoCropCount(int count);
+
+  /// Título del aviso previo a borrar un terreno
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar el terreno?'**
+  String get deleteTerrenoTitle;
+
+  /// El aviso tiene que dejar claro que borrar el terreno no borra ningún cultivo
+  ///
+  /// In es, this message translates to:
+  /// **'Se eliminará «{name}». Tus cultivos no se borran: solo quedan sin terreno.'**
+  String deleteTerrenoBody(String name);
+
+  /// No description provided for @cropTerrenoLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'¿En qué terreno está?'**
+  String get cropTerrenoLabel;
+
+  /// No description provided for @cropTerrenoNone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin terreno'**
+  String get cropTerrenoNone;
+
+  /// Ayuda corta bajo el desplegable de terreno del editor de cultivo
+  ///
+  /// In es, this message translates to:
+  /// **'El terreno donde está plantado. Puedes dejarlo vacío.'**
+  String get helpCropTerreno;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -5,6 +5,7 @@ import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
+import '../models/terreno.dart';
 import '../models/transaction.dart';
 
 /// Marca de identidad del archivo de respaldo. Un JSON que no la trae (o trae
@@ -43,6 +44,7 @@ class BackupCounts {
   final int cosechas;
   final int empleados;
   final int movimientos;
+  final int terrenos;
 
   const BackupCounts({
     this.cultivos = 0,
@@ -50,11 +52,13 @@ class BackupCounts {
     this.cosechas = 0,
     this.empleados = 0,
     this.movimientos = 0,
+    this.terrenos = 0,
   });
 
   static const BackupCounts cero = BackupCounts();
 
-  int get total => cultivos + siembras + cosechas + empleados + movimientos;
+  int get total =>
+      cultivos + siembras + cosechas + empleados + movimientos + terrenos;
 
   BackupCounts operator +(BackupCounts other) => BackupCounts(
         cultivos: cultivos + other.cultivos,
@@ -62,6 +66,7 @@ class BackupCounts {
         cosechas: cosechas + other.cosechas,
         empleados: empleados + other.empleados,
         movimientos: movimientos + other.movimientos,
+        terrenos: terrenos + other.terrenos,
       );
 
   Map<String, int> toJson() => {
@@ -70,6 +75,7 @@ class BackupCounts {
         'cosechas': cosechas,
         'empleados': empleados,
         'movimientos': movimientos,
+        'terrenos': terrenos,
       };
 
   @override
@@ -79,17 +85,18 @@ class BackupCounts {
       other.siembras == siembras &&
       other.cosechas == cosechas &&
       other.empleados == empleados &&
-      other.movimientos == movimientos;
+      other.movimientos == movimientos &&
+      other.terrenos == terrenos;
 
   @override
   int get hashCode => Object.hash(
-      cultivos, siembras, cosechas, empleados, movimientos);
+      cultivos, siembras, cosechas, empleados, movimientos, terrenos);
 
   @override
   String toString() =>
       'BackupCounts($cultivos cultivos, $siembras siembras, '
       '$cosechas cosechas, $empleados empleados, '
-      '$movimientos movimientos)';
+      '$movimientos movimientos, $terrenos terrenos)';
 }
 
 /// Un respaldo leído y validado por completo. O llega entero o no llega.
@@ -107,6 +114,10 @@ class BackupPayload {
   final List<Transaction> transactions;
   final FarmSettings settings;
 
+  /// W1 · los terrenos. Lista vacía en un respaldo anterior a W1: no es que
+  /// el productor no tenga, es que esa versión de la app aún no los conocía.
+  final List<Terreno> terrenos;
+
   const BackupPayload({
     required this.cuenta,
     required this.exportadoEn,
@@ -117,6 +128,7 @@ class BackupPayload {
     required this.employees,
     required this.transactions,
     required this.settings,
+    this.terrenos = const [],
   });
 }
 
@@ -161,6 +173,9 @@ String encodeBackup({
   required List<Employee> employees,
   required List<Transaction> transactions,
   required FarmSettings settings,
+  // Opcional y por defecto vacío: un código que exporte sin terrenos sigue
+  // compilando, y un respaldo anterior a W1 simplemente no los traía.
+  List<Terreno> terrenos = const [],
   String? uid,
   DateTime? now,
 }) {
@@ -171,6 +186,7 @@ String encodeBackup({
     cosechas: harvests.length,
     empleados: employees.length,
     movimientos: transactions.length,
+    terrenos: terrenos.length,
   );
 
   final envelope = <String, dynamic>{
@@ -183,6 +199,7 @@ String encodeBackup({
     'siembras': [for (final s in sowings) s.toJson()],
     'cosechas': [for (final h in harvests) h.toJson()],
     'empleados': [for (final e in employees) e.toJson()],
+    'terrenos': [for (final t in terrenos) t.toJson()],
     'movimientos': [for (final t in transactions) t.toJson()],
     'ajustes': settings.toJson(),
   };
@@ -230,6 +247,13 @@ BackupPayload decodeBackup(String raw) {
   final employees = _parseList(map, 'empleados', Employee.fromJson);
   final transactions = _parseList(map, 'movimientos', Transaction.fromJson);
 
+  // Clave tolerante a propósito: `_parseList` lanza si falta, y un respaldo
+  // escrito antes de W1 no la trae. Rechazarlo dejaría al productor sin
+  // poder restaurar su propio archivo. Falta = vacío, presente = estricto.
+  final List<Terreno> terrenos = map['terrenos'] == null
+      ? <Terreno>[]
+      : _parseList(map, 'terrenos', Terreno.fromJson);
+
   final ajustesRaw = map['ajustes'];
   if (ajustesRaw is! Map) {
     throw BackupFormatException(
@@ -261,6 +285,7 @@ BackupPayload decodeBackup(String raw) {
       cosechas: harvests.length,
       empleados: employees.length,
       movimientos: transactions.length,
+      terrenos: terrenos.length,
     ),
     crops: crops,
     sowings: sowings,
@@ -268,6 +293,7 @@ BackupPayload decodeBackup(String raw) {
     employees: employees,
     transactions: transactions,
     settings: settings,
+    terrenos: terrenos,
   );
 }
 

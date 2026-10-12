@@ -9,6 +9,7 @@ import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
+import '../models/terreno.dart';
 import '../models/transaction.dart';
 import '../services/backup_service.dart';
 import '../services/local_store.dart';
@@ -23,6 +24,7 @@ class TransactionProvider extends ChangeNotifier {
   List<Harvest> _harvests = [];
   List<Sowing> _sowings = [];
   List<Employee> _employees = [];
+  List<Terreno> _terrenos = [];
   bool _settingsDirty = false;
 
   /// Ids de cultivos borrados localmente que **aún no se han borrado en la
@@ -43,6 +45,7 @@ class TransactionProvider extends ChangeNotifier {
     _harvests = _store.loadHarvests();
     _sowings = _store.loadSowings();
     _employees = _store.loadEmployees();
+    _terrenos = _store.loadTerrenos();
     _settingsDirty = _store.loadSettingsDirty();
     _deletedCrops = _store.loadDeletedCrops();
   }
@@ -56,6 +59,7 @@ class TransactionProvider extends ChangeNotifier {
     _harvests = _store.loadHarvests();
     _sowings = _store.loadSowings();
     _employees = _store.loadEmployees();
+    _terrenos = _store.loadTerrenos();
     // La marca dirty vive en el namespace: al cambiar de cuenta había que
     // recargarla, o el estado del equipo anterior mandaba sobre el nuevo.
     _settingsDirty = _store.loadSettingsDirty();
@@ -71,6 +75,10 @@ class TransactionProvider extends ChangeNotifier {
   List<Harvest> get harvests => _harvests;
   List<Sowing> get sowings => _sowings;
   List<Employee> get employees => _employees;
+
+  /// Los terrenos de la finca. Lista vacía = no se usan: la app se comporta
+  /// exactamente igual que antes de que existieran.
+  List<Terreno> get terrenos => _terrenos;
 
   /// Cultivos borrados localmente pendientes de borrar en la BD. Se expone
   /// para que [SyncProvider] pueda subir los borrados.
@@ -283,6 +291,7 @@ class TransactionProvider extends ChangeNotifier {
     DateTime? plantedAt,
     double? expectedYieldPerHa,
     DateTime? primerCosechaEsperada,
+    String? terrenoId,
   }) async {
     final crop = Crop(
       id: _uuid.v4(),
@@ -299,6 +308,7 @@ class TransactionProvider extends ChangeNotifier {
       plantedAt: plantedAt,
       expectedYieldPerHa: expectedYieldPerHa,
       primerCosechaEsperada: primerCosechaEsperada,
+      terrenoId: terrenoId,
       pendingSync: true,
     );
     _crops = [..._crops, crop];
@@ -670,6 +680,102 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---- Terrenos ----
+
+  /// Crea un terreno y, si se marcaron cultivos, los mete dentro.
+  ///
+  /// Las casillas mandan: lo que está marcado entra. Los cultivos que ya
+  /// estaban en otro terreno se **mueven** aquí — es mover una cosa de un
+  /// lado a otro de la finca, no duplicarla.
+  Future<Terreno> addTerreno(
+    String name, {
+    double? areaHa,
+    List<String> cropIds = const [],
+  }) async {
+    final terreno = Terreno(
+      id: _uuid.v4(),
+      name: name.trim(),
+      areaHa: areaHa,
+      pendingSync: true,
+    );
+    _terrenos = [..._terrenos, terreno];
+    await _store.saveTerrenos(_terrenos);
+    await _asignarCultivos(terreno.id, cropIds);
+    notifyListeners();
+    return terreno;
+  }
+
+  Future<void> updateTerreno(Terreno updated) async {
+    final idx = _terrenos.indexWhere((t) => t.id == updated.id);
+    if (idx == -1) return;
+    final list = [..._terrenos];
+    list[idx] = updated.copyWith(pendingSync: true);
+    _terrenos = list;
+    await _store.saveTerrenos(_terrenos);
+    notifyListeners();
+  }
+
+  /// Edita el terreno y vuelve a aplicar la lista marcada de cultivos.
+  ///
+  /// Misma semántica que al crear: lo marcado queda dentro, lo que estaba y
+  /// se desmarcó sale.
+  Future<void> updateTerrenoWithCrops(
+    Terreno updated,
+    List<String> cropIds,
+  ) async {
+    await updateTerreno(updated);
+    await _asignarCultivos(updated.id, cropIds);
+    notifyListeners();
+  }
+
+  /// Borra el terreno. **No se borra nada con él.**
+  ///
+  /// Sus cultivos quedan sin terreno (`terreno_id = null`) y sus gastos vuelven
+  /// a ser comunes — exactamente lo que hace la BD con `on delete set null`.
+  /// La finca del productor se queda igual, un nivel más arriba: él quitó una
+  /// etiqueta, no arrancó café.
+  Future<void> deleteTerreno(String id) async {
+    _terrenos = _terrenos.where((t) => t.id != id).toList();
+    await _store.saveTerrenos(_terrenos);
+
+    final afectados = _crops.any((c) => c.terrenoId == id);
+    if (afectados) {
+      _crops = [
+        for (final c in _crops)
+          if (c.terrenoId == id)
+            c.copyWith(terrenoId: null, pendingSync: true)
+          else
+            c,
+      ];
+      await _store.saveCrops(_crops);
+    }
+    notifyListeners();
+  }
+
+  /// Deja exactamente [cropIds] dentro de [terrenoId] y saca a los demás.
+  ///
+  /// Solo toca a los que están en juego: los que ya estaban marcados no se
+  /// reescriben, y los que pertenecen a otro terreno y no se marcaron aquí
+  /// **se quedan donde están** — desmarcar en este terreno no debería
+  /// desalojar a un cultivo que nunca vino de este lado.
+  Future<void> _asignarCultivos(String terrenoId, List<String> cropIds) async {
+    final dentro = cropIds.toSet();
+    var huboCambio = false;
+    final lista = _crops.map((c) {
+      final quiere = dentro.contains(c.id);
+      final esta = c.terrenoId == terrenoId;
+      if (quiere == esta) return c;
+      huboCambio = true;
+      return c.copyWith(
+        terrenoId: quiere ? terrenoId : null,
+        pendingSync: true,
+      );
+    }).toList();
+    if (!huboCambio) return;
+    _crops = lista;
+    await _store.saveCrops(_crops);
+  }
+
   // ---- Settings ----
 
   Future<void> updateSettings(FarmSettings settings) async {
@@ -714,6 +820,7 @@ class TransactionProvider extends ChangeNotifier {
         sowings: _sowings,
         harvests: _harvests,
         employees: _employees,
+        terrenos: _terrenos,
         transactions: _transactions,
         settings: _settings,
         uid: uid ?? _store.uid ?? '',
@@ -730,15 +837,26 @@ class TransactionProvider extends ChangeNotifier {
   /// se conserva tal cual (no se pisa), lo nuevo entra con `pendingSync: true`
   /// y **nada se borra**. Devuelve el resumen para que la UI avise.
   ///
-  /// El orden es crops → siembras → cosechas → trabajadores → movimientos →
-  /// ajustes. Las referencias que no apuntan a nada ni local ni en el archivo
-  /// se importan igual, sin enlazar, y solo se cuentan en
+  /// El orden es terrenos → crops → siembras → cosechas → trabajadores →
+  /// movimientos → ajustes. Las referencias que no apuntan a nada ni local ni
+  /// en el archivo se importan igual, sin enlazar, y solo se cuentan en
   /// [BackupSummary.huerfanos]: no se descartan datos del productor.
   Future<BackupSummary> importBackup(BackupPayload payload) async {
     var agregados = BackupCounts.cero;
     var omitidos = BackupCounts.cero;
 
-    // 1) Cultivos — misma deduplicación por id que `LocalStore.loadCrops`.
+    // 1) Terrenos — antes que los cultivos: un cultivo del archivo apunta a
+    //    un terreno por id y esa lista tiene que estar completa.
+    final terrenoAdd = _fuse(_terrenos, payload.terrenos, (t) => t.id,
+        (t) => t.copyWith(pendingSync: true));
+    if (terrenoAdd.added.isNotEmpty) {
+      _terrenos = [..._terrenos, ...terrenoAdd.added];
+      await _store.saveTerrenos(_terrenos);
+    }
+    agregados += BackupCounts(terrenos: terrenoAdd.added.length);
+    omitidos += BackupCounts(terrenos: terrenoAdd.omitidos);
+
+    // 2) Cultivos — misma deduplicación por id que `LocalStore.loadCrops`.
     final cropAdd = _fuse(
         _crops, payload.crops, (c) => c.id, (c) => c.copyWith(pendingSync: true));
     if (cropAdd.added.isNotEmpty) {
@@ -895,6 +1013,9 @@ class TransactionProvider extends ChangeNotifier {
     _employees = _employees
         .map((e) => failed(e.id) ? e : e.copyWith(pendingSync: false))
         .toList();
+    _terrenos = _terrenos
+        .map((t) => failed(t.id) ? t : t.copyWith(pendingSync: false))
+        .toList();
     // Mismo criterio que con los movimientos: solo se olvidan los borrados de
     // cultivo que SÍ llegaron. Si se descartaran los fallidos, el pull los
     // resucitaría desde el remoto.
@@ -904,6 +1025,7 @@ class TransactionProvider extends ChangeNotifier {
     await _store.saveHarvests(_harvests);
     await _store.saveSowings(_sowings);
     await _store.saveEmployees(_employees);
+    await _store.saveTerrenos(_terrenos);
     await _store.saveDeletedCrops(_deletedCrops);
     notifyListeners();
   }
@@ -1028,6 +1150,29 @@ class TransactionProvider extends ChangeNotifier {
       ),
     ];
     _store.saveEmployees(_employees);
+    notifyListeners();
+  }
+
+  /// Fusiona los terrenos que trae el pull.
+  ///
+  /// Deduplica por id **y** por nombre (normalizado): a diferencia de los
+  /// cultivos — donde dos "Café" son dos lotes reales y no hay que juntarlos —,
+  /// dos terrenos con el mismo nombre son el mismo pedazo de tierra visto desde
+  /// otro equipo, y dejarlos separados partiría la finca en dos.
+  void mergeRemoteTerrenos(List<Terreno> remoteTerrenos) {
+    final existingIds = _terrenos.map((t) => t.id).toSet();
+    final existingNames = _terrenos
+        .map((t) => t.name.trim().toLowerCase())
+        .toSet();
+    _terrenos = [
+      ..._terrenos,
+      ...remoteTerrenos.where(
+        (t) =>
+            !existingIds.contains(t.id) &&
+            !existingNames.contains(t.name.trim().toLowerCase()),
+      ),
+    ];
+    _store.saveTerrenos(_terrenos);
     notifyListeners();
   }
 }

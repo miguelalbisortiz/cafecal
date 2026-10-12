@@ -5,8 +5,10 @@ import 'package:provider/provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/sowing.dart';
+import '../models/terreno.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/crop_editor_dialog.dart';
+import '../widgets/terreno_editor_dialog.dart';
 
 /// Gestión de cultivos: crear/editar/eliminar con fase, ciclo, unidad
 /// preferida, área y plantas vivas. También es la puerta de entrada al
@@ -20,7 +22,19 @@ class CropsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.menuCrops)),
+      appBar: AppBar(
+        title: Text(l10n.menuCrops),
+        // W1 · la puerta de entrada a los terrenos. Va en la barra y no como
+        // un bloque en pantalla para no añadir ruido a quien todavía no los
+        // usa: la app sin terrenos sigue viéndose igual que siempre.
+        actions: [
+          IconButton(
+            tooltip: l10n.terrenoNew,
+            icon: const Icon(Icons.landscape_outlined),
+            onPressed: () => _createTerreno(context, tx),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _createCrop(context),
         icon: const Icon(Icons.add),
@@ -29,14 +43,157 @@ class CropsScreen extends StatelessWidget {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
-          child: tx.crops.isEmpty
+          child: tx.crops.isEmpty && tx.terrenos.isEmpty
               ? Center(child: Text(l10n.cropsEmpty))
-              : ListView.builder(
+              : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-                  itemCount: tx.crops.length,
-                  itemBuilder: (context, i) =>
-                      _row(context, tx, tx.crops[i], l10n),
+                  children: [
+                    // La sección solo aparece cuando hay terrenos: mientras no
+                    // cree ninguno, la pantalla es exactamente la de antes.
+                    if (tx.terrenos.isNotEmpty) ...[
+                      _terrenosSection(context, tx, l10n),
+                      const SizedBox(height: 12),
+                    ],
+                    for (final c in tx.crops) _row(context, tx, c, l10n),
+                  ],
                 ),
+        ),
+      ),
+    );
+  }
+
+  // ---- W1 · Terrenos ----
+
+  Future<void> _createTerreno(
+      BuildContext context, TransactionProvider tx) async {
+    final form = await showDialog<TerrenoFormData>(
+      context: context,
+      builder: (_) => TerrenoEditorDialog(
+        crops: tx.crops,
+        existingNames: tx.terrenos.map((t) => t.name).toList(),
+      ),
+    );
+    if (form == null || !context.mounted) return;
+    await tx.addTerreno(
+      form.name,
+      areaHa: form.areaHa,
+      cropIds: form.cropIds,
+    );
+  }
+
+  Future<void> _editTerreno(
+      BuildContext context, TransactionProvider tx, Terreno t) async {
+    final form = await showDialog<TerrenoFormData>(
+      context: context,
+      builder: (_) => TerrenoEditorDialog(
+        terreno: t,
+        crops: tx.crops,
+        initialCropIds: [
+          for (final c in tx.crops)
+            if (c.terrenoId == t.id) c.id,
+        ],
+        existingNames: tx.terrenos.map((x) => x.name).toList(),
+      ),
+    );
+    if (form == null || !context.mounted) return;
+    await tx.updateTerrenoWithCrops(
+      t.copyWith(name: form.name, areaHa: form.areaHa),
+      form.cropIds,
+    );
+  }
+
+  /// Borra el terreno tras avisar. **No se borra ningún cultivo**: al
+  /// confirmar, `deleteTerreno` deja los suyos con `terreno_id = null`, igual
+  /// que la BD. El aviso dice exactamente eso, porque "eliminar" en una app
+  /// de campo suena a arrancar café.
+  Future<void> _deleteTerreno(BuildContext context, TransactionProvider tx,
+      AppLocalizations l10n, Terreno t) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l10n.deleteTerrenoTitle),
+        content: Text(l10n.deleteTerrenoBody(t.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    await tx.deleteTerreno(t.id);
+  }
+
+  /// La lista de terrenos, en una tarjeta por encima de los cultivos.
+  Widget _terrenosSection(BuildContext context, TransactionProvider tx,
+      AppLocalizations l10n) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.landscape_outlined,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.terrenosSection,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => _createTerreno(context, tx),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(l10n.terrenoNew),
+                ),
+              ],
+            ),
+            for (final t in tx.terrenos)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.crop_square_outlined, size: 20),
+                title: Text(t.name),
+                // `null` → no se pinta nada. Un terreno sin área medida no
+                // lleva "0,00 ha": lleva lo que sepa decirse (el recuento).
+                subtitle: Text([
+                  if (t.areaHa != null)
+                    // Misma forma que en el resto de la app (reportes,
+                    // per_ha): `2.00 ha`. Si no la midió, no se pinta nada.
+                    '${t.areaHa!.toStringAsFixed(2)} ha',
+                  l10n.terrenoCropCount(
+                      tx.crops.where((c) => c.terrenoId == t.id).length),
+                ].join(' · ')),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: l10n.terrenoEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      onPressed: () => _editTerreno(context, tx, t),
+                    ),
+                    IconButton(
+                      tooltip: l10n.terrenoDelete,
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      onPressed: () => _deleteTerreno(context, tx, l10n, t),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -53,6 +210,8 @@ class CropsScreen extends StatelessWidget {
         context: context,
         builder: (_) => CropEditorDialog(
           existingNames: tx.crops.map((c) => c.name).toList(),
+          // W1: vacío → el campo del terreno ni se enseña.
+          terrenos: tx.terrenos,
         ),
       );
       if (form == null || !context.mounted) return;
@@ -107,6 +266,7 @@ class CropsScreen extends StatelessWidget {
         existingNames: tx.crops.map((c) => c.name).toList(),
         suggestedEstablishmentCost: tx.initialSowingCost(crop.id),
         sowingsLocked: _hasInitialSowing(tx, crop),
+        terrenos: tx.terrenos,
       ),
     );
     if (form == null || !context.mounted) return;
@@ -130,6 +290,9 @@ class CropsScreen extends StatelessWidget {
       expectedYieldPerHa: form.expectedYieldPerHa,
       // E5: ídem — la fecha estimada se puede borrar.
       primerCosechaEsperada: form.primerCosechaEsperada,
+      // W1: se puede sacar el cultivo de su terreno tan legítimo como
+      // ponerlo, por eso el null va tal cual (centinela, no `??`).
+      terrenoId: form.terrenoId,
     ));
   }
 

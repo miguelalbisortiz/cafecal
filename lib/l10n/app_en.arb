@@ -1055,5 +1055,57 @@
   "backupInvalidFile": "That file is not a valid backup.",
   "backupUnknownFormat": "That file is not a Mi Cafetal backup.",
   "backupUnsupportedVersion": "This backup was made with a newer version of the app. Update the app to restore it.",
-  "backupRestoreError": "The backup could not be restored. Please try again."
+  "backupRestoreError": "The backup could not be restored. Please try again.",
+  "terrenosSection": "Your plots",
+  "terrenoNew": "New plot",
+  "terrenoEdit": "Edit plot",
+  "terrenoDelete": "Delete plot",
+  "terrenoNameLabel": "Plot name",
+  "terrenoAreaLabel": "Hectares of the plot",
+  "@helpTerrenoArea": {
+    "description":
+        "The plot's area is optional: it is asked for, but never required"
+  },
+  "helpTerrenoArea":
+      "Optional. Only if you have measured them; otherwise leave it empty.",
+  "terrenoCropsLabel": "Which crops go here?",
+  "@helpTerrenoCrops": {
+    "description":
+        "Makes clear the checkboxes delete nothing: they only move the crop between places"
+  },
+  "helpTerrenoCrops":
+      "Tick the ones you want in this plot. One plot can hold coffee, plantain and shade at the same time.",
+  "@terrenoCropsEmpty": {
+    "description": "When there are no crops yet, the dialog has no checkboxes"
+  },
+  "terrenoCropsEmpty":
+      "You do not have crops yet. You can create the plot and assign them later.",
+  "terrenoNameRequired": "Give the plot a name.",
+  "terrenoNameTaken": "There is already a plot with that name.",
+  "terrenoAreaInvalid": "That number of hectares cannot be read.",
+  "@terrenoCropCount": {
+    "description": "How many crops are inside a plot",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "terrenoCropCount":
+      "{count, plural, one{{count} crop} other{{count} crops}}",
+  "@deleteTerrenoTitle": {
+    "description": "Title of the warning before deleting a plot"
+  },
+  "deleteTerrenoTitle": "Delete the plot?",
+  "@deleteTerrenoBody": {
+    "description":
+        "The warning must make clear deleting a plot deletes no crop at all",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteTerrenoBody":
+      "“{name}” will be deleted. Your crops are not deleted: they just lose their plot.",
+  "cropTerrenoLabel": "Which plot is it in?",
+  "cropTerrenoNone": "No plot",
+  "@helpCropTerreno": {
+    "description":
+        "Short help under the plot dropdown in the crop editor"
+  },
+  "helpCropTerreno":
+      "The plot where it is planted. You can leave it empty."
 }

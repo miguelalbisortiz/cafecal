@@ -78,6 +78,9 @@ void main() {
         'cosechas': 1,
         'empleados': 1,
         'movimientos': 1,
+        // W1: esta corrida no incluye terrenos, así que cuentan 0 — la clave
+        // existe desde W1 aunque la lista venga vacía.
+        'terrenos': 0,
       });
       expect(decodeBackup(build()).conteo,
           const BackupCounts(

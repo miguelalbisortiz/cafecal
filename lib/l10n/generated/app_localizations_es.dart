@@ -2613,4 +2613,71 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get backupRestoreError => 'No se pudo restaurar el respaldo. Inténtalo de nuevo.';
+
+  @override
+  String get terrenosSection => 'Tus terrenos';
+
+  @override
+  String get terrenoNew => 'Nuevo terreno';
+
+  @override
+  String get terrenoEdit => 'Editar terreno';
+
+  @override
+  String get terrenoDelete => 'Eliminar terreno';
+
+  @override
+  String get terrenoNameLabel => 'Nombre del terreno';
+
+  @override
+  String get terrenoAreaLabel => 'Hectáreas del terreno';
+
+  @override
+  String get helpTerrenoArea => 'Opcional. Solo si las has medido; si no, déjalo vacío.';
+
+  @override
+  String get terrenoCropsLabel => '¿Qué cultivos van aquí?';
+
+  @override
+  String get helpTerrenoCrops => 'Marca los que quieras poner en este terreno. Un mismo terreno puede tener café, plátano y sombra a la vez.';
+
+  @override
+  String get terrenoCropsEmpty => 'Todavía no tienes cultivos. Puedes crear el terreno y asignarlos después.';
+
+  @override
+  String get terrenoNameRequired => 'Ponle nombre al terreno.';
+
+  @override
+  String get terrenoNameTaken => 'Ya hay un terreno con ese nombre.';
+
+  @override
+  String get terrenoAreaInvalid => 'Ese número de hectáreas no se puede leer.';
+
+  @override
+  String terrenoCropCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cultivos',
+      one: '$count cultivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteTerrenoTitle => '¿Eliminar el terreno?';
+
+  @override
+  String deleteTerrenoBody(String name) {
+    return 'Se eliminará «$name». Tus cultivos no se borran: solo quedan sin terreno.';
+  }
+
+  @override
+  String get cropTerrenoLabel => '¿En qué terreno está?';
+
+  @override
+  String get cropTerrenoNone => 'Sin terreno';
+
+  @override
+  String get helpCropTerreno => 'El terreno donde está plantado. Puedes dejarlo vacío.';
 }

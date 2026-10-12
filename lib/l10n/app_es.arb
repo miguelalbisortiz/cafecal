@@ -1192,5 +1192,52 @@
   "backupInvalidFile": "Ese archivo no es un respaldo válido.",
   "backupUnknownFormat": "Ese archivo no es un respaldo de Mi Cafetal.",
   "backupUnsupportedVersion": "Este respaldo se hizo con una versión más nueva de la app. Actualiza la app para restaurarlo.",
-  "backupRestoreError": "No se pudo restaurar el respaldo. Inténtalo de nuevo."
+  "backupRestoreError": "No se pudo restaurar el respaldo. Inténtalo de nuevo.",
+  "terrenosSection": "Tus terrenos",
+  "terrenoNew": "Nuevo terreno",
+  "terrenoEdit": "Editar terreno",
+  "terrenoDelete": "Eliminar terreno",
+  "terrenoNameLabel": "Nombre del terreno",
+  "terrenoAreaLabel": "Hectáreas del terreno",
+  "@helpTerrenoArea": {
+    "description": "El área del terreno es opcional: se pregunta, pero no se exige"
+  },
+  "helpTerrenoArea": "Opcional. Solo si las has medido; si no, déjalo vacío.",
+  "terrenoCropsLabel": "¿Qué cultivos van aquí?",
+  "@helpTerrenoCrops": {
+    "description": "Explica que las casillas no borran nada: solo mueven el cultivo de sitio"
+  },
+  "helpTerrenoCrops":
+      "Marca los que quieras poner en este terreno. Un mismo terreno puede tener café, plátano y sombra a la vez.",
+  "@terrenoCropsEmpty": {
+    "description": "Cuando aún no existe ningún cultivo, el diálogo se queda sin casillas"
+  },
+  "terrenoCropsEmpty":
+      "Todavía no tienes cultivos. Puedes crear el terreno y asignarlos después.",
+  "terrenoNameRequired": "Ponle nombre al terreno.",
+  "terrenoNameTaken": "Ya hay un terreno con ese nombre.",
+  "terrenoAreaInvalid": "Ese número de hectáreas no se puede leer.",
+  "@terrenoCropCount": {
+    "description": "Cuántos cultivos hay dentro de un terreno",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "terrenoCropCount":
+      "{count, plural, one{{count} cultivo} other{{count} cultivos}}",
+  "@deleteTerrenoTitle": {
+    "description": "Título del aviso previo a borrar un terreno"
+  },
+  "deleteTerrenoTitle": "¿Eliminar el terreno?",
+  "@deleteTerrenoBody": {
+    "description":
+        "El aviso tiene que dejar claro que borrar el terreno no borra ningún cultivo",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "deleteTerrenoBody":
+      "Se eliminará «{name}». Tus cultivos no se borran: solo quedan sin terreno.",
+  "cropTerrenoLabel": "¿En qué terreno está?",
+  "cropTerrenoNone": "Sin terreno",
+  "@helpCropTerreno": {
+    "description": "Ayuda corta bajo el desplegable de terreno del editor de cultivo"
+  },
+  "helpCropTerreno": "El terreno donde está plantado. Puedes dejarlo vacío."
 }

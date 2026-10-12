@@ -54,6 +54,16 @@ class Crop {
   /// `null` = no la estima → no se pinta nada.
   final DateTime? primerCosechaEsperada;
 
+  /// W1 · **el terreno donde está plantado**, opcional.
+  ///
+  /// No es una categoría ni una etiqueta: es la tierra. Dentro de un terreno
+  /// pueden convivir cafés con plátanos y sombra, y por eso un gasto puede
+  /// ser "del terreno entero" sin ser de ninguno de ellos por separado.
+  ///
+  /// `null` = sin terreno asignado → se comporta exactamente igual que antes
+  /// de que existiera la tabla. La app sin terrenos sigue siendo la misma.
+  final String? terrenoId;
+
   const Crop({
     required this.id,
     required this.name,
@@ -70,6 +80,7 @@ class Crop {
     this.plantedAt,
     this.expectedYieldPerHa,
     this.primerCosechaEsperada,
+    this.terrenoId,
   });
 
   Crop copyWith({
@@ -88,6 +99,7 @@ class Crop {
     Object? plantedAt = _sentinel,
     Object? expectedYieldPerHa = _sentinel,
     Object? primerCosechaEsperada = _sentinel,
+    Object? terrenoId = _sentinel,
   }) {
     return Crop(
       id: id ?? this.id,
@@ -116,6 +128,9 @@ class Crop {
       primerCosechaEsperada: primerCosechaEsperada == _sentinel
           ? this.primerCosechaEsperada
           : primerCosechaEsperada as DateTime?,
+      // Sentinela también: poder sacar un cultivo de su terreno es tan
+      // legítimo como ponerlo, y con `String?` a secas no habría forma.
+      terrenoId: terrenoId == _sentinel ? this.terrenoId : terrenoId as String?,
     );
   }
 
@@ -135,6 +150,7 @@ class Crop {
         'planted_at': plantedAt?.toIso8601String(),
         'expected_yield_kg_ha': expectedYieldPerHa,
         'primer_cosecha_esperada': primerCosechaEsperada?.toIso8601String(),
+        'terreno_id': terrenoId,
       };
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -165,6 +181,8 @@ class Crop {
       expectedYieldPerHa: (json['expected_yield_kg_ha'] as num?)?.toDouble(),
       // Respaldo anterior a E5 no trae la clave → null → sin fecha estimada.
       primerCosechaEsperada: _fechaDe(json['primer_cosecha_esperada']),
+      // Respaldo anterior a W1 no trae la clave → null → sin terreno.
+      terrenoId: json['terreno_id'] as String?,
     );
   }
 

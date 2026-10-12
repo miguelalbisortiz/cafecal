@@ -2613,4 +2613,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupRestoreError => 'The backup could not be restored. Please try again.';
+
+  @override
+  String get terrenosSection => 'Your plots';
+
+  @override
+  String get terrenoNew => 'New plot';
+
+  @override
+  String get terrenoEdit => 'Edit plot';
+
+  @override
+  String get terrenoDelete => 'Delete plot';
+
+  @override
+  String get terrenoNameLabel => 'Plot name';
+
+  @override
+  String get terrenoAreaLabel => 'Hectares of the plot';
+
+  @override
+  String get helpTerrenoArea => 'Optional. Only if you have measured them; otherwise leave it empty.';
+
+  @override
+  String get terrenoCropsLabel => 'Which crops go here?';
+
+  @override
+  String get helpTerrenoCrops => 'Tick the ones you want in this plot. One plot can hold coffee, plantain and shade at the same time.';
+
+  @override
+  String get terrenoCropsEmpty => 'You do not have crops yet. You can create the plot and assign them later.';
+
+  @override
+  String get terrenoNameRequired => 'Give the plot a name.';
+
+  @override
+  String get terrenoNameTaken => 'There is already a plot with that name.';
+
+  @override
+  String get terrenoAreaInvalid => 'That number of hectares cannot be read.';
+
+  @override
+  String terrenoCropCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count crops',
+      one: '$count crop',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteTerrenoTitle => 'Delete the plot?';
+
+  @override
+  String deleteTerrenoBody(String name) {
+    return '“$name” will be deleted. Your crops are not deleted: they just lose their plot.';
+  }
+
+  @override
+  String get cropTerrenoLabel => 'Which plot is it in?';
+
+  @override
+  String get cropTerrenoNone => 'No plot';
+
+  @override
+  String get helpCropTerreno => 'The plot where it is planted. You can leave it empty.';
 }

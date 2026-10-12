@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/currencies.dart';
+import '../models/terreno.dart';
 import 'crop_loss_dialog.dart';
 
 /// Editor de cultivo (crear y editar). Permite configurar fase/ciclo, unidad
@@ -35,6 +36,13 @@ class CropEditorDialog extends StatefulWidget {
   /// con id, que es lo que distingue crear de actualizar.
   final bool recienCreado;
 
+  /// W1 · los terrenos que existen, para ofrecerlos en el desplegable.
+  ///
+  /// Vacío = no hay ninguno y el campo ni siquiera se enseña: la app sin
+  /// terrenos es la misma de siempre, y no se le puede pedir a alguien que
+  /// elija algo que todavía no existe.
+  final List<Terreno> terrenos;
+
   const CropEditorDialog({
     super.key,
     this.crop,
@@ -42,6 +50,7 @@ class CropEditorDialog extends StatefulWidget {
     this.suggestedEstablishmentCost,
     this.sowingsLocked = false,
     this.recienCreado = false,
+    this.terrenos = const [],
   });
 
   @override
@@ -59,6 +68,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   CropCycle _cycle = CropCycle.perenne;
   String? _defaultUnit;
   String _currency = 'COP';
+  String? _terrenoId;
   DateTime? _plantedAt;
 
   /// E5 · "¿cuándo esperás la primera cosecha?".
@@ -91,6 +101,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       _cycle = c.cycle;
       _defaultUnit = c.defaultUnit;
       _currency = c.currency ?? 'COP';
+      _terrenoId = c.terrenoId;
       _plantedAt = c.plantedAt;
       _firstHarvestAt = c.primerCosechaEsperada;
       if (c.areaHa != null) _areaController.text = c.areaHa.toString();
@@ -255,6 +266,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       plantedAt: _plantedAt,
       expectedYieldPerHa: expectedYieldPerHa,
       primerCosechaEsperada: _firstHarvestAt,
+      terrenoId: _terrenoId,
     ));
   }
 
@@ -432,6 +444,34 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               ],
               onChanged: (v) => setState(() => _defaultUnit = v),
             ),
+            // W1 · ¿en qué tierra está? Solo se enseña si ya existe al menos
+            // un terreno: no se le puede pedir que elija algo que todavía no
+            // ha creado. El '' es un centinela y no un id: los ids son uuid.
+            if (widget.terrenos.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _terrenoId ?? '',
+                decoration: InputDecoration(
+                  labelText: l10n.cropTerrenoLabel,
+                  helperText: l10n.helpCropTerreno,
+                  prefixIcon: const Icon(Icons.landscape_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: '',
+                    child: Text(l10n.cropTerrenoNone),
+                  ),
+                  for (final t in widget.terrenos)
+                    DropdownMenuItem<String>(
+                      value: t.id,
+                      child: Text(t.name),
+                    ),
+                ],
+                onChanged: (v) => setState(
+                    () => _terrenoId = (v == null || v.isEmpty) ? null : v),
+              ),
+            ],
             const SizedBox(height: 12),
             TextField(
               controller: _areaController,
@@ -618,6 +658,10 @@ class CropFormData {
   /// se le enseñó el campo).
   final DateTime? primerCosechaEsperada;
 
+  /// W1 · `null` = sin terreno (o no se le enseñó el campo porque no hay
+  /// ninguno creado todavía).
+  final String? terrenoId;
+
   const CropFormData({
     required this.name,
     required this.icon,
@@ -632,5 +676,6 @@ class CropFormData {
     this.plantedAt,
     this.expectedYieldPerHa,
     this.primerCosechaEsperada,
+    this.terrenoId,
   });
 }

@@ -5,6 +5,7 @@ import '../models/employee.dart';
 import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
+import '../models/terreno.dart';
 import '../models/transaction.dart';
 import '../services/supabase_service.dart';
 import 'transaction_provider.dart';
@@ -149,8 +150,9 @@ class SyncProvider extends ChangeNotifier {
   /// Construye la secuencia de subida. El orden lo imponen las FK de la BD,
   /// no la interfaz:
   ///
-  ///   settings (raíz) → crops (raíz) → sowings/harvests (usan crops)
-  ///   → employees (sin FK) → transactions (usa crops/sowings/harvests)
+  ///   settings (raíz) → terrenos (raíz) → crops (puede apuntar a un
+  ///   terreno) → sowings/harvests (usan crops) → employees (sin FK)
+  ///   → transactions (usa crops/sowings/harvests)
   ///
   /// Antes las transacciones iban primero y explotaban con
   /// `transactions_crop_id_fkey` porque el cultivo todavía no existía.
@@ -168,6 +170,17 @@ class SyncProvider extends ChangeNotifier {
         label: 'Ajustes',
         run: () => _upsertRemoteSettings(supabase),
       ),
+      // Antes que los cultivos: `crops.terreno_id` es FK, y subir un cultivo
+      // apuntando a un terreno que todavía no existe en la BD da error de
+      // foreign key (el mismo motivo por el que iban primero que las
+      // transacciones).
+      for (final t in _txProvider.terrenos)
+        PushStage(
+          table: 'terrenos',
+          label: 'Terreno "${t.name}"',
+          id: t.id,
+          run: () => _upsertRemoteTerreno(supabase, t),
+        ),
       for (final c in _txProvider.crops.where((c) => _isUuid(c.id)))
         PushStage(
           table: 'crops',
@@ -371,6 +384,9 @@ class SyncProvider extends ChangeNotifier {
         // E5: ídem — la migración 202610110004 va ANTES del deploy.
         'primer_cosecha_esperada':
             c.primerCosechaEsperada?.toIso8601String().substring(0, 10),
+        // W1: ídem — la migración 202610120001 va ANTES del deploy. Omitir
+        // esta columna tumbaría TODA la subida de cultivos con PGRST204.
+        'terreno_id': c.terrenoId,
       };
 
   Future<void> _upsertRemoteCrop(SupabaseService supabase, Crop c) async {
@@ -434,6 +450,17 @@ class SyncProvider extends ChangeNotifier {
     }, onConflict: 'id');
   }
 
+  Future<void> _upsertRemoteTerreno(SupabaseService supabase, Terreno t) async {
+    final user = supabase.client.auth.currentUser;
+    if (user == null) return;
+    await supabase.client.from('terrenos').upsert({
+      'id': t.id,
+      'user_id': user.id,
+      'name': t.name,
+      'area_ha': t.areaHa,
+    }, onConflict: 'id');
+  }
+
   Future<void> _pullRemote(SupabaseService supabase) async {
     final user = supabase.client.auth.currentUser;
     if (user == null) return;
@@ -450,6 +477,11 @@ class SyncProvider extends ChangeNotifier {
             FarmSettings.fromJson(remoteSettings.first));
       }
     }
+
+    final remoteTerrenos = await supabase.client
+        .from('terrenos')
+        .select()
+        .eq('user_id', user.id);
 
     final remoteTx = await supabase.client
         .from('transactions')
@@ -478,6 +510,18 @@ class SyncProvider extends ChangeNotifier {
 
     if (remoteMapped.isNotEmpty) {
       _txProvider.mergeRemote(remoteMapped);
+    }
+
+    // Los terrenos entran antes que los cultivos: un cultivo remoto puede
+    // traer un `terreno_id` que esta cuenta aún no tiene local, y la lista
+    // de terrenos tiene que estar completa para poder mostrarlo.
+    final terrenoLocalIds = _txProvider.terrenos.map((t) => t.id).toSet();
+    final remoteTerrenoMapped = (remoteTerrenos as List)
+        .map((e) => _remoteToTerreno(e as Map<String, dynamic>))
+        .where((t) => !terrenoLocalIds.contains(t.id))
+        .toList();
+    if (remoteTerrenoMapped.isNotEmpty) {
+      _txProvider.mergeRemoteTerrenos(remoteTerrenoMapped);
     }
 
     final cropLocalIds = _txProvider.crops.map((c) => c.id).toSet();
@@ -515,6 +559,15 @@ class SyncProvider extends ChangeNotifier {
     if (remoteEmployeeMapped.isNotEmpty) {
       _txProvider.mergeRemoteEmployees(remoteEmployeeMapped);
     }
+  }
+
+  Terreno _remoteToTerreno(Map<String, dynamic> row) {
+    return Terreno.fromJson({
+      'id': row['id'] as String,
+      'name': row['name'] as String,
+      'area_ha': (row['area_ha'] as num?)?.toDouble(),
+      'pending_sync': false,
+    });
   }
 
   Transaction _remoteToTransaction(Map<String, dynamic> row) {
@@ -566,6 +619,9 @@ class SyncProvider extends ChangeNotifier {
           (row['expected_yield_kg_ha'] as num?)?.toDouble(),
       // E5: el respaldo anterior a la migración no trae la clave → null.
       'primer_cosecha_esperada': row['primer_cosecha_esperada'] as String?,
+      // W1: respaldo anterior a la migración 202610120001 no trae la clave
+      // → null → el cultivo queda sin terreno, igual que siempre.
+      'terreno_id': row['terreno_id'] as String?,
     });
   }
 
