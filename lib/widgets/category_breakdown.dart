@@ -86,6 +86,21 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
     final mixed = byCurrency.length > 1;
     // Solo con moneda única hay un total y un máximo comparables entre filas.
     final maxAmount = mixed ? 0.0 : rows.first.amount;
+
+    // Moneda única **distinta de la de Ajustes**: la cifra se pinta con su
+    // propia moneda y su código. `formatMoney` usaría el símbolo de Ajustes y
+    // diría "Bs1.000.000" por 1.000.000 COP, contradiciendo la tarjeta del
+    // Resumen —que sí convierte y lo avisa— y a la propia rama mezcla, que ya
+    // lista cada moneda con su código.
+    final soleCurrency = byCurrency.length == 1 ? byCurrency.keys.first : null;
+
+    String monoAmount(double v) {
+      if (soleCurrency == null || soleCurrency == tx.settings.currency) {
+        return formatMoney(context, v);
+      }
+      return '${formatAmount(v, currency: soleCurrency, locale: tx.settings.locale)} '
+          '$soleCurrency';
+    }
     final typeColor =
         widget.type.isExpense ? Colors.red.shade600 : Colors.green.shade700;
     final hasMore = rows.length > widget.topCount;
@@ -132,7 +147,7 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
               // se lista el total de cada moneda por separado.
               mixed
                   ? '${l10n.currencyMixedHint(byCurrency.length)}: ${byCurrency.entries.map((e) => '${formatAmount(e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}').join(' · ')}'
-                  : l10n.categoryBreakdownTotal(formatMoney(context, total)),
+                  : l10n.categoryBreakdownTotal(monoAmount(total)),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -161,7 +176,7 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
                       (v, c) =>
                           formatAmount(v, currency: c, locale: tx.settings.locale),
                     )
-                  : formatMoney(context, row.amount);
+                  : monoAmount(row.amount);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: Column(

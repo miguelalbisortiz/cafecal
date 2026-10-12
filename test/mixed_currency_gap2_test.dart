@@ -247,6 +247,43 @@ void main() {
       expect(find.textContaining(_es.currencyMixedHint(2)), findsNothing);
     });
 
+    testWidgets(
+        'moneda única que no es la de Ajustes: cifra con su moneda y su código',
+        (WidgetTester tester) async {
+      final tx = await makeProvider();
+      // Ajustes queda en COP (el valor por defecto); estos gastos son EUR.
+      // Antes el símbolo de Ajustes se colaba en la cifra europea.
+      await tx.addTransaction(
+          type: TransactionType.expense,
+          category: 'fertilizante',
+          amount: 1000,
+          currency: 'EUR',
+          date: DateTime(2026, 9, 5));
+      await tx.addTransaction(
+          type: TransactionType.expense,
+          category: 'transporte',
+          amount: 500,
+          currency: 'EUR',
+          date: DateTime(2026, 9, 6));
+
+      await pumpBreakdown(tester, tx);
+
+      final labels = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? '')
+          .toList();
+
+      expect(labels.any((l) => l.contains('EUR')), isTrue,
+          reason: 'total y filas llevan la moneda que realmente son');
+      expect(
+        labels.any((l) => l.contains(r'$1.500') || l.contains(r'$1.000')),
+        isFalse,
+        reason: 'el símbolo de Ajustes no puede acompañar a montos en EUR',
+      );
+      expect(find.textContaining(_es.currencyMixedHint(2)), findsNothing,
+          reason: 'sigue siendo moneda única: no se lista como mezcla');
+    });
+
     testWidgets('mezcla: fila sin % y sin barra mentirosa, monto por moneda',
         (WidgetTester tester) async {
       final tx = await makeProvider();
