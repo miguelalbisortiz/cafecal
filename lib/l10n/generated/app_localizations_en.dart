@@ -1423,6 +1423,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newCropDialogTitle => 'New crop';
 
   @override
+  String get welcomeCompleteTitle => 'Complete the crop';
+
+  @override
+  String get save => 'Save';
+
+  @override
   String get cropNameLabel => 'Crop name';
 
   @override

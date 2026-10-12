@@ -362,6 +362,9 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (_) => CropEditorDialog(
             crop: crop,
             existingNames: tx.crops.map((c) => c.name).toList(),
+            // E6-a: el cultivo acaba de nacer en la puerta; el editor es
+            // para completarlo, no para editarlo.
+            recienCreado: true,
           ),
         );
         if (form == null || !mounted) return;

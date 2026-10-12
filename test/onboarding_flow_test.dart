@@ -131,6 +131,34 @@ void main() {
     expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
   });
 
+  testWidgets('[Completar datos…] abre el editor como "Completar cultivo"',
+      (tester) async {
+    final (tx, auth) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+    final l10n = l10nOf(tester);
+
+    await tester.tap(find.text('Agregar el primero'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Mango');
+    await tester.tap(find.text(l10n.welcomeComplete));
+    await tester.pumpAndSettle();
+
+    // E6-a: el cultivo ya nació, así que el editor no dice "Editar" ni
+    // ofrece "Agregar" — dice lo que él tocó y lo que va a pasar.
+    expect(tx.crops.map((c) => c.name), contains('Mango'));
+    expect(find.text(l10n.welcomeCompleteTitle), findsOneWidget);
+    expect(find.text(l10n.editCropTitle), findsNothing);
+    expect(find.text(l10n.save), findsOneWidget);
+    expect(find.text(l10n.add), findsNothing);
+
+    // Y la puerta sigue detrás: cancelar el editor no lo devuelve al tablero.
+    await tester.tap(find.text(l10n.cancel));
+    await tester.pumpAndSettle();
+    expect(find.byType(WelcomeOnboardingCard), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+  });
+
   testWidgets('[Entrar a la app] sí abre el dashboard', (tester) async {
     final (tx, auth) = await makeProviders();
 

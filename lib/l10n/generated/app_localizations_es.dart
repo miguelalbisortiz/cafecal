@@ -1423,6 +1423,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get newCropDialogTitle => 'Nueva variedad';
 
   @override
+  String get welcomeCompleteTitle => 'Completar cultivo';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
   String get cropNameLabel => 'Nombre del cultivo';
 
   @override

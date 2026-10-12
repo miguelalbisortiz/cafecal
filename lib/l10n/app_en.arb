@@ -521,6 +521,8 @@
   "edit": "Edit",
   "add": "Add",
   "newCropDialogTitle": "New crop",
+  "welcomeCompleteTitle": "Complete the crop",
+  "save": "Save",
   "cropNameLabel": "Crop name",
   "cropNameRequired": "Type the crop name.",
   "cropNameTaken": "A crop with that name already exists. Type a different one.",

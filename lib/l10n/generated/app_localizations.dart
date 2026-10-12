@@ -2771,6 +2771,18 @@ abstract class AppLocalizations {
   /// **'Nueva variedad'**
   String get newCropDialogTitle;
 
+  /// No description provided for @welcomeCompleteTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Completar cultivo'**
+  String get welcomeCompleteTitle;
+
+  /// No description provided for @save.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get save;
+
   /// No description provided for @cropNameLabel.
   ///
   /// In es, this message translates to:

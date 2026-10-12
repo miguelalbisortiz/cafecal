@@ -23,12 +23,23 @@ class CropEditorDialog extends StatefulWidget {
   /// próxima siembra. En ese caso los dos campos quedan en solo lectura.
   final bool sowingsLocked;
 
+  /// E6-a · true cuando el cultivo **acaba de nacer** en la puerta de
+  /// bienvenida y se abrió el editor para completarlo.
+  ///
+  /// El comportamiento es el de editar (el cultivo ya existe, hay que
+  /// actualizarlo), pero el copy no: decirle "Editar cultivo" / "Agregar" a
+  /// quien acaba de escribir el nombre sería mentirle sobre lo que está
+  /// pasando. Con esto, el título sigue lo que él tocó — "Completar datos…"
+  /// — y el botón dice lo que hace: guardar.
+  final bool recienCreado;
+
   const CropEditorDialog({
     super.key,
     this.crop,
     required this.existingNames,
     this.suggestedEstablishmentCost,
     this.sowingsLocked = false,
+    this.recienCreado = false,
   });
 
   @override
@@ -257,7 +268,13 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     final l10n = AppLocalizations.of(context)!;
     final editing = widget.crop != null;
     return AlertDialog(
-      title: Text(editing ? l10n.editCropTitle : l10n.newCropDialogTitle),
+      title: Text(switch ((editing, widget.recienCreado)) {
+        // Recién creado desde la puerta: no lo está editando, lo está
+        // completando. El título debe seguir lo que él acaba de tocar.
+        (true, true) => l10n.welcomeCompleteTitle,
+        (true, false) => l10n.editCropTitle,
+        (false, _) => l10n.newCropDialogTitle,
+      }),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -544,7 +561,17 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _submit, child: Text(l10n.add)),
+        // E6-a · solo en el camino que viene de la puerta. Ahí el cultivo
+        // acaba de nacer y "Agregar" le estaría prometiendo otro nuevo.
+        //
+        // En la ruta normal de edición el botón sigue diciendo "Agregar"
+        // como hasta ahora: es raro para un cultivo que ya existe, pero
+        // cambiarlo afecta a cada pantalla que abre el editor, y eso es
+        // una decisión aparte — no un arreglillo de la puerta.
+        FilledButton(
+          onPressed: _submit,
+          child: Text(widget.recienCreado ? l10n.save : l10n.add),
+        ),
       ],
     );
   }

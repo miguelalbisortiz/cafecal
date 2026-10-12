@@ -527,6 +527,8 @@
   "edit": "Editar",
   "add": "Agregar",
   "newCropDialogTitle": "Nueva variedad",
+  "welcomeCompleteTitle": "Completar cultivo",
+  "save": "Guardar",
   "cropNameLabel": "Nombre del cultivo",
   "cropNameRequired": "Escribe el nombre del cultivo.",
   "cropNameTaken": "Ya hay un cultivo con ese nombre. Escribe otro.",

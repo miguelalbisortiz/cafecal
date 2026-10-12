@@ -364,17 +364,21 @@ class _ShortCropSheetState extends State<_ShortCropSheet> {
               ),
             ),
             const SizedBox(height: 8),
+            // E6-b: los siete tienen que caber en UNA fila. A 44 px se
+            // partían y el limón quedaba solo en la segunda, desprolijo.
+            // 7×40 + 6×6 = 316 px, que entra en el ancho del diálogo.
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final i in _icons)
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () => setState(() => _icon = i),
                     child: Container(
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: i == _icon
@@ -388,7 +392,7 @@ class _ShortCropSheetState extends State<_ShortCropSheet> {
                           width: i == _icon ? 2 : 1,
                         ),
                       ),
-                      child: Text(i, style: const TextStyle(fontSize: 20)),
+                      child: Text(i, style: const TextStyle(fontSize: 18)),
                     ),
                   ),
               ],
@@ -399,7 +403,6 @@ class _ShortCropSheetState extends State<_ShortCropSheet> {
               child: InputDecorator(
                 decoration: InputDecoration(
                   labelText: l10n.plantedAtLabel,
-                  helperText: l10n.helpPlantedAtShort,
                   prefixIcon: const Icon(Icons.calendar_today_outlined),
                   suffixIcon: _plantedAt == null
                       ? null
@@ -419,6 +422,20 @@ class _ShortCropSheetState extends State<_ShortCropSheet> {
                   style: _plantedAt == null
                       ? TextStyle(color: Theme.of(context).hintColor)
                       : null,
+                ),
+              ),
+            ),
+            // E6-c: la aclaración va aparte y con su aire. Como `helperText`
+            // quedaba pegada al borde del campo y dibujaba un rectángulo
+            // huérfano que peleaba con los botones de abajo.
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                l10n.helpPlantedAtShort,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
             ),
