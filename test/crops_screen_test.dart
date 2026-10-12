@@ -167,4 +167,55 @@ void main() {
     expect(find.textContaining('año'), findsNothing,
         reason: 'regla de oro: null → oculto, nunca un 0 que no significa nada');
   });
+
+  testWidgets('E5: pinta la primera cosecha estimada con lo que falta',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    final esperada = DateTime(hoy.year + 1, hoy.month, hoy.day);
+    await provider.addCrop('Plátano', primerCosechaEsperada: esperada);
+
+    await pump(tester, provider);
+
+    expect(find.textContaining('primer cosecha est.'), findsOneWidget,
+        reason: 'la fecha que anotó él, con la cuenta que hace la app');
+  });
+
+  testWidgets('E5: si la fecha ya pasó sin cosecha, avisa en gris — sin '
+      'alerta ni rojo', (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    final pasada = DateTime(hoy.year - 1, hoy.month, hoy.day);
+    await provider.addCrop('Durazno', primerCosechaEsperada: pasada);
+
+    await pump(tester, provider);
+
+    final l10n = l10nOf(tester);
+    expect(find.textContaining(l10n.firstHarvestOverdue('')), findsOneWidget,
+        reason: 'es un dato en la línea gris, no una alerta');
+  });
+
+  testWidgets('E5: si ya cosechó de verdad, la estimación se calla',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    final pasada = DateTime(hoy.year - 1, hoy.month, hoy.day);
+    final cafe = await provider.addCrop('Café',
+        primerCosechaEsperada: pasada);
+    await provider.addHarvest(
+        cropId: cafe.id, date: hoy.subtract(const Duration(days: 30)),
+        amount: 120);
+
+    await pump(tester, provider);
+
+    expect(find.textContaining('primer cosecha est.'), findsNothing);
+    expect(find.textContaining('debería estar rindiendo'), findsNothing,
+        reason: 'lo que cosechó manda sobre lo que estimó');
+  });
 }

@@ -72,6 +72,8 @@ class CropsScreen extends StatelessWidget {
         establishmentCost: form.establishmentCost,
         plantedAt: form.plantedAt,
         expectedYieldPerHa: form.expectedYieldPerHa,
+        // E5: al crear el campo ni siquiera se enseña, así que siempre null.
+        primerCosechaEsperada: form.primerCosechaEsperada,
       );
       if (!wasEmpty || !context.mounted) return;
       // Primer cultivo: el onboarding invita a agregar varios existentes.
@@ -126,6 +128,8 @@ class CropsScreen extends StatelessWidget {
       // los campos usan `??` y conservan el valor anterior, pero la meta se
       // puede BORRAR — si el `??` la conservara, borrarla sería imposible.
       expectedYieldPerHa: form.expectedYieldPerHa,
+      // E5: ídem — la fecha estimada se puede borrar.
+      primerCosechaEsperada: form.primerCosechaEsperada,
     ));
   }
 
@@ -181,6 +185,19 @@ class CropsScreen extends StatelessWidget {
     // en el editor) no se pinta nada: mejor callar que inventar un 0.
     final edad = edadDeCrop(crop, tx.sowings);
 
+    // E5 · "¿cuándo esperás la primera cosecha?". Su fecha, no una tabla de
+    // especies. Si ya cosechó de verdad, manda lo que cosechó y esto calla.
+    final estimada = primerCosechaEstimada(
+      crop,
+      yaCosecho: tx.harvests.any((h) => h.cropId == crop.id),
+    );
+    String estimadaTexto(FirstHarvestEstimate e) {
+      final fecha = MaterialLocalizations.of(context).formatShortDate(e.date);
+      return e.overdue
+          ? l10n.firstHarvestOverdue(fecha)
+          : l10n.firstHarvestSoon(fecha, e.monthsOut);
+    }
+
     // L2.3 (patrón H10): la fase se ve con icono de forma distinta + texto,
     // nunca solo con color.
     IconData phaseIcon(CropPhase p) => switch (p) {
@@ -208,6 +225,9 @@ class CropsScreen extends StatelessWidget {
       if (crop.defaultUnit != null) crop.defaultUnit!,
       if (areaText != null && areaText != tag) areaText,
       if (crop.livePlants != null) '${crop.livePlants}',
+      // E5 · gris y en la línea de datos: es un dato, no una alerta. La
+      // palabra "está" o "debería" es lo único que avisa.
+      if (estimada != null) estimadaTexto(estimada),
     ];
     return Card(
       margin: const EdgeInsets.only(bottom: 8),

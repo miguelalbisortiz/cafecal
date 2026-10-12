@@ -368,6 +368,9 @@ class SyncProvider extends ChangeNotifier {
         'planted_at': c.plantedAt?.toIso8601String().substring(0, 10),
         // E4: ídem — la migración 202610110003 va ANTES del deploy.
         'expected_yield_kg_ha': c.expectedYieldPerHa,
+        // E5: ídem — la migración 202610110004 va ANTES del deploy.
+        'primer_cosecha_esperada':
+            c.primerCosechaEsperada?.toIso8601String().substring(0, 10),
       };
 
   Future<void> _upsertRemoteCrop(SupabaseService supabase, Crop c) async {
@@ -561,6 +564,8 @@ class SyncProvider extends ChangeNotifier {
       'planted_at': row['planted_at'] as String?,
       'expected_yield_kg_ha':
           (row['expected_yield_kg_ha'] as num?)?.toDouble(),
+      // E5: el respaldo anterior a la migración no trae la clave → null.
+      'primer_cosecha_esperada': row['primer_cosecha_esperada'] as String?,
     });
   }
 

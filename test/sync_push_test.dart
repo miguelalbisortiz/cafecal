@@ -331,6 +331,47 @@ void main() {
         expect(c.expectedYieldPerHa, isNull);
       });
     });
+
+    // E5 · la fecha de primera cosecha esperada. Mismo motivo que E4: columna
+    // escrita a mano en el payload, así que si no existe en la tabla tumba la
+    // subida de CULTIVOS entera.
+    group('Payload: la primera cosecha esperada (E5)', () {
+      test('primer_cosecha_esperada sale siempre, con null incluido',
+          () async {
+        final sync = await newSync();
+
+        final conFecha = sync.buildCropPayload(
+            Crop(
+                id: cropUuid,
+                name: 'Café',
+                primerCosechaEsperada: DateTime(2027, 4, 1)),
+            uid);
+        expect(conFecha['primer_cosecha_esperada'], '2027-04-01',
+            reason: 'columna date de Postgres: solo día');
+
+        // Sin fecha: null explícito, para poder BORRAR la estimación y que se
+        // refleje en la BD en vez de quedar pisada con la anterior.
+        final sinFecha =
+            sync.buildCropPayload(const Crop(id: cropUuid, name: 'Café'), uid);
+        expect(sinFecha.containsKey('primer_cosecha_esperada'), isTrue);
+        expect(sinFecha['primer_cosecha_esperada'], isNull);
+      });
+
+      test('lo que baja de Supabase conserva la fecha', () async {
+        final c = (await newSync()).remoteToCrop({
+          'id': cropUuid,
+          'name': 'Plátano',
+          'primer_cosecha_esperada': '2027-04-01',
+        });
+        expect(c.primerCosechaEsperada, DateTime(2027, 4, 1));
+      });
+
+      test('una fila vieja sin la columna sigue cargando, sin fecha', () async {
+        final c =
+            (await newSync()).remoteToCrop({'id': cropUuid, 'name': 'Café'});
+        expect(c.primerCosechaEsperada, isNull);
+      });
+    });
   });
 
   group('markAllSynced(selectivo)', () {

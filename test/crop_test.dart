@@ -99,14 +99,18 @@ void main() {
           reason: 'manda lo que pasó en la finca, no lo que escribió en el editor');
     });
 
-    test('una resiembra más reciente también gana', () {
+    test('una resiembra NO reinicia la edad: repone plantas, no arranca de nuevo',
+        () {
       final crop =
           Crop(id: 'cafe', name: 'Café', plantedAt: DateTime(2019, 1, 1));
       final edad = edadDeCrop(crop, [
         siembra(DateTime(2020, 1, 1)),
         siembra(DateTime(2025, 6, 1), kind: SowingKind.resiembra),
       ], hoy: hoy);
-      expect(edad, 1);
+      expect(edad, 6,
+          reason: 'un cafetal de 6 años con matas reponidas sigue teniendo 6 '
+              'años; la propia aritmética de la app dice vivas − muertas + '
+              'nuevas, que es un tope y no un reinicio');
     });
 
     test('sin siembras se usa plantedAt', () {

@@ -98,6 +98,8 @@ class CropSetupPrompt {
       plantedAt: form.plantedAt,
       // E4: ídem crops_screen — el null del campo vacío borra la meta.
       expectedYieldPerHa: form.expectedYieldPerHa,
+      // E5: ídem — la fecha estimada se puede borrar.
+      primerCosechaEsperada: form.primerCosechaEsperada,
     ));
   }
 }

@@ -512,6 +512,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpExpectedYield => 'Lo que querés sacar de este lote por año. Es TU número, no una tabla de nadie: la app no mide contra Cenicafé ni contra nadie más, mide contra lo que vos pusiste. Vacío = no se compara nada.';
 
   @override
+  String get firstHarvestLabel => '¿Cuándo esperás la primera cosecha?';
+
+  @override
+  String get firstHarvestEmpty => 'Sin fecha estimada';
+
+  @override
+  String firstHarvestSoon(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'faltan $count meses',
+      one: 'falta $count mes',
+      zero: 'este mes',
+    );
+    return 'primer cosecha est.: $date · $_temp0';
+  }
+
+  @override
+  String firstHarvestOverdue(String date) {
+    return 'debería estar rindiendo desde $date';
+  }
+
+  @override
   String get cropLockedHint => 'Calculado desde tus siembras';
 
   @override
@@ -669,6 +692,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpExpectedYieldShort => 'Opcional, tu propia meta';
+
+  @override
+  String get helpFirstHarvestShort => 'Opcional. Es TU fecha: la app solo hace la cuenta.';
 
   @override
   String get helpSowingPlantsShort => 'Aproximado';

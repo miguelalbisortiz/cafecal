@@ -512,6 +512,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpExpectedYield => 'What you want to get from this lot per year. It\'s YOUR number, not someone else\'s table: the app doesn\'t measure you against Cenicafé or anyone else, it measures against what you set. Empty = nothing is compared.';
 
   @override
+  String get firstHarvestLabel => 'When do you expect the first harvest?';
+
+  @override
+  String get firstHarvestEmpty => 'No estimated date';
+
+  @override
+  String firstHarvestSoon(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months left',
+      one: '$count month left',
+      zero: 'this month',
+    );
+    return 'est. first harvest: $date · $_temp0';
+  }
+
+  @override
+  String firstHarvestOverdue(String date) {
+    return 'should be yielding since $date';
+  }
+
+  @override
   String get cropLockedHint => 'Calculated from your sowings';
 
   @override
@@ -669,6 +692,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpExpectedYieldShort => 'Optional, your own goal';
+
+  @override
+  String get helpFirstHarvestShort => 'Optional. It\'s YOUR date: the app just does the calendar math.';
 
   @override
   String get helpSowingPlantsShort => 'Approximate';

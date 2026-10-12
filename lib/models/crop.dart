@@ -41,6 +41,19 @@ class Crop {
   /// y, al **crear** un cultivo, la que deduce la fase (C2).
   final DateTime? plantedAt;
 
+  /// E5 · **su fecha**, no una tabla de especies.
+  ///
+  /// El productor ya sabe cuánto tarda su cultivo cuando lo planta; lo que no
+  /// tiene a mano es la cuenta de calendario. Esa la hace la app: con esta
+  /// fecha y hoy, sale "faltan 6 meses".
+  ///
+  /// Una tabla Café→3 años / Plátano→9 meses obligaría a adivinar la especie
+  /// por el nombre del cultivo y le pondría un número que no aplica a su
+  /// altitud ni a su lluvia — el mismo problema descartado en E4.
+  ///
+  /// `null` = no la estima → no se pinta nada.
+  final DateTime? primerCosechaEsperada;
+
   const Crop({
     required this.id,
     required this.name,
@@ -56,6 +69,7 @@ class Crop {
     this.currency,
     this.plantedAt,
     this.expectedYieldPerHa,
+    this.primerCosechaEsperada,
   });
 
   Crop copyWith({
@@ -73,6 +87,7 @@ class Crop {
     Object? currency = _sentinel,
     Object? plantedAt = _sentinel,
     Object? expectedYieldPerHa = _sentinel,
+    Object? primerCosechaEsperada = _sentinel,
   }) {
     return Crop(
       id: id ?? this.id,
@@ -97,6 +112,10 @@ class Crop {
       expectedYieldPerHa: expectedYieldPerHa == _sentinel
           ? this.expectedYieldPerHa
           : (expectedYieldPerHa as num?)?.toDouble(),
+      // Sentinela por lo mismo: la fecha se puede borrar desde el editor.
+      primerCosechaEsperada: primerCosechaEsperada == _sentinel
+          ? this.primerCosechaEsperada
+          : primerCosechaEsperada as DateTime?,
     );
   }
 
@@ -115,6 +134,7 @@ class Crop {
         'currency': currency,
         'planted_at': plantedAt?.toIso8601String(),
         'expected_yield_kg_ha': expectedYieldPerHa,
+        'primer_cosecha_esperada': primerCosechaEsperada?.toIso8601String(),
       };
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -143,6 +163,8 @@ class Crop {
       plantedAt: _fechaDe(json['planted_at']),
       // Respaldo anterior a E4 no trae la clave → null → sin meta.
       expectedYieldPerHa: (json['expected_yield_kg_ha'] as num?)?.toDouble(),
+      // Respaldo anterior a E5 no trae la clave → null → sin fecha estimada.
+      primerCosechaEsperada: _fechaDe(json['primer_cosecha_esperada']),
     );
   }
 
@@ -170,13 +192,19 @@ int aniosCumplidos(DateTime desde, DateTime hoy) {
   return anios < 0 ? 0 : anios;
 }
 
-/// F5 · edad de un cultivo en años, o `null` si **no hay datos**.
+/// E5 · edad de un cultivo en años, o `null` si **no hay datos**.
 ///
 /// Orden fijo, de lo que él anotó en el campo a lo que escribió en el editor:
 ///
-/// 1. la **última** siembra/resiembra — es lo que de verdad ocurrió;
+/// 1. la **última siembra** — es lo que de verdad arrancó el lote;
 /// 2. si no hay ninguna, `plantedAt`;
 /// 3. si no hay ninguna de las dos → `null` (se oculta, nunca un 0 inventado).
+///
+/// **Una resiembra no reinicia la edad.** En la finca, la resiembra repone
+/// plantas muertas: la app misma lo dice con su aritmética, vivas − muertas +
+/// nuevas. Un cafetal de 7 años con 20 matas reponidas sigue teniendo 7 años.
+/// Lo que sí la reinicia es una **siembra nueva** (una renovación completa se
+/// anota como siembra).
 ///
 /// Un cultivo anual no tiene edad de cafetal → `null`.
 int? edadDeCrop(Crop crop, List<Sowing> sowings, {DateTime? hoy}) {
@@ -186,11 +214,67 @@ int? edadDeCrop(Crop crop, List<Sowing> sowings, {DateTime? hoy}) {
   DateTime? desde;
   for (final s in sowings) {
     if (s.cropId != crop.id) continue;
+    if (s.kind != SowingKind.siembra) continue;
     if (desde == null || s.date.isAfter(desde)) desde = s.date;
   }
   desde ??= crop.plantedAt;
   if (desde == null || desde.isAfter(ahora)) return null;
   return aniosCumplidos(desde, ahora);
+}
+
+/// E5 · lo que la app puede decir sobre la primera cosecha que el productor
+/// espera de un lote.
+///
+/// Es **informativa**: no cambia la fase por su cuenta ni dispara alertas.
+/// La fase la decide la primera cosecha registrada
+/// (`TransactionProvider._promotePhaseOnHarvest`).
+class FirstHarvestEstimate {
+  /// La fecha que él anotó.
+  final DateTime date;
+
+  /// Meses que faltan hasta esa fecha. `0` = cae este mismo mes.
+  ///
+  /// Solo tiene sentido leerse junto a [overdue]: si la fecha ya pasó, el
+  /// contador se queda en 0 y manda el mensaje de que ya debería estar
+  /// rindiendo.
+  final int monthsOut;
+
+  /// true cuando la fecha ya pasó **y nunca llegó una cosecha**: el lote
+  /// debería estar rindiendo.
+  ///
+  /// Nunca es una alerta dura ni se pinta en rojo — es un dato, no un regaño.
+  final bool overdue;
+
+  const FirstHarvestEstimate({
+    required this.date,
+    required this.monthsOut,
+    required this.overdue,
+  });
+}
+
+/// E5 · qué decir sobre la primera cosecha estimada, o `null` si **no hay
+/// nada que decir**.
+///
+/// Calla en dos casos, y ambos son la regla de oro trabajando:
+///
+/// 1. no anotó fecha (`null` → oculto, nunca un 0 inventado);
+/// 2. **ya cosechó de verdad** — ahí manda lo que cosechó, no lo que estimó.
+FirstHarvestEstimate? primerCosechaEstimada(
+  Crop crop, {
+  required bool yaCosecho,
+  DateTime? hoy,
+}) {
+  final f = crop.primerCosechaEsperada;
+  if (f == null || yaCosecho) return null;
+  final ahora = hoy ?? DateTime.now();
+  final hoySolo = DateTime(ahora.year, ahora.month, ahora.day);
+  final meses = (f.year - hoySolo.year) * 12 + (f.month - hoySolo.month);
+  return FirstHarvestEstimate(
+    date: f,
+    monthsOut: meses < 0 ? 0 : meses,
+    // `isBefore` y no `<=`: la fecha es solo día, y "hoy" ya avanzó de hora.
+    overdue: f.isBefore(hoySolo),
+  );
 }
 
 const List<Crop> defaultCrops = [

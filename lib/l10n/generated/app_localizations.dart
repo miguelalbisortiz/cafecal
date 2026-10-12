@@ -1097,6 +1097,30 @@ abstract class AppLocalizations {
   /// **'Lo que querés sacar de este lote por año. Es TU número, no una tabla de nadie: la app no mide contra Cenicafé ni contra nadie más, mide contra lo que vos pusiste. Vacío = no se compara nada.'**
   String get helpExpectedYield;
 
+  /// No description provided for @firstHarvestLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cuándo esperás la primera cosecha?'**
+  String get firstHarvestLabel;
+
+  /// No description provided for @firstHarvestEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin fecha estimada'**
+  String get firstHarvestEmpty;
+
+  /// Fecha estimada de la primera cosecha y cuánto falta. Solo se muestra si anotó la fecha y todavía no cosechó de verdad.
+  ///
+  /// In es, this message translates to:
+  /// **'primer cosecha est.: {date} · {count, plural, =0{este mes} one{falta {count} mes} other{faltan {count} meses}}'**
+  String firstHarvestSoon(String date, int count);
+
+  /// La fecha estimada ya pasó y nunca llegó una cosecha. Se pinta en gris, nunca en rojo ni como alerta: es un dato, no un regaño.
+  ///
+  /// In es, this message translates to:
+  /// **'debería estar rindiendo desde {date}'**
+  String firstHarvestOverdue(String date);
+
   /// No description provided for @cropLockedHint.
   ///
   /// In es, this message translates to:
@@ -1348,6 +1372,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Opcional, tu propia meta'**
   String get helpExpectedYieldShort;
+
+  /// No description provided for @helpFirstHarvestShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Es TU fecha: la app solo hace la cuenta.'**
+  String get helpFirstHarvestShort;
 
   /// No description provided for @helpSowingPlantsShort.
   ///

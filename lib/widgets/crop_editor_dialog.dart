@@ -47,6 +47,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   String? _defaultUnit;
   String _currency = 'COP';
   DateTime? _plantedAt;
+
+  /// E5 · "¿cuándo esperás la primera cosecha?".
+  ///
+  /// Su fecha, no una tabla de especies: él sabe cuánto tarda su cultivo, la
+  /// app hace la cuenta del calendario. Opcional y borrable.
+  DateTime? _firstHarvestAt;
   final _areaController = TextEditingController();
   final _plantsController = TextEditingController();
   final _establishmentController = TextEditingController();
@@ -73,6 +79,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       _defaultUnit = c.defaultUnit;
       _currency = c.currency ?? 'COP';
       _plantedAt = c.plantedAt;
+      _firstHarvestAt = c.primerCosechaEsperada;
       if (c.areaHa != null) _areaController.text = c.areaHa.toString();
       if (c.livePlants != null) _plantsController.text = c.livePlants.toString();
       if (c.establishmentCost != null) {
@@ -122,6 +129,26 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       _plantedAt = null;
       _deducePhaseIfCreating();
     });
+  }
+
+  /// E5 · a diferencia de `planted_at`, esta fecha **puede ser del futuro**:
+  /// es lo que espera que pase, no lo que ya pasó.
+  Future<void> _pickFirstHarvest() async {
+    final hoy = DateTime.now();
+    final elegida = await showDatePicker(
+      context: context,
+      initialDate: _firstHarvestAt ?? DateTime(hoy.year + 1, hoy.month),
+      firstDate: DateTime(1950, 1, 1),
+      lastDate: DateTime(hoy.year + 30, 12, 31),
+    );
+    if (!mounted || elegida == null) return;
+    setState(() {
+      _firstHarvestAt = DateTime(elegida.year, elegida.month, elegida.day);
+    });
+  }
+
+  void _clearFirstHarvest() {
+    setState(() => _firstHarvestAt = null);
   }
 
   /// C2 · al **crear**, la fecha que acaba de anotar decide la fase.
@@ -207,6 +234,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       currency: _currency,
       plantedAt: _plantedAt,
       expectedYieldPerHa: expectedYieldPerHa,
+      primerCosechaEsperada: _firstHarvestAt,
     ));
   }
 
@@ -461,6 +489,39 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 ),
               ),
             ],
+            // E5 · su fecha, solo al editar. Igual que la meta: al crear no
+            // hay nada que apuntar todavía, y la regla manda — si se puede
+            // pedir después, no se pide ahora.
+            if (editing) ...[
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: _pickFirstHarvest,
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.firstHarvestLabel,
+                    helperText: l10n.helpFirstHarvestShort,
+                    prefixIcon: const Icon(Icons.event_outlined),
+                    suffixIcon: _firstHarvestAt == null
+                        ? null
+                        : IconButton(
+                            tooltip: l10n.plantedAtClear,
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: _clearFirstHarvest,
+                          ),
+                    border: const OutlineInputBorder(),
+                  ),
+                  child: Text(
+                    _firstHarvestAt == null
+                        ? l10n.firstHarvestEmpty
+                        : MaterialLocalizations.of(context)
+                            .formatShortDate(_firstHarvestAt!),
+                    style: _firstHarvestAt == null
+                        ? TextStyle(color: Theme.of(context).hintColor)
+                        : null,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _currency,
@@ -516,6 +577,10 @@ class CropFormData {
   /// enseñó el campo).
   final double? expectedYieldPerHa;
 
+  /// E5 · `null` = no quiso estimarla (o el cultivo es nuevo y ni siquiera
+  /// se le enseñó el campo).
+  final DateTime? primerCosechaEsperada;
+
   const CropFormData({
     required this.name,
     required this.icon,
@@ -529,5 +594,6 @@ class CropFormData {
     this.currency = 'COP',
     this.plantedAt,
     this.expectedYieldPerHa,
+    this.primerCosechaEsperada,
   });
 }
