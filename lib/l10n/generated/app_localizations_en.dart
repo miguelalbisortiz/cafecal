@@ -47,7 +47,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get nextStepSowingSubtitle => 'A crop in establishment needs its initial planting recorded.';
+  String get nextStepSowingSubtitle => 'This crop has no initial planting recorded yet.';
 
   @override
   String get nextStepExpensesTitle => 'Record your first expenses';
@@ -155,7 +155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseATitle => 'Case A — I already have crops planted';
 
   @override
-  String get helpCaseA1 => 'Crops: review Coffee and Plantain and set their stage to Production (and, if you know it, area and live plants).';
+  String get helpCaseA1 => 'Crops: review Coffee and Plantain and set their stage to Producing (and, if you know it, area and live plants).';
 
   @override
   String get helpCaseA2 => 'Record: enter the month\'s expenses (supplies, labor).';
@@ -173,16 +173,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseBTitle => 'Case B — I\'m going to plant something new';
 
   @override
-  String get helpCaseB1 => 'Crops: create your crop with stage Establishment (cycle Annual or Perennial).';
+  String get helpCaseB1 => 'Crops: create your crop with stage Not producing yet (cycle Annual or Perennial).';
 
   @override
   String get helpCaseB2 => 'Plantings: record the initial planting (plants and area; you can link its cost).';
 
   @override
-  String get helpCaseB3 => 'In establishment the app does not flag losses: it is investment, not production.';
+  String get helpCaseB3 => 'While the crop is not producing yet the app does not flag losses: it is investment, not production.';
 
   @override
-  String get helpCaseB4 => 'When it reaches Production, follow the Case A flow of harvests and sales.';
+  String get helpCaseB4 => 'When it starts Producing, follow the Case A flow of harvests and sales.';
 
   @override
   String get helpUnitsTitle => 'Units';
@@ -242,7 +242,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseAExampleTitle => 'Case A — coffee in production (2 ha, 3000 plants)';
 
   @override
-  String get helpCaseAEx1 => 'Coffee, Production, Perennial, 2 ha, 3000 plants';
+  String get helpCaseAEx1 => 'Coffee, Producing, Perennial, 2 ha, 3000 plants';
 
   @override
   String get helpCaseAEx2 => '\$500,000 expense on Fertilizer';
@@ -260,7 +260,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseBExampleTitle => 'Case B — new plantain (500 plants on 0.5 ha)';
 
   @override
-  String get helpCaseBEx1 => 'Plantain, Establishment, Perennial, 0.5 ha, 500 plants';
+  String get helpCaseBEx1 => 'Plantain, Not producing yet, Perennial, 0.5 ha, 500 plants';
 
   @override
   String get helpCaseBEx2 => 'Initial planting, 500 plants, 0.5 ha, cost \$200,000';
@@ -461,19 +461,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cycleAnual => 'Annual';
 
   @override
-  String get phaseLabel => 'Life stage';
+  String get phaseLabel => 'How is it doing?';
 
   @override
-  String get phaseEstablecimiento => 'Establishment';
+  String get phaseEstablecimiento => 'Not producing yet';
 
   @override
-  String get phaseProduccion => 'Production';
+  String get phaseProduccion => 'Producing';
 
   @override
-  String get phaseRenovacion => 'Renewal';
+  String get phaseRenovacion => 'To renew';
 
   @override
-  String get phaseHelp => 'Establishment = young plantation that does not produce yet (seedlings). The app will not flag losses in this stage.';
+  String get phaseHelp => 'Not producing yet = planted and growing, but no harvest yet. The app will not flag losses at this stage.';
 
   @override
   String get helpUnit => 'What unit do you sell in: kg, lb, arroba (≈12.5 kg), sack, load (≈27.2 kg), bunch (plantain) or crate?';
@@ -2397,17 +2397,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertCropEstablishmentTitle(String crop) {
-    return '$crop is in establishment: it is investment, not loss';
+    return '$crop is not producing yet: it is investment, not loss';
   }
 
   @override
   String alertCropEstablishmentMessage(String investment, String crop) {
-    return 'The problem: you have $investment invested in $crop and no income yet. That is normal at this stage: the plantation is growing and the first harvest arrives when it reaches production.';
+    return 'The problem: you have $investment invested in $crop and no income yet. That is normal at this stage: the plantation is growing and the first harvest arrives when it starts Producing.';
   }
 
   @override
   String alertCropEstablishmentSuggestion(String crop) {
-    return 'Keep recording the expenses of $crop. When the crop reaches production, the app will evaluate its normal profitability.';
+    return 'Keep recording the expenses of $crop. When the crop starts Producing, the app will evaluate its normal profitability.';
   }
 
   @override

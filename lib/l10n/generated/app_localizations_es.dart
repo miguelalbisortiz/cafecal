@@ -47,7 +47,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get nextStepSowingSubtitle => 'Un plantío en establecimiento necesita su siembra inicial registrada.';
+  String get nextStepSowingSubtitle => 'Este cultivo todavía no tiene registrada su siembra inicial.';
 
   @override
   String get nextStepExpensesTitle => 'Registra tus primeros gastos';
@@ -155,7 +155,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseATitle => 'Ya tengo la finca funcionando, solo quiero controlar las cuentas';
 
   @override
-  String get helpCaseA1 => 'Entra a Cultivos (menú ⋮). Edita Café y Plátano y ponles fase Producción (ya están dando frutos). Si sabes hectáreas y plantas, ponlo.';
+  String get helpCaseA1 => 'Entra a Cultivos (menú ⋮). Edita Café y Plátano y ponles fase Dando (ya están dando frutos). Si sabes hectáreas y plantas, ponlo.';
 
   @override
   String get helpCaseA2 => 'En Registrar, anota tus gastos del mes: fertilizante, pago de trabajadores, etc.';
@@ -173,16 +173,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseBTitle => 'Estoy empezando un cultivo nuevo desde cero';
 
   @override
-  String get helpCaseB1 => 'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Establecimiento. Elige si es Anual o Perenne.';
+  String get helpCaseB1 => 'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Sin dar. Elige si es Anual o Perenne.';
 
   @override
   String get helpCaseB2 => 'En Siembras, registra cuántas plantas pusiste, en qué área, y si quieres el costo.';
 
   @override
-  String get helpCaseB3 => 'Mientras esté en Establecimiento, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.';
+  String get helpCaseB3 => 'Mientras no dé fruto, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.';
 
   @override
-  String get helpCaseB4 => 'Cuando empiece a dar fruto y pases a Producción, sigue el flujo del caso anterior: cosechas y ventas.';
+  String get helpCaseB4 => 'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: cosechas y ventas.';
 
   @override
   String get helpUnitsTitle => '¿Qué unidad uso?';
@@ -242,7 +242,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseAExampleTitle => 'Caso A — café en producción (2 ha, 3000 plantas)';
 
   @override
-  String get helpCaseAEx1 => 'Café, Producción, Perenne, 2 ha, 3000 plantas';
+  String get helpCaseAEx1 => 'Café, Dando, Perenne, 2 ha, 3000 plantas';
 
   @override
   String get helpCaseAEx2 => 'Gasto de \$500,000 en Fertilizante';
@@ -260,7 +260,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseBExampleTitle => 'Caso B — plátano nuevo (500 plantas en 0.5 ha)';
 
   @override
-  String get helpCaseBEx1 => 'Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas';
+  String get helpCaseBEx1 => 'Plátano, Sin dar, Perenne, 0.5 ha, 500 plantas';
 
   @override
   String get helpCaseBEx2 => 'Siembra inicial, 500 plantas, 0.5 ha, costo \$200,000';
@@ -461,19 +461,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cycleAnual => 'Anual';
 
   @override
-  String get phaseLabel => 'Fase de vida';
+  String get phaseLabel => '¿Cómo va?';
 
   @override
-  String get phaseEstablecimiento => 'Establecimiento';
+  String get phaseEstablecimiento => 'Sin dar';
 
   @override
-  String get phaseProduccion => 'Producción';
+  String get phaseProduccion => 'Dando';
 
   @override
-  String get phaseRenovacion => 'Renovación';
+  String get phaseRenovacion => 'Para renovar';
 
   @override
-  String get phaseHelp => 'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.';
+  String get phaseHelp => 'Sin dar = plantío ya sembrado que todavía no produce. La app no te marcará pérdidas en esta etapa.';
 
   @override
   String get helpUnit => 'En qué unidad vendés tu cosecha: kg, lb, arroba (≈12.5 kg), saco, carga (≈27.2 kg), racimo (plátano) o cajón.';
@@ -2397,17 +2397,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String alertCropEstablishmentTitle(String crop) {
-    return '$crop está en establecimiento: es inversión, no pérdida';
+    return '$crop todavía no da: es inversión, no pérdida';
   }
 
   @override
   String alertCropEstablishmentMessage(String investment, String crop) {
-    return 'El problema: llevas $investment invertidos en $crop y aún no hay ingresos. Es normal en esta etapa: el plantío está creciendo y la primera cosecha llega al pasar a producción.';
+    return 'El problema: llevas $investment invertidos en $crop y aún no hay ingresos. Es normal en esta etapa: el plantío está creciendo y la primera cosecha llega al pasar a Dando.';
   }
 
   @override
   String alertCropEstablishmentSuggestion(String crop) {
-    return 'Sigue registrando los gastos de $crop. Cuando el cultivo entre en producción, la app evaluará su rentabilidad normal.';
+    return 'Sigue registrando los gastos de $crop. Cuando el cultivo pase a Dando, la app evaluará su rentabilidad normal.';
   }
 
   @override

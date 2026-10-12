@@ -46,6 +46,7 @@ void main() {
     double? sugerencia,
     List<String> existentes = const [],
     bool sowingsLocked = false,
+    bool recienCreado = false,
   }) async {
     final holder = _Holder();
     await tester.pumpWidget(MaterialApp(
@@ -64,6 +65,7 @@ void main() {
                     existingNames: existentes,
                     suggestedEstablishmentCost: sugerencia,
                     sowingsLocked: sowingsLocked,
+                    recienCreado: recienCreado,
                   ),
                 );
               },
@@ -77,6 +79,13 @@ void main() {
     await tester.pumpAndSettle();
     return holder;
   }
+
+  /// Botón de confirmación del editor mientras **edita** un cultivo que ya
+  /// existe: dice "Guardar", no "Agregar" (E6-a). "Agregar" le estaría
+  /// prometiendo un cultivo nuevo cuando en realidad se actualiza uno.
+  ///
+  /// Los tests que abren con [openDialog] (crear) siguen usando `l10n.add`.
+  Finder confirmar(AppLocalizations l10n) => find.text(l10n.save);
 
   testWidgets('el campo de costo del establecimiento es opcional', (tester) async {
     tester.view.physicalSize = const Size(900, 2200);
@@ -254,24 +263,26 @@ void main() {
     expect(find.text(l10n.phaseRenovacion), findsOneWidget,
         reason: 'la fase preseleccionada debe ser la del cultivo editado');
 
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value, isNotNull);
     expect(holder.value!.phase, CropPhase.renovacion);
   });
 
-  testWidgets('4: un cultivo anual que llegara con otra fase se guarda en producción',
+  testWidgets('H3: un cultivo anual con otra fase se ve y se puede corregir',
       (tester) async {
     tester.view.physicalSize = const Size(900, 2200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     final holder = _Holder();
-    // El caso que motivó la regla: un cultivo anual en establecimiento. El
-    // selector de fase está oculto para los anuales, así que sin aplicar el
-    // invariante al guardar quedaría atascado y no habría forma de corregirlo
-    // desde la interfaz.
+    // El caso que motivaba el invariante viejo: un cultivo anual en
+    // establecimiento. Antes el selector de fase estaba **oculto** para los
+    // anuales, así que la única defensa era pisar la fase al guardar.
+    //
+    // H3: el selector está a la vista también para el anual, así que esa
+    // regla ya no hace falta — lo que él elige manda tal cual.
     const crop = Crop(
         id: 'c2',
         name: 'Maíz',
@@ -305,18 +316,24 @@ void main() {
         tester.element(find.byType(CropEditorDialog)))!;
     expect(find.text(l10n.cycleAnual), findsOneWidget,
         reason: 'el ciclo preseleccionado debe ser el del cultivo editado');
-    expect(find.byType(DropdownButtonFormField<CropPhase>), findsNothing,
-        reason: 'los anuales no tienen selector de fase: por eso el invariante '
-            'tiene que aplicarse al guardar y no solo al cambiar el ciclo');
+    expect(find.byType(DropdownButtonFormField<CropPhase>), findsOneWidget,
+        reason: 'H3: el selector de fase ya no se esconde para los anuales');
+    expect(find.text(l10n.phaseEstablecimiento), findsOneWidget,
+        reason: 'se ve la fase que trae el registro, sin corregirla a escondidas');
+
+    await tester.tap(find.byType(DropdownButtonFormField<CropPhase>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.phaseProduccion));
+    await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).at(0), 'Maíz');
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value, isNotNull);
     expect(holder.value!.cycle, CropCycle.anual);
     expect(holder.value!.phase, CropPhase.produccion,
-        reason: 'el invariante anual -> producción se aplica al guardar');
+        reason: 'lo que él elige se guarda tal cual: sin invariante que lo pise');
   });
 
   testWidgets('F3: se auto-rellena con la suma de los gastos de siembra',
@@ -338,7 +355,7 @@ void main() {
 
     // Sigue editable: si falta preparación de tierra o cercas, lo cambia.
     await tester.enterText(campo, '500000');
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.establishmentCost, 500000,
@@ -362,7 +379,7 @@ void main() {
     expect(tester.widget<TextField>(campo).controller!.text, '999',
         reason: 'la sugerencia solo entra si el campo viene vacío');
 
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
     expect(holder.value!.establishmentCost, 999.0);
   });
@@ -383,7 +400,7 @@ void main() {
     expect(tester.widget<TextField>(campo).controller!.text, isEmpty,
         reason: 'regla de oro: null → oculto, nunca 0');
 
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
     expect(holder.value!.establishmentCost, isNull);
   });
@@ -432,7 +449,7 @@ void main() {
     // Y la puerta de salida está ahí, no se queda encerrado.
     expect(find.text(l10n.cropLossRegister), findsOneWidget);
 
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.livePlants, 500, reason: 'se conserva el calculado');
@@ -462,7 +479,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '1,5');
     await tester.enterText(find.byType(TextField).at(2), '800');
     await tester.pumpAndSettle();
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.areaHa, 1.5);
@@ -517,7 +534,7 @@ void main() {
         reason: 'la edad de cafetal no aplica al anual');
   });
 
-  testWidgets('C2: al crear, la fecha que anota decide la fase',
+  testWidgets('H2: al crear, la fecha de plantación NO decide la fase',
       (tester) async {
     tester.view.physicalSize = const Size(900, 2200);
     tester.view.devicePixelRatio = 1.0;
@@ -533,8 +550,9 @@ void main() {
     await tester.tap(find.text(l10n.phaseRenovacion));
     await tester.pumpAndSettle();
 
-    // …pero al decirle que está plantado hoy (0 años) la fase la decide la
-    // edad: recién plantado, no puede ser renovación.
+    // …y le dice que está plantado hoy. Antes la edad lo pisaba; con H2 la
+    // fecha de plantación es un dato de la **planta**, no del rendimiento:
+    // no dice si ya da o no, así que no manda sobre lo que él eligió.
     await confirmarFechaDeHoy(tester, l10n.plantedAtEmpty);
 
     await tester.enterText(find.byType(TextField).at(0), 'Café');
@@ -544,11 +562,77 @@ void main() {
     expect(holder.value, isNotNull);
     expect(holder.value!.plantedAt, isNotNull,
         reason: 'C1: la fecha sí se guarda');
-    expect(holder.value!.phase, CropPhase.establecimiento,
-        reason: 'C2: en un cultivo nuevo la edad manda sobre lo tecleado');
+    expect(holder.value!.phase, CropPhase.renovacion,
+        reason: 'H2: plantar no decide si rinde; lo que él teclea manda');
   });
 
-  testWidgets('C2: al editar, la fecha no re-deduces la fase',
+  testWidgets('H2: en el tramo de la puerta, la primera cosecha es la que '
+      'decide la fase', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    // El cultivo que la puerta acaba de crear. Nace en "Sin dar" porque
+    // la puerta no le pregunta por la primera cosecha (E5: si se puede pedir
+    // después, no se pide ahora) — pero el editor que se abre para
+    // completarlo sí lo pregunta, y ahí manda lo que él estimó.
+    final holder = await openCon(tester,
+        crop: const Crop(
+            id: 'c9', name: 'Café', phase: CropPhase.establecimiento),
+        recienCreado: true);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    expect(find.text(l10n.phaseEstablecimiento), findsOneWidget,
+        reason: 'sin datos que lo digan, la app no adivina');
+
+    // Anota una primera cosecha **aún no llegada** → sigue sin dar.
+    await tester.ensureVisible(find.text(l10n.firstHarvestEmpty));
+    await tester.pumpAndSettle();
+    await confirmarFechaDeHoy(tester, l10n.firstHarvestEmpty);
+
+    await tester.tap(confirmar(l10n));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.primerCosechaEsperada, isNotNull,
+        reason: 'E5: la fecha que estimó sí se guarda');
+    expect(holder.value!.phase, CropPhase.establecimiento,
+        reason: 'H2: su primera cosecha todavía no vino. El caso de una '
+            'fecha ya pasada —que lo pasaría a "Dando"— lo cubre la prueba '
+            'unitaria de deducePhaseOnCreate, sin tener que caminar el '
+            'calendario hacia atrás');
+  });
+
+  testWidgets('H2: al editar un cultivo ya vivido, la estimación no le baja '
+      'la fase', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final holder = await openCon(tester,
+        crop: const Crop(
+            id: 'c1', name: 'Café', phase: CropPhase.produccion));
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    // Anota una primera cosecha en el futuro: si se re-dedujera, lo bajaría
+    // a "Sin dar". No lo hace — la fase de un cultivo que ya vivió sale
+    // de su historial, no de una estimación.
+    await tester.ensureVisible(find.text(l10n.firstHarvestEmpty));
+    await tester.pumpAndSettle();
+    await confirmarFechaDeHoy(tester, l10n.firstHarvestEmpty);
+
+    await tester.tap(confirmar(l10n));
+    await tester.pumpAndSettle();
+
+    expect(holder.value, isNotNull);
+    expect(holder.value!.primerCosechaEsperada, isNotNull);
+    expect(holder.value!.phase, CropPhase.produccion,
+        reason: 'una fase ganada no la pisa una estimación');
+  });
+
+  testWidgets('H2: la fecha de plantación no toca la fase, ni al editar',
       (tester) async {
     tester.view.physicalSize = const Size(900, 2200);
     tester.view.devicePixelRatio = 1.0;
@@ -560,15 +644,17 @@ void main() {
     final l10n =
         AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
 
-    // Pone una fecha de hoy: si se re-dedujera, la bajaría a establecimiento.
+    // Pone una fecha de plantación de hoy. Es un dato de la **planta**, no
+    // del rendimiento: no dice si ya da o no, así que no manda.
     await confirmarFechaDeHoy(tester, l10n.plantedAtEmpty);
 
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.plantedAt, isNotNull);
     expect(holder.value!.phase, CropPhase.produccion,
-        reason: 'editar nunca re-deduces: la fase sale de su historial');
+        reason: 'H2: plantar no decide si rinde; la fase sale de su '
+            'historial');
   });
 
   // ---- E4 · la meta de rendimiento ----
@@ -606,7 +692,7 @@ void main() {
     expect(find.text(l10n.expectedYieldLabel), findsOneWidget);
     // Índice 4: nombre(0) · área(1) · plantas(2) · inversión(3) · meta(4).
     await tester.enterText(find.byType(TextField).at(0), 'Café');
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.expectedYieldPerHa, 1200,
@@ -625,7 +711,7 @@ void main() {
         AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
 
     await tester.enterText(find.byType(TextField).at(4), '');
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.expectedYieldPerHa, isNull,
@@ -645,7 +731,7 @@ void main() {
 
     // Misma convención que área e inversión: la coma es el decimal.
     await tester.enterText(find.byType(TextField).at(4), '1500,5');
-    await tester.tap(find.text(l10n.add));
+    await tester.tap(confirmar(l10n));
     await tester.pumpAndSettle();
 
     expect(holder.value!.expectedYieldPerHa, closeTo(1500.5, 0.001));

@@ -152,4 +152,61 @@ void main() {
       expect(aniosCumplidos(DateTime(2023, 10, 9), hoy), 3);
     });
   });
+
+  // H2 · la fase de un cultivo nuevo no la decide ningún umbral de años.
+  //
+  // Plátano rinde a los 9-12 meses, mango a los 3-5, café a los 3-5: la app
+  // no tiene tabla de especies (y no va a inventar una), y tampoco adivina
+  // por edad — `plantedAt` ni siquiera es parámetro de esta función. Lo único
+  // que manda es lo que **él** estimó, y si no estimó nada, se calla.
+  group('deducePhaseOnCreate — manda lo que él estimó', () {
+    final hoy = DateTime(2026, 10, 11);
+
+    test('un anual nace en "Dando": se siembra y se cosecha en el año', () {
+      expect(deducePhaseOnCreate(cycle: CropCycle.anual, hoy: hoy),
+          CropPhase.produccion);
+      // Aunque él estime una cosecha tardía, el ciclo manda.
+      expect(
+          deducePhaseOnCreate(
+              cycle: CropCycle.anual,
+              primerCosechaEsperada: DateTime(2028, 1, 1),
+              hoy: hoy),
+          CropPhase.produccion);
+    });
+
+    test('sin fecha que lo diga, la app no adivina: nace en "Sin dar"',
+        () {
+      expect(deducePhaseOnCreate(cycle: CropCycle.perenne, hoy: hoy),
+          CropPhase.establecimiento,
+          reason: 'regla de oro: sin dato, se calla en vez de inventar. '
+              'La primera cosecha registrada es la que lo promueve sola');
+    });
+
+    test('lo que él estimó manda sobre cualquier cálculo de la app', () {
+      expect(
+          deducePhaseOnCreate(
+              cycle: CropCycle.perenne,
+              primerCosechaEsperada: DateTime(2026, 11, 1),
+              hoy: hoy),
+          CropPhase.establecimiento,
+          reason: 'su primera cosecha todavía no llegó');
+      expect(
+          deducePhaseOnCreate(
+              cycle: CropCycle.perenne,
+              primerCosechaEsperada: DateTime(2026, 9, 1),
+              hoy: hoy),
+          CropPhase.produccion,
+          reason: 'ya pasó la fecha que él estimó');
+    });
+
+    test('la fecha de hoy cuenta como "todavía no": es el día en que anota',
+        () {
+      expect(
+          deducePhaseOnCreate(
+              cycle: CropCycle.perenne,
+              primerCosechaEsperada: hoy,
+              hoy: hoy),
+          CropPhase.establecimiento);
+    });
+  });
 }

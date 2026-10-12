@@ -170,7 +170,7 @@ abstract class AppLocalizations {
   /// No description provided for @nextStepSowingSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Un plantío en establecimiento necesita su siembra inicial registrada.'**
+  /// **'Este cultivo todavía no tiene registrada su siembra inicial.'**
   String get nextStepSowingSubtitle;
 
   /// No description provided for @nextStepExpensesTitle.
@@ -386,7 +386,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseA1.
   ///
   /// In es, this message translates to:
-  /// **'Entra a Cultivos (menú ⋮). Edita Café y Plátano y ponles fase Producción (ya están dando frutos). Si sabes hectáreas y plantas, ponlo.'**
+  /// **'Entra a Cultivos (menú ⋮). Edita Café y Plátano y ponles fase Dando (ya están dando frutos). Si sabes hectáreas y plantas, ponlo.'**
   String get helpCaseA1;
 
   /// No description provided for @helpCaseA2.
@@ -422,7 +422,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseB1.
   ///
   /// In es, this message translates to:
-  /// **'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Establecimiento. Elige si es Anual o Perenne.'**
+  /// **'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Sin dar. Elige si es Anual o Perenne.'**
   String get helpCaseB1;
 
   /// No description provided for @helpCaseB2.
@@ -434,13 +434,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseB3.
   ///
   /// In es, this message translates to:
-  /// **'Mientras esté en Establecimiento, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.'**
+  /// **'Mientras no dé fruto, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.'**
   String get helpCaseB3;
 
   /// No description provided for @helpCaseB4.
   ///
   /// In es, this message translates to:
-  /// **'Cuando empiece a dar fruto y pases a Producción, sigue el flujo del caso anterior: cosechas y ventas.'**
+  /// **'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: cosechas y ventas.'**
   String get helpCaseB4;
 
   /// No description provided for @helpUnitsTitle.
@@ -560,7 +560,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseAEx1.
   ///
   /// In es, this message translates to:
-  /// **'Café, Producción, Perenne, 2 ha, 3000 plantas'**
+  /// **'Café, Dando, Perenne, 2 ha, 3000 plantas'**
   String get helpCaseAEx1;
 
   /// No description provided for @helpCaseAEx2.
@@ -596,7 +596,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseBEx1.
   ///
   /// In es, this message translates to:
-  /// **'Plátano, Establecimiento, Perenne, 0.5 ha, 500 plantas'**
+  /// **'Plátano, Sin dar, Perenne, 0.5 ha, 500 plantas'**
   String get helpCaseBEx1;
 
   /// No description provided for @helpCaseBEx2.
@@ -998,31 +998,31 @@ abstract class AppLocalizations {
   /// No description provided for @phaseLabel.
   ///
   /// In es, this message translates to:
-  /// **'Fase de vida'**
+  /// **'¿Cómo va?'**
   String get phaseLabel;
 
   /// No description provided for @phaseEstablecimiento.
   ///
   /// In es, this message translates to:
-  /// **'Establecimiento'**
+  /// **'Sin dar'**
   String get phaseEstablecimiento;
 
   /// No description provided for @phaseProduccion.
   ///
   /// In es, this message translates to:
-  /// **'Producción'**
+  /// **'Dando'**
   String get phaseProduccion;
 
   /// No description provided for @phaseRenovacion.
   ///
   /// In es, this message translates to:
-  /// **'Renovación'**
+  /// **'Para renovar'**
   String get phaseRenovacion;
 
   /// No description provided for @phaseHelp.
   ///
   /// In es, this message translates to:
-  /// **'Establecimiento = plantío joven que aún no produce (plantines). La app no te marcará pérdidas en esta etapa.'**
+  /// **'Sin dar = plantío ya sembrado que todavía no produce. La app no te marcará pérdidas en esta etapa.'**
   String get phaseHelp;
 
   /// No description provided for @helpUnit.
@@ -4436,19 +4436,19 @@ abstract class AppLocalizations {
   /// No description provided for @alertCropEstablishmentTitle.
   ///
   /// In es, this message translates to:
-  /// **'{crop} está en establecimiento: es inversión, no pérdida'**
+  /// **'{crop} todavía no da: es inversión, no pérdida'**
   String alertCropEstablishmentTitle(String crop);
 
   /// No description provided for @alertCropEstablishmentMessage.
   ///
   /// In es, this message translates to:
-  /// **'El problema: llevas {investment} invertidos en {crop} y aún no hay ingresos. Es normal en esta etapa: el plantío está creciendo y la primera cosecha llega al pasar a producción.'**
+  /// **'El problema: llevas {investment} invertidos en {crop} y aún no hay ingresos. Es normal en esta etapa: el plantío está creciendo y la primera cosecha llega al pasar a Dando.'**
   String alertCropEstablishmentMessage(String investment, String crop);
 
   /// No description provided for @alertCropEstablishmentSuggestion.
   ///
   /// In es, this message translates to:
-  /// **'Sigue registrando los gastos de {crop}. Cuando el cultivo entre en producción, la app evaluará su rentabilidad normal.'**
+  /// **'Sigue registrando los gastos de {crop}. Cuando el cultivo pase a Dando, la app evaluará su rentabilidad normal.'**
   String alertCropEstablishmentSuggestion(String crop);
 
   /// No description provided for @alertHarvestVsSalesTitle.

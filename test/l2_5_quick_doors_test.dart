@@ -157,8 +157,9 @@ void main() {
           of: find.byType(AlertDialog),
           matching: find.byType(TextField));
       await tester.enterText(area.at(1), '1.5');
+      // El cultivo ya existe, así que el editor guarda (E6-a).
       await tester.tap(find.descendant(
-          of: find.byType(AlertDialog), matching: find.text(es.add)));
+          of: find.byType(AlertDialog), matching: find.text(es.save)));
       await tester.pumpAndSettle();
 
       expect(provider.crops.single.areaHa, 1.5);

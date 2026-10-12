@@ -208,7 +208,7 @@ void main() {
       await tester.tap(find.text(mat.okButtonLabel));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(l10n.add));
+      await tester.tap(find.text(l10n.save));
       await tester.pumpAndSettle();
 
       final hoy = DateTime.now();
@@ -234,7 +234,7 @@ void main() {
       await tester.ensureVisible(find.byTooltip(l10n.plantedAtClear));
       await tester.tap(find.byTooltip(l10n.plantedAtClear));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(l10n.add));
+      await tester.tap(find.text(l10n.save));
       await tester.pumpAndSettle();
 
       expect(holder.value?.primerCosechaEsperada, isNull,

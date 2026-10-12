@@ -66,7 +66,7 @@ void main() {
     await tester.tap(find.textContaining('(USD)').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(dialogL10n.add));
+    await tester.tap(find.text(dialogL10n.save));
     await tester.pumpAndSettle();
 
     expect(find.byType(CropEditorDialog), findsNothing);

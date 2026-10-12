@@ -277,36 +277,44 @@ FirstHarvestEstimate? primerCosechaEstimada(
   );
 }
 
-/// E6 · fase que le toca a un cultivo recién creado.
+/// H2 · fase que le toca a un cultivo recién creado.
 ///
-/// **Un solo lugar para esta regla.** Antes vivía privada dentro del editor
-/// de cultivos; la puerta de bienvenida (E6) necesita la misma cuenta y
-/// duplicarla habría dejado el umbral de 3 años escrito en dos sitios — el
-/// hallazgo H2 que ya venimos combatiendo.
+/// **Un solo lugar para esta regla**, compartida por el editor de cultivos
+/// y por la puerta de bienvenida (E6).
 ///
-/// El umbral **no es una tabla de especies**: es solo el respaldo que decide
-/// entre Establecimiento y Producción cuando él no dijo nada y todavía no
-/// hay cosecha que lo demuestre. Lo que manda de verdad es la primera
-/// cosecha registrada (`TransactionProvider._promotePhaseOnHarvest`) y, ya
-/// en E5, la fecha de primera cosecha que él estimó.
+/// **Aquí no manda ningún umbral de años.** Plátano rinde a los 9-12 meses,
+/// mango a los 3-5, mandarina a la 3-4: cualquier número fijo sería el del
+/// café puesto en boca de todos, que es el hallazgo H2. Lo único que decide
+/// es lo que **él dijo** — la fecha de primera cosecha que estimó en E5 — y,
+/// si no dijo nada, la app calla y nace en `establecimiento`.
+///
+/// Lo que manda de verdad, y ya desde antes, es la primera cosecha
+/// registrada (`TransactionProvider._promotePhaseOnHarvest`): esa no es una
+/// estimación, es un hecho.
 CropPhase deducePhaseOnCreate({
   required CropCycle cycle,
-  DateTime? plantedAt,
+  DateTime? primerCosechaEsperada,
   DateTime? hoy,
 }) {
-  // Un anual no tiene fases de cafetal: se siembra y se cosecha en el año.
+  // Un anual no tiene esas fases: se siembra y se cosecha en el año.
   if (cycle == CropCycle.anual) return CropPhase.produccion;
-  final ahora = hoy ?? DateTime.now();
-  // Sin fecha, el contador arranca en cero → establecimiento, que es el
-  // valor por defecto de un cultivo nuevo (P3). Mejor callar que afirmar.
-  final anios = plantedAt == null ? 0 : aniosCumplidos(plantedAt, ahora);
-  return anios >= _anosParaProduccion
-      ? CropPhase.produccion
-      : CropPhase.establecimiento;
-}
 
-/// Respaldo cuando no hay ni fecha ni cosecha. Ver [deducePhaseOnCreate].
-const int _anosParaProduccion = 3;
+  final estimada = primerCosechaEsperada;
+  if (estimada != null) {
+    final ahora = hoy ?? DateTime.now();
+    final hoySolo = DateTime(ahora.year, ahora.month, ahora.day);
+    // Pasada → ya debería estar dando. Hoy o en el futuro → todavía no:
+    // es el día en que anota, no el día en que cosecha.
+    return estimada.isBefore(hoySolo)
+        ? CropPhase.produccion
+        : CropPhase.establecimiento;
+  }
+
+  // Sin fecha que lo diga, la app no adivina. Nace `establecimiento`, que
+  // es el valor por defecto de un cultivo nuevo (P3): mejor callar que
+  // afirmar.
+  return CropPhase.establecimiento;
+}
 
 const List<Crop> defaultCrops = [
   Crop(id: 'cafe', name: 'Café', icon: '☕', color: '#6D4C41'),

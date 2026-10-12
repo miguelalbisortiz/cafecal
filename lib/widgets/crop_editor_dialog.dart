@@ -26,11 +26,13 @@ class CropEditorDialog extends StatefulWidget {
   /// E6-a · true cuando el cultivo **acaba de nacer** en la puerta de
   /// bienvenida y se abrió el editor para completarlo.
   ///
-  /// El comportamiento es el de editar (el cultivo ya existe, hay que
-  /// actualizarlo), pero el copy no: decirle "Editar cultivo" / "Agregar" a
-  /// quien acaba de escribir el nombre sería mentirle sobre lo que está
-  /// pasando. Con esto, el título sigue lo que él tocó — "Completar datos…"
-  /// — y el botón dice lo que hace: guardar.
+  /// El comportamiento es el de editar — el cultivo ya existe, hay que
+  /// actualizarlo — pero el título no: decirle "Editar cultivo" a quien
+  /// acaba de escribir el nombre sería mentirle sobre lo que está pasando.
+  /// Con esto el título sigue lo que él tocó: **"Completar cultivo"**.
+  ///
+  /// El botón no lo necesita: ya dice "Guardar" en cuanto `crop` viene
+  /// con id, que es lo que distingue crear de actualizar.
   final bool recienCreado;
 
   const CropEditorDialog({
@@ -115,6 +117,10 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       v == v.roundToDouble() ? v.toInt().toString() : v.toString();
 
   /// C1 · el campo es opcional, así que cancelar o borrar dejan `null`.
+  ///
+  /// **La fecha de plantación ya no decide la fase** (H2): es un dato de la
+  /// planta, no del rendimiento. Anotarla no cambia nada que la app no
+  /// sepa con certeza.
   Future<void> _pickPlantedAt() async {
     final hoy = DateTime.now();
     final elegida = await showDatePicker(
@@ -126,19 +132,18 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     if (!mounted || elegida == null) return;
     setState(() {
       _plantedAt = DateTime(elegida.year, elegida.month, elegida.day);
-      _deducePhaseIfCreating();
     });
   }
 
   void _clearPlantedAt() {
-    setState(() {
-      _plantedAt = null;
-      _deducePhaseIfCreating();
-    });
+    setState(() => _plantedAt = null);
   }
 
   /// E5 · a diferencia de `planted_at`, esta fecha **puede ser del futuro**:
   /// es lo que espera que pase, no lo que ya pasó.
+  ///
+  /// H2 · **esta** es la fecha que decide la fase al crear: lo que él estimó
+  /// manda sobre cualquier umbral de años.
   Future<void> _pickFirstHarvest() async {
     final hoy = DateTime.now();
     final elegida = await showDatePicker(
@@ -150,25 +155,36 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     if (!mounted || elegida == null) return;
     setState(() {
       _firstHarvestAt = DateTime(elegida.year, elegida.month, elegida.day);
+      _deducePhaseIfCreating();
     });
   }
 
   void _clearFirstHarvest() {
-    setState(() => _firstHarvestAt = null);
+    setState(() {
+      _firstHarvestAt = null;
+      _deducePhaseIfCreating();
+    });
   }
 
-  /// C2 · al **crear**, la fecha que acaba de anotar decide la fase.
+  /// H2 · la fecha de primera cosecha que él estimó decide la fase.
   ///
-  /// Al **editar** no se re-deduces jamás: la fase de un cultivo que ya existe
-  /// viene de su historial y de la primera cosecha (`_promotePhaseOnHarvest`),
-  /// y pisarla aquí sería un regreso. Sin fecha la fase vuelve a su valor por
-  /// defecto de P3, `establecimiento`.
+  /// No hay umbral de años: plátano rinde a los 9-12, mango a los 3-5 y
+  /// cualquier número fijo sería el del café puesto en boca de todos.
   ///
-  /// E6: la cuenta vive en [deducePhaseOnCreate], compartida con la puerta de
-  /// bienvenida, para que el umbral no quede escrito en dos sitios.
+  /// Al **editar** un cultivo que ya vivió no se re-deduces: su fase sale de
+  /// su historial y de la primera cosecha registrada
+  /// (`_promotePhaseOnHarvest`), y pisarla aquí sería un regreso.
+  ///
+  /// La excepción es la **puerta de bienvenida** (E6): ahí el cultivo acaba
+  /// de nacer en este mismo tramo y completarlo sigue siendo crearlo, con el
+  /// historial todavía vacío.
+  ///
+  /// E6: la cuenta vive en [deducePhaseOnCreate], compartida con la puerta,
+  /// para que la regla no quede escrita en dos sitios.
   void _deducePhaseIfCreating() {
-    if (widget.crop != null) return;
-    _phase = deducePhaseOnCreate(cycle: _cycle, plantedAt: _plantedAt);
+    if (widget.crop != null && !widget.recienCreado) return;
+    _phase = deducePhaseOnCreate(
+        cycle: _cycle, primerCosechaEsperada: _firstHarvestAt);
   }
 
   /// F4 · Puerta de salida del bloqueo: el productor anota cuántas plantas
@@ -229,7 +245,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       name: n,
       icon: _icon,
       color: _color,
-      phase: _effectivePhase,
+      phase: _phase,
       cycle: _cycle,
       defaultUnit: _defaultUnit,
       areaHa: area,
@@ -242,17 +258,17 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     ));
   }
 
-  /// Fase efectiva que se guarda.
+  /// H3 · la fase que se guarda es **la que él eligió**, sin pisarla.
   ///
-  /// Invariante: un cultivo anual no tiene fases de cafetal, así que siempre
-  /// queda en `produccion`. Se aplica **al guardar** y no solo en el
-  /// `onChanged` del desplegable de ciclo, porque el desplegable de fase está
-  /// oculto para los anuales: si un cultivo anual llegara aquí con otra fase
-  /// (por un registro antiguo o por cualquier otro camino de escritura), sin
-  /// esta regla se quedaría atascado y no habría forma de corregirlo desde la
-  /// interfaz.
-  CropPhase get _effectivePhase =>
-      _cycle == CropCycle.anual ? CropPhase.produccion : _phase;
+  /// Antes había aquí un invariante que forzaba `produccion` en los anuales,
+  /// justificado porque el selector de fase estaba **oculto** para ellos: sin
+  /// regla, un anual quedaba atascado y no había forma de corregirlo. Esa
+  /// razón se cae con H1 —el vocabulario ya no es de cafetal— así que el
+  /// selector está a la vista también para el anual y manda lo que él diga.
+  ///
+  /// Lo que sí se mantiene es el **valor por defecto**: al elegir Anual, la
+  /// fase arranca en `produccion`, que es lo habitual (se siembra y se cosecha
+  /// en el año). Es una sugerencia, no un candado.
 
   String _unitLabel(String key, AppLocalizations l10n) => switch (key) {
         'kg' => l10n.unitKg,
@@ -318,8 +334,9 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
               onChanged: (v) => setState(() {
                 _cycle = v ?? CropCycle.perenne;
                 if (_cycle == CropCycle.anual) {
-                  // Un cultivo anual no tiene fases de cafetal: el dropdown de
-                  // fase se oculta, así que se fija producción a mano.
+                  // H3 · solo el valor por defecto: el selector de fase está
+                  // a la vista también para el anual, así que lo puede
+                  // cambiar si esto no es lo que ocurre en su finca.
                   _phase = CropPhase.produccion;
                 }
               }),
@@ -358,35 +375,39 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
-              DropdownButtonFormField<CropPhase>(
-                value: _phase,
-                decoration: InputDecoration(
-                  labelText: l10n.phaseLabel,
-                  helperText: l10n.phaseHelpShort,
-                  suffixIcon: Tooltip(
-                    message: l10n.phaseHelp,
-                    child: const Icon(Icons.info_outline, size: 20),
-                  ),
-                  border: const OutlineInputBorder(),
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: CropPhase.establecimiento,
-                    child: Text(l10n.phaseEstablecimiento),
-                  ),
-                  DropdownMenuItem(
-                    value: CropPhase.produccion,
-                    child: Text(l10n.phaseProduccion),
-                  ),
-                  DropdownMenuItem(
-                    value: CropPhase.renovacion,
-                    child: Text(l10n.phaseRenovacion),
-                  ),
-                ],
-                onChanged: (v) => setState(() => _phase = v ?? CropPhase.produccion),
-              ),
             ],
+            // H3 · a la vista también para el anual. El selector estaba
+            // escondido porque "un anual no tiene fases de cafetal", que era
+            // H1 hablando; con el vocabulario ya no de cafetal se cae esa
+            // razón, y esconderlo le quitaba la posibilidad de corregirlo.
+            const SizedBox(height: 12),
+            DropdownButtonFormField<CropPhase>(
+              value: _phase,
+              decoration: InputDecoration(
+                labelText: l10n.phaseLabel,
+                helperText: l10n.phaseHelpShort,
+                suffixIcon: Tooltip(
+                  message: l10n.phaseHelp,
+                  child: const Icon(Icons.info_outline, size: 20),
+                ),
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: CropPhase.establecimiento,
+                  child: Text(l10n.phaseEstablecimiento),
+                ),
+                DropdownMenuItem(
+                  value: CropPhase.produccion,
+                  child: Text(l10n.phaseProduccion),
+                ),
+                DropdownMenuItem(
+                  value: CropPhase.renovacion,
+                  child: Text(l10n.phaseRenovacion),
+                ),
+              ],
+              onChanged: (v) => setState(() => _phase = v ?? CropPhase.produccion),
+            ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _defaultUnit,
@@ -561,16 +582,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
-        // E6-a · solo en el camino que viene de la puerta. Ahí el cultivo
-        // acaba de nacer y "Agregar" le estaría prometiendo otro nuevo.
-        //
-        // En la ruta normal de edición el botón sigue diciendo "Agregar"
-        // como hasta ahora: es raro para un cultivo que ya existe, pero
-        // cambiarlo afecta a cada pantalla que abre el editor, y eso es
-        // una decisión aparte — no un arreglillo de la puerta.
+        // El cultivo ya existe — editándolo o completándolo desde la
+        // puerta — y el botón guarda. Decirle "Agregar" le estaría
+        // prometiendo un cultivo nuevo.
         FilledButton(
           onPressed: _submit,
-          child: Text(widget.recienCreado ? l10n.save : l10n.add),
+          child: Text(editing ? l10n.save : l10n.add),
         ),
       ],
     );

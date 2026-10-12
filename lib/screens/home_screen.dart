@@ -344,10 +344,12 @@ class _HomeScreenState extends State<HomeScreen> {
           d.name,
           icon: d.icon,
           plantedAt: d.plantedAt,
-          // E6 · la misma regla que el editor, en un solo lugar: sin fecha
-          // nace en Establecimiento y la primera cosecha lo promueve.
-          phase: deducePhaseOnCreate(
-              cycle: CropCycle.perenne, plantedAt: d.plantedAt),
+          // E6 · la misma regla que el editor, en un solo lugar. H2: aquí no
+          // manda ningún umbral de años — la puerta no le pregunta por la
+          // primera cosecha, así que nace en "Sin dar" y la primera
+          // cosecha registrada es la que lo promueve.
+          phase:
+              deducePhaseOnCreate(cycle: CropCycle.perenne),
           cycle: CropCycle.perenne,
         );
 
