@@ -103,11 +103,6 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   static String _importe(double v) =>
       v == v.roundToDouble() ? v.toInt().toString() : v.toString();
 
-  /// C2 · edad a la que el café empieza a producir: la primera cosecha cae
-  /// hacia el tercer año, así que por encima de eso no puede seguir en
-  /// establecimiento.
-  static const _anosParaProduccion = 3;
-
   /// C1 · el campo es opcional, así que cancelar o borrar dejan `null`.
   Future<void> _pickPlantedAt() async {
     final hoy = DateTime.now();
@@ -157,14 +152,12 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   /// viene de su historial y de la primera cosecha (`_promotePhaseOnHarvest`),
   /// y pisarla aquí sería un regreso. Sin fecha la fase vuelve a su valor por
   /// defecto de P3, `establecimiento`.
+  ///
+  /// E6: la cuenta vive en [deducePhaseOnCreate], compartida con la puerta de
+  /// bienvenida, para que el umbral no quede escrito en dos sitios.
   void _deducePhaseIfCreating() {
     if (widget.crop != null) return;
-    if (_cycle != CropCycle.perenne) return; // un anual no tiene fases de cafetal
-    final f = _plantedAt;
-    final anios = f == null ? 0 : aniosCumplidos(f, DateTime.now());
-    _phase = anios >= _anosParaProduccion
-        ? CropPhase.produccion
-        : CropPhase.establecimiento;
+    _phase = deducePhaseOnCreate(cycle: _cycle, plantedAt: _plantedAt);
   }
 
   /// F4 · Puerta de salida del bloqueo: el productor anota cuántas plantas

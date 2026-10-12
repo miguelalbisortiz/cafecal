@@ -218,68 +218,56 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeTitle.
   ///
   /// In es, this message translates to:
-  /// **'Bienvenido'**
+  /// **'¿Qué cultivás?'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Elegí cómo querés empezar a usar la app:'**
+  /// **'Empezá por el que más tenés. Los demás los agregás después.'**
   String get welcomeSubtitle;
 
-  /// No description provided for @welcomeExistingTitle.
+  /// No description provided for @welcomeEmptyList.
   ///
   /// In es, this message translates to:
-  /// **'Registrar cultivo'**
-  String get welcomeExistingTitle;
+  /// **'Sin cultivos todavía'**
+  String get welcomeEmptyList;
 
-  /// No description provided for @welcomeExistingBadge.
+  /// No description provided for @welcomeAddFirst.
   ///
   /// In es, this message translates to:
-  /// **'Situación: ya está plantado'**
-  String get welcomeExistingBadge;
+  /// **'Agregar el primero'**
+  String get welcomeAddFirst;
 
-  /// No description provided for @welcomeExistingSubtitle.
+  /// No description provided for @welcomeAddMore.
   ///
   /// In es, this message translates to:
-  /// **'Las plantas ya están en mi finca; quiero llevar sus cuentas.'**
-  String get welcomeExistingSubtitle;
+  /// **'Agregar otro'**
+  String get welcomeAddMore;
 
-  /// No description provided for @welcomeExistingAction.
+  /// No description provided for @welcomeEnter.
   ///
   /// In es, this message translates to:
-  /// **'Registrar cultivo'**
-  String get welcomeExistingAction;
+  /// **'Entrar a la app'**
+  String get welcomeEnter;
 
-  /// No description provided for @welcomeNewTitle.
+  /// No description provided for @welcomeIconLabel.
   ///
   /// In es, this message translates to:
-  /// **'Registrar siembra'**
-  String get welcomeNewTitle;
+  /// **'Icono'**
+  String get welcomeIconLabel;
 
-  /// No description provided for @welcomeNewBadge.
+  /// No description provided for @welcomeDone.
   ///
   /// In es, this message translates to:
-  /// **'Situación: vas a plantar ahora'**
-  String get welcomeNewBadge;
+  /// **'Listo'**
+  String get welcomeDone;
 
-  /// No description provided for @welcomeNewSubtitle.
+  /// No description provided for @welcomeComplete.
   ///
   /// In es, this message translates to:
-  /// **'Todavía no sembré; voy a sembrar hoy o en estos días.'**
-  String get welcomeNewSubtitle;
-
-  /// No description provided for @welcomeNewAction.
-  ///
-  /// In es, this message translates to:
-  /// **'Registrar siembra'**
-  String get welcomeNewAction;
-
-  /// No description provided for @welcomeHint.
-  ///
-  /// In es, this message translates to:
-  /// **'No importa cuál elijas primero: ambas te guían bien y la app crea todo lo necesario automáticamente.'**
-  String get welcomeHint;
+  /// **'Completar datos…'**
+  String get welcomeComplete;
 
   /// No description provided for @onboardingCropAddedTitle.
   ///

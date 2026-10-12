@@ -277,6 +277,37 @@ FirstHarvestEstimate? primerCosechaEstimada(
   );
 }
 
+/// E6 · fase que le toca a un cultivo recién creado.
+///
+/// **Un solo lugar para esta regla.** Antes vivía privada dentro del editor
+/// de cultivos; la puerta de bienvenida (E6) necesita la misma cuenta y
+/// duplicarla habría dejado el umbral de 3 años escrito en dos sitios — el
+/// hallazgo H2 que ya venimos combatiendo.
+///
+/// El umbral **no es una tabla de especies**: es solo el respaldo que decide
+/// entre Establecimiento y Producción cuando él no dijo nada y todavía no
+/// hay cosecha que lo demuestre. Lo que manda de verdad es la primera
+/// cosecha registrada (`TransactionProvider._promotePhaseOnHarvest`) y, ya
+/// en E5, la fecha de primera cosecha que él estimó.
+CropPhase deducePhaseOnCreate({
+  required CropCycle cycle,
+  DateTime? plantedAt,
+  DateTime? hoy,
+}) {
+  // Un anual no tiene fases de cafetal: se siembra y se cosecha en el año.
+  if (cycle == CropCycle.anual) return CropPhase.produccion;
+  final ahora = hoy ?? DateTime.now();
+  // Sin fecha, el contador arranca en cero → establecimiento, que es el
+  // valor por defecto de un cultivo nuevo (P3). Mejor callar que afirmar.
+  final anios = plantedAt == null ? 0 : aniosCumplidos(plantedAt, ahora);
+  return anios >= _anosParaProduccion
+      ? CropPhase.produccion
+      : CropPhase.establecimiento;
+}
+
+/// Respaldo cuando no hay ni fecha ni cosecha. Ver [deducePhaseOnCreate].
+const int _anosParaProduccion = 3;
+
 const List<Crop> defaultCrops = [
   Crop(id: 'cafe', name: 'Café', icon: '☕', color: '#6D4C41'),
   Crop(id: 'platano', name: 'Plátano', icon: '🍌', color: '#F9A825'),

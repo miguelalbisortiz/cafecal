@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
+import '../models/crop.dart';
 import '../providers/alert_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/sync_provider.dart';
@@ -17,6 +18,7 @@ import '../widgets/alerts_banner.dart';
 import '../widgets/cash_box_card.dart';
 import '../widgets/work_budget_card.dart';
 import '../widgets/category_breakdown.dart';
+import '../widgets/crop_editor_dialog.dart';
 import '../widgets/currency_breakdown.dart';
 import '../widgets/monthly_trend_chart.dart';
 import '../widgets/next_step_card.dart';
@@ -43,6 +45,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
   TransactionType? _registerInitialType;
+
+  /// E6 · la puerta se queda abierta hasta que él toca [Entrar] (G3).
+  ///
+  /// Sin esto, agregar el primer cultivo la cerraría sola y lo expulsaría al
+  /// tablero: quien tiene café, plátano y mango no podría montarlos seguidos.
+  ///
+  /// Solo tiene sentido para quien **entró con la finca vacía**; el usuario
+  /// existente ni ve la puerta, así que esto no lo toca.
+  bool _gatePending = true;
+
+  /// Se captura una sola vez, al primer build: si la finca estaba vacía al
+  /// abrir la app. Sin esto, el primer cultivo creado durante la sesión
+  /// (que ya levanta `needsOnboarding`) cerraría la puerta por atrás.
+  bool? _enteredEmpty;
 
   /// Último error mostrado en pantalla: evita repetir el SnackBar en cada
   /// notifyListeners del mismo fallo (los iconos se redibujan muchas veces).
@@ -103,7 +119,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final sync = context.watch<SyncProvider>();
     final l10n = AppLocalizations.of(context)!;
     final tx = context.watch<TransactionProvider>();
-    final onboarding = needsOnboarding(tx.crops, tx.sowings);
+    // E6 · la puerta (G3): se queda hasta que él toca [Entrar], pero solo si
+    // la finca estaba vacía al abrir la app. Quien ya cultivaba no la ve.
+    _enteredEmpty ??= needsOnboarding(tx.crops, tx.sowings);
+    final onboarding = _gatePending && _enteredEmpty == true;
 
     // Al recuperarse de un error, se olvida para que el siguiente vuelva a avisar.
     if (!sync.hasError && _shownError != null) _shownError = null;
@@ -310,15 +329,64 @@ class _HomeScreenState extends State<HomeScreen> {
         _ => _buildDashboard(),
       };
 
-  /// Vista única del onboarding: las dos cards de primer paso y nada más.
+  /// E6 · la puerta **"¿Qué cultivás?"**.
+  ///
+  /// No empuja al tablero: quien agrega un cultivo vuelve a la lista para
+  /// seguir agregando (G3). Recién cuando toca [Entrar] se cierra.
+  ///
+  /// [Completar datos…] crea el cultivo con lo mínimo y le abre el editor
+  /// completo. Como el cultivo ya existe, lo que cambie ahí es **una sola
+  /// escritura** — no el addCrop + updateCrop que C5 ya había corregido.
   Widget _buildOnboarding() {
+    final tx = context.read<TransactionProvider>();
+
+    Future<Crop> crear(WelcomeCropDraft d) => tx.addCrop(
+          d.name,
+          icon: d.icon,
+          plantedAt: d.plantedAt,
+          // E6 · la misma regla que el editor, en un solo lugar: sin fecha
+          // nace en Establecimiento y la primera cosecha lo promueve.
+          phase: deducePhaseOnCreate(
+              cycle: CropCycle.perenne, plantedAt: d.plantedAt),
+          cycle: CropCycle.perenne,
+        );
+
     return WelcomeOnboardingCard(
-      onRegisterCrop: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CropsScreen()),
-      ),
-      onRegisterSowing: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const SowingScreen()),
-      ),
+      crops: tx.crops,
+      onAdd: (d) => crear(d),
+      onComplete: (d) async {
+        final crop = await crear(d);
+        if (!mounted) return;
+        final form = await showDialog<CropFormData>(
+          context: context,
+          builder: (_) => CropEditorDialog(
+            crop: crop,
+            existingNames: tx.crops.map((c) => c.name).toList(),
+          ),
+        );
+        if (form == null || !mounted) return;
+        await tx.updateCrop(crop.copyWith(
+          name: form.name,
+          icon: form.icon,
+          color: form.color,
+          phase: form.phase,
+          cycle: form.cycle,
+          defaultUnit: form.defaultUnit,
+          areaHa: form.areaHa,
+          livePlants: form.livePlants,
+          establishmentCost: form.establishmentCost,
+          currency: form.currency,
+          plantedAt: form.plantedAt,
+          expectedYieldPerHa: form.expectedYieldPerHa,
+          primerCosechaEsperada: form.primerCosechaEsperada,
+        ));
+      },
+      onEdit: (crop, d) => tx.updateCrop(crop.copyWith(
+        name: d.name,
+        icon: d.icon,
+        plantedAt: d.plantedAt,
+      )),
+      onEnter: () => setState(() => _gatePending = false),
     );
   }
 

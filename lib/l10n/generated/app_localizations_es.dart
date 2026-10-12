@@ -71,37 +71,31 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nextStepGuideLink => 'Ver guía completa';
 
   @override
-  String get welcomeTitle => 'Bienvenido';
+  String get welcomeTitle => '¿Qué cultivás?';
 
   @override
-  String get welcomeSubtitle => 'Elegí cómo querés empezar a usar la app:';
+  String get welcomeSubtitle => 'Empezá por el que más tenés. Los demás los agregás después.';
 
   @override
-  String get welcomeExistingTitle => 'Registrar cultivo';
+  String get welcomeEmptyList => 'Sin cultivos todavía';
 
   @override
-  String get welcomeExistingBadge => 'Situación: ya está plantado';
+  String get welcomeAddFirst => 'Agregar el primero';
 
   @override
-  String get welcomeExistingSubtitle => 'Las plantas ya están en mi finca; quiero llevar sus cuentas.';
+  String get welcomeAddMore => 'Agregar otro';
 
   @override
-  String get welcomeExistingAction => 'Registrar cultivo';
+  String get welcomeEnter => 'Entrar a la app';
 
   @override
-  String get welcomeNewTitle => 'Registrar siembra';
+  String get welcomeIconLabel => 'Icono';
 
   @override
-  String get welcomeNewBadge => 'Situación: vas a plantar ahora';
+  String get welcomeDone => 'Listo';
 
   @override
-  String get welcomeNewSubtitle => 'Todavía no sembré; voy a sembrar hoy o en estos días.';
-
-  @override
-  String get welcomeNewAction => 'Registrar siembra';
-
-  @override
-  String get welcomeHint => 'No importa cuál elijas primero: ambas te guían bien y la app crea todo lo necesario automáticamente.';
+  String get welcomeComplete => 'Completar datos…';
 
   @override
   String get onboardingCropAddedTitle => 'Cultivo agregado';
