@@ -24,7 +24,11 @@ enum AlertRule {
   missingQuantity,
   cajaMenor,
   unpaidSales,
-  workBudget;
+  workBudget,
+  // C7 · pasó la fecha de primera cosecha que él mismo estimó y no hay
+  // ninguna cosecha registrada. Se apaga sola al primer cosecha o a los
+  // 12 meses de la fecha (no existe descarte de alertas en la app).
+  firstHarvestOverdue;
 
   String get key => name;
 }

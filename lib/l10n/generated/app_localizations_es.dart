@@ -1463,6 +1463,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingRenovacionCheckbox => 'Esta resiembra renovó el cultivo — cambiar su fase a renovación';
 
   @override
+  String get sowingRestartCheckbox => 'Esta siembra arrancó el cultivo de nuevo — volver a «Sin dar» y borrar la fecha de la primera cosecha';
+
+  @override
   String get sowingAreaMissingWarning => 'Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.';
 
   @override
@@ -2435,6 +2438,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertRecentlyPlantedSuggestion => 'Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.';
+
+  @override
+  String alertFirstHarvestTitle(String crop) {
+    return '$crop ya debería estar rindiendo';
+  }
+
+  @override
+  String alertFirstHarvestMessage(String crop, String date) {
+    return 'Estimaste la primera cosecha de $crop para el $date y hasta ahora no registraste ninguna cosecha.';
+  }
+
+  @override
+  String get alertFirstHarvestSuggestion => 'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya cosechaste, registrá esa cosecha y este aviso desaparece.';
 
   @override
   String get alertMissingQtyTitle => 'Tienes ventas sin kilos registrados';

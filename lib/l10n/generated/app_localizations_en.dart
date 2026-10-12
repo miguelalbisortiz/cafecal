@@ -1463,6 +1463,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingRenovacionCheckbox => 'This replanting renewed the crop — change its phase to renewal';
 
   @override
+  String get sowingRestartCheckbox => 'This planting restarted the crop — put it back to \"Not producing yet\" and clear the first-harvest date';
+
+  @override
   String get sowingAreaMissingWarning => 'Without an area you cannot see costs per hectare. You can still save.';
 
   @override
@@ -2435,6 +2438,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertRecentlyPlantedSuggestion => 'Edit the crop to adjust its live plants if the count changed after planting.';
+
+  @override
+  String alertFirstHarvestTitle(String crop) {
+    return '$crop should be yielding by now';
+  }
+
+  @override
+  String alertFirstHarvestMessage(String crop, String date) {
+    return 'You estimated the first harvest of $crop for $date and haven\'t recorded any harvest yet.';
+  }
+
+  @override
+  String get alertFirstHarvestSuggestion => 'Check the crop: if something changed or that date no longer fits, edit it. If you already harvested, record it and this notice goes away.';
 
   @override
   String get alertMissingQtyTitle => 'You have sales without recorded kilos';

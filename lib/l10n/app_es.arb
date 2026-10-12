@@ -547,6 +547,7 @@
   "cropLotTag": "lote {n}",
   "cropPhaseNoYield": "aún no rinde · primera cosecha pendiente",
   "sowingRenovacionCheckbox": "Esta resiembra renovó el cultivo — cambiar su fase a renovación",
+  "sowingRestartCheckbox": "Esta siembra arrancó el cultivo de nuevo — volver a «Sin dar» y borrar la fecha de la primera cosecha",
   "sowingAreaMissingWarning": "Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.",
   "cropSetupPrompt": "Tu cultivo está listo para usar. ¿Quieres completar sus datos (fase, área, plantas, unidad)?",
   "cropSetupComplete": "Completar",
@@ -1075,6 +1076,15 @@
   },
   "alertRecentlyPlantedMessage": "Registraste una siembra o resiembra de {crop} el {date}. Verifica que el número de plantas vivas actualizado del cultivo coincida con el conteo real.",
   "alertRecentlyPlantedSuggestion": "Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.",
+  "@alertFirstHarvestTitle": {
+    "placeholders": { "crop": { "type": "String" } }
+  },
+  "alertFirstHarvestTitle": "{crop} ya debería estar rindiendo",
+  "@alertFirstHarvestMessage": {
+    "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }
+  },
+  "alertFirstHarvestMessage": "Estimaste la primera cosecha de {crop} para el {date} y hasta ahora no registraste ninguna cosecha.",
+  "alertFirstHarvestSuggestion": "Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya cosechaste, registrá esa cosecha y este aviso desaparece.",
   "alertMissingQtyTitle": "Tienes ventas sin kilos registrados",
   "@alertMissingQtyMessage": {
     "placeholders": { "count": { "type": "int" } }

@@ -211,6 +211,14 @@ class _SowingFormState extends State<_SowingForm> {
   /// Nunca se marca solo.
   bool _renewCrop = false;
 
+  /// C6 · una siembra nueva sobre un cultivo que ya existía puede ser un
+  /// **arranque completo** (se arrancó todo y se volvió a plantar).
+  ///
+  /// La edad ya se reinicia sola (`edadDeCrop` toma la siembra más reciente);
+  /// lo que NO se reinicia solo son la fase y la fecha de la primera cosecha.
+  /// Nunca se marca solo: él lo pide.
+  bool _restartCrop = false;
+
   @override
   void initState() {
     super.initState();
@@ -250,7 +258,11 @@ class _SowingFormState extends State<_SowingForm> {
 
   Future<void> _onCropChanged(String? value) async {
     if (value != _newCropOption) {
-      setState(() => _cropId = value);
+      setState(() {
+        _cropId = value;
+        // C6 · lo que se marcó para el cultivo anterior no vale para este.
+        _restartCrop = false;
+      });
       return;
     }
     final tx = context.read<TransactionProvider>();
@@ -274,6 +286,8 @@ class _SowingFormState extends State<_SowingForm> {
       setState(() {
         _cropId = existing.id;
         _cropNames[existing.id] = '${existing.icon} ${existing.name}';
+        // C6 · cultivo distinto: lo marcado para el otro no vale.
+        _restartCrop = false;
       });
       return;
     }
@@ -283,8 +297,22 @@ class _SowingFormState extends State<_SowingForm> {
     setState(() {
       _cropId = crop.id;
       _cropNames[crop.id] = '${crop.icon} ${crop.name}';
+      _restartCrop = false;
     });
     widget.onCropCreated?.call(crop);
+  }
+
+  /// C6 · ¿esta siembra puede ser un arranque del cultivo?
+  ///
+  /// Solo si es **siembra** (no resiembra), hay cultivo elegido, y ese cultivo
+  /// **ya tenía otra siembra antes** — la que se está editando no cuenta, o
+  /// editar una siembra normal ofrecería "arrancar de nuevo".
+  bool _canRestart(TransactionProvider tx) {
+    if (_kind != SowingKind.siembra || _cropId == null) return false;
+    return tx.sowings.any((s) =>
+        s.cropId == _cropId &&
+        s.kind == SowingKind.siembra &&
+        s.id != widget.editing?.id);
   }
 
   Future<void> _save() async {
@@ -350,6 +378,31 @@ class _SowingFormState extends State<_SowingForm> {
       }
     }
 
+    // C6 · arranque nuevo. La **edad** ya se reinicia sola (edadDeCrop toma
+    // la siembra más reciente); acá se reinician las otras dos cosas que no
+    // se reinician solas: la fase vuelve a `establecimiento` y la fecha de
+    // la primera cosecha se **borra** — `null` → oculto, nunca una fecha
+    // inventada. Él la vuelve a poner en el editor cuando la sepa.
+    // Se rechequea `_canRestart` por si cambió de cultivo o de tipo con la
+    // casilla ya marcada.
+    if (_restartCrop && _canRestart(tx)) {
+      Crop? arrancado;
+      for (final c in tx.crops) {
+        if (c.id == _cropId) {
+          arrancado = c;
+          break;
+        }
+      }
+      final crop = arrancado;
+      if (crop != null) {
+        await tx.updateCrop(crop.copyWith(
+          phase: CropPhase.establecimiento,
+          primerCosechaEsperada: null,
+          pendingSync: true,
+        ));
+      }
+    }
+
     // Costo opcional con costo > 0 → crea gasto vinculado a la siembra o a
     // la resiembra (F2). Entra al costo por kilo, porque report_harvest_metrics
     // suma los gastos que traen sowingId; en cambio NO cuenta para la
@@ -378,6 +431,7 @@ class _SowingFormState extends State<_SowingForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final tx = context.read<TransactionProvider>();
     final isResiembra = _kind == SowingKind.resiembra;
     return AlertDialog(
       title: Text(widget.editing != null
@@ -421,7 +475,13 @@ class _SowingFormState extends State<_SowingForm> {
                   ),
                 ],
                 selected: {_kind},
-                onSelectionChanged: (s) => setState(() => _kind = s.first),
+                onSelectionChanged: (s) => setState(() {
+                  _kind = s.first;
+                  // C6 · cambiar de tipo cambia el contexto: lo que se marcó
+                  // para "siembra" no vale para "resiembra". La casilla nunca
+                  // viene marcada sola.
+                  _restartCrop = false;
+                }),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -551,6 +611,23 @@ class _SowingFormState extends State<_SowingForm> {
                     border: const OutlineInputBorder(),
                   ),
                 ),
+                // C6 · "arrancó de nuevo". Solo aparece si de verdad puede ser
+                // un arranque (siembra sobre un cultivo que ya tenía otra).
+                // Si no, la pantalla se ve exactamente como siempre.
+                if (_canRestart(tx)) ...[
+                  CheckboxListTile(
+                    value: _restartCrop,
+                    onChanged: (v) =>
+                        setState(() => _restartCrop = v ?? false),
+                    title: Text(
+                      l10n.sowingRestartCheckbox,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                ],
               ],
               // F2: el costo va en la siembra y también en la resiembra —
               // el recambio de plátano o un cafetal renovado también cuesta.

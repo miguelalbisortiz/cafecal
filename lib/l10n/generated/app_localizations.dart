@@ -2843,6 +2843,12 @@ abstract class AppLocalizations {
   /// **'Esta resiembra renovó el cultivo — cambiar su fase a renovación'**
   String get sowingRenovacionCheckbox;
 
+  /// No description provided for @sowingRestartCheckbox.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta siembra arrancó el cultivo de nuevo — volver a «Sin dar» y borrar la fecha de la primera cosecha'**
+  String get sowingRestartCheckbox;
+
   /// No description provided for @sowingAreaMissingWarning.
   ///
   /// In es, this message translates to:
@@ -4486,6 +4492,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Edita el cultivo para ajustar sus plantas vivas si el conteo cambió después de la siembra.'**
   String get alertRecentlyPlantedSuggestion;
+
+  /// No description provided for @alertFirstHarvestTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'{crop} ya debería estar rindiendo'**
+  String alertFirstHarvestTitle(String crop);
+
+  /// No description provided for @alertFirstHarvestMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Estimaste la primera cosecha de {crop} para el {date} y hasta ahora no registraste ninguna cosecha.'**
+  String alertFirstHarvestMessage(String crop, String date);
+
+  /// No description provided for @alertFirstHarvestSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya cosechaste, registrá esa cosecha y este aviso desaparece.'**
+  String get alertFirstHarvestSuggestion;
 
   /// No description provided for @alertMissingQtyTitle.
   ///

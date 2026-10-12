@@ -61,6 +61,7 @@ class AlertService {
         cajaMensual: cajaMensual, workBudgetMensual: workBudgetMensual);
     _checkWorkBudget(active, now, l10n, alerts, workBudget: workBudgetMensual);
     _checkUnpaidSales(active, now, l10n, alerts);
+    _checkFirstHarvestOverdue(crops, harvests, now, l10n, alerts);
 
     return alerts;
   }
@@ -668,6 +669,60 @@ class AlertService {
       message: l10n.alertUnpaidMessage(unpaid.length, _money(total), days),
       suggestion: l10n.alertUnpaidSuggestion,
     ));
+  }
+
+  // ---- Regla 13: pasó la fecha de primera cosecha y no llegó ninguna ----
+
+  /// C7 · el productor anotó **él mismo** cuándo esperaba la primera cosecha
+  /// (E5), esa fecha pasó y no registró ninguna cosecha.
+  ///
+  /// No compara contra ninguna tabla de referencia: manda lo que puso él.
+  /// Si ya cosechó, `primerCosechaEstimada` devuelve `null` y esto calla —
+  /// manda lo que cosechó, no lo que estimó.
+  ///
+  /// **Se apaga sola en dos casos.** La app **no tiene descarte de alertas**
+  /// (se recalculan enteras en cada apertura), así que un aviso que no muere
+  /// se aprende a ignorar:
+  ///
+  /// 1. registró la primera cosecha;
+  /// 2. **pasaron 12 meses** desde la fecha — a partir de ahí deja de ser un
+  ///    aviso y se vuelve ruido. El dato **no desaparece**: la lista de
+  ///    cultivos sigue diciendo "debería estar rindiendo desde…" mientras él
+  ///    no lo arregle.
+  ///
+  /// Si arrancó y replantó (C6) la fecha se borró, así que tampoco dispara.
+  void _checkFirstHarvestOverdue(
+    List<Crop> crops,
+    List<Harvest> harvests,
+    DateTime now,
+    AppLocalizations l10n,
+    List<FarmAlert> out,
+  ) {
+    final hoySolo = DateTime(now.year, now.month, now.day);
+    final limite = DateTime(hoySolo.year - 1, hoySolo.month, hoySolo.day);
+
+    for (final c in crops) {
+      final e = primerCosechaEstimada(
+        c,
+        yaCosecho: harvests.any((h) => h.cropId == c.id),
+        hoy: now,
+      );
+      if (e == null || !e.overdue) continue;
+      // Fecha de hace más de un año → ya no avisa.
+      if (e.date.isBefore(limite)) continue;
+
+      out.add(FarmAlert(
+        id: 'first_harvest_overdue_${c.id}',
+        rule: AlertRule.firstHarvestOverdue,
+        severity: AlertSeverity.warning,
+        title: l10n.alertFirstHarvestTitle(c.name),
+        message: l10n.alertFirstHarvestMessage(
+          c.name,
+          DateFormat('dd/MM/yyyy').format(e.date),
+        ),
+        suggestion: l10n.alertFirstHarvestSuggestion,
+      ));
+    }
   }
 }
 

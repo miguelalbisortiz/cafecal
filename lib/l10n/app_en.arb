@@ -541,6 +541,7 @@
   "cropLotTag": "lot {n}",
   "cropPhaseNoYield": "not yielding yet · first harvest pending",
   "sowingRenovacionCheckbox": "This replanting renewed the crop — change its phase to renewal",
+  "sowingRestartCheckbox": "This planting restarted the crop — put it back to \"Not producing yet\" and clear the first-harvest date",
   "sowingAreaMissingWarning": "Without an area you cannot see costs per hectare. You can still save.",
   "cropSetupPrompt": "Your crop is ready to use. Do you want to complete its details (phase, area, plants, unit)?",
   "cropSetupComplete": "Complete",
@@ -938,6 +939,15 @@
   },
   "alertRecentlyPlantedMessage": "You recorded a planting or replanting of {crop} on {date}. Check that the crop's updated live-plant count matches the real count.",
   "alertRecentlyPlantedSuggestion": "Edit the crop to adjust its live plants if the count changed after planting.",
+  "@alertFirstHarvestTitle": {
+    "placeholders": { "crop": { "type": "String" } }
+  },
+  "alertFirstHarvestTitle": "{crop} should be yielding by now",
+  "@alertFirstHarvestMessage": {
+    "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }
+  },
+  "alertFirstHarvestMessage": "You estimated the first harvest of {crop} for {date} and haven't recorded any harvest yet.",
+  "alertFirstHarvestSuggestion": "Check the crop: if something changed or that date no longer fits, edit it. If you already harvested, record it and this notice goes away.",
   "alertMissingQtyTitle": "You have sales without recorded kilos",
   "@alertMissingQtyMessage": {
     "placeholders": { "count": { "type": "int" } }
