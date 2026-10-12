@@ -173,7 +173,7 @@
   "areaHaLabel": "Area (hectares)",
   "livePlantsLabel": "Live plants",
   "establishmentCostLabel": "Total investment",
-  "expectedYieldLabel": "Target yield (kg/ha)",
+  "expectedYieldLabel": "Annual goal (kg/ha)",
   "helpExpectedYield": "What you want to get from this lot per year. It's YOUR number, not someone else's table: the app doesn't measure you against Cenicafé or anyone else, it measures against what you set. Empty = nothing is compared.",
   "firstHarvestLabel": "When do you expect the first harvest?",
   "firstHarvestEmpty": "No estimated date",
@@ -283,8 +283,8 @@
   "reportPickupCostPerKg": "Picking cost per kg",
   "reportTotalCostPerKg": "Total cost per kg",
   "reportInvestmentEstablecimiento": "Accumulated investment (establishment)",
-  "reportYieldPerArea": "Yield per area (kg/ha)",
-  "reportYieldPerPlant": "Yield per plant (kg/plant)",
+  "reportYieldPerArea": "Yield per area for the period (kg/ha)",
+  "reportYieldPerPlant": "Yield per plant for the period (kg/plant)",
   "reportApprox": "(approximate)",
   "reportSoldVsHarvested": "Sold vs harvested",
   "reportSoldKg": "Sold (kg)",
@@ -349,8 +349,8 @@
 
   "perHaSection": "Per hectare",
   "perHaNoAreaHint": "Set the area of your crops (edit the crop) to see their per-hectare performance: normalized yield, income and expenses.",
-  "perHaYieldLabel": "Yield",
-  "perHaYieldPlantLabel": "Yield per plant",
+  "perHaYieldLabel": "Yield for the period",
+  "perHaYieldPlantLabel": "Yield per plant for the period",
   "@yieldAvgHaLabel": {
     "description": "The farmer's own annual average. Not an external table: it comes from their harvests in completed years",
     "placeholders": { "years": { "type": "int" } }

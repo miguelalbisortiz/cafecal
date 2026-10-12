@@ -1076,7 +1076,7 @@ abstract class AppLocalizations {
   /// No description provided for @expectedYieldLabel.
   ///
   /// In es, this message translates to:
-  /// **'Rendimiento meta (kg/ha)'**
+  /// **'Meta anual (kg/ha)'**
   String get expectedYieldLabel;
 
   /// No description provided for @helpExpectedYield.
@@ -1574,13 +1574,13 @@ abstract class AppLocalizations {
   /// No description provided for @reportYieldPerArea.
   ///
   /// In es, this message translates to:
-  /// **'Rendimiento por área (kg/ha)'**
+  /// **'Rendimiento por área del período (kg/ha)'**
   String get reportYieldPerArea;
 
   /// No description provided for @reportYieldPerPlant.
   ///
   /// In es, this message translates to:
-  /// **'Rendimiento por planta (kg/planta)'**
+  /// **'Rendimiento por planta del período (kg/planta)'**
   String get reportYieldPerPlant;
 
   /// No description provided for @reportApprox.
@@ -1856,13 +1856,13 @@ abstract class AppLocalizations {
   /// No description provided for @perHaYieldLabel.
   ///
   /// In es, this message translates to:
-  /// **'Rendimiento'**
+  /// **'Rendimiento del período'**
   String get perHaYieldLabel;
 
   /// No description provided for @perHaYieldPlantLabel.
   ///
   /// In es, this message translates to:
-  /// **'Rendimiento por planta'**
+  /// **'Rendimiento por planta del período'**
   String get perHaYieldPlantLabel;
 
   /// Promedio anual del propio productor. No es una tabla externa: sale de sus cosechas de años cerrados

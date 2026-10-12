@@ -500,7 +500,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get establishmentCostLabel => 'Total investment';
 
   @override
-  String get expectedYieldLabel => 'Target yield (kg/ha)';
+  String get expectedYieldLabel => 'Annual goal (kg/ha)';
 
   @override
   String get helpExpectedYield => 'What you want to get from this lot per year. It\'s YOUR number, not someone else\'s table: the app doesn\'t measure you against Cenicafé or anyone else, it measures against what you set. Empty = nothing is compared.';
@@ -793,10 +793,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportInvestmentEstablecimiento => 'Accumulated investment (establishment)';
 
   @override
-  String get reportYieldPerArea => 'Yield per area (kg/ha)';
+  String get reportYieldPerArea => 'Yield per area for the period (kg/ha)';
 
   @override
-  String get reportYieldPerPlant => 'Yield per plant (kg/plant)';
+  String get reportYieldPerPlant => 'Yield per plant for the period (kg/plant)';
 
   @override
   String get reportApprox => '(approximate)';
@@ -956,10 +956,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perHaNoAreaHint => 'Set the area of your crops (edit the crop) to see their per-hectare performance: normalized yield, income and expenses.';
 
   @override
-  String get perHaYieldLabel => 'Yield';
+  String get perHaYieldLabel => 'Yield for the period';
 
   @override
-  String get perHaYieldPlantLabel => 'Yield per plant';
+  String get perHaYieldPlantLabel => 'Yield per plant for the period';
 
   @override
   String yieldAvgHaLabel(int years) {

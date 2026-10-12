@@ -173,7 +173,7 @@
   "areaHaLabel": "Área (hectáreas)",
   "livePlantsLabel": "Plantas vivas",
   "establishmentCostLabel": "Inversión total",
-  "expectedYieldLabel": "Rendimiento meta (kg/ha)",
+  "expectedYieldLabel": "Meta anual (kg/ha)",
   "helpExpectedYield": "Lo que querés sacar de este lote por año. Es TU número, no una tabla de nadie: la app no mide contra Cenicafé ni contra nadie más, mide contra lo que vos pusiste. Vacío = no se compara nada.",
   "firstHarvestLabel": "¿Cuándo esperás la primera cosecha?",
   "firstHarvestEmpty": "Sin fecha estimada",
@@ -283,8 +283,8 @@
   "reportPickupCostPerKg": "Costo de recogida por kg",
   "reportTotalCostPerKg": "Costo total por kg",
   "reportInvestmentEstablecimiento": "Inversión acumulada (establecimiento)",
-  "reportYieldPerArea": "Rendimiento por área (kg/ha)",
-  "reportYieldPerPlant": "Rendimiento por planta (kg/planta)",
+  "reportYieldPerArea": "Rendimiento por área del período (kg/ha)",
+  "reportYieldPerPlant": "Rendimiento por planta del período (kg/planta)",
   "reportApprox": "(aproximado)",
   "reportSoldVsHarvested": "Vendido vs cosechado",
   "reportSoldKg": "Vendido (kg)",
@@ -349,8 +349,8 @@
 
   "perHaSection": "Por hectárea",
   "perHaNoAreaHint": "Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.",
-  "perHaYieldLabel": "Rendimiento",
-  "perHaYieldPlantLabel": "Rendimiento por planta",
+  "perHaYieldLabel": "Rendimiento del período",
+  "perHaYieldPlantLabel": "Rendimiento por planta del período",
   "@yieldAvgHaLabel": {
     "description": "Promedio anual del propio productor. No es una tabla externa: sale de sus cosechas de años cerrados",
     "placeholders": { "years": { "type": "int" } }

@@ -500,7 +500,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get establishmentCostLabel => 'Inversión total';
 
   @override
-  String get expectedYieldLabel => 'Rendimiento meta (kg/ha)';
+  String get expectedYieldLabel => 'Meta anual (kg/ha)';
 
   @override
   String get helpExpectedYield => 'Lo que querés sacar de este lote por año. Es TU número, no una tabla de nadie: la app no mide contra Cenicafé ni contra nadie más, mide contra lo que vos pusiste. Vacío = no se compara nada.';
@@ -793,10 +793,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportInvestmentEstablecimiento => 'Inversión acumulada (establecimiento)';
 
   @override
-  String get reportYieldPerArea => 'Rendimiento por área (kg/ha)';
+  String get reportYieldPerArea => 'Rendimiento por área del período (kg/ha)';
 
   @override
-  String get reportYieldPerPlant => 'Rendimiento por planta (kg/planta)';
+  String get reportYieldPerPlant => 'Rendimiento por planta del período (kg/planta)';
 
   @override
   String get reportApprox => '(aproximado)';
@@ -956,10 +956,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get perHaNoAreaHint => 'Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.';
 
   @override
-  String get perHaYieldLabel => 'Rendimiento';
+  String get perHaYieldLabel => 'Rendimiento del período';
 
   @override
-  String get perHaYieldPlantLabel => 'Rendimiento por planta';
+  String get perHaYieldPlantLabel => 'Rendimiento por planta del período';
 
   @override
   String yieldAvgHaLabel(int years) {
