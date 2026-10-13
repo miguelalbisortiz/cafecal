@@ -1269,6 +1269,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingCategoryHint => 'If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn\'t exist yet, tap “+ New crop…”.';
 
   @override
+  String get harvestCategoryHint => 'What the harvest itself costs: bags, supplies and moving the coffee. If you paid someone to pick it, that payment goes under Labor, not here.';
+
+  @override
+  String get laborCategoryHint => 'What you pay people, even for picking, fertilizing or weeding. Here you note who worked and how many days.';
+
+  @override
   String get deductionSwitchLabel => 'The buyer deducted before paying';
 
   @override

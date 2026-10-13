@@ -490,6 +490,8 @@
   "commonCosts": "Costos comunes",
   "commonCostsHint": "Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.",
   "sowingCategoryHint": "Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».",
+  "harvestCategoryHint": "Lo que cuesta la cosecha en sí: bolsas, insumos y mover el café. Si le pagaste a alguien por recoger, ese pago va en Mano de obra, no acá.",
+  "laborCategoryHint": "Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.",
   "deductionSwitchLabel": "El comprador me descontó",
   "deductionHint": "En café no siempre se paga lo que se entrega: impureza, humedad o piedras.",
   "deductionQtyLabel": "Cantidad descontada",

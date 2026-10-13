@@ -94,6 +94,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool get _isJornal =>
       _type == TransactionType.expense && _category == 'mano_obra';
 
+  /// Ayuda que se muestra justo al elegir la categoría.
+  ///
+  /// Va en el momento exacto de la elección y no en un glosario que nadie
+  /// abre. Cubre las categorías que se confunden entre sí: "Cosecha y
+  /// recolección" y "Mano de obra" parecen decir lo mismo y una labor se
+  /// llama "cosechar", así que es fácil pagarle a quien recoge poniéndolo
+  /// en la categoría equivocada y perder el dato del trabajador.
+  String? _categoryHint(AppLocalizations l10n) {
+    if (!_type.isExpense) return null;
+    return switch (_category) {
+      kExpenseCategorySowing => l10n.sowingCategoryHint,
+      kExpenseCategoryHarvest => l10n.harvestCategoryHint,
+      'mano_obra' => l10n.laborCategoryHint,
+      _ => null,
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -529,6 +546,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final categoryHint = _categoryHint(l10n);
     final crops = tx.crops;
     final isExpense = _type.isExpense;
     final categories = isExpense
@@ -657,12 +675,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onChanged: (v) => setState(() => _category = v),
           ),
 
-          // H4 · El camino corto ya existía y nadie lo veía: anotar colinos o
-          // plantas compradas como gasto de "Siembra" y asignarles el cultivo
-          // es equivalente a abrir una siembra — cuenta como inversión y entra
-          // en el costo/kg. Solo faltaba decirlo, en el momento exacto en que
-          // se elige la categoría.
-          if (isExpense && _category == kExpenseCategorySowing) ...[
+          // Ayuda al elegir categoría. H4 · el camino corto ya existía y
+          // nadie lo veía: anotar colinos como gasto de "Siembra" cuenta
+          // como inversión. El mismo sitio ahora explica también cuándo va
+          // el pago a quien cosecha (Mano de obra) y cuándo el gasto de la
+          // cosecha en sí (Cosecha y recolección), que se confunden porque
+          // una labor se llama "cosechar".
+          if (categoryHint != null) ...[
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -682,7 +701,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l10n.sowingCategoryHint,
+                      categoryHint,
                       style: Theme.of(context)
                           .textTheme
                           .bodySmall

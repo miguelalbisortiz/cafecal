@@ -131,6 +131,9 @@ void main() {
   });
 
   testWidgets('el bloque jornal pregunta qué labor', (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     final provider = await makeProvider();
     await pumpRegister(tester, provider,
         editing: Transaction(
@@ -157,6 +160,9 @@ void main() {
 
   testWidgets('"Otra…" abre el campo y una labor libre se recarga ahí',
       (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     final provider = await makeProvider();
     await pumpRegister(tester, provider,
         editing: Transaction(
@@ -184,5 +190,35 @@ void main() {
 
     expect(find.text(_es.taskOtherLabel), findsOneWidget);
     expect(find.text('desbrotar a mano'), findsOneWidget);
+  });
+
+  testWidgets('al elegir una categoría confusa se explica cuál es cuál',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final provider = await makeProvider();
+    await pumpRegister(tester, provider,
+        initialType: TransactionType.expense);
+
+    // Cosecha y recolección: el gasto de la cosecha en sí, no el pago a
+    // quien recoge. Ese pago es el que se perdía antes en la nómina.
+    await tester.tap(dropdownWithValue(kExpenseCategoryHarvest));
+    await tester.pumpAndSettle();
+    await tester.tap(
+        find.textContaining(_es.expenseCategory(kExpenseCategoryHarvest)).last);
+    await tester.pumpAndSettle();
+    expect(find.text(_es.harvestCategoryHint), findsOneWidget);
+    expect(find.text(_es.sowingCategoryHint), findsNothing);
+
+    // Mano de obra: confirma que ahí va el pago a las personas, aunque sea
+    // por cosechar.
+    await tester.tap(dropdownWithValue('mano_obra'));
+    await tester.pumpAndSettle();
+    await tester
+        .tap(find.textContaining(_es.expenseCategory('mano_obra')).last);
+    await tester.pumpAndSettle();
+    expect(find.text(_es.laborCategoryHint), findsOneWidget);
+    expect(find.text(_es.harvestCategoryHint), findsNothing);
   });
 }

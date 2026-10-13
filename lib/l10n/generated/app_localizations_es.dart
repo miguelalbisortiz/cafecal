@@ -1269,6 +1269,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».';
 
   @override
+  String get harvestCategoryHint => 'Lo que cuesta la cosecha en sí: bolsas, insumos y mover el café. Si le pagaste a alguien por recoger, ese pago va en Mano de obra, no acá.';
+
+  @override
+  String get laborCategoryHint => 'Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.';
+
+  @override
   String get deductionSwitchLabel => 'El comprador me descontó';
 
   @override

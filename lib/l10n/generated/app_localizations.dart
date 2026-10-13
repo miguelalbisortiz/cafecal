@@ -2447,6 +2447,18 @@ abstract class AppLocalizations {
   /// **'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».'**
   String get sowingCategoryHint;
 
+  /// No description provided for @harvestCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que cuesta la cosecha en sí: bolsas, insumos y mover el café. Si le pagaste a alguien por recoger, ese pago va en Mano de obra, no acá.'**
+  String get harvestCategoryHint;
+
+  /// No description provided for @laborCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.'**
+  String get laborCategoryHint;
+
   /// No description provided for @deductionSwitchLabel.
   ///
   /// In es, this message translates to:
