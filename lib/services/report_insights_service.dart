@@ -223,6 +223,12 @@ class ReportInsightsService {
   void _bestMonth(int? month, List<Transaction> yearRecords,
       AppLocalizations l10n, String Function(double) money,
       List<ReportInsight> out, bool mixedTotals) {
+    // El ranking entre meses solo tiene sentido cuando el reporte es del año
+    // completo: mirando un mes concreto, "tu mejor mes fue agosto" no sirve
+    // para decidir nada de lo que pasa este mes y solo llena la conclusion.
+    // La comparación que sí decide, contra el periodo anterior, ya la hace
+    // _balance.
+    if (month != null) return;
     // Comparar los meses del año exige sumar todos los meses: si el período
     // o el año mezclan monedas ese ranking sería mentira, así que no se emite.
     if (mixedTotals || isMixedCurrency(yearRecords)) return;

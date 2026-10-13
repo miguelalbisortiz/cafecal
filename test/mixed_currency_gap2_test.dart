@@ -105,7 +105,11 @@ List<Transaction> _year({
           currency: junExpenseCurrency),
     ];
 
-List<String> _buildInsights(List<Transaction> year, {bool mixedTotals = false}) {
+/// [month] es el mes del reporte. `null` = vista de año: es la única donde
+/// el ranking entre meses tiene sentido, porque la comparación que decide en
+/// un mes concreto es contra el periodo anterior.
+List<String> _buildInsights(List<Transaction> year,
+    {bool mixedTotals = false, int? month = 6}) {
   final current = year.where((t) => t.date.month == 6).toList();
   return _texts(const ReportInsightsService().build(
     now: DateTime(2026, 6, 15),
@@ -113,7 +117,7 @@ List<String> _buildInsights(List<Transaction> year, {bool mixedTotals = false}) 
     previousMonth: const [],
     yearRecords: year,
     year: 2026,
-    month: 6,
+    month: month,
     l10n: _es,
     money: _money,
     mixedTotals: mixedTotals,
@@ -126,7 +130,7 @@ void main() {
   group('5 · report_insights_service mono vs mezcla', () {
     test('moneda única: mayor gasto, mejor ingreso y mejor mes siguen ahí',
         () {
-      final texts = _buildInsights(_year());
+      final texts = _buildInsights(_year(), month: null);
       expect(texts.any((t) => t.contains('Tu mayor gasto')), isTrue);
       expect(texts.any((t) => t.contains('Tu mejor ingreso')), isTrue);
       expect(texts.any((t) => t.contains('Tu mejor mes')), isTrue);
@@ -138,6 +142,7 @@ void main() {
       final texts = _buildInsights(
         _year(junIncome2Currency: 'EUR', junExpenseCurrency: 'EUR'),
         mixedTotals: true,
+        month: null,
       );
       expect(texts.any((t) => t.contains('Tu mayor gasto')), isFalse,
           reason: 'un gasto en pesos y otro en euros no tienen un tope común');
@@ -154,7 +159,8 @@ void main() {
         () {
       // Junio es 100 % COP (lo de siempre se pinta), pero marzo trae euros:
       // "mejor mes" y "precio bajo" compararían meses en monedas distintas.
-      final texts = _buildInsights(_year(marIncomeCurrency: 'EUR'));
+      final texts = _buildInsights(_year(marIncomeCurrency: 'EUR'),
+          month: null);
       expect(texts.any((t) => t.contains('Tu mayor gasto')), isTrue);
       expect(texts.any((t) => t.contains('Tu mejor ingreso')), isTrue);
       expect(texts.any((t) => t.contains('Resultado del período')), isTrue);

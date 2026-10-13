@@ -304,13 +304,31 @@ void main() {
   });
 
   group('Bloque D — Comparación temporal', () {
-    test('cita el mejor mes de ventas y el de menor gasto', () {
-      final year = [
-        _txn(type: TransactionType.income, amount: 9000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 3, 11)),
-        _txn(type: TransactionType.income, amount: 3000, date: DateTime(2026, 5, 10), category: 'venta_cafe'),
-        _txn(type: TransactionType.expense, amount: 4000, date: DateTime(2026, 5, 11)),
-      ];
+    final year = [
+      _txn(type: TransactionType.income, amount: 9000, date: DateTime(2026, 3, 10), category: 'venta_cafe'),
+      _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 3, 11)),
+      _txn(type: TransactionType.income, amount: 3000, date: DateTime(2026, 5, 10), category: 'venta_cafe'),
+      _txn(type: TransactionType.expense, amount: 4000, date: DateTime(2026, 5, 11)),
+    ];
+
+    test('en el reporte del año cita el mejor mes y el de menor gasto', () {
+      final insights = service.build(
+        now: now,
+        current: year,
+        previousMonth: const [],
+        yearRecords: year,
+        year: 2026,
+        month: null,
+        l10n: _es,
+        money: _money,
+      );
+      final best = insights.firstWhere((i) => i.text.contains('Tu mejor mes'));
+      expect(best.text, contains('Marzo'));
+      expect(best.text, contains(r'$9000'));
+      expect(best.text, contains(r'$1000'));
+    });
+
+    test('mirando un mes no se emite: no sirve para decidir ese mes', () {
       final insights = service.build(
         now: now,
         current: year,
@@ -321,10 +339,12 @@ void main() {
         l10n: _es,
         money: _money,
       );
-      final best = insights.firstWhere((i) => i.text.contains('Tu mejor mes'));
-      expect(best.text, contains('Marzo'));
-      expect(best.text, contains(r'$9000'));
-      expect(best.text, contains(r'$1000'));
+      expect(
+        insights.any((i) => i.text.contains('Tu mejor mes')),
+        isFalse,
+        reason: 'la comparación que decide es contra el periodo anterior, '
+            'no contra otros meses del año',
+      );
     });
   });
 
