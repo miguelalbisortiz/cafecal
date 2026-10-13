@@ -1,3 +1,10 @@
+# 📌 PLAN ACTIVO — 2026-10-08
+
+**`docs/plans/2026-10-08-ciclo-cultivo-siembra-cosecha.plan.md`** · status `PENDING`
+Arranque previsto **2026-10-09**. Primer paso: Gate 0 (confirmar 0-A, 0-B, C1, C2) → **F1**.
+
+---
+
 # 2026-09-24 — Caja menor, trabajadores y jornales (nómina)
 
 ## Resumen ejecutivo
