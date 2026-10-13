@@ -20,6 +20,26 @@ Map<String, double> amountsByCurrency(
   return out;
 }
 
+/// Ingresos del período que todavía **no se han cobrado**.
+///
+/// El estado de resultados las cuenta como ingreso porque la venta ya
+/// ocurrió, pero la plata no está en la caja. Pintarlas aparte es lo que
+/// permite responder "¿cuánto puedo gastar de verdad?" sin restarle nada al
+/// resultado ni inventar una cifra.
+///
+/// Mismas reglas que [amountsByCurrency]: nunca se suman monedas distintas y
+/// los registros borrados no cuentan. Función pura: sin red, sin estado, sin UI.
+Map<String, double> receivablesByCurrency(Iterable<Transaction> records) {
+  final out = <String, double>{};
+  for (final t in records) {
+    if (t.deleted) continue;
+    if (t.type != TransactionType.income) continue;
+    if (t.paid) continue;
+    out[t.currency] = (out[t.currency] ?? 0) + t.amount;
+  }
+  return out;
+}
+
 /// Ingresos, gastos y resultado de un período, separados por moneda.
 ///
 /// Es la fuente de verdad para pintar los totales del período: si hay una

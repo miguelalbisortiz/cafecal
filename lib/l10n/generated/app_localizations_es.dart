@@ -1812,6 +1812,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get metricCostPriceLabel => 'Precio de venta por kilo';
 
   @override
+  String get metricMarginPerKgLabel => 'Margen por kilo';
+
+  @override
+  String get metricMarginPerKgGood => 'Vendes por encima de lo que te costó producirlo.';
+
+  @override
+  String get metricMarginPerKgBad => 'Vendes por debajo de lo que te costó producirlo: cada kilo vendido resta.';
+
+  @override
+  String get metricMarginPerKgZero => 'Vendes a costo: ni ganas ni pierdes por kilo.';
+
+  @override
+  String get metricReceivablesLabel => 'Ventas por cobrar';
+
+  @override
+  String get metricReceivablesNote => 'Todavía no te lo han pagado: esa plata no está en la caja.';
+
+  @override
+  String get metricLaborShareLabel => 'Mano de obra sobre el gasto';
+
+  @override
+  String get metricLaborShareNote => 'Es la parte de todo lo que gastaste en el periodo que se fue en mano de obra.';
+
+  @override
   String metricCostPriceAbove(String cost) {
     return 'Te cuesta $cost por kilo. Vendes por encima de tu costo.';
   }

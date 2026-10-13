@@ -892,6 +892,28 @@ class _ReportScreenState extends State<ReportScreen> {
             byCurrency.keys.first,
           );
 
+    // Mano de obra sobre el gasto del periodo: de cada $100 que se fue en
+    // gastos, cuantos se fueron en nomina. Solo se calcula con una sola
+    // moneda en nomina y en gastos: cruzar monedas daria un porcentaje
+    // falso. Va sin senal bueno/malo porque no hay umbral de referencia que
+    // valga para todas las fincas, y la regla de la app es no inventar
+    // alertas duras.
+    final payrollTotal =
+        summary.totalByCurrency.values.fold<double>(0, (a, b) => a + b);
+    final expenseCurrencies = <String>{};
+    var periodExpenses = 0.0;
+    for (final t in _recordsFor(tx)) {
+      if (t.deleted || !t.type.isExpense) continue;
+      expenseCurrencies.add(t.currency);
+      periodExpenses += t.amount;
+    }
+    final laborShare = (!mixed &&
+            expenseCurrencies.length == 1 &&
+            periodExpenses > 0 &&
+            payrollTotal > 0)
+        ? (payrollTotal / periodExpenses) * 100
+        : null;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -932,6 +954,13 @@ class _ReportScreenState extends State<ReportScreen> {
               value: rowValue(summary.totalByCurrency),
               bold: true,
             ),
+            if (laborShare != null) ...[
+              _harvestLine(
+                label: l10n.metricLaborShareLabel,
+                value: '${_pct(laborShare)}%',
+              ),
+              _hintLine(l10n.metricLaborShareNote),
+            ],
             _harvestLine(
               label: l10n.reportPayrollEmployees(summary.distinctEmployees),
               value: '',
@@ -1692,6 +1721,9 @@ class _ReportScreenState extends State<ReportScreen> {
     final totalIncomes = converted?.incomes ?? incomes;
     final totalExpenses = converted?.expenses ?? expenses;
     final balance = totalIncomes - totalExpenses;
+    // Lo vendido en el periodo que todavía no se ha cobrado. Se calcula con
+    // los mismos registros del periodo, así que nunca mezcla monedas.
+    final receivables = receivablesByCurrency(records);
     final incomeRows = _categoryRows(tx, TransactionType.income, l10n);
     final expenseRows = _categoryRows(tx, TransactionType.expense, l10n);
     final margen = totalIncomes > 0 ? (balance / totalIncomes) * 100 : null;
@@ -1776,6 +1808,14 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(height: 4),
                 _hintLine(l10n.currencyRateNote),
               ],
+              // Lo que ya vendiste pero todavía no te han pagado. El
+              // resultado de arriba lo cuenta porque la venta ocurrió; aquí
+              // se avisa que esa plata todavía no está en la caja. Si no hay
+              // nada por cobrar no se pinta: mejor callar que enseñar un cero.
+              if (receivables.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _receivablesBlock(context, tx, l10n, receivables),
+              ],
               const SizedBox(height: 10),
               _metricLine(
                 context,
@@ -1818,6 +1858,26 @@ class _ReportScreenState extends State<ReportScreen> {
                         : _accounting(context, tx, costByKg,
                             currency: _effectiveCurrency),
                   ),
+                ),
+              // Nivel 1 · el número que decide: la plata que deja cada kilo.
+              // Es la diferencia entre las dos cifras de arriba. Solo se
+              // pinta cuando existen las dos y el período no mezcla monedas:
+              // un margen inventado es peor que no mostrarlo.
+              if (!periodTotals.isMixed &&
+                  costByKg != null &&
+                  priceByKg != null)
+                _metricLine(
+                  context,
+                  l10n.metricMarginPerKgLabel,
+                  _accounting(context, tx, priceByKg - costByKg,
+                      currency: _effectiveCurrency),
+                  signal: signalOfCostPrice(
+                      costPriceVerdict(costByKg, priceByKg)),
+                  caption: priceByKg > costByKg
+                      ? l10n.metricMarginPerKgGood
+                      : priceByKg < costByKg
+                          ? l10n.metricMarginPerKgBad
+                          : l10n.metricMarginPerKgZero,
                 ),
             ],
             // Con tasa, el desglose por moneda queda como referencia.
@@ -2167,15 +2227,11 @@ class _ReportScreenState extends State<ReportScreen> {
         RatioVerdict.noSales => l10n.metricNoSales,
       };
 
+  /// Delega en la frase compartida [costPriceCaption]: la pantalla, el PDF y
+  /// el Excel tienen que decir lo mismo, así que la copy se escribe una vez.
   String _costPriceCaption(
           AppLocalizations l10n, CostPriceVerdict verdict, String costText) =>
-      switch (verdict) {
-        CostPriceVerdict.above => l10n.metricCostPriceAbove(costText),
-        CostPriceVerdict.below => l10n.metricCostPriceBelow(costText),
-        CostPriceVerdict.equal => l10n.metricCostPriceEqual(costText),
-        CostPriceVerdict.noCost => l10n.metricCostPriceNoCost,
-        CostPriceVerdict.noQty => l10n.metricCostPriceNoQty(costText),
-      };
+      costPriceCaption(l10n, verdict, costText);
 
   Widget _hintLine(String text) {
     return Padding(
@@ -2188,6 +2244,73 @@ class _ReportScreenState extends State<ReportScreen> {
           color: Colors.grey,
         ),
       ),
+    );
+  }
+
+  /// Ventas del periodo que todavía no se han cobrado.
+  ///
+  /// Va justo debajo del resultado: el resultado dice cuánto ganaste, esto
+  /// avisa cuánto de eso todavía no está en la caja. Con dos o mas monedas no
+  /// se suman ni se restan: cada una sale con su codigo, como en todo el
+  /// resto del reporte.
+  Widget _receivablesBlock(
+    BuildContext context,
+    TransactionProvider tx,
+    AppLocalizations l10n,
+    Map<String, double> byCurrency,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final amounts = byCurrency.entries.toList();
+    // Con una sola moneda se imprime la cifra de siempre; con varias cada
+    // una lleva su codigo, porque restar pesos con dolares seria un neto
+    // falso.
+    final shown = amounts.length == 1
+        ? formatAmount(amounts.first.value,
+            currency: amounts.first.key, locale: tx.settings.locale)
+        : amounts
+            .map((e) =>
+                '${formatAmount(e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}')
+            .join(' · ');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.schedule, size: 14, color: scheme.tertiary),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.metricReceivablesLabel,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 20, top: 2),
+          child: Text(
+            shown,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: scheme.tertiary,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 20, top: 2),
+          child: Text(
+            l10n.metricReceivablesNote,
+            style: const TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: Colors.grey,
+              height: 1.3,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -1,9 +1,15 @@
+import '../l10n/generated/app_localizations.dart';
+
 /// Señal bueno/malo de las métricas del reporte.
 ///
 /// La señal nunca se comunica solo con color: la UI la acompaña siempre de un
 /// icono de forma distinta y de una frase en lenguaje llano (ver
 /// `_metricLine` en `report_screen.dart`). Esto es lo que exige el hallazgo
 /// H10 del PRD de comprensibilidad (2026-10-01_2111).
+///
+/// La frase del veredicto vive aquí y no en la pantalla: los tres pintadores
+/// (pantalla, PDF y Excel) tienen que decir lo mismo, así que la copy se
+/// escribe una sola vez.
 enum MetricSignal { positive, neutral, negative, none }
 
 /// Veredicto del margen sobre ventas.
@@ -71,6 +77,23 @@ MetricSignal signalOfCostPrice(CostPriceVerdict verdict) => switch (verdict) {
       CostPriceVerdict.below => MetricSignal.negative,
       CostPriceVerdict.equal => MetricSignal.neutral,
       CostPriceVerdict.noCost || CostPriceVerdict.noQty => MetricSignal.none,
+    };
+
+/// Frase en lenguaje llano que explica el veredicto precio/kg vs costo/kg.
+///
+/// Compartida por pantalla, PDF y Excel: la misma entrada produce la misma
+/// frase, así que un reporte nunca contradice a otro.
+String costPriceCaption(
+  AppLocalizations l10n,
+  CostPriceVerdict verdict,
+  String costText,
+) =>
+    switch (verdict) {
+      CostPriceVerdict.above => l10n.metricCostPriceAbove(costText),
+      CostPriceVerdict.below => l10n.metricCostPriceBelow(costText),
+      CostPriceVerdict.equal => l10n.metricCostPriceEqual(costText),
+      CostPriceVerdict.noCost => l10n.metricCostPriceNoCost,
+      CostPriceVerdict.noQty => l10n.metricCostPriceNoQty(costText),
     };
 
 /// Umbrales aprobados el 2026-10-02 junto con el diseño de la Alternativa 1.

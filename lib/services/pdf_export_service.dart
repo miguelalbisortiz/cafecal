@@ -17,6 +17,7 @@ import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
+import 'metric_signal.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
@@ -128,6 +129,19 @@ class PdfExportService {
     // Con moneda única cada grupo tiene una sola entrada: la cifra de siempre.
     final margen = incomes > 0 ? (balance / incomes) * 100 : null;
     final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
+
+    // Precio, costo y margen por kilo: el veredicto que en pantalla ya se
+    // pinta. Se repiten aqui con las mismas claves para que los tres
+    // pintadores digan lo mismo. Solo con moneda unica: con mezcla el precio
+    // por kilo cruzaria monedas y saldria una cifra inventada.
+    final perKg = ReportHarvestMetrics(sacoKg: settings.sacoKg);
+    final costByKg = perKg.periodCostPerKg(expenses, periodHarvests);
+    final priceByKg = perKg.avgSalePricePerKg(periodTx);
+    final marginPerKg = (costByKg != null && priceByKg != null)
+        ? priceByKg - costByKg
+        : null;
+    // Lo vendido en el periodo que todavia no se ha cobrado.
+    final receivables = receivablesByCurrency(periodTx);
     // Con mezcla el color del resultado mira cada moneda por separado: nunca
     // el signo de una suma que cruzaría monedas.
     final resultColor = mixedHeader
@@ -325,6 +339,41 @@ class PdfExportService {
               (mixedHeader || ratio == null) ? '—' : '${_pctOf(ratio, 1)}%',
               small: true,
               valueColor: PdfColors.grey700),
+          // El veredicto por kilo: la cifra primero y la frase del veredicto
+          // debajo. En papel no hay color ni icono que valga, asi que la
+          // frase tiene que estar escrita. Solo con moneda unica.
+          if (!mixedHeader && (costByKg != null || priceByKg != null)) ...[
+            _statementRow(
+                l10n.metricCostPriceLabel,
+                priceByKg == null ? '—' : formatPdfMoney(priceByKg, currency),
+                small: true,
+                valueColor: _pdfPositive),
+            _statementRow(
+                costPriceCaption(
+                  l10n,
+                  costPriceVerdict(costByKg, priceByKg),
+                  costByKg == null ? '' : formatPdfMoney(costByKg, currency),
+                ),
+                '',
+                small: true,
+                valueColor: PdfColors.grey700),
+          ],
+          if (!mixedHeader && marginPerKg != null)
+            _statementRow(
+                l10n.metricMarginPerKgLabel,
+                formatPdfMoney(marginPerKg, currency),
+                bold: true,
+                small: true,
+                valueColor: marginPerKg < 0 ? _pdfNegative : _pdfPositive),
+          if (!mixedHeader && receivables.isNotEmpty) ...[
+            _statementRow(
+                l10n.metricReceivablesLabel,
+                formatPdfMoney(receivables.values.first, currency),
+                small: true,
+                valueColor: PdfColors.grey700),
+            _statementRow(l10n.metricReceivablesNote, '',
+                small: true, valueColor: PdfColors.grey700),
+          ],
           if (mixedHeader) _mixedNote(l10n, periodTotals.currencies.length),
           pw.SizedBox(height: 20),
           _topAccounts(periodTx, l10n, currency),
@@ -877,6 +926,26 @@ class PdfExportService {
     final summary = const ReportPayrollMetrics().payroll(source);
     if (summary.isEmpty) return pw.SizedBox.shrink();
 
+    // Mano de obra sobre el gasto del periodo. Solo con una sola moneda en
+    // nomina y en gastos: cruzar monedas daria un porcentaje falso. Sin
+    // senal bueno/malo, porque no hay umbral de referencia que valga para
+    // todas las fincas.
+    final payrollTotal =
+        summary.totalByCurrency.values.fold<double>(0, (a, b) => a + b);
+    final expenseCurrencies = <String>{};
+    var periodExpenses = 0.0;
+    for (final t in source) {
+      if (t.deleted || !t.type.isExpense) continue;
+      expenseCurrencies.add(t.currency);
+      periodExpenses += t.amount;
+    }
+    final laborShare = (!summary.isMixed &&
+            expenseCurrencies.length == 1 &&
+            periodExpenses > 0 &&
+            payrollTotal > 0)
+        ? (payrollTotal / periodExpenses) * 100
+        : null;
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -930,6 +999,16 @@ class PdfExportService {
               : formatPdfMoney(summary.total, currency),
           bold: true,
         ),
+        if (laborShare != null) ...[
+          _statementRow(
+            l10n.metricLaborShareLabel,
+            '${_pctOf(laborShare, 1)}%',
+            small: true,
+            valueColor: PdfColors.grey700,
+          ),
+          _statementRow(l10n.metricLaborShareNote, '',
+              small: true, valueColor: PdfColors.grey700),
+        ],
         if (summary.isMixed) _mixedNote(l10n, summary.totalByCurrency.length),
         _statementRow(
           l10n.reportPayrollEmployees(summary.distinctEmployees),

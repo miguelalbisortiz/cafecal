@@ -712,6 +712,14 @@
   "metricRatioHigh": "Gastas bastante: de cada $100 que entran, entre $70 y $90 se van en gastos.",
   "metricRatioCritical": "Gastas casi todo lo que entra: más de $90 de cada $100 se van en gastos.",
   "metricCostPriceLabel": "Precio de venta por kilo",
+  "metricMarginPerKgLabel": "Margen por kilo",
+  "metricMarginPerKgGood": "Vendes por encima de lo que te costó producirlo.",
+  "metricMarginPerKgBad": "Vendes por debajo de lo que te costó producirlo: cada kilo vendido resta.",
+  "metricMarginPerKgZero": "Vendes a costo: ni ganas ni pierdes por kilo.",
+  "metricReceivablesLabel": "Ventas por cobrar",
+  "metricReceivablesNote": "Todavía no te lo han pagado: esa plata no está en la caja.",
+  "metricLaborShareLabel": "Mano de obra sobre el gasto",
+  "metricLaborShareNote": "Es la parte de todo lo que gastaste en el periodo que se fue en mano de obra.",
   "@metricCostPriceAbove": {
     "description": "Veredicto de la línea precio/kg vs costo/kg cuando se vende por encima del costo",
     "placeholders": { "cost": { "type": "String" } }

@@ -3473,6 +3473,54 @@ abstract class AppLocalizations {
   /// **'Precio de venta por kilo'**
   String get metricCostPriceLabel;
 
+  /// No description provided for @metricMarginPerKgLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Margen por kilo'**
+  String get metricMarginPerKgLabel;
+
+  /// No description provided for @metricMarginPerKgGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendes por encima de lo que te costó producirlo.'**
+  String get metricMarginPerKgGood;
+
+  /// No description provided for @metricMarginPerKgBad.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendes por debajo de lo que te costó producirlo: cada kilo vendido resta.'**
+  String get metricMarginPerKgBad;
+
+  /// No description provided for @metricMarginPerKgZero.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendes a costo: ni ganas ni pierdes por kilo.'**
+  String get metricMarginPerKgZero;
+
+  /// No description provided for @metricReceivablesLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Ventas por cobrar'**
+  String get metricReceivablesLabel;
+
+  /// No description provided for @metricReceivablesNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no te lo han pagado: esa plata no está en la caja.'**
+  String get metricReceivablesNote;
+
+  /// No description provided for @metricLaborShareLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Mano de obra sobre el gasto'**
+  String get metricLaborShareLabel;
+
+  /// No description provided for @metricLaborShareNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Es la parte de todo lo que gastaste en el periodo que se fue en mano de obra.'**
+  String get metricLaborShareNote;
+
   /// Veredicto de la línea precio/kg vs costo/kg cuando se vende por encima del costo
   ///
   /// In es, this message translates to:

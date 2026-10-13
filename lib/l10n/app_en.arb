@@ -673,6 +673,14 @@
   "metricRatioHigh": "You spend quite a bit: of every $100 that comes in, between $70 and $90 goes to expenses.",
   "metricRatioCritical": "You spend almost everything you earn: more than $90 of every $100 goes to expenses.",
   "metricCostPriceLabel": "Sale price per kg",
+  "metricMarginPerKgLabel": "Margin per kg",
+  "metricMarginPerKgGood": "You sell above what it cost you to produce it.",
+  "metricMarginPerKgBad": "You sell below what it cost you to produce it: every kilo sold takes away.",
+  "metricMarginPerKgZero": "You sell at cost: neither gain nor loss per kg.",
+  "metricReceivablesLabel": "Unpaid sales",
+  "metricReceivablesNote": "They have not paid you yet: that money is not in the cash box.",
+  "metricLaborShareLabel": "Labor as a share of spending",
+  "metricLaborShareNote": "This is the part of everything you spent in the period that went to labor.",
   "@metricCostPriceAbove": {
     "description": "Verdict of the price/kg vs cost/kg line when selling above cost",
     "placeholders": { "cost": { "type": "String" } }

@@ -15,6 +15,7 @@ import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
+import 'metric_signal.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
@@ -113,6 +114,17 @@ class ExcelExportService {
     final margen = incomes > 0 ? (balance / incomes) * 100 : null;
     final ratio = incomes > 0 ? (expenses / incomes) * 100 : null;
 
+    // Precio, costo y margen por kilo: el mismo veredicto que en pantalla y
+    // en el PDF. Solo con moneda unica: con mezcla cruzaria monedas.
+    final perKg = ReportHarvestMetrics(sacoKg: settings.sacoKg);
+    final costByKg = perKg.periodCostPerKg(expenses, periodHarvests);
+    final priceByKg = perKg.avgSalePricePerKg(periodTx);
+    final marginPerKg = (costByKg != null && priceByKg != null)
+        ? priceByKg - costByKg
+        : null;
+    // Lo vendido en el periodo que todavia no se ha cobrado.
+    final receivables = receivablesByCurrency(periodTx);
+
     final currency = settings.currency;
     final excel = Excel.createExcel();
     excel.rename('Sheet1', l10n.excelSheetSummary);
@@ -129,6 +141,10 @@ class ExcelExportService {
         balance: balance,
         margen: margen,
         ratio: ratio,
+        costByKg: costByKg,
+        priceByKg: priceByKg,
+        marginPerKg: marginPerKg,
+        receivables: receivables,
         periodTotals: periodTotals,
         periodTx: periodTx,
         crops: crops,
@@ -350,6 +366,12 @@ class ExcelExportService {
     required double balance,
     required double? margen,
     required double? ratio,
+    // Veredicto por kilo y ventas por cobrar: los mismos numeros que en
+    // pantalla y en el PDF, para que los tres pintadores digan lo mismo.
+    required double? costByKg,
+    required double? priceByKg,
+    required double? marginPerKg,
+    required Map<String, double> receivables,
     required PeriodCurrencyTotals periodTotals,
     required List<Transaction> periodTx,
     required List<Crop> crops,
@@ -445,6 +467,44 @@ class ExcelExportService {
       TextCellValue(!mixedHeader && ratio != null ? _pctOf(ratio, 1) : '—'),
       null,
     ]);
+    // El veredicto por kilo: la cifra y la frase del veredicto, igual que en
+    // pantalla y en el PDF. Solo con moneda unica: con mezcla cruzaria
+    // monedas.
+    if (!mixedHeader && (costByKg != null || priceByKg != null)) {
+      row([
+        TextCellValue(l10n.metricCostPriceLabel),
+        null,
+        priceByKg == null ? null : DoubleCellValue(priceByKg),
+      ]);
+      row([
+        TextCellValue(costPriceCaption(
+          l10n,
+          costPriceVerdict(costByKg, priceByKg),
+          costByKg == null ? '' : formatMoneyLabel(costByKg, currency),
+        )),
+        null,
+        null,
+      ]);
+    }
+    if (!mixedHeader && marginPerKg != null) {
+      row([
+        TextCellValue(l10n.metricMarginPerKgLabel),
+        null,
+        DoubleCellValue(marginPerKg),
+      ]);
+    }
+    if (!mixedHeader && receivables.isNotEmpty) {
+      row([
+        TextCellValue(l10n.metricReceivablesLabel),
+        null,
+        DoubleCellValue(receivables.values.first),
+      ]);
+      row([
+        TextCellValue(l10n.metricReceivablesNote),
+        null,
+        null,
+      ]);
+    }
     if (mixedHeader) {
       row([
         TextCellValue(
@@ -636,6 +696,24 @@ class ExcelExportService {
     // ── Nómina del período (solo con gastos de mano de obra) ──
     final payroll = const ReportPayrollMetrics().payroll(periodTx);
     if (!payroll.isEmpty) {
+      // Mano de obra sobre el gasto del periodo: la misma cifra que en
+      // pantalla y en el PDF. Solo con una sola moneda: cruzar monedas
+      // daria un porcentaje falso.
+      final payrollTotal =
+          payroll.totalByCurrency.values.fold<double>(0, (a, b) => a + b);
+      final expenseCurrencies = <String>{};
+      var periodExpenses = 0.0;
+      for (final t in periodTx) {
+        if (t.deleted || !t.type.isExpense) continue;
+        expenseCurrencies.add(t.currency);
+        periodExpenses += t.amount;
+      }
+      final laborShare = (!payroll.isMixed &&
+              expenseCurrencies.length == 1 &&
+              periodExpenses > 0 &&
+              payrollTotal > 0)
+          ? (payrollTotal / periodExpenses) * 100
+          : null;
       row([null, null, null]);
       row([TextCellValue(l10n.reportPayrollSection)]);
       _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
@@ -669,6 +747,18 @@ class ExcelExportService {
       ]);
       _applyCurrencyFormat(
           sheet, currency, 2, sheet.maxRows - 1, sheet.maxRows - 1);
+      if (laborShare != null) {
+        row([
+          TextCellValue(l10n.metricLaborShareLabel),
+          null,
+          TextCellValue('${_pctOf(laborShare, 1)}%'),
+        ]);
+        row([
+          TextCellValue(l10n.metricLaborShareNote),
+          null,
+          null,
+        ]);
+      }
       if (payroll.isMixed) {
         row([
           TextCellValue(

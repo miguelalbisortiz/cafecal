@@ -239,6 +239,132 @@ void main() {
     expect(find.text(l10n.metricCostPriceLabel), findsOneWidget);
     expect(find.textContaining('por encima de tu costo'), findsOneWidget,
         reason: 'precio > costo debe decirlo con palabras, no solo en verde');
+    // Nivel 1 · el numero que decide: 1200 - 100 = 1100 por kilo.
+    expect(find.text(l10n.metricMarginPerKgLabel), findsOneWidget);
+    expect(find.textContaining('1.100'), findsOneWidget,
+        reason: 'el margen por kilo se pinta como plata, no solo el veredicto');
+    expect(find.text(l10n.metricMarginPerKgGood), findsOneWidget,
+        reason: 'la senal va siempre con frase: icono y color no bastan (H10)');
+  });
+
+  testWidgets('P3: lo vendido sin pagar se avisa como por cobrar',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      amount: 12000.0,
+      quantity: 10,
+      unit: 'kg',
+      date: hoy,
+      paid: false,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.metricReceivablesLabel), findsOneWidget);
+    expect(find.textContaining('12.000'), findsAtLeastNWidgets(1),
+        reason: 'la plata por cobrar se pinta en cifra, no solo en aviso');
+    expect(find.text(l10n.metricReceivablesNote), findsOneWidget,
+        reason: 'el aviso va con frase, no solo con un icono (H10)');
+  });
+
+  testWidgets('P3: si todo esta cobrado no se ensena un cero de por cobrar',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      amount: 12000.0,
+      quantity: 10,
+      unit: 'kg',
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.metricReceivablesLabel), findsNothing,
+        reason: 'nada por cobrar: mejor callar que ensenar un cero');
+  });
+
+  testWidgets('P4: la nomina se pinta como parte del gasto del periodo',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+
+    // 1000 de mano de obra sobre 4000 de gasto total = 25%.
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      amount: 1000.0,
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      amount: 3000.0,
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.metricLaborShareLabel), findsOneWidget);
+    expect(find.textContaining('25%'), findsAtLeastNWidgets(1),
+        reason: '1000 de 4000 es una cuarta parte del gasto');
+    // Informativa, sin veredicto: no hay umbral que valga para toda finca.
+    expect(find.text(l10n.metricLaborShareNote), findsOneWidget);
   });
 
   testWidgets('P2: sin cosecha ni kilos anotados la línea ni aparece',
@@ -273,6 +399,8 @@ void main() {
     expect(find.text(l10n.metricCostPriceLabel), findsNothing,
         reason: 'no hay nada que comparar: no hay que llenar el reporte de '
             '"no se puede calcular"');
+    expect(find.text(l10n.metricMarginPerKgLabel), findsNothing,
+        reason: 'sin las dos cifras no hay margen que pintar');
     // Las otras dos métricas siguen explicándose como antes.
     expect(find.text(l10n.metricNoSales), findsNWidgets(2));
   });
