@@ -4,6 +4,7 @@ import 'package:mi_cafetal/models/employee.dart';
 import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/settings.dart';
 import 'package:mi_cafetal/models/sowing.dart';
+import 'package:mi_cafetal/models/terreno.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/sync_provider.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
@@ -20,6 +21,7 @@ void main() {
   const cropUuid = '5df76f69-06ee-4b42-8dfd-5b676100109d';
   const harvestUuid = '11111111-2222-4333-8444-555555555555';
   const sowingUuid = '99999999-8888-4777-8666-555555555555';
+  const terrenoUuid = '22222222-3333-4444-5555-666666666666';
 
   Future<TransactionProvider> newProvider() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -31,6 +33,8 @@ void main() {
   /// con el singleton (sus closures no se ejecutan).
   Future<SyncProvider> newSync() async => SyncProvider(await newProvider());
 
+  /// Con `pendingSync: true` a propósito: es lo único que hoy genera etapa
+  /// de subida. Una caché ya sincronizada no debe producir ninguna.
   Transaction txn({required String id, String? cropId}) => Transaction(
         id: id,
         cropId: cropId,
@@ -39,12 +43,13 @@ void main() {
         amount: 10000,
         date: DateTime(2026, 9, 1),
         createdAt: DateTime(2026, 9, 1),
+        pendingSync: true,
       );
 
   group('Orden de subida (clave foránea)', () {
     test('settings y cultivos van antes que las transacciones', () async {
       final tx = await newProvider();
-      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café')]);
+      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café', pendingSync: true)]);
       tx.mergeRemote([txn(id: 't1', cropId: cropUuid)]);
 
       final tables = SyncProvider(tx)
@@ -61,23 +66,26 @@ void main() {
     test('siembras, cosechas y trabajadores van antes que las transacciones',
         () async {
       final tx = await newProvider();
-      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café')]);
+      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café', pendingSync: true)]);
       tx.mergeRemoteSowings([
         Sowing(
             id: sowingUuid,
             cropId: cropUuid,
             date: DateTime(2026, 3, 1),
-            plants: 100),
+            plants: 100,
+            pendingSync: true),
       ]);
       tx.mergeRemoteHarvests([
         Harvest(
             id: harvestUuid,
             cropId: cropUuid,
             date: DateTime(2026, 9, 1),
-            amount: 120),
+            amount: 120,
+            pendingSync: true),
       ]);
       tx.mergeRemoteEmployees([
-        const Employee(id: 'e1', name: 'Luis', dayRate: 50000),
+        const Employee(
+            id: 'e1', name: 'Luis', dayRate: 50000, pendingSync: true),
       ]);
       tx.mergeRemote([txn(id: 't1', cropId: cropUuid)]);
 
@@ -101,7 +109,7 @@ void main() {
       final tx = await newProvider();
       tx.mergeRemoteCrops([
         const Crop(id: 'cafe', name: 'Café'),
-        const Crop(id: cropUuid, name: 'Plátano'),
+        const Crop(id: cropUuid, name: 'Plátano', pendingSync: true),
       ]);
 
       final cropIds = SyncProvider(tx)
@@ -116,7 +124,7 @@ void main() {
     test('el borrado de cultivo sube tras settings y antes que las '
         'transacciones', () async {
       final tx = await newProvider();
-      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café')]);
+      tx.mergeRemoteCrops([const Crop(id: cropUuid, name: 'Café', pendingSync: true)]);
       tx.mergeRemote([txn(id: 't1', cropId: cropUuid)]);
       await tx.deleteCrop(cropUuid);
 
@@ -146,6 +154,102 @@ void main() {
 
       expect(labels, isNot(contains('Borrado de cultivo')),
           reason: 'una consulta con id no-uuid rompería la subida entera');
+    });
+  });
+
+  group('Solo lo que cambió (filtro pendingSync)', () {
+    /// Un movimiento tal y como lo trae el pull: `pendingSync: false` es lo
+    /// que dice la BD cuando la fila ya estaba escrita.
+    Transaction remoto(String id) => Transaction(
+          id: id,
+          type: TransactionType.income,
+          category: 'cosecha',
+          amount: 5000,
+          date: DateTime(2026, 9, 1),
+          createdAt: DateTime(2026, 9, 1),
+          pendingSync: false,
+        );
+
+    test('una caché ya sincronizada no produce ninguna etapa de datos',
+        () async {
+      final tx = await newProvider();
+      tx.mergeRemoteCrops([
+        const Crop(id: cropUuid, name: 'Café', pendingSync: false),
+      ]);
+      tx.mergeRemote([remoto('t1')]);
+      await tx.markAllSynced();
+
+      final tables = SyncProvider(tx)
+          .buildPushStages(SupabaseService.instance)
+          .map((s) => s.table)
+          .toList();
+
+      // settings conserva su propia guarda (settingsDirty) y no depende de
+      // esta marca; el resto ya está en la BD.
+      expect(tables, ['settings']);
+    });
+
+    test('lo que bajó del pull no se vuelve a subir', () async {
+      final tx = await newProvider();
+      // mergeRemote añade los registros tal cual, con el pending_sync que
+      // traían. Antes eso no importaba: el push subía la caché entera y
+      // un equipo que solo abría la app pisaba al otro.
+      tx.mergeRemote([remoto('t1')]);
+
+      final stages =
+          SyncProvider(tx).buildPushStages(SupabaseService.instance);
+
+      expect(stages.where((s) => s.table == 'transactions'), isEmpty,
+          reason: 'una fila que ya está escrita no hay por qué reescribirla');
+    });
+
+    test('una edición local sí vuelve a generar etapa', () async {
+      final tx = await newProvider();
+      tx.mergeRemote([remoto('t1')]);
+      await tx.updateTransaction(tx.transactions.first.copyWith(amount: 7000));
+
+      final ids = SyncProvider(tx)
+          .buildPushStages(SupabaseService.instance)
+          .where((s) => s.table == 'transactions')
+          .map((s) => s.id)
+          .toList();
+
+      expect(ids, ['t1'], reason: 'lo que sí cambió hay que subirlo');
+    });
+
+    test('los terrenos, siembras, cosechas y trabajadores también', () async {
+      final tx = await newProvider();
+      tx.mergeRemoteTerrenos([
+        const Terreno(id: terrenoUuid, name: 'Lote', pendingSync: false),
+      ]);
+      tx.mergeRemoteSowings([
+        Sowing(
+            id: sowingUuid,
+            cropId: cropUuid,
+            date: DateTime(2026, 3, 1),
+            plants: 100,
+            pendingSync: false),
+      ]);
+      tx.mergeRemoteHarvests([
+        Harvest(
+            id: harvestUuid,
+            cropId: cropUuid,
+            date: DateTime(2026, 9, 1),
+            amount: 120,
+            pendingSync: false),
+      ]);
+      tx.mergeRemoteEmployees([
+        const Employee(
+            id: 'e1', name: 'Luis', dayRate: 50000, pendingSync: false),
+      ]);
+
+      final tables = SyncProvider(tx)
+          .buildPushStages(SupabaseService.instance)
+          .map((s) => s.table)
+          .toSet();
+
+      expect(tables.difference({'settings'}), isEmpty,
+          reason: 'los cinco tipos siguen la misma regla que los movimientos');
     });
   });
 
@@ -274,7 +378,7 @@ void main() {
 
     test('sin fecha el payload manda null, no una fecha inventada', () async {
       final payload = (await newSync())
-          .buildCropPayload(const Crop(id: cropUuid, name: 'Café'), uid);
+          .buildCropPayload(const Crop(id: cropUuid, name: 'Café', pendingSync: true), uid);
       expect(payload['planted_at'], isNull);
     });
 
@@ -311,7 +415,7 @@ void main() {
         // Sin meta: null explícito, para poder BORRAR la meta y que se
         // refleje en la BD en vez de quedar pisada con el valor anterior.
         final sinMeta =
-            sync.buildCropPayload(const Crop(id: cropUuid, name: 'Café'), uid);
+            sync.buildCropPayload(const Crop(id: cropUuid, name: 'Café', pendingSync: true), uid);
         expect(sinMeta.containsKey('expected_yield_kg_ha'), isTrue);
         expect(sinMeta['expected_yield_kg_ha'], isNull);
       });
@@ -352,7 +456,7 @@ void main() {
         // Sin fecha: null explícito, para poder BORRAR la estimación y que se
         // refleje en la BD en vez de quedar pisada con la anterior.
         final sinFecha =
-            sync.buildCropPayload(const Crop(id: cropUuid, name: 'Café'), uid);
+            sync.buildCropPayload(const Crop(id: cropUuid, name: 'Café', pendingSync: true), uid);
         expect(sinFecha.containsKey('primer_cosecha_esperada'), isTrue);
         expect(sinFecha['primer_cosecha_esperada'], isNull);
       });

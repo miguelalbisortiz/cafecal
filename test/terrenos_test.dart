@@ -313,10 +313,14 @@ void main() {
     test('el terreno sube ANTES que el cultivo que apunta a él', () async {
       final p = await newProvider();
       p.provider.mergeRemoteTerrenos(const [
-        Terreno(id: terrenoUuid, name: 'Lote'),
+        Terreno(id: terrenoUuid, name: 'Lote', pendingSync: true),
       ]);
       p.provider.mergeRemoteCrops(const [
-        Crop(id: cropUuid, name: 'Café', terrenoId: terrenoUuid),
+        Crop(
+            id: cropUuid,
+            name: 'Café',
+            terrenoId: terrenoUuid,
+            pendingSync: true),
       ]);
 
       final tables = SyncProvider(p.provider)

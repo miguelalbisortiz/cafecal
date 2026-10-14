@@ -174,14 +174,27 @@ class SyncProvider extends ChangeNotifier {
       // apuntando a un terreno que todavía no existe en la BD da error de
       // foreign key (el mismo motivo por el que iban primero que las
       // transacciones).
-      for (final t in _txProvider.terrenos)
+      // Solo lo que cambió.
+      //
+      // Sin este filtro la caché entera se re-subía en cada sync: un equipo
+      // que solo abría la app volvía a escribir sus filas viejas y pisaba lo
+      // que el otro equipo había actualizado mientras tanto. `markAllSynced`
+      // es la única fuente de verdad de "esto ya está en la BD".
+      //
+      // Lo que baja del pull NO vuelve a subir: `mergeRemote*` lo añade tal
+      // cual, con el `pending_sync` que trae de la BD.
+      //
+      // `deletedCrops` no pasa por aquí: son ids sueltos y `markAllSynced`
+      // ya los depura (solo quedan los que fallaron).
+      for (final t in _txProvider.terrenos.where((t) => t.pendingSync))
         PushStage(
           table: 'terrenos',
           label: 'Terreno "${t.name}"',
           id: t.id,
           run: () => _upsertRemoteTerreno(supabase, t),
         ),
-      for (final c in _txProvider.crops.where((c) => _isUuid(c.id)))
+      for (final c in _txProvider.crops
+          .where((c) => _isUuid(c.id) && c.pendingSync))
         PushStage(
           table: 'crops',
           label: 'Cultivo "${c.name}"',
@@ -198,28 +211,28 @@ class SyncProvider extends ChangeNotifier {
           id: id,
           run: () => _deleteRemoteCrop(supabase, id),
         ),
-      for (final s in _txProvider.sowings)
+      for (final s in _txProvider.sowings.where((s) => s.pendingSync))
         PushStage(
           table: 'sowings',
           label: 'Siembra',
           id: s.id,
           run: () => _upsertRemoteSowing(supabase, s),
         ),
-      for (final h in _txProvider.harvests)
+      for (final h in _txProvider.harvests.where((h) => h.pendingSync))
         PushStage(
           table: 'harvests',
           label: 'Cosecha',
           id: h.id,
           run: () => _upsertRemoteHarvest(supabase, h),
         ),
-      for (final e in _txProvider.employees)
+      for (final e in _txProvider.employees.where((e) => e.pendingSync))
         PushStage(
           table: 'employees',
           label: 'Trabajador "${e.name}"',
           id: e.id,
           run: () => _upsertRemoteEmployee(supabase, e),
         ),
-      for (final t in _txProvider.transactions)
+      for (final t in _txProvider.transactions.where((t) => t.pendingSync))
         PushStage(
           table: 'transactions',
           label: t.deleted ? 'Borrado de movimiento' : 'Movimiento',
