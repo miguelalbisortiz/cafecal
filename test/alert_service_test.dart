@@ -717,8 +717,7 @@ void main() {
           reason: 'energía/agua descuentan de la caja');
     });
 
-    test('los gastos del mes anterior NO descuentan (reinicio por calendario)',
-        () {
+    test('los gastos del mes anterior no agotan el de este mes', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 700,
             date: DateTime(2026, 5, 20), category: 'mano_obra'),
@@ -726,7 +725,24 @@ void main() {
       final alerts = AlertService(now: now)
           .evaluate(txns, _crops(), _es, cajaMensual: 600);
       expect(alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
-          reason: 'mayo no puede agotar la caja de junio');
+          reason: 'mayo no puede agotar la caja de junio: junio está vacía');
+    });
+
+    test('lo que se pasó el mes anterior baja el límite del actual', () {
+      // Mayo gastó 700 con un aporte de 600 → quedó 100 debiendo. Junio gasta
+      // 450 sobre un límite de 500 = 90 %: warning. Sobre el aporte solo
+      // sería 75 % y no avisaría de la cuenta arrastrada.
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 700,
+            date: DateTime(2026, 5, 20), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 450,
+            date: DateTime(2026, 6, 5), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es,
+          cajaMensual: 600, currency: 'COP');
+      final found = alerts.where((a) => a.rule == AlertRule.cajaMenor);
+      expect(found, isNotEmpty, reason: '450/500 = 90% debe avisar');
+      expect(found.first.severity, AlertSeverity.warning);
     });
   });
 

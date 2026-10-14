@@ -9,6 +9,7 @@ import '../models/harvest.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
+import 'report_payroll_metrics.dart';
 
 /// Motor de alertas — 5 reglas del PRD + 3 reglas Nivel 2.
 /// Funciones puras sobre datos locales; evaluar en cada registro y apertura.
@@ -33,11 +34,11 @@ class AlertService {
     double? manualThresholdPerKg,
     List<Harvest> harvests = const [],
     List<Sowing> sowings = const [],
+    // Aporte mensual de caja, con la obra ya plegada dentro (ver
+    // FarmSettings.cajaMensualEfectiva). [currency] es la moneda de ese
+    // aporte: sin ella no se puede calcular el sobrante arrastrado.
     double? cajaMensual,
-    // E3 · presupuesto de obra del mes. Mientras sea null la caja menor se
-    // comporta igual que siempre; cuando se configura, la gente pasa a tener
-    // su propia barra y la caja deja de contarla.
-    double? workBudgetMensual,
+    String currency = '',
     // A2 · se recibe en cada llamada (igual que el umbral) porque las alertas
     // viven o mueren según el peso real del saco: 60 en vez de 70 sube el
     // precio por kg de toda venta hecha en sacos.
@@ -58,8 +59,7 @@ class AlertService {
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
     _checkCashBox(active, now, l10n, alerts,
-        cajaMensual: cajaMensual, workBudgetMensual: workBudgetMensual);
-    _checkWorkBudget(active, now, l10n, alerts, workBudget: workBudgetMensual);
+        cajaMensual: cajaMensual, currency: currency);
     _checkUnpaidSales(active, now, l10n, alerts);
     _checkFirstHarvestOverdue(crops, harvests, now, l10n, alerts);
 
@@ -507,36 +507,44 @@ class AlertService {
     }
   }
 
-  // ---- Regla 10: caja menor del mes ≥80% (warning) / >100% (danger) ----
+  // ---- Regla 10: caja del mes ≥80% (warning) / >100% (danger) ----
 
+  /// El aviso usa el **mismo límite que la tarjeta**: el aporte del mes más
+  /// lo que sobró de los meses anteriores. Si la alerta mirara solo el
+  /// aporte, avisaría de un agotamiento que la tarjeta no ve.
   void _checkCashBox(List<Transaction> txns, DateTime now,
       AppLocalizations l10n, List<FarmAlert> out,
-      {double? cajaMensual, double? workBudgetMensual}) {
-    // Sin monto configurado (o inválido) la regla no se evalúa.
+      {double? cajaMensual, String currency = ''}) {
+    // Sin aporte configurado (o inválido) la regla no se evalúa.
     if (cajaMensual == null || cajaMensual <= 0) return;
 
-    // E3 · con presupuesto de obra configurado, la gente tiene su propia
-    // barra: contarla también aquí inflaría el gasto de caja. Sin presupuesto
-    // de obra, la caja sigue midiendo lo de siempre (jornales + extras).
-    final includeLabor = workBudgetMensual == null || workBudgetMensual <= 0;
-
-    // Solo el mes calendario vigente: el saldo no se acumula entre meses
-    // (reinicio automático al cambiar de mes). Descuentan jornales + extras.
+    // Un solo pote: jornales y extras descuentan siempre.
     final usedTx = txns
         .where((t) =>
             t.type.isExpense &&
             t.date.year == now.year &&
             t.date.month == now.month &&
-            discountsCashBox(t.category) &&
-            (includeLabor || t.category != 'mano_obra'))
+            discountsCashBox(t.category))
         .toList();
-    // El presupuesto de caja es de una sola moneda: si el mes mezcla, la
-    // comparación (y el saldo) sería mentira.
+    // El aporte es de una sola moneda: si el mes mezcla, la comparación (y el
+    // saldo) sería mentira.
     if (usedTx.isEmpty || _currenciesOf(usedTx).length > 1) return;
     final used = usedTx.fold<double>(0, (a, t) => a + t.amount);
     if (used <= 0) return;
 
-    final ratio = used / cajaMensual;
+    // El sobrante arrastrado mueve el límite, igual que en la tarjeta.
+    // `null` (no calculable sin mentir) = nos quedamos con el aporte solo.
+    final carry = const ReportPayrollMetrics().cashCarryUpTo(
+      allTx: txns,
+      budget: cajaMensual,
+      budgetCurrency: currency,
+      year: now.year,
+      month: now.month,
+    );
+    final limit = carry == null ? cajaMensual : cajaMensual + carry;
+    if (limit <= 0) return;
+
+    final ratio = used / limit;
     if (ratio < 0.8) return;
 
     final month = l10n.monthFull[now.month - 1];
@@ -550,7 +558,7 @@ class AlertService {
         title: l10n.alertCashBoxDangerTitle(month),
         message: l10n.alertCashBoxDangerMessage(
           _money(used),
-          _money(cajaMensual),
+          _money(limit),
           percent,
         ),
         suggestion: l10n.alertCashBoxDangerSuggestion,
@@ -563,69 +571,10 @@ class AlertService {
         title: l10n.alertCashBoxWarningTitle(month, percent),
         message: l10n.alertCashBoxWarningMessage(
           _money(used),
-          _money(cajaMensual),
-          _money(cajaMensual - used),
+          _money(limit),
+          _money(limit - used),
         ),
         suggestion: l10n.alertCashBoxWarningSuggestion,
-      ));
-    }
-  }
-
-  // ---- Regla 12 (E3): presupuesto de obra ≥80% / >100% ----
-
-  /// La barra de la gente, separada de la de los misceláneos.
-  ///
-  /// Mismos umbrales que la caja (80 % warning, >100 % danger) a propósito:
-  /// si los dos avisos hablaran distinto no se podrían leer juntos. Solo se
-  /// evalúa si configuraron presupuesto; sin eso, la mano de obra sigue
-  /// contando dentro de la caja como siempre.
-  void _checkWorkBudget(List<Transaction> txns, DateTime now,
-      AppLocalizations l10n, List<FarmAlert> out,
-      {double? workBudget}) {
-    final b = workBudget;
-    if (b == null || b <= 0) return;
-
-    final usedTx = txns
-        .where((t) =>
-            t.type.isExpense &&
-            t.category == 'mano_obra' &&
-            t.date.year == now.year &&
-            t.date.month == now.month)
-        .toList();
-    // Una sola moneda o no hay cifra que citar: restar pesos de dólares
-    // daría un saldo mentiroso.
-    if (usedTx.isEmpty || _currenciesOf(usedTx).length > 1) return;
-    final used = usedTx.fold<double>(0, (a, t) => a + t.amount);
-    if (used <= 0) return;
-
-    final ratio = used / b;
-    if (ratio < 0.8) return;
-
-    final month = l10n.monthFull[now.month - 1];
-    final percent = _percentage(ratio * 100);
-
-    if (ratio > 1.0) {
-      out.add(FarmAlert(
-        id: 'work_budget',
-        rule: AlertRule.workBudget,
-        severity: AlertSeverity.danger,
-        title: l10n.alertWorkBudgetDangerTitle(month),
-        message:
-            l10n.alertWorkBudgetDangerMessage(_money(used), _money(b), percent),
-        suggestion: l10n.alertWorkBudgetDangerSuggestion,
-      ));
-    } else {
-      out.add(FarmAlert(
-        id: 'work_budget',
-        rule: AlertRule.workBudget,
-        severity: AlertSeverity.warning,
-        title: l10n.alertWorkBudgetWarningTitle(month, percent),
-        message: l10n.alertWorkBudgetWarningMessage(
-          _money(used),
-          _money(b),
-          _money(b - used),
-        ),
-        suggestion: l10n.alertWorkBudgetWarningSuggestion,
       ));
     }
   }

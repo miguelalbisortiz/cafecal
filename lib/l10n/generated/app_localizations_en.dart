@@ -1628,10 +1628,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jornalTotalHint => 'Calculated: days × day rate.';
 
   @override
-  String get cashBoxLabel => 'Monthly cash box';
+  String get cashBoxLabel => 'Monthly cash contribution';
 
   @override
-  String get cashBoxHelp => 'Monthly amount for day labor and extras. Resets on the 1st of each month; leftovers don\'t carry over.';
+  String get cashBoxHelp => 'What you take out of the farm each month: it covers day labor and small expenses. Whatever you don\'t spend isn\'t lost — it rolls over to next month.';
+
+  @override
+  String get cashBoxCarry => 'Left over from previous months';
+
+  @override
+  String get cashBoxMonthly => 'This month\'s contribution';
 
   @override
   String get cashBoxTitle => 'Cash box';
@@ -1649,12 +1655,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashBoxExtras => 'Extras';
-
-  @override
-  String get workBudgetLabel => 'Monthly work budget';
-
-  @override
-  String get workBudgetHelp => 'How much you plan to spend on labor each month. Leave it empty and labor keeps counting inside the cash box, as always.';
 
   @override
   String get workBudgetTitle => 'Work budget';
@@ -2586,32 +2586,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertUnpaidSuggestion => 'Collect before it slips: once the money arrives, edit the sale and switch its status to “Paid”.';
-
-  @override
-  String alertWorkBudgetWarningTitle(String month, String percent) {
-    return 'This month\'s work is at $percent';
-  }
-
-  @override
-  String alertWorkBudgetWarningMessage(String used, String total, String remaining) {
-    return 'The problem: this month you\'ve spent $used of $total on labor. $remaining left before it runs out.';
-  }
-
-  @override
-  String get alertWorkBudgetWarningSuggestion => 'If the month isn\'t over yet, spread the tasks out better or raise the work budget.';
-
-  @override
-  String alertWorkBudgetDangerTitle(String month) {
-    return 'Work budget exhausted in $month';
-  }
-
-  @override
-  String alertWorkBudgetDangerMessage(String used, String total, String percent) {
-    return 'The problem: this month you\'ve spent $used of $total on labor ($percent). You\'re already over budget.';
-  }
-
-  @override
-  String get alertWorkBudgetDangerSuggestion => 'Review the day labor you logged and consider adjusting next month\'s work budget.';
 
   @override
   String alertCashBoxWarningTitle(String month, String percent) {

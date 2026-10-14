@@ -3152,14 +3152,26 @@ abstract class AppLocalizations {
   /// No description provided for @cashBoxLabel.
   ///
   /// In es, this message translates to:
-  /// **'Caja menor mensual'**
+  /// **'Aporte mensual de caja'**
   String get cashBoxLabel;
 
   /// No description provided for @cashBoxHelp.
   ///
   /// In es, this message translates to:
-  /// **'Monto de cada mes para jornales y extras. Se reinicia solo cada 1 de mes; lo que sobre no se acumula.'**
+  /// **'Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.'**
   String get cashBoxHelp;
+
+  /// No description provided for @cashBoxCarry.
+  ///
+  /// In es, this message translates to:
+  /// **'Sobrante de meses anteriores'**
+  String get cashBoxCarry;
+
+  /// No description provided for @cashBoxMonthly.
+  ///
+  /// In es, this message translates to:
+  /// **'Aporte del mes'**
+  String get cashBoxMonthly;
 
   /// No description provided for @cashBoxTitle.
   ///
@@ -3190,18 +3202,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Extras'**
   String get cashBoxExtras;
-
-  /// No description provided for @workBudgetLabel.
-  ///
-  /// In es, this message translates to:
-  /// **'Presupuesto de obra mensual'**
-  String get workBudgetLabel;
-
-  /// No description provided for @workBudgetHelp.
-  ///
-  /// In es, this message translates to:
-  /// **'Monto de cada mes solo para mano de obra. Si lo dejas vacío, los jornales siguen contando dentro de la caja menor como siempre.'**
-  String get workBudgetHelp;
 
   /// No description provided for @workBudgetTitle.
   ///
@@ -4732,42 +4732,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cobrá antes de que se pase: cuando la plata entre, editá la venta y cambia su estado a «Pagado».'**
   String get alertUnpaidSuggestion;
-
-  /// No description provided for @alertWorkBudgetWarningTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'La obra de {month} va al {percent}'**
-  String alertWorkBudgetWarningTitle(String month, String percent);
-
-  /// No description provided for @alertWorkBudgetWarningMessage.
-  ///
-  /// In es, this message translates to:
-  /// **'El problema: este mes llevas {used} de {total} en mano de obra. Te quedan {remaining} antes de agotarla.'**
-  String alertWorkBudgetWarningMessage(String used, String total, String remaining);
-
-  /// No description provided for @alertWorkBudgetWarningSuggestion.
-  ///
-  /// In es, this message translates to:
-  /// **'Si aún faltan días del mes, repartí mejor las labores o subí el presupuesto de obra.'**
-  String get alertWorkBudgetWarningSuggestion;
-
-  /// No description provided for @alertWorkBudgetDangerTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Obra agotada en {month}'**
-  String alertWorkBudgetDangerTitle(String month);
-
-  /// No description provided for @alertWorkBudgetDangerMessage.
-  ///
-  /// In es, this message translates to:
-  /// **'El problema: este mes llevas {used} de {total} en mano de obra ({percent}). Ya te pasaste del presupuesto.'**
-  String alertWorkBudgetDangerMessage(String used, String total, String percent);
-
-  /// No description provided for @alertWorkBudgetDangerSuggestion.
-  ///
-  /// In es, this message translates to:
-  /// **'Revisa los jornales registrados y considera ajustar el presupuesto de obra del próximo mes.'**
-  String get alertWorkBudgetDangerSuggestion;
 
   /// No description provided for @alertCashBoxWarningTitle.
   ///

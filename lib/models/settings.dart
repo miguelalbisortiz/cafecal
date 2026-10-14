@@ -96,6 +96,25 @@ class FarmSettings {
     );
   }
 
+  /// Aporte mensual de caja, con la obra ya plegada dentro.
+  ///
+  /// En la planilla de papel hay **un solo pote**: la plata que se saca cada
+  /// mes para la finca cubre los jornales y los gastos chicos (luz, agua,
+  /// arreglos). Antes la app lo partía en dos montos y dos barras, y eso
+  /// obligaba a mirar dos números para una sola decisión.
+  ///
+  /// `cajaMenorMensual` y `presupuestoObraMensual` siguen existiendo en la
+  /// BD: quien ya tenía los dos **no pierde presupuesto**, los dos se suman.
+  /// Al guardar ajustes la pantalla pliega el total en `cajaMenorMensual` y
+  /// deja `presupuestoObraMensual` en `null`, así que la suma es puntual y
+  /// no se dobla cada vez que se lee.
+  ///
+  /// `null` si no hay nada configurado: sin aporte no hay barra.
+  double? get cajaMensualEfectiva {
+    final total = (cajaMenorMensual ?? 0) + (presupuestoObraMensual ?? 0);
+    return total > 0 ? total : null;
+  }
+
   Map<String, dynamic> toJson() => {
         'farm_name': farmName,
         'currency': currency,

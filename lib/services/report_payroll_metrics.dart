@@ -282,6 +282,63 @@ class ReportPayrollMetrics {
     return out;
   }
 
+  /// Sobrante de caja acumulado hasta el mes **anterior** a [year]/[month].
+  ///
+  /// Regla: cada mes aporta [budget] y resta lo que se gastó en caja ese mes.
+  /// Lo que no se gasta **no desaparece**: se arrastra al mes siguiente. No
+  /// hay reinicio en enero — un fondo de caja no se borra por calendario, se
+  /// gasta.
+  ///
+  /// El arrastre arranca en el primer mes con registros, así "desde que llevo
+  /// anotando" es exactamente lo que cuenta.
+  ///
+  /// Devuelve `null` cuando no se puede calcular sin mentir: si algún mes del
+  /// tramo gastó caja en otra moneda que la del presupuesto, restarlo sería
+  /// sumar monedas distintas. `null` es "no lo sé", **no** 0.
+  double? cashCarryUpTo({
+    required Iterable<Transaction> allTx,
+    required double budget,
+    required String budgetCurrency,
+    required int year,
+    required int month,
+  }) {
+    if (budget <= 0 || budgetCurrency.isEmpty) return null;
+
+    // Gastos de caja por mes, separados por moneda: así un mes mezclado se
+    // detecta en vez de sumarse en silencio.
+    final byMonth = <String, Map<String, double>>{};
+    final months = <String>{};
+    for (final t in allTx) {
+      if (t.deleted) continue;
+      final key = '${t.date.year}-${t.date.month}';
+      months.add(key);
+      if (!t.type.isExpense || !discountsCashBox(t.category)) continue;
+      final byCurrency = byMonth.putIfAbsent(key, () => <String, double>{});
+      byCurrency[t.currency] = (byCurrency[t.currency] ?? 0) + t.amount;
+    }
+    if (months.isEmpty) return 0;
+
+    // El mes de arranque es el primer mes con registros: antes de eso no
+    // había finca que llevar. Desde ahí **todos** los meses cuentan, aunque
+    // no se haya anotado nada — un mes sin gasto es un mes en que el aporte
+    // sigue entero.
+    final start = _sortedMonthKeys(months).map((k) {
+      final p = k.split('-');
+      return int.parse(p[0]) * 12 + int.parse(p[1]);
+    }).first;
+    final target = year * 12 + month;
+    if (start >= target) return 0;
+
+    var carry = 0.0;
+    for (var ym = start; ym < target; ym++) {
+      final key = '${(ym - 1) ~/ 12}-${(ym - 1) % 12 + 1}';
+      final spent = byMonth[key] ?? const <String, double>{};
+      if (spent.keys.any((c) => c != budgetCurrency)) return null;
+      carry += budget - (spent[budgetCurrency] ?? 0);
+    }
+    return carry;
+  }
+
   /// E3 · lo mismo que [cashBoxByMonth], pero solo para la **obra**.
   ///
   /// Existe porque la obra tiene su propio presupuesto y su propia barra: si

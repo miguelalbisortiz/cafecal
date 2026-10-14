@@ -22,7 +22,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _farmName;
   late final TextEditingController _threshold;
   late final TextEditingController _cajaMenor;
-  late final TextEditingController _obra;
   late final TextEditingController _sacoKg;
   String _currency = 'COP';
   String _language = 'es';
@@ -43,16 +42,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? s.lowPriceThresholdPerKg!.toInt().toString()
               : s.lowPriceThresholdPerKg.toString()),
     );
+    // Un solo pote: el campo muestra el aporte con la obra ya plegada dentro,
+    // que es con lo que realmente se cuenta la caja del mes.
     _cajaMenor = TextEditingController(
-      text: s.cajaMenorMensual == null
+      text: s.cajaMensualEfectiva == null
           ? ''
-          : (s.cajaMenorMensual! % 1 == 0
-              ? s.cajaMenorMensual!.toInt().toString()
-              : s.cajaMenorMensual.toString()),
+          : _optNum(s.cajaMensualEfectiva),
     );
-    // E3 · obra: vacío = sin presupuesto, y ahí la caja menor vuelve a
-    // contar jornales + extras como siempre. La separación es opt-in.
-    _obra = TextEditingController(text: _optNum(s.presupuestoObraMensual));
     // A2: siempre hay un número (70 es la norma), así que el campo nunca
     // arranca vacío — es un "ajústalo", no un "opcional".
     _sacoKg = TextEditingController(text: _num(s.sacoKg));
@@ -70,7 +66,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _farmName.dispose();
     _threshold.dispose();
     _cajaMenor.dispose();
-    _obra.dispose();
     _sacoKg.dispose();
     super.dispose();
   }
@@ -84,8 +79,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         thresholdText.isEmpty ? null : double.tryParse(thresholdText);
     final cajaText = _cajaMenor.text.trim().replaceAll(',', '.');
     final caja = cajaText.isEmpty ? null : double.tryParse(cajaText);
-    final obraText = _obra.text.trim().replaceAll(',', '.');
-    final obra = obraText.isEmpty ? null : double.tryParse(obraText);
     // A2: no se puede dejar sin número. Campo vacío o ilegible = no se
     // cambia (se conserva el que ya había) — nunca un 0 que partiría todos
     // los kg a la mitad.
@@ -101,8 +94,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       currency: _currency,
       language: _language,
       lowPriceThresholdPerKg: threshold,
+      // El campo ya es uno solo: lo que el usuario escribió es el aporte
+      // completo, así que la obra se pliega y queda en null. Sin esto, quien
+      // venía con los dos montos seguiría con el viejo doble.
       cajaMenorMensual: caja,
-      presupuestoObraMensual: obra,
+      presupuestoObraMensual: null,
       sacoKg: saco,
     ));
     if (!mounted) return;
@@ -352,20 +348,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               labelText: l10n.cashBoxLabel,
               helperText: l10n.cashBoxHelp,
               prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // E3 · el presupuesto de obra va aparte: la caja menor y la gente
-          // son señales opuestas y no deben compartir barra.
-          TextField(
-            controller: _obra,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: l10n.workBudgetLabel,
-              helperText: l10n.workBudgetHelp,
-              prefixIcon: const Icon(Icons.groups_outlined),
               border: const OutlineInputBorder(),
             ),
           ),

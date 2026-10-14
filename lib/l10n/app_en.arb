@@ -609,8 +609,10 @@
   "jornalRateRequired": "Enter the day rate.",
   "jornalTotalLabel": "Total",
   "jornalTotalHint": "Calculated: days × day rate.",
-  "cashBoxLabel": "Monthly cash box",
-  "cashBoxHelp": "Monthly amount for day labor and extras. Resets on the 1st of each month; leftovers don't carry over.",
+  "cashBoxLabel": "Monthly cash contribution",
+  "cashBoxHelp": "What you take out of the farm each month: it covers day labor and small expenses. Whatever you don't spend isn't lost — it rolls over to next month.",
+  "cashBoxCarry": "Left over from previous months",
+  "cashBoxMonthly": "This month's contribution",
   "cashBoxTitle": "Cash box",
   "@cashBoxOf": {
     "placeholders": { "used": { "type": "String" }, "total": { "type": "String" } }
@@ -1038,25 +1040,6 @@
   "alertUnpaidTitle": "Sales still unpaid",
   "alertUnpaidMessage": "The problem: {count} sales add up to {amount} that hasn't been paid yet, the oldest one {days} days old.",
   "alertUnpaidSuggestion": "Collect before it slips: once the money arrives, edit the sale and switch its status to “Paid”.",
-
-  "@alertWorkBudgetWarningTitle": {
-    "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }
-  },
-  "alertWorkBudgetWarningTitle": "This month's work is at {percent}",
-  "@alertWorkBudgetWarningMessage": {
-    "placeholders": { "used": { "type": "String" }, "total": { "type": "String" }, "remaining": { "type": "String" } }
-  },
-  "alertWorkBudgetWarningMessage": "The problem: this month you've spent {used} of {total} on labor. {remaining} left before it runs out.",
-  "alertWorkBudgetWarningSuggestion": "If the month isn't over yet, spread the tasks out better or raise the work budget.",
-  "@alertWorkBudgetDangerTitle": {
-    "placeholders": { "month": { "type": "String" } }
-  },
-  "alertWorkBudgetDangerTitle": "Work budget exhausted in {month}",
-  "@alertWorkBudgetDangerMessage": {
-    "placeholders": { "used": { "type": "String" }, "total": { "type": "String" }, "percent": { "type": "String" } }
-  },
-  "alertWorkBudgetDangerMessage": "The problem: this month you've spent {used} of {total} on labor ({percent}). You're already over budget.",
-  "alertWorkBudgetDangerSuggestion": "Review the day labor you logged and consider adjusting next month's work budget.",
 
   "@alertCashBoxWarningTitle": {
     "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }

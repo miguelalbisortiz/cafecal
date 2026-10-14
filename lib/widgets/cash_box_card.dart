@@ -7,33 +7,36 @@ import '../models/categories.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../services/crop_totals.dart';
+import '../services/report_payroll_metrics.dart';
 import '../utils/format.dart';
 
-/// Tarjeta de caja menor del mes en curso: barra de progreso contra el
-/// monto configurado, con desglose de jornales y extras.
+/// Tarjeta de caja del mes en curso: barra de progreso contra el **límite
+/// efectivo**, con desglose de jornales y extras.
 ///
-/// Solo descuentan `discountsCashBox(category)` (mano de obra + extras).
-/// El saldo NO se acumula entre meses: al llegar al 1 de mes la tarjeta
-/// vuelve a cero porque suma los gastos del mes calendario vigente.
-/// Sin `cajaMenorMensual` configurado no se renderiza (SizedBox.shrink).
+/// Un solo pote: descuentan `discountsCashBox(category)` (mano de obra +
+/// extras), porque en la finca la plata que se saca cada mes cubre los
+/// jornales y los gastos chicos por igual.
+///
+/// El límite efectivo es el aporte del mes **más lo que sobró de los meses
+/// anteriores**: lo que no se gasta no desaparece, se arrastra. Sin aporte
+/// configurado no se renderiza (SizedBox.shrink).
 ///
 /// **Moneda**: los gastos se acumulan por moneda. Si el mes salió en una
 /// sola moneda y coincide con la del presupuesto, la tarjeta es la de
 /// siempre (barra, % y restante). Si no, cada moneda sale con su código y
 /// no se compara con el presupuesto: restar pesos con dólares daría un
-/// restante falso.
+/// restante falso. El sobrante también se calla en ese caso.
 class CashBoxCard extends StatelessWidget {
   const CashBoxCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
-    final budget = tx.settings.cajaMenorMensual;
+    // Un solo pote: la obra ya va dentro de la caja (ver
+    // FarmSettings.cajaMensualEfectiva). Quien venía con los dos montos no
+    // pierde presupuesto: los dos se suman.
+    final budget = tx.settings.cajaMensualEfectiva;
     if (budget == null || budget <= 0) return const SizedBox.shrink();
-    // E3 · si hay presupuesto de obra, la gente tiene su propia tarjeta
-    // (WorkBudgetCard). Contarla también aquí inflaría el gasto de caja.
-    // Sin presupuesto de obra, la caja mide lo de siempre.
-    final laborSeparate = (tx.settings.presupuestoObraMensual ?? 0) > 0;
 
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
@@ -41,13 +44,13 @@ class CashBoxCard extends StatelessWidget {
     final budgetCurrency = tx.settings.currency;
 
     // Gastos de caja del mes **por moneda**: nunca se suman monedas distintas.
+    // Jornales y extras descuentan siempre: es el mismo pote.
     final jornales = <String, double>{};
     final extras = <String, double>{};
     for (final t in tx.transactionsInMonth(now.year, now.month)) {
       if (t.type != TransactionType.expense) continue;
       if (!discountsCashBox(t.category)) continue;
       final isLabor = t.category == 'mano_obra';
-      if (isLabor && laborSeparate) continue;
       final target = isLabor ? jornales : extras;
       target[t.currency] = (target[t.currency] ?? 0) + t.amount;
     }
@@ -132,13 +135,26 @@ class CashBoxCard extends StatelessWidget {
 
     // Moneda única: la tarjeta de siempre.
     final currency = singleCurrency ?? budgetCurrency;
-    final labor =
-        jornales.values.fold<double>(0, (a, b) => a + b);
+    final labor = jornales.values.fold<double>(0, (a, b) => a + b);
     final extraTotal = extras.values.fold<double>(0, (a, b) => a + b);
     final used = labor + extraTotal;
-    final ratio = used / budget;
+
+    // Lo que sobró de los meses anteriores **no desaparece**: se arrastra, y
+    // el límite de este mes es el aporte más ese sobrante. `null` = no se
+    // puede calcular sin mentir (mezcla de monedas) → se oculta, no se pone
+    // en 0.
+    final carry = const ReportPayrollMetrics().cashCarryUpTo(
+      allTx: tx.transactions,
+      budget: budget,
+      budgetCurrency: budgetCurrency,
+      year: now.year,
+      month: now.month,
+    );
+    final effective = carry == null ? budget : budget + carry;
+
+    final ratio = used / effective;
     final percent = (ratio * 100).toStringAsFixed(0);
-    final remaining = budget - used;
+    final remaining = effective - used;
 
     // Verde <80% · ámbar 80–100% · rojo >100%.
     final Color barColor;
@@ -176,7 +192,7 @@ class CashBoxCard extends StatelessWidget {
                     child: Text(
                       l10n.cashBoxOf(
                         money(used, currency),
-                        money(budget, budgetCurrency),
+                        money(effective, budgetCurrency),
                       ),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -200,6 +216,17 @@ class CashBoxCard extends StatelessWidget {
                 '${money(extraTotal, currency)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              // `null` (no calculable) y 0 (no hay nada que arrastrar) no
+              // dicen nada: la línea solo aparece cuando hay un sobrante
+              // real que explicar — o una deuda, que también importa.
+              if (carry != null && carry != 0) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '${l10n.cashBoxCarry}: ${money(carry, budgetCurrency)}'
+                  ' · ${l10n.cashBoxMonthly}: ${money(budget, budgetCurrency)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ],
           ),
         ),

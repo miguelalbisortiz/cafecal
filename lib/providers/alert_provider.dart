@@ -33,8 +33,9 @@ class AlertProvider extends ChangeNotifier {
       manualThresholdPerKg: _transactions.settings.lowPriceThresholdPerKg,
       harvests: _transactions.harvests,
       sowings: _transactions.sowings,
-      cajaMensual: _transactions.settings.cajaMenorMensual,
-      workBudgetMensual: _transactions.settings.presupuestoObraMensual,
+      // Un solo pote: el aporte con la obra ya plegada dentro.
+      cajaMensual: _transactions.settings.cajaMensualEfectiva,
+      currency: _transactions.settings.currency,
       sacoKg: _transactions.settings.sacoKg,
     );
     notifyListeners();

@@ -615,8 +615,10 @@
   "jornalRateRequired": "Ingresa el valor por día.",
   "jornalTotalLabel": "Total",
   "jornalTotalHint": "Se calcula: días × valor por día.",
-  "cashBoxLabel": "Caja menor mensual",
-  "cashBoxHelp": "Monto de cada mes para jornales y extras. Se reinicia solo cada 1 de mes; lo que sobre no se acumula.",
+  "cashBoxLabel": "Aporte mensual de caja",
+  "cashBoxHelp": "Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.",
+  "cashBoxCarry": "Sobrante de meses anteriores",
+  "cashBoxMonthly": "Aporte del mes",
   "cashBoxTitle": "Caja menor",
   "@cashBoxOf": {
     "placeholders": { "used": { "type": "String" }, "total": { "type": "String" } }
@@ -626,8 +628,6 @@
   "cashBoxLabor": "Jornales",
   "cashBoxExtras": "Extras",
 
-  "workBudgetLabel": "Presupuesto de obra mensual",
-  "workBudgetHelp": "Monto de cada mes solo para mano de obra. Si lo dejas vacío, los jornales siguen contando dentro de la caja menor como siempre.",
   "workBudgetTitle": "Presupuesto de obra",
   "@workBudgetOf": {
     "placeholders": { "used": { "type": "String" }, "total": { "type": "String" } }
@@ -1184,25 +1184,6 @@
   "alertUnpaidTitle": "Hay ventas por cobrar",
   "alertUnpaidMessage": "El problema: {count} ventas suman {amount} que todavía no te pagaron, la más vieja con {days} días.",
   "alertUnpaidSuggestion": "Cobrá antes de que se pase: cuando la plata entre, editá la venta y cambia su estado a «Pagado».",
-
-  "@alertWorkBudgetWarningTitle": {
-    "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }
-  },
-  "alertWorkBudgetWarningTitle": "La obra de {month} va al {percent}",
-  "@alertWorkBudgetWarningMessage": {
-    "placeholders": { "used": { "type": "String" }, "total": { "type": "String" }, "remaining": { "type": "String" } }
-  },
-  "alertWorkBudgetWarningMessage": "El problema: este mes llevas {used} de {total} en mano de obra. Te quedan {remaining} antes de agotarla.",
-  "alertWorkBudgetWarningSuggestion": "Si aún faltan días del mes, repartí mejor las labores o subí el presupuesto de obra.",
-  "@alertWorkBudgetDangerTitle": {
-    "placeholders": { "month": { "type": "String" } }
-  },
-  "alertWorkBudgetDangerTitle": "Obra agotada en {month}",
-  "@alertWorkBudgetDangerMessage": {
-    "placeholders": { "used": { "type": "String" }, "total": { "type": "String" }, "percent": { "type": "String" } }
-  },
-  "alertWorkBudgetDangerMessage": "El problema: este mes llevas {used} de {total} en mano de obra ({percent}). Ya te pasaste del presupuesto.",
-  "alertWorkBudgetDangerSuggestion": "Revisa los jornales registrados y considera ajustar el presupuesto de obra del próximo mes.",
 
   "@alertCashBoxWarningTitle": {
     "placeholders": { "month": { "type": "String" }, "percent": { "type": "String" } }

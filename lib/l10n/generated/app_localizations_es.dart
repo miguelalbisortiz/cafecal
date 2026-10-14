@@ -1628,10 +1628,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get jornalTotalHint => 'Se calcula: días × valor por día.';
 
   @override
-  String get cashBoxLabel => 'Caja menor mensual';
+  String get cashBoxLabel => 'Aporte mensual de caja';
 
   @override
-  String get cashBoxHelp => 'Monto de cada mes para jornales y extras. Se reinicia solo cada 1 de mes; lo que sobre no se acumula.';
+  String get cashBoxHelp => 'Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.';
+
+  @override
+  String get cashBoxCarry => 'Sobrante de meses anteriores';
+
+  @override
+  String get cashBoxMonthly => 'Aporte del mes';
 
   @override
   String get cashBoxTitle => 'Caja menor';
@@ -1649,12 +1655,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cashBoxExtras => 'Extras';
-
-  @override
-  String get workBudgetLabel => 'Presupuesto de obra mensual';
-
-  @override
-  String get workBudgetHelp => 'Monto de cada mes solo para mano de obra. Si lo dejas vacío, los jornales siguen contando dentro de la caja menor como siempre.';
 
   @override
   String get workBudgetTitle => 'Presupuesto de obra';
@@ -2586,32 +2586,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertUnpaidSuggestion => 'Cobrá antes de que se pase: cuando la plata entre, editá la venta y cambia su estado a «Pagado».';
-
-  @override
-  String alertWorkBudgetWarningTitle(String month, String percent) {
-    return 'La obra de $month va al $percent';
-  }
-
-  @override
-  String alertWorkBudgetWarningMessage(String used, String total, String remaining) {
-    return 'El problema: este mes llevas $used de $total en mano de obra. Te quedan $remaining antes de agotarla.';
-  }
-
-  @override
-  String get alertWorkBudgetWarningSuggestion => 'Si aún faltan días del mes, repartí mejor las labores o subí el presupuesto de obra.';
-
-  @override
-  String alertWorkBudgetDangerTitle(String month) {
-    return 'Obra agotada en $month';
-  }
-
-  @override
-  String alertWorkBudgetDangerMessage(String used, String total, String percent) {
-    return 'El problema: este mes llevas $used de $total en mano de obra ($percent). Ya te pasaste del presupuesto.';
-  }
-
-  @override
-  String get alertWorkBudgetDangerSuggestion => 'Revisa los jornales registrados y considera ajustar el presupuesto de obra del próximo mes.';
 
   @override
   String alertCashBoxWarningTitle(String month, String percent) {

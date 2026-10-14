@@ -17,7 +17,6 @@ import '../services/period_delta.dart';
 import '../utils/format.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/cash_box_card.dart';
-import '../widgets/work_budget_card.dart';
 import '../widgets/category_breakdown.dart';
 import '../widgets/crop_editor_dialog.dart';
 import '../widgets/currency_breakdown.dart';
@@ -529,9 +528,9 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 12),
             _totalsBlock(l10n, tx, monthTotals, monthConverted,
                 comparison: comparison),
-            // Caja menor del mes en curso (se oculta sin monto configurado).
+            // Caja del mes en curso: un solo pote para jornales y gastos
+            // chicos (se oculta sin aporte configurado).
             const CashBoxCard(),
-            const WorkBudgetCard(),
             const SizedBox(height: 16),
             // Avisar que algo necesita atención pesa más que sugerir qué
             // registrar: por eso las alertas van antes de la guía.
