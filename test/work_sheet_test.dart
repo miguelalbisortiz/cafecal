@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/report_payroll_metrics.dart';
@@ -79,6 +80,55 @@ void main() {
       expect(isFreeTask(null), isFalse);
       expect(taskLabel(null), '');
       expect(taskIcon(null), taskIcon(kTaskOther));
+    });
+
+    test('los trabajos que la app ya reconocía por su categoría se anotan',
+        () {
+      // Cinco categorías de gasto decían "esto existe", pero no había forma
+      // de anotar la labor que las produjo: el jornal quedaba en "Sin labor"
+      // y la planilla no decía de qué era.
+      const categoriaALabor = {
+        'siembra': 'sembrar',
+        'riego': 'regar',
+        'empaque': 'empacar',
+        'transporte': 'transportar',
+        'mantenimiento': 'reparar',
+      };
+      for (final e in categoriaALabor.entries) {
+        expect(expenseCategories.any((c) => c.key == e.key), isTrue,
+            reason: 'sigue existiendo la categoría ${e.key}');
+        expect(taskByKey(e.value), isNotNull,
+            reason: 'falta la labor que corresponde a ${e.key}');
+      }
+
+      // Las nuevas quedan antes de "Otra…", que siempre cierra la lista,
+      // y el orden relativo de las que ya estaban no se mueve.
+      final otra = farmTasks.indexWhere((t) => t.key == kTaskOther);
+      expect(otra, greaterThan(0));
+      for (final k in categoriaALabor.values) {
+        expect(farmTasks.indexWhere((t) => t.key == k), lessThan(otra),
+            reason: '$k debe aparecer antes de Otra…');
+      }
+      final antes = ['descolgar', 'abonar', 'cosechar', 'deshierbar', 'aplicar'];
+      final posiciones = [
+        for (final k in antes) farmTasks.indexWhere((t) => t.key == k)
+      ];
+      expect(posiciones, List<int>.from(posiciones)..sort(),
+          reason: 'las labores originales conservan su orden');
+    });
+
+    test('ninguna labor repite el icono de una categoría de gasto', () {
+      // Un glifo compartido hace que "Cosechar" y "Cosecha y recolección"
+      // parezcan la misma cosa justo donde se eligen, y la tarjeta de
+      // nómina pinta la labor mientras el estado de resultados pinta la
+      // categoría con el mismo dibujito.
+      final deCategorias = {for (final c in expenseCategories) c.icon};
+      for (final t in farmTasks) {
+        expect(deCategorias.contains(t.icon), isFalse,
+            reason: '"${t.name}" comparte icono con una categoría');
+      }
+      expect(farmTasks.map((t) => t.icon).toSet().length, farmTasks.length,
+          reason: 'dos labores tampoco pueden compartir glifo');
     });
   });
 

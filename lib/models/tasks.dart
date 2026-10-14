@@ -18,14 +18,24 @@ class FarmTask {
   const FarmTask({required this.key, required this.name, required this.icon});
 }
 
-/// Ordenado como se trabaja: primero lo del cafetal, luego la cerca.
+/// Ordenado como se trabaja: se siembra, luego lo del cafetal, después la
+/// cerca, y al final empacar y llevar el producto fuera.
+///
+/// Las claves nuevas `sembrar`, `regar`, `empacar`, `transportar` y
+/// `reparar` entran en la posición que les toca sin mover el orden relativo
+/// de las que ya estaban: así una planilla vieja sigue leyéndose igual.
 const List<FarmTask> farmTasks = [
+  FarmTask(key: 'sembrar', name: 'Sembrar', icon: '🪴'),
   FarmTask(key: 'descolgar', name: 'Descolgar', icon: '🌿'),
-  FarmTask(key: 'abonar', name: 'Abonar', icon: '🧪'),
-  FarmTask(key: 'cosechar', name: 'Cosechar', icon: '🧺'),
-  FarmTask(key: 'deshierbar', name: 'Deshierbar', icon: '🌾'),
+  FarmTask(key: 'abonar', name: 'Abonar', icon: '⚗️'),
+  FarmTask(key: 'cosechar', name: 'Cosechar', icon: '🍒'),
+  FarmTask(key: 'deshierbar', name: 'Deshierbar', icon: '🪓'),
   FarmTask(key: 'aplicar', name: 'Aplicar', icon: '💊'),
-  FarmTask(key: 'cerca_camino', name: 'Cerca y camino', icon: '🚧'),
+  FarmTask(key: 'regar', name: 'Regar', icon: '💦'),
+  FarmTask(key: 'cerca_camino', name: 'Cerca y camino', icon: '🪵'),
+  FarmTask(key: 'empacar', name: 'Empacar', icon: '📬'),
+  FarmTask(key: 'transportar', name: 'Transportar', icon: '🛒'),
+  FarmTask(key: 'reparar', name: 'Reparar', icon: '🔨'),
   FarmTask(key: kTaskOther, name: 'Otra…', icon: '✏️'),
 ];
 

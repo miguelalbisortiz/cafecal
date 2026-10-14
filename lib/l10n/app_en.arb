@@ -485,6 +485,9 @@
   "commonCostsHint": "It's a farm-wide expense (fence, road, electricity). It doesn't affect any crop's cost/kg, but it does affect the bottom line.",
   "harvestCategoryHint": "What the harvest itself costs: bags, supplies and moving the coffee. If you paid someone to pick it, that payment goes under Labor, not here.",
   "laborCategoryHint": "What you pay people, even for picking, fertilizing or weeding. Here you note who worked and how many days.",
+  "seedsCategoryHint": "What you spend during the season: seeds, bags and other supplies. If it's seedlings or plants for a crop, switch to Planting: there it counts as investment and shows in its cost/kg.",
+  "irrigationCategoryHint": "The system that carries water to the crops: pump, drip line, tank. The water bill goes under Water and the electricity bill under Energy.",
+  "waterCategoryHint": "The farm's water service, just like electricity. The bill belongs here; the irrigation system —pump, drip line, tank— goes under Irrigation.",
   "sowingCategoryHint": "If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn't exist yet, tap “+ New crop…”.",
   "deductionSwitchLabel": "The buyer deducted before paying",
   "deductionHint": "Coffee isn't always paid in full: impurity, moisture or stones.",
@@ -855,6 +858,12 @@
   "insightBestMonth": "Your best sales month was {salesMonth} ({salesAmount}); your lowest monthly expense was {costMonth} ({costAmount}).",
 
   "chartTitle": "Expenses vs income — {year}",
+
+  "chartCumulativeTitle": "Your money in {year} — running total",
+  "chartCumulativeSubtitle": "Income minus expenses, month by month. Tap a point to see where you stood.",
+  "chartStartLabel": "where you started",
+  "chartAccumDelta": "{amount} since January 1",
+  "chartCumulativeEmpty": "No movements recorded in {year} yet.",
 
   "alertExcessTitle": "Your {category} spending nearly doubled",
   "alertExcessMessage": "The problem: this month you have {current} in {category}, versus an average of {avg} per month.",

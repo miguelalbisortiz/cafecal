@@ -221,4 +221,46 @@ void main() {
     expect(find.text(_es.laborCategoryHint), findsOneWidget);
     expect(find.text(_es.harvestCategoryHint), findsNothing);
   });
+
+  testWidgets('los pares siembra/semillas y riego/agua se explican entre sí',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final provider = await makeProvider();
+    await pumpRegister(tester, provider,
+        initialType: TransactionType.expense);
+
+    // Etiqueta exacta del desplegable, no por subcadena: "Agua" aparece
+    // dentro de la ayuda de Riego y "Riego" dentro de la de Agua, así que
+    // buscar por subcadena elegiría el texto equivocado.
+    Future<void> choose(String key) async {
+      final icon = expenseCategories.firstWhere((c) => c.key == key).icon;
+      await tester.tap(dropdownWithValue(key));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('$icon ${_es.expenseCategory(key)}').last);
+      await tester.pumpAndSettle();
+    }
+
+    // Semillas e insumos: sólo Siembra cuenta como inversión, así que el
+    // aviso manda a cambiar de categoría en vez de dejarse anotar mal.
+    await choose('semillas_insumos');
+    expect(find.text(_es.seedsCategoryHint), findsOneWidget);
+    expect(find.text(_es.sowingCategoryHint), findsNothing);
+
+    // Riego es lo que cuesta llevar agua al cultivo; la factura es Agua.
+    await choose('riego');
+    expect(find.text(_es.irrigationCategoryHint), findsOneWidget);
+    expect(find.text(_es.seedsCategoryHint), findsNothing);
+
+    // Agua es la factura de la finca; el costo del cultivo es Riego.
+    await choose('agua');
+    expect(find.text(_es.waterCategoryHint), findsOneWidget);
+    expect(find.text(_es.irrigationCategoryHint), findsNothing);
+
+    // De vuelta en Siembra vuelve su ayuda, que ya existía.
+    await choose(kExpenseCategorySowing);
+    expect(find.text(_es.sowingCategoryHint), findsOneWidget);
+    expect(find.text(_es.waterCategoryHint), findsNothing);
+  });
 }

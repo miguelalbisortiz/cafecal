@@ -1275,6 +1275,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get laborCategoryHint => 'What you pay people, even for picking, fertilizing or weeding. Here you note who worked and how many days.';
 
   @override
+  String get seedsCategoryHint => 'What you spend during the season: seeds, bags and other supplies. If it\'s seedlings or plants for a crop, switch to Planting: there it counts as investment and shows in its cost/kg.';
+
+  @override
+  String get irrigationCategoryHint => 'The system that carries water to the crops: pump, drip line, tank. The water bill goes under Water and the electricity bill under Energy.';
+
+  @override
+  String get waterCategoryHint => 'The farm\'s water service, just like electricity. The bill belongs here; the irrigation system —pump, drip line, tank— goes under Irrigation.';
+
+  @override
   String get deductionSwitchLabel => 'The buyer deducted before paying';
 
   @override
@@ -2140,6 +2149,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chartTitle(int year) {
     return 'Expenses vs income — $year';
+  }
+
+  @override
+  String chartCumulativeTitle(int year) {
+    return 'Your money in $year — running total';
+  }
+
+  @override
+  String get chartCumulativeSubtitle => 'Income minus expenses, month by month. Tap a point to see where you stood.';
+
+  @override
+  String get chartStartLabel => 'where you started';
+
+  @override
+  String chartAccumDelta(String amount) {
+    return '$amount since January 1';
+  }
+
+  @override
+  String chartCumulativeEmpty(int year) {
+    return 'No movements recorded in $year yet.';
   }
 
   @override

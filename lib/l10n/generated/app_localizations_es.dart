@@ -1275,6 +1275,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get laborCategoryHint => 'Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.';
 
   @override
+  String get seedsCategoryHint => 'Lo que se gasta durante la temporada: semillas, bolsas y demás insumos. Si son colinos o plantas para un cultivo, cámbiate a Siembra: ahí cuenta como inversión y sale en su costo/kg.';
+
+  @override
+  String get irrigationCategoryHint => 'El sistema que lleva agua al cultivo: bomba, goteo, tanque. La factura del agua va en Agua y la de la luz en Energía.';
+
+  @override
+  String get waterCategoryHint => 'El servicio de agua de la finca, igual que la luz. La factura es de acá; el sistema de riego —bomba, goteo, tanque— va en Riego.';
+
+  @override
   String get deductionSwitchLabel => 'El comprador me descontó';
 
   @override
@@ -2140,6 +2149,27 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String chartTitle(int year) {
     return 'Gastos vs ingresos — $year';
+  }
+
+  @override
+  String chartCumulativeTitle(int year) {
+    return 'Tu plata en $year — acumulado';
+  }
+
+  @override
+  String get chartCumulativeSubtitle => 'Ingresos menos gastos, mes a mes. Toca un punto para ver cuánto llevabas.';
+
+  @override
+  String get chartStartLabel => 'como empezaste';
+
+  @override
+  String chartAccumDelta(String amount) {
+    return '$amount desde el 1 de enero';
+  }
+
+  @override
+  String chartCumulativeEmpty(int year) {
+    return 'Aún no hay movimientos en $year.';
   }
 
   @override

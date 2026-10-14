@@ -2459,6 +2459,24 @@ abstract class AppLocalizations {
   /// **'Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.'**
   String get laborCategoryHint;
 
+  /// No description provided for @seedsCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que se gasta durante la temporada: semillas, bolsas y demás insumos. Si son colinos o plantas para un cultivo, cámbiate a Siembra: ahí cuenta como inversión y sale en su costo/kg.'**
+  String get seedsCategoryHint;
+
+  /// No description provided for @irrigationCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El sistema que lleva agua al cultivo: bomba, goteo, tanque. La factura del agua va en Agua y la de la luz en Energía.'**
+  String get irrigationCategoryHint;
+
+  /// No description provided for @waterCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El servicio de agua de la finca, igual que la luz. La factura es de acá; el sistema de riego —bomba, goteo, tanque— va en Riego.'**
+  String get waterCategoryHint;
+
   /// No description provided for @deductionSwitchLabel.
   ///
   /// In es, this message translates to:
@@ -3994,6 +4012,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Gastos vs ingresos — {year}'**
   String chartTitle(int year);
+
+  /// No description provided for @chartCumulativeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu plata en {year} — acumulado'**
+  String chartCumulativeTitle(int year);
+
+  /// No description provided for @chartCumulativeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos menos gastos, mes a mes. Toca un punto para ver cuánto llevabas.'**
+  String get chartCumulativeSubtitle;
+
+  /// No description provided for @chartStartLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'como empezaste'**
+  String get chartStartLabel;
+
+  /// No description provided for @chartAccumDelta.
+  ///
+  /// In es, this message translates to:
+  /// **'{amount} desde el 1 de enero'**
+  String chartAccumDelta(String amount);
+
+  /// No description provided for @chartCumulativeEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay movimientos en {year}.'**
+  String chartCumulativeEmpty(int year);
 
   /// No description provided for @alertExcessTitle.
   ///

@@ -97,16 +97,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Ayuda que se muestra justo al elegir la categoría.
   ///
   /// Va en el momento exacto de la elección y no en un glosario que nadie
-  /// abre. Cubre las categorías que se confunden entre sí: "Cosecha y
-  /// recolección" y "Mano de obra" parecen decir lo mismo y una labor se
-  /// llama "cosechar", así que es fácil pagarle a quien recoge poniéndolo
-  /// en la categoría equivocada y perder el dato del trabajador.
+  /// abre. Cubre las categorías que se confunden entre sí, sobre todo las
+  /// que apuntan al mismo hecho con dos nombres distintos: "Cosecha y
+  /// recolección" y "Mano de obra" (una labor se llama "cosechar", así que
+  /// es fácil pagarle a quien recoge en la categoría equivocada y perder el
+  /// dato del trabajador), "Siembra" y "Semillas e insumos" (elegir mal
+  /// saca la inversión del costo/kg), y "Riego" y "Agua" (mueven la misma
+  /// factura entre producción y fijos).
   String? _categoryHint(AppLocalizations l10n) {
     if (!_type.isExpense) return null;
     return switch (_category) {
       kExpenseCategorySowing => l10n.sowingCategoryHint,
       kExpenseCategoryHarvest => l10n.harvestCategoryHint,
       'mano_obra' => l10n.laborCategoryHint,
+      'semillas_insumos' => l10n.seedsCategoryHint,
+      'riego' => l10n.irrigationCategoryHint,
+      'agua' => l10n.waterCategoryHint,
       _ => null,
     };
   }
