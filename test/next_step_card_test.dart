@@ -53,7 +53,8 @@ void main() {
     expect(find.text(l10n.nextStepAction), findsOneWidget);
   });
 
-  testWidgets('al registrar un gasto la tarjeta se oculta', (tester) async {
+  testWidgets('al registrar un gasto la tarjeta pasa a pedir la venta',
+      (tester) async {
     final provider = await makeProvider();
     await pumpCard(tester, provider);
 
@@ -63,9 +64,33 @@ void main() {
       amount: 50000,
     );
     await tester.pump();
+
     expect(find.text(l10n.nextStepCropTitle), findsNothing);
-    expect(find.text(l10n.nextStepHarvestTitle), findsNothing);
-    expect(find.text(l10n.nextStepAction), findsNothing);
+    expect(find.text(l10n.nextStepSaleTitle), findsOneWidget,
+        reason: 'D3 · con gasto y sin ingreso, la guía invita a vender');
+    expect(find.text(l10n.nextStepAction), findsOneWidget);
+  });
+
+  testWidgets('con gasto y venta el ciclo se cierra y la tarjeta se retira',
+      (tester) async {
+    final provider = await makeProvider();
+    await pumpCard(tester, provider);
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'cosecha',
+      amount: 50000,
+    );
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      amount: 90000,
+    );
+    await tester.pump();
+
+    expect(find.text(l10n.nextStepSaleTitle), findsNothing);
+    expect(find.text(l10n.nextStepAction), findsNothing,
+        reason: 'D3 · el corte es gasto + ingreso, no el primer movimiento');
   });
 
   testWidgets('el botón dispara la acción del paso correcto', (tester) async {

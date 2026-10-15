@@ -15,6 +15,7 @@ import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
+import 'derived_harvests.dart';
 import 'metric_signal.dart';
 import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
@@ -1285,22 +1286,28 @@ class ExcelExportService {
     }
 
     // Vendido vs cosechado.
-    row([null, null, null]);
-    row([TextCellValue(l10n.reportSoldVsHarvested)]);
-    final soldVs = metrics.soldVsHarvested(
-        periodTx, periodHarvests, crops, DateTime.now());
-    if (soldVs.isEmpty) {
-      row([TextCellValue(l10n.reportNoHarvestData)]);
-    }
-    for (final s in soldVs) {
-      row([
-        TextCellValue('${s.name} — ${l10n.reportSoldKg}'),
-        DoubleCellValue(s.soldKg),
-      ]);
-      row([
-        TextCellValue('${s.name} — ${l10n.reportHarvestedKg}'),
-        DoubleCellValue(s.harvestedKg),
-      ]);
+    // D5 · Mientras la única fuente de los kilos sea la venta esto es comparar
+    // un número consigo mismo: la fila nunca diría nada. Se queda fuera hasta
+    // que aparezca una cosecha medida por fuera de la venta. Misma puerta que
+    // en pantalla y en el PDF, para que los tres digan lo mismo.
+    if (hasIndependentHarvest(periodHarvests)) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.reportSoldVsHarvested)]);
+      final soldVs = metrics.soldVsHarvested(
+          periodTx, periodHarvests, crops, DateTime.now());
+      if (soldVs.isEmpty) {
+        row([TextCellValue(l10n.reportNoHarvestData)]);
+      }
+      for (final s in soldVs) {
+        row([
+          TextCellValue('${s.name} — ${l10n.reportSoldKg}'),
+          DoubleCellValue(s.soldKg),
+        ]);
+        row([
+          TextCellValue('${s.name} — ${l10n.reportHarvestedKg}'),
+          DoubleCellValue(s.harvestedKg),
+        ]);
+      }
     }
 
     // "Qué hacer" derivado del motor de reglas.

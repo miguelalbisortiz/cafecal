@@ -185,18 +185,6 @@ abstract class AppLocalizations {
   /// **'Lleva el control de lo que inviertes cada mes.'**
   String get nextStepExpensesSubtitle;
 
-  /// No description provided for @nextStepHarvestTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Registra tu primera cosecha'**
-  String get nextStepHarvestTitle;
-
-  /// No description provided for @nextStepHarvestSubtitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Anota cuánto recogiste y su destino.'**
-  String get nextStepHarvestSubtitle;
-
   /// No description provided for @nextStepSaleTitle.
   ///
   /// In es, this message translates to:
@@ -206,7 +194,7 @@ abstract class AppLocalizations {
   /// No description provided for @nextStepSaleSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Vincula la venta a la cosecha para ver tu ganancia real.'**
+  /// **'Al registrarla se anotan solos los kilos cosechados de ese cultivo.'**
   String get nextStepSaleSubtitle;
 
   /// No description provided for @nextStepGuideLink.
@@ -353,12 +341,6 @@ abstract class AppLocalizations {
   /// **'Registrar cuántas plantas sembraste o reemplazaste'**
   String get helpRowSowings;
 
-  /// No description provided for @helpRowHarvests.
-  ///
-  /// In es, this message translates to:
-  /// **'Registrar cuánto recogiste y qué hiciste con ello'**
-  String get helpRowHarvests;
-
   /// No description provided for @helpRowExpenses.
   ///
   /// In es, this message translates to:
@@ -398,13 +380,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseA3.
   ///
   /// In es, this message translates to:
-  /// **'Cuando coseches, entra a Cosechas y registra cuánto recogiste y si lo vendiste, lo guardaste o se perdió.'**
+  /// **'Cuando vendas, entra a Registrar y pon un Ingreso con los kilos y el dinero que te pagaron: con esos kilos queda registrada sola la cosecha de ese cultivo.'**
   String get helpCaseA3;
 
   /// No description provided for @helpCaseA4.
   ///
   /// In es, this message translates to:
-  /// **'Cuando vendas, vuelve a Registrar y pon un Ingreso con el dinero que te pagaron.'**
+  /// **'Abre el Resumen y revisa tus números: lo cosechado, el costo por kilo y el margen.'**
   String get helpCaseA4;
 
   /// No description provided for @helpCaseAEnd.
@@ -569,16 +551,10 @@ abstract class AppLocalizations {
   /// **'Gasto de \$500,000 en Fertilizante'**
   String get helpCaseAEx2;
 
-  /// No description provided for @helpCaseAEx3.
-  ///
-  /// In es, this message translates to:
-  /// **'4 arrobas (50 kg), Vendido'**
-  String get helpCaseAEx3;
-
   /// No description provided for @helpCaseAEx4.
   ///
   /// In es, this message translates to:
-  /// **'Ingreso de \$750,000 por la venta'**
+  /// **'Ingreso de \$750,000 por la venta de 50 kg (4 arrobas)'**
   String get helpCaseAEx4;
 
   /// No description provided for @helpCaseAEx5.
@@ -758,7 +734,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpFlowIntro.
   ///
   /// In es, this message translates to:
-  /// **'Piensa en esto como una cadena: primero le dices qué cultivas, luego cuánto sembraste, luego cuánto gastaste, luego qué recogiste, y por último cuánto vendiste.'**
+  /// **'Piensa en esto como una cadena: primero le dices qué cultivas, luego cuánto sembraste, luego cuánto gastaste, y por último cuánto vendiste — ahí se anota tu cosecha.'**
   String get helpFlowIntro;
 
   /// No description provided for @helpFlowStep1Title.
@@ -800,13 +776,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpFlowStep4Title.
   ///
   /// In es, this message translates to:
-  /// **'Registrar cosecha'**
+  /// **'La cosecha'**
   String get helpFlowStep4Title;
 
   /// No description provided for @helpFlowStep4Body.
   ///
   /// In es, this message translates to:
-  /// **'Qué recogiste.'**
+  /// **'Se anota sola con los kilos de tu venta.'**
   String get helpFlowStep4Body;
 
   /// No description provided for @helpFlowStep5Title.
@@ -824,7 +800,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpFlowHint.
   ///
   /// In es, this message translates to:
-  /// **'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya hiciste todo, la tarjeta desaparece sola.'**
+  /// **'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya registraste tus gastos y tus ventas, la tarjeta desaparece sola.'**
   String get helpFlowHint;
 
   /// No description provided for @helpCommonTitle.

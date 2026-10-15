@@ -48,10 +48,6 @@ class NextStepCard extends StatelessWidget {
           l10n.nextStepExpensesTitle,
           l10n.nextStepExpensesSubtitle,
         ),
-      NextStepType.harvest => (
-          l10n.nextStepHarvestTitle,
-          l10n.nextStepHarvestSubtitle,
-        ),
       NextStepType.sale => (
           l10n.nextStepSaleTitle,
           l10n.nextStepSaleSubtitle,
@@ -61,7 +57,6 @@ class NextStepCard extends StatelessWidget {
       NextStepType.crop => Icons.grass_outlined,
       NextStepType.sowing => Icons.spa_outlined,
       NextStepType.expenses => Icons.trending_down_outlined,
-      NextStepType.harvest => Icons.inventory_2_outlined,
       NextStepType.sale => Icons.sell_outlined,
     };
 

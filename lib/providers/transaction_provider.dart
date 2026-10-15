@@ -12,6 +12,7 @@ import '../models/sowing.dart';
 import '../models/terreno.dart';
 import '../models/transaction.dart';
 import '../services/backup_service.dart';
+import '../services/derived_harvests.dart';
 import '../services/local_store.dart';
 
 class TransactionProvider extends ChangeNotifier {
@@ -48,6 +49,11 @@ class TransactionProvider extends ChangeNotifier {
     _terrenos = _store.loadTerrenos();
     _settingsDirty = _store.loadSettingsDirty();
     _deletedCrops = _store.loadDeletedCrops();
+    // P3 · Cuentas que **ya vendían** antes de que la cosecha se dedujera de
+    // la venta: en el disco su fase sigue congelada en `establecimiento`
+    // porque nadie pasó por `addHarvest`. Se promueve aquí, al abrir, sin
+    // esperar a que toque algo.
+    if (_promotePhasesInMemory()) _store.saveCrops(_crops);
   }
 
   /// Recarga todo el estado desde el namespace activo del store. Se invoca
@@ -66,15 +72,43 @@ class TransactionProvider extends ChangeNotifier {
     // Igual que la dirty: si no se recarga, un cultivo borrado en la cuenta
     // anterior reviviría aquí (o se borraría sin querer en otra).
     _deletedCrops = _store.loadDeletedCrops();
+    await reconcilePhaseFromHarvests();
     notifyListeners();
   }
 
   List<Transaction> get transactions => _transactions;
   List<Crop> get crops => _crops;
   FarmSettings get settings => _settings;
-  List<Harvest> get harvests => _harvests;
   List<Sowing> get sowings => _sowings;
   List<Employee> get employees => _employees;
+
+  /// **Lo que la app sabe que se cosechó**: las guardadas a mano + las que se
+  /// deducen de las ventas que él ya anotó («cosecha derivada de la venta»).
+  ///
+  /// Reportes, alertas, la ficha del cultivo y el PDF/Excel leen por aquí, y
+  /// por eso todos ellos se enteran a la vez sin tocar uno por uno.
+  ///
+  /// **No se guarda nada**: `deriveHarvests` se recalcula en cada lectura, así
+  /// que si él corrige o borra una venta, el dato se arregla solo — y una
+  /// cosecha no puede revivir como zombi en el pull. Por lo mismo este getter
+  /// **nunca** es el que se sube ni el que se respalda: eso es
+  /// [storedHarvests].
+  List<Harvest> get harvests => [
+        ..._harvests,
+        ...deriveHarvests(
+          transactions: _transactions,
+          manualHarvests: _harvests,
+        ),
+      ];
+
+  /// Las cosechas **guardadas** en disco, sin derivar: exactamente las que
+  /// él anotó.
+  ///
+  /// Este es el que usan el **sync** (subir / faltar / borrar) y el
+  /// **respaldo**. Subir una derivada sería publicar un cálculo que no es
+  /// dato, y el `mergeRemoteHarvests` la reviviría si la venta dejara de
+  /// existir.
+  List<Harvest> get storedHarvests => _harvests;
 
   /// Los terrenos de la finca. Lista vacía = no se usan: la app se comporta
   /// exactamente igual que antes de que existieran.
@@ -84,6 +118,12 @@ class TransactionProvider extends ChangeNotifier {
   /// para que [SyncProvider] pueda subir los borrados.
   List<String> get deletedCrops => _deletedCrops;
 
+  /// Cosechas **guardadas** (no derivadas) de un cultivo o rango.
+  ///
+  /// Su único uso es **vincular un gasto** con una cosecha, y ahí solo sirve
+  /// lo que él anotó a mano: una derivada no se muestra como tal en ninguna
+  /// pantalla, y su existencia cuelca de la venta — si la borra, el gasto
+  /// quedaría enlazado a un enlace roto.
   List<Harvest> harvestsFor(String? cropId, {DateTime? from, DateTime? to}) {
     return _harvests.where((h) {
       if (cropId != null && h.cropId != cropId) return false;
@@ -237,6 +277,9 @@ class TransactionProvider extends ChangeNotifier {
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
+    // Una venta que entra con cultivo y kilos crea cosecha derivada: la fase
+    // del cultivo tiene que subir en el mismo acto.
+    await reconcilePhaseFromHarvests();
     notifyListeners();
     onLocalChange?.call();
     return txn;
@@ -249,6 +292,9 @@ class TransactionProvider extends ChangeNotifier {
     list[idx] = updated.copyWith(pendingSync: true);
     _transactions = list;
     await _store.saveTransactions(_transactions);
+    // Corregir una venta (más kilos, otro cultivo) puede crear o destruir la
+    // cosecha derivada; la fase se recalcula igual, nunca retrocede.
+    await reconcilePhaseFromHarvests();
     notifyListeners();
     onLocalChange?.call();
   }
@@ -275,7 +321,8 @@ class TransactionProvider extends ChangeNotifier {
   /// La fase por defecto es [CropPhase.establecimiento], no producción: quien
   /// lo crea desde una puerta de solo nombre (siembra, registro, asignación)
   /// todavía no tiene una sola cosecha que lo demuestre. Se promueve a
-  /// producción solo, al dar la primera cosecha (ver [_promotePhaseOnHarvest]);
+  /// producción solo, al dar la primera cosecha (ver
+  /// [reconcilePhaseFromHarvests]);
   /// el formulario completo de Cultivos sigue poniendo la fase a mano.
   Future<Crop> addCrop(
     String name, {
@@ -425,27 +472,60 @@ class TransactionProvider extends ChangeNotifier {
     );
     _harvests = [..._harvests, harvest];
     await _store.saveHarvests(_harvests);
-    await _promotePhaseOnHarvest(cropId);
+    await reconcilePhaseFromHarvests();
     notifyListeners();
     return harvest;
   }
 
   /// P3 · Fase automática: un cultivo que ya dio cosecha está en producción.
   ///
-  /// Solo se promueve **desde** `establecimiento`: nunca al revés y nunca toca
-  /// `renovacion`, que sigue siendo una decisión del usuario. Como después de
-  /// promover ya no cumple la condición, la operación es idempotente.
-  Future<void> _promotePhaseOnHarvest(String? cropId) async {
-    if (cropId == null) return;
-    final idx = _crops.indexWhere(
-        (c) => c.id == cropId && c.phase == CropPhase.establecimiento);
-    if (idx == -1) return;
-    final list = [..._crops];
-    list[idx] =
-        list[idx].copyWith(phase: CropPhase.produccion, pendingSync: true);
-    _crops = list;
+  /// La regla **no cambió**: solo se promueve desde `establecimiento`, nunca
+  /// al revés, y `renovacion` sigue siendo una decisión de él. Lo que cambió
+  /// es **dónde se dispara**, y por eso este método existe:
+  ///
+  /// antes la única puerta era `addHarvest`, a la que hoy nadie entra. La
+  /// cosecha puede salir **deducida de la venta**, así que la condición mira
+  /// [harvests] —guardadas + derivadas— y no `_harvests`, y se corre en cada
+  /// lugar donde pueden aparecer cosechas:
+  ///
+  /// * al abrir la app y al recargar (cuentas que ya vendían antes);
+  /// * al agregar o editar un movimiento;
+  /// * al importar un respaldo;
+  /// * al bajar datos de otro equipo (el pull).
+  ///
+  /// Igual que [_recomputeCropsFromSowings], persiste con `pendingSync: true`
+  /// para que la fase viaje al servidor. Es idempotente: una vez promovido el
+  /// cultivo deja de cumplir la condición, y nunca hay dos guardados seguidos.
+  Future<void> reconcilePhaseFromHarvests() async {
+    if (!_promotePhasesInMemory()) return;
     await _store.saveCrops(_crops);
     notifyListeners();
+  }
+
+  /// Lo puro de la promoción: muta [_crops] en memoria y dice si cambió algo.
+  ///
+  /// Está aparte porque los caminos de entrada síncrona (`replaceAllFromSync`,
+  /// y el `notifyListeners` que trae cada `mergeRemote*` del pull) no pueden
+  /// esperar un `await`: necesitan la fase bien **antes** de avisar.
+  bool _promotePhasesInMemory() {
+    final conCosecha = <String>{
+      for (final h in harvests)
+        if (h.cropId != null) h.cropId!,
+    };
+    if (conCosecha.isEmpty) return false;
+
+    final list = [..._crops];
+    var changed = false;
+    for (var i = 0; i < list.length; i++) {
+      final c = list[i];
+      if (c.phase != CropPhase.establecimiento) continue;
+      if (!conCosecha.contains(c.id)) continue;
+      list[i] = c.copyWith(phase: CropPhase.produccion, pendingSync: true);
+      changed = true;
+    }
+    if (!changed) return false;
+    _crops = list;
+    return true;
   }
 
   Future<void> updateHarvest(Harvest updated) async {
@@ -937,6 +1017,10 @@ class TransactionProvider extends ChangeNotifier {
       if (t.harvestId != null && !harvestIds.contains(t.harvestId)) huerfanos++;
     }
 
+    // Un respaldo puede traer ventas que este equipo nunca vio: la fase se
+    // recalcula con ellas ya dentro.
+    await reconcilePhaseFromHarvests();
+
     notifyListeners();
     return BackupSummary(
       agregados: agregados,
@@ -978,6 +1062,9 @@ class TransactionProvider extends ChangeNotifier {
     _crops = remoteCrops;
     if (remoteHarvests != null) _harvests = remoteHarvests;
     if (remoteSowings != null) _sowings = remoteSowings;
+    // En memoria antes de guardar: el `saveCrops` de abajo persiste la fase
+    // ya promovida, así que no hace falta un segundo escritor.
+    _promotePhasesInMemory();
     _store.saveTransactions(remote);
     _store.saveCrops(remoteCrops);
     _store.saveHarvests(_harvests);

@@ -14,10 +14,9 @@ enum NextStepType {
   /// Registrar los primeros gastos del año.
   expenses,
 
-  /// Registrar la primera cosecha (ya no se usa en la guía).
-  harvest,
-
-  /// Registrar la venta de la cosecha (ya no se usa en la guía).
+  /// Registrar la venta de la cosecha: es el paso que cierra el ciclo. La
+  /// cosecha de la que sale esta venta **nace de la propia venta** (es
+  /// derivada), así que no hay un "registrar cosecha" aparte — D2/D5.
   sale,
 }
 
@@ -42,10 +41,14 @@ bool needsOnboarding(List<Crop> crops, List<Sowing> sowings) =>
 /// 1. Sin cultivos → crear el primero.
 /// 2. Cultivo en `establecimiento` / `renovacion` sin siembra propia → sembrar
 ///    (el plantío joven aún no produce; la guía lo lleva a la siembra).
-/// 3. Sin gastos del año → registrar gastos (aplica a finca ya establecida:
+/// 3. Sin gastos → registrar el primer gasto (aplica a finca ya establecida:
 ///    un cultivo en `produccion` no exige siembra).
-/// 4. Con gastos pero sin cosechas → registrar cosecha.
-/// 5. Con cosecha pero sin ventas → registrar venta de la cosecha.
+/// 4. Con gastos pero sin ingresos → registrar la venta de la cosecha.
+///
+/// **D3 · El corte es `tiene gasto && tiene ingreso`, no el primer
+/// movimiento.** La guía se borraba apenas aparecía *cualquier* registro, y
+/// así nunca llegaba a invitar a vender — que es el paso que cierra el ciclo
+/// y del que nace la cosecha. Ahora aguanta hasta que el ciclo está cerrado.
 ///
 /// Cero estado guardado: se recalcula en cada llamada y aparece/desaparece solo.
 /// 1. Sin cultivos, o solo los por defecto sin configurar y sin ningún dato
@@ -62,11 +65,13 @@ NextStep? nextStepFor({
       harvests.isNotEmpty ||
       transactions.any((t) => !t.deleted);
 
-  // La tarjeta solo guía los primeros pasos: crear cultivo y registrar el
-  // primer gasto/ingreso. Una vez que el usuario tiene transacciones, la
-  // tarjeta desaparece para no estorbar.
-  final hasTransactions = transactions.any((t) => !t.deleted);
-  if (hasTransactions) return null;
+  // D3 · El único corte es el ciclo completo: gasto **e** ingreso. Mientras
+  // falte uno —sin gastos, o gastos sin venta— la tarjeta sigue ahí para no
+  // dejar al usuario sin invitación. Las borradas no cuentan.
+  final tieneGasto = transactions.any((t) => !t.deleted && t.type.isExpense);
+  final tieneIngreso =
+      transactions.any((t) => !t.deleted && !t.type.isExpense);
+  if (tieneGasto && tieneIngreso) return null;
 
   if (crops.isEmpty && !hasAnyData) {
     return const NextStep(type: NextStepType.crop);
@@ -80,6 +85,11 @@ NextStep? nextStepFor({
     return NextStep(type: NextStepType.sowing, cropId: youngCrop.id);
   }
 
-  // Sin gastos del año → invita a registrar el primer gasto.
-  return const NextStep(type: NextStepType.expenses);
+  // Sin gastos → invita a registrar el primer gasto.
+  if (!tieneGasto) return const NextStep(type: NextStepType.expenses);
+
+  // Ya gastó pero todavía no vendió: el ciclo sigue abierto. Invita a la
+  // venta —el paso que antes la guía nunca alcanzaba a sugerir porque se
+  // borraba con el primer registro (D3).
+  return const NextStep(type: NextStepType.sale);
 }

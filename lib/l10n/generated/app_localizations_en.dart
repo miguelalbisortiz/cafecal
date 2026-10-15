@@ -56,16 +56,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextStepExpensesSubtitle => 'Track what you invest each month.';
 
   @override
-  String get nextStepHarvestTitle => 'Record your first harvest';
-
-  @override
-  String get nextStepHarvestSubtitle => 'Note how much you collected and its destination.';
-
-  @override
   String get nextStepSaleTitle => 'Record the sale of your harvest';
 
   @override
-  String get nextStepSaleSubtitle => 'Link the sale to the harvest to see your real profit.';
+  String get nextStepSaleSubtitle => 'Logging it also records the harvested kilos for that crop.';
 
   @override
   String get nextStepGuideLink => 'View full guide';
@@ -140,9 +134,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpRowSowings => 'Plant or replant';
 
   @override
-  String get helpRowHarvests => 'Record what you collected';
-
-  @override
   String get helpRowExpenses => 'Expenses (supplies, labor…)';
 
   @override
@@ -161,10 +152,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseA2 => 'Record: enter the month\'s expenses (supplies, labor).';
 
   @override
-  String get helpCaseA3 => 'Harvests: when you collect, record the harvest with its destination.';
+  String get helpCaseA3 => 'Record: when you sell, add an income with the kilos and the money you received; that crop\'s harvest is logged on its own from those kilos.';
 
   @override
-  String get helpCaseA4 => 'Record: when you sell, record the sale income.';
+  String get helpCaseA4 => 'Open Overview and check your numbers: harvested, cost per kilo and margin.';
 
   @override
   String get helpCaseAEnd => 'Check the Overview: balance and indicators start making sense.';
@@ -248,10 +239,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseAEx2 => '\$500,000 expense on Fertilizer';
 
   @override
-  String get helpCaseAEx3 => '4 arrobas (50 kg), Sold';
-
-  @override
-  String get helpCaseAEx4 => '\$750,000 income from the sale';
+  String get helpCaseAEx4 => '\$750,000 income from selling 50 kg (4 arrobas)';
 
   @override
   String get helpCaseAEx5 => 'Balance +\$250,000 · Margin 33% · ROI 50%';
@@ -341,7 +329,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpFlowTitle => 'The order of the app';
 
   @override
-  String get helpFlowIntro => 'Think of it as a chain: first you tell it what you grow, then how much you planted, then what you spent, then what you harvested, and finally how much you sold for.';
+  String get helpFlowIntro => 'Think of it as a chain: first you tell it what you grow, then how much you planted, then what you spent, and finally what you sold — that is where your harvest is logged.';
 
   @override
   String get helpFlowStep1Title => 'Define the crop';
@@ -362,10 +350,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpFlowStep3Body => 'What you invested.';
 
   @override
-  String get helpFlowStep4Title => 'Record the harvest';
+  String get helpFlowStep4Title => 'The harvest';
 
   @override
-  String get helpFlowStep4Body => 'What you collected.';
+  String get helpFlowStep4Body => 'It is logged on its own with the kilos from your sale.';
 
   @override
   String get helpFlowStep5Title => 'Record the sale';
@@ -374,7 +362,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpFlowStep5Body => 'Who you sold to and for how much.';
 
   @override
-  String get helpFlowHint => 'The \"Your next step\" card on the Overview tells you exactly which record you need next. When you have done it all, the card disappears on its own.';
+  String get helpFlowHint => 'The \"Your next step\" card on the Overview tells you exactly which record you need next. Once you have logged your expenses and your sales, the card disappears on its own.';
 
   @override
   String get helpCommonTitle => 'Common mistakes (and how to fix them)';

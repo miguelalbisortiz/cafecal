@@ -17,6 +17,7 @@ import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
+import 'derived_harvests.dart';
 import 'metric_signal.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
@@ -895,6 +896,11 @@ class PdfExportService {
     final rows = metrics.soldVsHarvested(
         source.toList(), periodHarvests, crops, DateTime.now());
     if (rows.isEmpty) return pw.SizedBox.shrink();
+
+    // D5 · Mientras la única fuente de los kilos sea la venta, esto es
+    // comparar un número consigo mismo. Misma puerta que en pantalla y en
+    // Excel, para que los tres digan lo mismo.
+    if (!hasIndependentHarvest(periodHarvests)) return pw.SizedBox.shrink();
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,

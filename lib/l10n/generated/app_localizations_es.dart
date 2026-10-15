@@ -56,16 +56,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nextStepExpensesSubtitle => 'Lleva el control de lo que inviertes cada mes.';
 
   @override
-  String get nextStepHarvestTitle => 'Registra tu primera cosecha';
-
-  @override
-  String get nextStepHarvestSubtitle => 'Anota cuánto recogiste y su destino.';
-
-  @override
   String get nextStepSaleTitle => 'Registra la venta de tu cosecha';
 
   @override
-  String get nextStepSaleSubtitle => 'Vincula la venta a la cosecha para ver tu ganancia real.';
+  String get nextStepSaleSubtitle => 'Al registrarla se anotan solos los kilos cosechados de ese cultivo.';
 
   @override
   String get nextStepGuideLink => 'Ver guía completa';
@@ -140,9 +134,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpRowSowings => 'Registrar cuántas plantas sembraste o reemplazaste';
 
   @override
-  String get helpRowHarvests => 'Registrar cuánto recogiste y qué hiciste con ello';
-
-  @override
   String get helpRowExpenses => 'Anotar gastos: fertilizante, pago de trabajadores, semillas, etc.';
 
   @override
@@ -161,10 +152,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseA2 => 'En Registrar, anota tus gastos del mes: fertilizante, pago de trabajadores, etc.';
 
   @override
-  String get helpCaseA3 => 'Cuando coseches, entra a Cosechas y registra cuánto recogiste y si lo vendiste, lo guardaste o se perdió.';
+  String get helpCaseA3 => 'Cuando vendas, entra a Registrar y pon un Ingreso con los kilos y el dinero que te pagaron: con esos kilos queda registrada sola la cosecha de ese cultivo.';
 
   @override
-  String get helpCaseA4 => 'Cuando vendas, vuelve a Registrar y pon un Ingreso con el dinero que te pagaron.';
+  String get helpCaseA4 => 'Abre el Resumen y revisa tus números: lo cosechado, el costo por kilo y el margen.';
 
   @override
   String get helpCaseAEnd => 'Mira el Resumen: ahí ves si estás ganando o perdiendo. Las alertas te avisan si algo necesita atención.';
@@ -248,10 +239,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseAEx2 => 'Gasto de \$500,000 en Fertilizante';
 
   @override
-  String get helpCaseAEx3 => '4 arrobas (50 kg), Vendido';
-
-  @override
-  String get helpCaseAEx4 => 'Ingreso de \$750,000 por la venta';
+  String get helpCaseAEx4 => 'Ingreso de \$750,000 por la venta de 50 kg (4 arrobas)';
 
   @override
   String get helpCaseAEx5 => 'Balance +\$250,000 · Margen 33% · ROI 50%';
@@ -341,7 +329,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpFlowTitle => 'El orden de la app';
 
   @override
-  String get helpFlowIntro => 'Piensa en esto como una cadena: primero le dices qué cultivas, luego cuánto sembraste, luego cuánto gastaste, luego qué recogiste, y por último cuánto vendiste.';
+  String get helpFlowIntro => 'Piensa en esto como una cadena: primero le dices qué cultivas, luego cuánto sembraste, luego cuánto gastaste, y por último cuánto vendiste — ahí se anota tu cosecha.';
 
   @override
   String get helpFlowStep1Title => 'Definir el cultivo';
@@ -362,10 +350,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpFlowStep3Body => 'Qué invertiste.';
 
   @override
-  String get helpFlowStep4Title => 'Registrar cosecha';
+  String get helpFlowStep4Title => 'La cosecha';
 
   @override
-  String get helpFlowStep4Body => 'Qué recogiste.';
+  String get helpFlowStep4Body => 'Se anota sola con los kilos de tu venta.';
 
   @override
   String get helpFlowStep5Title => 'Registrar venta';
@@ -374,7 +362,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpFlowStep5Body => 'A quién vendiste y cuánto.';
 
   @override
-  String get helpFlowHint => 'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya hiciste todo, la tarjeta desaparece sola.';
+  String get helpFlowHint => 'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya registraste tus gastos y tus ventas, la tarjeta desaparece sola.';
 
   @override
   String get helpCommonTitle => 'Errores comunes (y cómo corregirlos)';

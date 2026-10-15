@@ -440,11 +440,6 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (_) => const SowingScreen()),
         );
         break;
-      case NextStepType.harvest:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const HarvestScreen()),
-        );
-        break;
       case NextStepType.expenses:
         _goRegister(TransactionType.expense);
         break;

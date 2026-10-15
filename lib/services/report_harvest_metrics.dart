@@ -324,6 +324,12 @@ class ReportHarvestMetrics {
   /// Venta vs cosecha por cultivo en kg (últimos 12 meses, para coherencia
   /// con la Regla de conciliación). Devuelve solo cultivos con al menos una
   /// venta o cosecha en el período.
+  ///
+  /// **Antes de mostrar esto, pasá por `hasIndependentHarvest`**
+  /// (`derived_harvests.dart`). Si todas las cosechas del período salieron de
+  /// la venta, `harvestedKg` *es* `soldKg` y la comparación no dice nada — D5.
+  /// Los tres pintadores (pantalla, PDF, Excel) tienen esa misma puerta; si
+  /// alguien agrega un cuarto, es la regla a copiar.
   List<SoldVsHarvested> soldVsHarvested(List<Transaction> transactions,
       List<Harvest> harvests, List<Crop> crops, DateTime now) {
     final cutoff = DateTime(now.year, now.month - 11, 1);

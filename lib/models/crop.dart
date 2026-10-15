@@ -245,7 +245,7 @@ int? edadDeCrop(Crop crop, List<Sowing> sowings, {DateTime? hoy}) {
 ///
 /// Es **informativa**: no cambia la fase por su cuenta ni dispara alertas.
 /// La fase la decide la primera cosecha registrada
-/// (`TransactionProvider._promotePhaseOnHarvest`).
+/// (`TransactionProvider.reconcilePhaseFromHarvests`).
 class FirstHarvestEstimate {
   /// La fecha que él anotó.
   final DateTime date;
@@ -307,7 +307,7 @@ FirstHarvestEstimate? primerCosechaEstimada(
 /// si no dijo nada, la app calla y nace en `establecimiento`.
 ///
 /// Lo que manda de verdad, y ya desde antes, es la primera cosecha
-/// registrada (`TransactionProvider._promotePhaseOnHarvest`): esa no es una
+/// registrada (`TransactionProvider.reconcilePhaseFromHarvests`): esa no es una
 /// estimación, es un hecho.
 CropPhase deducePhaseOnCreate({
   required CropCycle cycle,

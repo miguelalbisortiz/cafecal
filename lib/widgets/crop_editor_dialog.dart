@@ -196,7 +196,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   ///
   /// Al **editar** un cultivo que ya vivió no se re-deduces: su fase sale de
   /// su historial y de la primera cosecha registrada
-  /// (`_promotePhaseOnHarvest`), y pisarla aquí sería un regreso.
+  /// (`reconcilePhaseFromHarvests`), y pisarla aquí sería un regreso.
   ///
   /// La excepción es la **puerta de bienvenida** (E6): ahí el cultivo acaba
   /// de nacer en este mismo tramo y completarlo sigue siendo crearlo, con el

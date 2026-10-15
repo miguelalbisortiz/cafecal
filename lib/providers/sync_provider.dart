@@ -218,7 +218,9 @@ class SyncProvider extends ChangeNotifier {
           id: s.id,
           run: () => _upsertRemoteSowing(supabase, s),
         ),
-      for (final h in _txProvider.harvests.where((h) => h.pendingSync))
+      // Solo las GUARDADAS: una derivada no es dato que subir, es un cálculo
+      // que se vuelve a hacer en cada lectura. Ver `storedHarvests`.
+      for (final h in _txProvider.storedHarvests.where((h) => h.pendingSync))
         PushStage(
           table: 'harvests',
           label: 'Cosecha',
@@ -546,7 +548,11 @@ class SyncProvider extends ChangeNotifier {
       _txProvider.mergeRemoteCrops(remoteCropMapped);
     }
 
-    final harvestLocalIds = _txProvider.harvests.map((h) => h.id).toSet();
+    // Ids **guardados**: las derivadas viven en memoria y su id sintético
+    // (der_venta_…) jamás va a coincidir con uno remoto, así que meterlas
+    // aquí solo ensuciaría el conjunto.
+    final harvestLocalIds =
+        _txProvider.storedHarvests.map((h) => h.id).toSet();
     final remoteHarvestMapped = (remoteHarvests as List)
         .map((e) => _remoteToHarvest(e as Map<String, dynamic>))
         .where((h) => !harvestLocalIds.contains(h.id))
@@ -572,6 +578,12 @@ class SyncProvider extends ChangeNotifier {
     if (remoteEmployeeMapped.isNotEmpty) {
       _txProvider.mergeRemoteEmployees(remoteEmployeeMapped);
     }
+
+    // Último, después de **todos** los merges (cultivos incluidos): una venta
+    // remota puede haber puesto un cultivo en producción, y eso hay que
+    // guardarlo ya — si no, el próximo pull lo volvería a traer en
+    // `establecimiento` y la regla 5 seguiría diciendo `info`.
+    await _txProvider.reconcilePhaseFromHarvests();
   }
 
   Terreno _remoteToTerreno(Map<String, dynamic> row) {

@@ -22,6 +22,7 @@ Transaction _txn(
   TransactionType type = TransactionType.expense,
   String category = 'fertilizante',
   DateTime? date,
+  bool deleted = false,
 }) =>
     Transaction(
       id: id,
@@ -30,6 +31,7 @@ Transaction _txn(
       amount: 100,
       date: date ?? DateTime(2026, 3, 1),
       createdAt: date ?? DateTime(2026, 3, 1),
+      deleted: deleted,
     );
 
 void main() {
@@ -167,7 +169,7 @@ void main() {
       expect(step?.type, NextStepType.expenses);
     });
 
-    test('con gastos del año → tarjeta se oculta (ya tiene datos)', () {
+    test('D3 · con gasto y sin ingreso → invita a registrar la venta', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -175,10 +177,12 @@ void main() {
         transactions: [_txn('e1', category: 'cosecha')],
         year: year,
       );
-      expect(step, isNull);
+      expect(step?.type, NextStepType.sale,
+          reason: 'el corte ya no es el primer movimiento sino el ciclo completo');
     });
 
-    test('con cosecha y gastos → tarjeta se oculta', () {
+    test('D3 · con cosecha y gasto pero sin venta → sigue invitando a vender',
+        () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -186,10 +190,10 @@ void main() {
         transactions: [_txn('e1', category: 'cosecha')],
         year: year,
       );
-      expect(step, isNull);
+      expect(step?.type, NextStepType.sale);
     });
 
-    test('gastos de otro año con algún txn activo → tarjeta se oculta', () {
+    test('D3 · gasto de otro año sin venta → la guía no se apaga', () {
       final step = nextStepFor(
         crops: [_crop('cafe', phase: CropPhase.produccion)],
         sowings: const [],
@@ -199,8 +203,52 @@ void main() {
         ],
         year: year,
       );
-      // Hay una transacción (aunque sea de otro año), la tarjeta desaparece
+      expect(step?.type, NextStepType.sale);
+    });
+
+    test('D3 · solo un ingreso (sin gasto) → sigue invitando al gasto', () {
+      final step = nextStepFor(
+        crops: [_crop('cafe', phase: CropPhase.produccion)],
+        sowings: const [],
+        harvests: const [],
+        transactions: [
+          _txn('i1', type: TransactionType.income, category: 'venta_cafe'),
+        ],
+        year: year,
+      );
+      expect(step?.type, NextStepType.expenses);
+    });
+
+    test('D3 · gasto y venta juntos → el ciclo está cerrado y se retira', () {
+      final step = nextStepFor(
+        crops: [_crop('cafe', phase: CropPhase.produccion)],
+        sowings: const [],
+        harvests: const [],
+        transactions: [
+          _txn('e1', category: 'cosecha'),
+          _txn('i2', type: TransactionType.income, category: 'venta_cafe'),
+        ],
+        year: year,
+      );
       expect(step, isNull);
+    });
+
+    test('D3 · una venta borrada no cierra el ciclo', () {
+      final step = nextStepFor(
+        crops: [_crop('cafe', phase: CropPhase.produccion)],
+        sowings: const [],
+        harvests: const [],
+        transactions: [
+          _txn('e1', category: 'cosecha'),
+          _txn('i2',
+              type: TransactionType.income,
+              category: 'venta_cafe',
+              deleted: true),
+        ],
+        year: year,
+      );
+      expect(step?.type, NextStepType.sale,
+          reason: 'borrada = no vendida');
     });
 
     test('ventas de otro año con algún txn activo → tarjeta se oculta', () {

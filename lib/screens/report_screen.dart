@@ -20,6 +20,7 @@ import '../services/alert_service.dart';
 import '../services/crop_totals.dart';
 import '../services/currency_conversion.dart';
 import '../services/currency_totals.dart';
+import '../services/derived_harvests.dart';
 import '../services/excel_export_service.dart';
 import '../services/pdf_export_service.dart';
 import '../services/metric_signal.dart';
@@ -1314,9 +1315,18 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget _builtSoldVsHarvestedCard(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
     final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
+    final periodHarvests = _periodHarvests(tx);
     final rows = metrics.soldVsHarvested(
-        tx.transactions, _periodHarvests(tx), tx.crops, DateTime.now());
+        tx.transactions, periodHarvests, tx.crops, DateTime.now());
     if (rows.isEmpty) return const SizedBox.shrink();
+
+    // D5 · Mientras la única fuente de los kilos sea la venta, «vendido vs
+    // cosechado» es comparar un número consigo mismo: los kilos cosechados
+    // *son* los de la venta, así que la fila nunca discreparía ni diría nada.
+    // Se queda callada… y se enciende sola en cuanto aparece una cosecha
+    // medida por fuera de la venta (anotada a mano). Se toca una vez, no dos.
+    if (!hasIndependentHarvest(periodHarvests)) return const SizedBox.shrink();
+
     final scheme = Theme.of(context).colorScheme;
     return Card(
       child: Padding(
