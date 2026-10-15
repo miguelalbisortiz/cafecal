@@ -508,10 +508,27 @@ class TransactionProvider extends ChangeNotifier {
   /// y el `notifyListeners` que trae cada `mergeRemote*` del pull) no pueden
   /// esperar un `await`: necesitan la fase bien **antes** de avisar.
   bool _promotePhasesInMemory() {
-    final conCosecha = <String>{
-      for (final h in harvests)
-        if (h.cropId != null) h.cropId!,
-    };
+    // Última siembra por cultivo. Lo que se arrancó de nuevo empezó de cero
+    // (`sowing_screen.dart:388-403` vuelve la fase a `establecimiento`) y las
+    // cosechas de antes son de la plantación anterior. Son hechos y no se
+    // borran, pero tampoco deben devolverlo a producción en la apertura
+    // siguiente — que es lo que pasaba: la regla "tiene alguna cosecha" era
+    // cierta una sola vez y falsa después.
+    final ultimaSiembra = <String, DateTime>{};
+    for (final s in _sowings) {
+      final id = s.cropId;
+      if (id == null) continue;
+      final prev = ultimaSiembra[id];
+      if (prev == null || s.date.isAfter(prev)) ultimaSiembra[id] = s.date;
+    }
+
+    final conCosecha = <String>{};
+    for (final h in harvests) {
+      final cropId = h.cropId;
+      if (cropId == null) continue;
+      if (!_esDeEstaPlantacion(h.date, ultimaSiembra[cropId])) continue;
+      conCosecha.add(cropId);
+    }
     if (conCosecha.isEmpty) return false;
 
     final list = [..._crops];
@@ -527,6 +544,18 @@ class TransactionProvider extends ChangeNotifier {
     _crops = list;
     return true;
   }
+
+  /// ¿Esta cosecha le corresponde a la plantación que el cultivo tiene hoy?
+  ///
+  /// La fase dice el **presente**; las cosechas son **histórico**. Un lote
+  /// que produjo en 2023 las tiene aunque hoy lo hayas arrancado de nuevo,
+  /// y sin esta frontera eso bastaba para devolverlo a producción.
+  ///
+  /// Sin siembra registrada no hay frontera posible: cuenta todo, como
+  /// siempre. Una cuenta vieja que ya vendía no puede quedarse atascada en
+  /// `establecimiento` por no tener la siembra anotada.
+  bool _esDeEstaPlantacion(DateTime cosecha, DateTime? ultimaSiembra) =>
+      ultimaSiembra == null || !cosecha.isBefore(ultimaSiembra);
 
   Future<void> updateHarvest(Harvest updated) async {
     final idx = _harvests.indexWhere((h) => h.id == updated.id);

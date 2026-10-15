@@ -214,4 +214,95 @@ void main() {
       );
     });
   });
+
+  // Un lote arrancado de nuevo **empieza de cero**: la fase vuelve a
+  // `establecimiento` (`sowing_screen.dart:388-403`) y las cosechas de antes,
+  // que son hechos y no se borran, no pueden devolverlo a producción en la
+  // apertura siguiente.
+  group('Frontera de plantación · lo arrancado no vuelve solo a producción', () {
+    test('arranque nuevo: se queda en establecimiento con cosechas viejas',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final store = LocalStore(prefs);
+
+      final vieja = TransactionProvider(store);
+      final crop = await vieja.addCrop('Café');
+      await vender(vieja, crop.id); // cosecha derivada del 5/10
+      expect(vieja.crops.single.phase, CropPhase.produccion);
+
+      // El arranque nuevo: siembra **después** de esa cosecha y la fase
+      // vuelve a `establecimiento`, igual que lo hace la pantalla de siembra.
+      await vieja.addSowing(
+        cropId: crop.id,
+        date: DateTime(2026, 10, 15),
+        plants: 200,
+      );
+      await vieja.updateCrop(
+        vieja.crops.single.copyWith(phase: CropPhase.establecimiento),
+      );
+
+      // Otra tanda de arranque, mismo disco.
+      final p = TransactionProvider(store);
+
+      expect(p.crops.single.phase, CropPhase.establecimiento,
+          reason: 'lo arrancó de nuevo: las cosechas viejas son de la '
+              'plantación anterior y no lo pueden devolver a producción');
+    });
+
+    test('siembra anterior a la cosecha: se arregla al abrir, como siempre',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final store = LocalStore(prefs);
+
+      final vieja = TransactionProvider(store);
+      final crop = await vieja.addCrop('Café');
+      // La siembra es de antes de esa cosecha: sigue siendo el mismo lote.
+      await vieja.addSowing(
+        cropId: crop.id,
+        date: DateTime(2026, 1, 10),
+        plants: 300,
+      );
+      await vender(vieja, crop.id); // 5/10 — posterior a la siembra
+      await vieja.updateCrop(
+        vieja.crops.single.copyWith(phase: CropPhase.establecimiento),
+      );
+
+      final p = TransactionProvider(store);
+
+      expect(p.crops.single.phase, CropPhase.produccion,
+          reason: 'produjo después de esa siembra: es el mismo lote, y la '
+              'cuenta vieja sin fase resuelta no puede quedarse atascada');
+    });
+
+    test('vender después del arranque vuelve a promoverlo', () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      await vender(p, crop.id); // 5/10
+      await p.addSowing(
+        cropId: crop.id,
+        date: DateTime(2026, 10, 15),
+        plants: 200,
+      );
+      await p.updateCrop(
+        p.crops.single.copyWith(phase: CropPhase.establecimiento),
+      );
+      expect(p.crops.single.phase, CropPhase.establecimiento);
+
+      // Ya volvió a producir tras el arranque.
+      await p.addTransaction(
+        type: TransactionType.income,
+        category: kIncomeCategorySale,
+        amount: 80000,
+        cropId: crop.id,
+        quantity: 25,
+        unit: 'kg',
+        date: DateTime(2026, 10, 18),
+      );
+
+      expect(p.crops.single.phase, CropPhase.produccion,
+          reason: 'produjo después del arranque: ahí sí manda el hecho');
+    });
+  });
 }
