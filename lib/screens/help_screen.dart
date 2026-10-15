@@ -79,7 +79,7 @@ class HelpScreen extends StatelessWidget {
                       (l10n.helpFlowStep3Title, l10n.helpFlowStep3Body,
                           Icons.trending_down_outlined),
                       (l10n.helpFlowStep4Title, l10n.helpFlowStep4Body,
-                          Icons.inventory_2_outlined),
+                          Icons.agriculture_outlined),
                       (l10n.helpFlowStep5Title, l10n.helpFlowStep5Body,
                           Icons.sell_outlined),
                     ]),
