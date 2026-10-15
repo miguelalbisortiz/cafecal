@@ -1622,7 +1622,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cashBoxHelp => 'Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.';
 
   @override
-  String get cashBoxCarry => 'Sobrante de meses anteriores';
+  String get cashBoxCarry => 'Lo arrastrado de meses anteriores';
 
   @override
   String get cashBoxMonthly => 'Aporte del mes';
@@ -2600,6 +2600,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alertCashBoxDangerSuggestion => 'Revisa los gastos extras y considera reducir trabajadores este mes.';
+
+  @override
+  String alertCashBoxDebtMessage(Object carry, Object used) {
+    return 'El problema: este mes llevas $used en jornales y extras, y la caja cerró los meses anteriores en números rojos: el arrastre está en $carry.';
+  }
 
   @override
   String get backupSectionTitle => 'Respaldo';

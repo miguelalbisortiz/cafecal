@@ -613,7 +613,7 @@
   "jornalTotalHint": "Se calcula: días × valor por día.",
   "cashBoxLabel": "Aporte mensual de caja",
   "cashBoxHelp": "Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.",
-  "cashBoxCarry": "Sobrante de meses anteriores",
+  "cashBoxCarry": "Lo arrastrado de meses anteriores",
   "cashBoxMonthly": "Aporte del mes",
   "cashBoxTitle": "Caja menor",
   "@cashBoxOf": {
@@ -1207,6 +1207,7 @@
   },
   "alertCashBoxDangerMessage": "El problema: este mes llevas {used} de {total} en jornales y extras ({percent}). Ya no queda presupuesto disponible.",
   "alertCashBoxDangerSuggestion": "Revisa los gastos extras y considera reducir trabajadores este mes.",
+  "alertCashBoxDebtMessage": "El problema: este mes llevas {used} en jornales y extras, y la caja cerró los meses anteriores en números rojos: el arrastre está en {carry}.",
 
   "backupSectionTitle": "Respaldo",
   "backupSectionSubtitle": "Guarda todos los datos de tu finca en un archivo y vuelve a cargarlos cuando quieras.",

@@ -542,12 +542,31 @@ class AlertService {
       month: now.month,
     );
     final limit = carry == null ? cajaMensual : cajaMensual + carry;
-    if (limit <= 0) return;
+    final month = l10n.monthFull[now.month - 1];
+
+    // Un arrastre negativo puede dejar el límite en cero o menos. El ratio
+    // ahí no existe (dividir sobre eso sería mentir), pero callarse es peor:
+    // es lo peor que le puede pasar al usuario, así que grita danger y cita
+    // la deuda que la causó. Este punto no se alcanza sin arrastre: el
+    // límite sería el aporte, que arriba ya garantizamos > 0.
+    if (limit <= 0) {
+      out.add(FarmAlert(
+        id: 'cash_box',
+        rule: AlertRule.cajaMenor,
+        severity: AlertSeverity.danger,
+        title: l10n.alertCashBoxDangerTitle(month),
+        message: l10n.alertCashBoxDebtMessage(
+          _money(used),
+          _money(carry ?? 0),
+        ),
+        suggestion: l10n.alertCashBoxDangerSuggestion,
+      ));
+      return;
+    }
 
     final ratio = used / limit;
     if (ratio < 0.8) return;
 
-    final month = l10n.monthFull[now.month - 1];
     final percent = _percentage(ratio * 100);
 
     if (ratio > 1.0) {

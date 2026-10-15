@@ -607,7 +607,7 @@
   "jornalTotalHint": "Calculated: days × day rate.",
   "cashBoxLabel": "Monthly cash contribution",
   "cashBoxHelp": "What you take out of the farm each month: it covers day labor and small expenses. Whatever you don't spend isn't lost — it rolls over to next month.",
-  "cashBoxCarry": "Left over from previous months",
+  "cashBoxCarry": "Carried over from previous months",
   "cashBoxMonthly": "This month's contribution",
   "cashBoxTitle": "Cash box",
   "@cashBoxOf": {
@@ -1063,6 +1063,7 @@
   },
   "alertCashBoxDangerMessage": "The problem: this month you have {used} of {total} in day labor and extras ({percent}). There is no budget left.",
   "alertCashBoxDangerSuggestion": "Review extra expenses and consider reducing workers this month.",
+  "alertCashBoxDebtMessage": "The problem: this month you have {used} in day labor and extras, and the cash box closed the previous months in the red: the carryover is {carry}.",
 
   "backupSectionTitle": "Backup",
   "backupSectionSubtitle": "Save all your farm data to a file and load it back whenever you need it.",

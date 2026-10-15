@@ -744,6 +744,29 @@ void main() {
       expect(found, isNotEmpty, reason: '450/500 = 90% debe avisar');
       expect(found.first.severity, AlertSeverity.warning);
     });
+
+    test('arrastre en negativo dispara danger en vez de callarse', () {
+      // Mayo gastó 2000 con un aporte de 600 → el arrastre queda en -1400 y
+      // el límite de junio en -800. Antes esto se callaba (`if (limit <= 0)
+      // return`), que es exactamente al revés de lo que se quiere: cuanto
+      // peor, menos aviso.
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 2000,
+            date: DateTime(2026, 5, 5), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 300,
+            date: DateTime(2026, 6, 5), category: 'mano_obra'),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es,
+          cajaMensual: 600, currency: 'COP');
+      final found = alerts.where((a) => a.rule == AlertRule.cajaMenor).toList();
+      expect(found, isNotEmpty,
+          reason: 'el límite quedó en negativo: eso no puede callarse');
+      expect(found.first.severity, AlertSeverity.danger,
+          reason: 'lo peor posible debe gritar, no desaparecer');
+      expect('${found.first.title} ${found.first.message}', contains('arrastre'),
+          reason: 'debe nombrar la deuda que la causó');
+      expect(found.first.suggestion, isNotEmpty);
+    });
   });
 
   group('Regla 11 - Ventas por cobrar (E1)', () {

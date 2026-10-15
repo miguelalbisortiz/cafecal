@@ -3140,7 +3140,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashBoxCarry.
   ///
   /// In es, this message translates to:
-  /// **'Sobrante de meses anteriores'**
+  /// **'Lo arrastrado de meses anteriores'**
   String get cashBoxCarry;
 
   /// No description provided for @cashBoxMonthly.
@@ -4744,6 +4744,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Revisa los gastos extras y considera reducir trabajadores este mes.'**
   String get alertCashBoxDangerSuggestion;
+
+  /// No description provided for @alertCashBoxDebtMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El problema: este mes llevas {used} en jornales y extras, y la caja cerró los meses anteriores en números rojos: el arrastre está en {carry}.'**
+  String alertCashBoxDebtMessage(Object carry, Object used);
 
   /// No description provided for @backupSectionTitle.
   ///

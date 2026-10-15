@@ -1622,7 +1622,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashBoxHelp => 'What you take out of the farm each month: it covers day labor and small expenses. Whatever you don\'t spend isn\'t lost — it rolls over to next month.';
 
   @override
-  String get cashBoxCarry => 'Left over from previous months';
+  String get cashBoxCarry => 'Carried over from previous months';
 
   @override
   String get cashBoxMonthly => 'This month\'s contribution';
@@ -2600,6 +2600,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertCashBoxDangerSuggestion => 'Review extra expenses and consider reducing workers this month.';
+
+  @override
+  String alertCashBoxDebtMessage(Object carry, Object used) {
+    return 'The problem: this month you have $used in day labor and extras, and the cash box closed the previous months in the red: the carryover is $carry.';
+  }
 
   @override
   String get backupSectionTitle => 'Backup';
