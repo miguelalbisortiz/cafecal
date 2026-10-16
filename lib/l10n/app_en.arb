@@ -473,7 +473,7 @@
   "registerEditTitle": "Edit movement",
   "expenseTypeLabel": "Expense",
   "incomeTypeLabel": "Income",
-  "cropFieldLabel": "Crop (optional)",
+  "cropFieldLabel": "Crop or plot (optional)",
   "cropUnspecified": "Not specified",
   "cropNewOption": "+ New crop…",
   "cropGroupHint": "Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.",
@@ -1167,7 +1167,7 @@
   "reportTerrenosTitle": "Your plots · location",
   "reportTerrenosHint": "The coordinate of each plot, as you recorded it. It is never re-measured on its own.",
   "associatedCropsCostTitle": "Costs between associated crops",
-  "associatedCropsCostNote": "Several crops share the same plot: the same labor or fertilizer can serve several. That is why each crop's cost is an approximation. The farm total does add up.",
+  "associatedCropsCostNote": "Several crops share the same plot: the same labor or fertilizer can serve several. That expense is split between them by hectares; if one is missing its area, it shows separately. So each crop's cost is an approximation, but the farm total does add up.",
   "@terrenoCropCount": {
     "description": "How many crops are inside a plot",
     "placeholders": { "count": { "type": "int" } }

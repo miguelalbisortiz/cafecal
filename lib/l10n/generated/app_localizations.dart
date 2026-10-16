@@ -2384,7 +2384,7 @@ abstract class AppLocalizations {
   /// No description provided for @cropFieldLabel.
   ///
   /// In es, this message translates to:
-  /// **'Cultivo (opcional)'**
+  /// **'Cultivo o lote (opcional)'**
   String get cropFieldLabel;
 
   /// No description provided for @cropUnspecified.
@@ -5030,7 +5030,7 @@ abstract class AppLocalizations {
   /// No description provided for @associatedCropsCostNote.
   ///
   /// In es, this message translates to:
-  /// **'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.'**
+  /// **'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Ese gasto se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.'**
   String get associatedCropsCostNote;
 
   /// Cuántos cultivos hay dentro de un terreno

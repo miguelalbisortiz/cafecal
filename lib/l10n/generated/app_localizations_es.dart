@@ -1236,7 +1236,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get incomeTypeLabel => 'Ingreso';
 
   @override
-  String get cropFieldLabel => 'Cultivo (opcional)';
+  String get cropFieldLabel => 'Cultivo o lote (opcional)';
 
   @override
   String get cropUnspecified => 'Sin especificar';
@@ -2793,7 +2793,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get associatedCropsCostTitle => 'Costos entre cultivos asociados';
 
   @override
-  String get associatedCropsCostNote => 'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.';
+  String get associatedCropsCostNote => 'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Ese gasto se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.';
 
   @override
   String terrenoCropCount(int count) {

@@ -1236,7 +1236,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incomeTypeLabel => 'Income';
 
   @override
-  String get cropFieldLabel => 'Crop (optional)';
+  String get cropFieldLabel => 'Crop or plot (optional)';
 
   @override
   String get cropUnspecified => 'Not specified';
@@ -2793,7 +2793,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get associatedCropsCostTitle => 'Costs between associated crops';
 
   @override
-  String get associatedCropsCostNote => 'Several crops share the same plot: the same labor or fertilizer can serve several. That is why each crop\'s cost is an approximation. The farm total does add up.';
+  String get associatedCropsCostNote => 'Several crops share the same plot: the same labor or fertilizer can serve several. That expense is split between them by hectares; if one is missing its area, it shows separately. So each crop\'s cost is an approximation, but the farm total does add up.';
 
   @override
   String terrenoCropCount(int count) {
