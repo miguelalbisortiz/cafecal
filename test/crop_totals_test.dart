@@ -35,7 +35,9 @@ void main() {
   List<CropBreakdownRow> rowsOf(List<Transaction> txs) => cropBreakdownRows(
         records: txs,
         crops: const [cafe, platano],
+        terrenos: const [],
         unspecifiedName: 'Sin cultivo',
+        loteNoRepartidoName: (n) => n,
       );
 
   CropBreakdownRow cropRow(List<Transaction> txs, String id) =>
@@ -172,7 +174,9 @@ void main() {
               category: 'transporte'),
         ],
         crops: const [cafe, platano],
+        terrenos: const [],
         unspecifiedName: 'Costos comunes',
+        loteNoRepartidoName: (n) => n,
       );
 
       expect(rows.last.cropId, isNull);

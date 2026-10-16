@@ -386,7 +386,7 @@ class PdfExportService {
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
           ),
           pw.SizedBox(height: 6),
-          _cropTable(context, periodTx, crops, currency, l10n),
+          _cropTable(context, periodTx, crops, terrenos, currency, l10n),
           if (showYearAnnex) ...[
             pw.SizedBox(height: 20),
             pw.Text(
@@ -394,8 +394,8 @@ class PdfExportService {
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
             ),
             pw.SizedBox(height: 6),
-            _cropTable(
-                context, active.where((t) => t.date.year == year), crops, currency, l10n),
+            _cropTable(context, active.where((t) => t.date.year == year), crops,
+                terrenos, currency, l10n),
           ],
           // Cultivos asociados: la MISMA nota que en pantalla y en Excel, y
           // en el mismo sitio relativo al desglose por cultivo. Los tres
@@ -627,8 +627,9 @@ class PdfExportService {
   }
 
   pw.Widget _cropTable(pw.Context context, Iterable<Transaction> source,
-      List<Crop> crops, String currency, AppLocalizations l10n) {
-    final data = _cropRows(context, source, crops, currency, l10n);
+      List<Crop> crops, List<Terreno> terrenos, String currency,
+      AppLocalizations l10n) {
+    final data = _cropRows(context, source, crops, terrenos, currency, l10n);
     if (data.isEmpty) return pw.SizedBox.shrink();
 
     final headerStyle = pw.TextStyle(
@@ -697,11 +698,14 @@ class PdfExportService {
   /// dos o más monedas cada monto sale con su código y la fila no lleva
   /// neto ni ROI (serían sumas cruzando monedas).
   List<List<String>> _cropRows(pw.Context context, Iterable<Transaction> source,
-      List<Crop> crops, String currency, AppLocalizations l10n) {
+      List<Crop> crops, List<Terreno> terrenos, String currency,
+      AppLocalizations l10n) {
     final rows = cropBreakdownRows(
       records: source,
       crops: crops,
+      terrenos: terrenos,
       unspecifiedName: l10n.commonCosts,
+      loteNoRepartidoName: l10n.loteNoRepartido,
     );
 
     return rows.where((r) => r.hasAnyAmount).map((r) {

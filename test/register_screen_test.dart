@@ -263,4 +263,63 @@ void main() {
     expect(find.text(_es.sowingCategoryHint), findsOneWidget);
     expect(find.text(_es.waterCategoryHint), findsNothing);
   });
+
+  // (b) · el lote va en el MISMO desplegable del cultivo y son mutuamente
+  // excluyentes: un gasto es de un cultivo o sirve al lote, nunca de los dos.
+  testWidgets('en un gasto se ofrecen los lotes dentro del desplegable',
+      (tester) async {
+    final provider = await makeProvider();
+    await provider.addCrop('Café');
+    final lote = await provider.addTerreno('Lote Alto');
+    await pumpRegister(tester, provider);
+
+    expect(dropdownWithValue(lote.id), findsOneWidget,
+        reason: 'el lote se ofrece en la misma fila que los cultivos');
+
+    await tester.tap(dropdownWithValue(lote.id));
+    await tester.pumpAndSettle();
+    expect(find.text(_es.terrenoGroupLabel), findsOneWidget,
+        reason: 'los lotes van en grupo aparte, debajo de los cultivos');
+    expect(find.text('Lote Alto'), findsWidgets);
+  });
+
+  testWidgets('en un ingreso no se ofrece ningún lote', (tester) async {
+    final provider = await makeProvider();
+    final lote = await provider.addTerreno('Lote Alto');
+    await pumpRegister(tester, provider,
+        initialType: TransactionType.income);
+
+    // Un ingreso no se reparte por hectáreas: es de un cultivo o de la finca
+    // entera. Si el grupo no está, tampoco se puede elegir.
+    expect(dropdownWithValue(lote.id), findsNothing);
+    expect(find.text(_es.terrenoGroupHint), findsNothing);
+  });
+
+  testWidgets('elegir lote deja el cultivo vacío, y a la inversa',
+      (tester) async {
+    final provider = await makeProvider();
+    final crop = await provider.addCrop('Café');
+    final lote = await provider.addTerreno('Lote Alto');
+    await pumpRegister(tester, provider);
+
+    await tester.tap(dropdownWithValue(lote.id));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lote Alto').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text(_es.terrenoGroupHint), findsOneWidget,
+        reason: 'con lote elegido el aviso habla del reparto, no del cultivo');
+    expect(find.text(_es.cropGroupHint), findsNothing);
+    expect(find.text(_es.commonCostsHint), findsNothing);
+
+    // Un cultivo elegido desplaza al lote: los dos a la vez sería contar el
+    // mismo peso dos veces.
+    await tester.tap(dropdownWithValue(crop.id));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🌱 Café').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text(_es.cropGroupHint), findsOneWidget);
+    expect(find.text(_es.terrenoGroupHint), findsNothing);
+  });
 }

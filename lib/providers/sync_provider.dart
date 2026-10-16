@@ -322,6 +322,10 @@ class SyncProvider extends ChangeNotifier {
         'id': t.id,
         'user_id': userId,
         'crop_id': _uuidOrNull(t.cropId),
+        // (b) · el lote al que sirve el gasto. Va completa, incluida null, por
+        // la misma razón que `task`: si el productor cambia un gasto de "del
+        // café" a "del lote", hay que reflejarlo y no dejar pisado el valor.
+        'terreno_id': _uuidOrNull(t.terrenoId),
         'type': t.type.serialize,
         'category': t.category,
         'amount': t.amount,
@@ -624,6 +628,9 @@ class SyncProvider extends ChangeNotifier {
     return Transaction.fromJson({
       'id': row['id'] as String,
       'crop_id': row['crop_id'] as String?,
+      // Respaldos anteriores a la migración 202610160002 no traen la clave
+      // → null → el movimiento sigue siendo de siempre.
+      'terreno_id': row['terreno_id'] as String?,
       'type': row['type'] as String,
       'category': row['category'] as String,
       'amount': (row['amount'] as num).toDouble(),

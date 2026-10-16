@@ -9,6 +9,7 @@ import '../models/harvest.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
+import 'crop_totals.dart';
 import 'report_payroll_metrics.dart';
 
 /// Motor de alertas — 5 reglas del PRD + 3 reglas Nivel 2.
@@ -313,13 +314,43 @@ class AlertService {
     final cropMap = {for (final c in crops) c.id: c};
     final totals = <String?, _CropTotals>{};
     final currencies = <String?, Set<String>>{};
-    for (final t in txns) {
-      final row = totals.putIfAbsent(t.cropId, _CropTotals.new);
-      (currencies[t.cropId] ??= <String>{}).add(t.currency);
+
+    void acumular(String? cropId, Transaction t, double monto) {
+      final row = totals.putIfAbsent(cropId, _CropTotals.new);
+      (currencies[cropId] ??= <String>{}).add(t.currency);
       if (t.type.isExpense) {
-        row.expenses += t.amount;
+        row.expenses += monto;
       } else {
-        row.incomes += t.amount;
+        row.incomes += monto;
+      }
+    }
+
+    // (b) · un gasto de lote no es de ningún cultivo ni de la finca entera:
+    // se acumula aparte hasta saber si se puede repartir.
+    final porLote = <String, List<Transaction>>{};
+    for (final t in txns) {
+      if (t.cropId == null && t.terrenoId != null && t.type.isExpense) {
+        porLote.putIfAbsent(t.terrenoId!, () => <Transaction>[]).add(t);
+        continue;
+      }
+      acumular(t.cropId, t, t.amount);
+    }
+
+    // El reparto usa LA MISMA regla que el desglose por cultivo
+    // ([repartoPorHectareas]): si cada una hiciera lo suyo, el mismo café
+    // podría verse rentable en Reportes y en pérdida en "Qué hacer".
+    for (final entry in porLote.entries) {
+      final fracciones =
+          repartoPorHectareas(crops: crops, terrenoId: entry.key);
+      // Sin proporción posible no se le pega nada a ningún cultivo: es
+      // dinero que esta alerta no juzga, no dinero que se pierde — el
+      // desglose lo enseña en su fila "sin repartir" y la nota de cultivos
+      // asociados explica el porqué. Repartir a ojo sería peor.
+      if (fracciones == null) continue;
+      for (final t in entry.value) {
+        fracciones.forEach((cropId, fraccion) {
+          acumular(cropId, t, t.amount * fraccion);
+        });
       }
     }
 
@@ -365,7 +396,12 @@ class AlertService {
         final String message;
         final String suggestion;
         if (cropId == null) {
-          final unassigned = txns.where((t) => t.cropId == null).length;
+          // Solo los gastos que no tienen cultivo NI lote. Un gasto de lote
+          // ya está puesto en su terreno: no es un movimiento sin etiquetar,
+          // aunque no se haya podido repartir entre los cultivos.
+          final unassigned = txns
+              .where((t) => t.cropId == null && t.terrenoId == null)
+              .length;
           title = l10n.alertDeficitNoCropTitle(_percentage(ratio * 100));
           message = l10n.alertDeficitNoCropMessage(
             '$unassigned',

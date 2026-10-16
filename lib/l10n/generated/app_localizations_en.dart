@@ -1254,6 +1254,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCostsHint => 'It\'s a farm-wide expense (fence, road, electricity). It doesn\'t affect any crop\'s cost/kg, but it does affect the bottom line.';
 
   @override
+  String loteNoRepartido(String name) {
+    return '$name · not split';
+  }
+
+  @override
   String get sowingCategoryHint => 'If this is for a crop, pick its name below: the expense will count as its investment and show up in its cost/kg. If the crop doesn\'t exist yet, tap “+ New crop…”.';
 
   @override
@@ -2817,4 +2822,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpCropTerreno => 'The plot where it is planted. You can leave it empty.';
+
+  @override
+  String get terrenoGroupLabel => 'Plots';
+
+  @override
+  String get terrenoGroupHint => 'The expense serves several crops in the same plot, like shared weeding. It is split between them by hectares; if one is missing its area, it shows separately.';
 }

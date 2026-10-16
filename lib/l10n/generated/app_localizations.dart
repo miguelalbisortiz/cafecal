@@ -2417,6 +2417,12 @@ abstract class AppLocalizations {
   /// **'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.'**
   String get commonCostsHint;
 
+  /// Fila del desglose por cultivo: gasto de un lote con varios cultivos que no se pudo repartir porque a alguno le falta la hectárea
+  ///
+  /// In es, this message translates to:
+  /// **'{name} · sin repartir'**
+  String loteNoRepartido(String name);
+
   /// No description provided for @sowingCategoryHint.
   ///
   /// In es, this message translates to:
@@ -5062,6 +5068,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El terreno donde está plantado. Puedes dejarlo vacío.'**
   String get helpCropTerreno;
+
+  /// No description provided for @terrenoGroupLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Lotes'**
+  String get terrenoGroupLabel;
+
+  /// No description provided for @terrenoGroupHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El gasto sirve a varios cultivos del mismo lote, como una limpieza compartida. Se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte.'**
+  String get terrenoGroupHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

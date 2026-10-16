@@ -485,6 +485,15 @@
   "cropGroupHint": "Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.",
   "commonCosts": "Costos comunes",
   "commonCostsHint": "Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.",
+  "loteNoRepartido": "{name} · sin repartir",
+  "@loteNoRepartido": {
+    "description": "Fila del desglose por cultivo: gasto de un lote con varios cultivos que no se pudo repartir porque a alguno le falta la hectárea",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sowingCategoryHint": "Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».",
   "harvestCategoryHint": "Lo que cuesta la cosecha en sí: bolsas, insumos y mover el café. Si le pagaste a alguien por recoger, ese pago va en Mano de obra, no acá.",
   "laborCategoryHint": "Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.",
@@ -1322,5 +1331,7 @@
   "@helpCropTerreno": {
     "description": "Ayuda corta bajo el desplegable de terreno del editor de cultivo"
   },
-  "helpCropTerreno": "El terreno donde está plantado. Puedes dejarlo vacío."
+  "helpCropTerreno": "El terreno donde está plantado. Puedes dejarlo vacío.",
+  "terrenoGroupLabel": "Lotes",
+  "terrenoGroupHint": "El gasto sirve a varios cultivos del mismo lote, como una limpieza compartida. Se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte."
 }

@@ -237,6 +237,7 @@ class TransactionProvider extends ChangeNotifier {
     required String category,
     required double amount,
     String? cropId,
+    String? terrenoId,
     String description = '',
     DateTime? date,
     String? currency,
@@ -255,6 +256,9 @@ class TransactionProvider extends ChangeNotifier {
     final txn = Transaction(
       id: _uuid.v4(),
       cropId: cropId,
+      // (b) · el lote solo llega cuando el gasto sirve a varios cultivos del
+      // mismo terreno; con null el movimiento es el de siempre.
+      terrenoId: terrenoId,
       type: type,
       category: category,
       amount: amount,

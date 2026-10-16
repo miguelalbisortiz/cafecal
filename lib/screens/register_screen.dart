@@ -30,6 +30,11 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   static const _newCropOption = '__new__';
 
+  /// Encabezado "Lotes" dentro del desplegable de cultivo: no es un id real
+  /// y no se puede elegir, pero necesita valor propio — con "Costos comunes"
+  /// seleccionado el desplegable exige exactamente un ítem con valor null.
+  static const _loteHeader = '__lote_header__';
+
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -68,6 +73,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TransactionType _type = TransactionType.expense;
   String? _category;
   String? _cropId;
+
+  /// El lote al que sirve el gasto, cuando sirve a varios cultivos del mismo
+  /// terreno. Mutuamente excluyente con [_cropId]: o es de un cultivo, o es
+  /// del lote — los dos a la vez sería contar el mismo peso dos veces.
+  String? _terrenoId;
   String? _unit;
   String? _harvestId;
   String _currency = 'COP';
@@ -129,6 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _type = e.type;
       _category = e.category;
       _cropId = e.cropId;
+      _terrenoId = e.terrenoId;
       _date = e.date;
       _unit = e.unit;
       _currency = e.currency;
@@ -260,12 +271,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // L2.2: si el diálogo devolvió un id se usa directo; sin id, es un
     // cultivo nuevo con ese nombre.
     if (res.existingId != null) {
-      setState(() => _cropId = res.existingId);
+      // Un cultivo elegido desplaza al lote: son mutuamente excluyentes.
+      setState(() {
+        _cropId = res.existingId;
+        _terrenoId = null;
+      });
       return;
     }
     final crop = await tx.addCrop(res.name, currency: _currency);
     if (!mounted) return;
-    setState(() => _cropId = crop.id);
+    setState(() {
+      _cropId = crop.id;
+      _terrenoId = null;
+    });
     // L2.5b: aviso opcional y descartable para completar los datos.
     await CropSetupPrompt.show(context, tx, crop);
   }
@@ -408,6 +426,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await tx.updateTransaction(Transaction(
         id: editing.id,
         cropId: _cropId,
+        // (b) · el lote viaja con el gasto. Con null el movimiento queda
+        // exactamente como estaba.
+        terrenoId: _terrenoId,
         type: _type,
         category: _category ?? 'otro',
         amount: amount,
@@ -444,6 +465,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       type: _type,
       category: _category ?? 'otro',
       cropId: _cropId,
+      terrenoId: _terrenoId,
       amount: amount,
       currency: _currency,
       description: _descriptionController.text.trim(),
@@ -611,13 +633,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onSelectionChanged: (s) => setState(() {
               _type = s.first;
               _category = null;
+              // El lote es cosa de gastos: un ingreso no se reparte por
+              // hectáreas, es de un cultivo o de la finca entera. Si estaba
+              // elegido y pasa a ingreso, se quita.
+              if (s.first == TransactionType.income) _terrenoId = null;
             }),
           ),
           const SizedBox(height: 16),
 
-          // Cultivo
+          // Cultivo o, si el gasto sirve a todo el lote, el lote. Van en el
+          // MISMO desplegable y son mutuamente excluyentes: un gasto es de un
+          // cultivo o del lote, nunca de los dos — lo dos a la vez sería
+          // contar el mismo peso dos veces en el ROI de la finca.
           DropdownButtonFormField<String>(
-            value: _cropId,
+            // El desplegable exige UN valor elegido; con lote puesto muestra
+            // el lote y el cultivo se queda vacío.
+            value: isExpense ? (_terrenoId ?? _cropId) : _cropId,
             decoration: InputDecoration(
               labelText: l10n.cropFieldLabel,
               prefixIcon: const Icon(Icons.grass_outlined),
@@ -638,6 +669,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     value: c.id,
                     child: Text('${c.icon} ${c.name}'),
                   )),
+              // Los lotes solo aparecen en gastos. Un encabezado no puede
+              // quedar con valor null (con "Costos comunes" elegido el
+              // desplegable exigiría exactamente un ítem con ese valor), así
+              // que lleva un valor propio imposible y además no es elegible.
+              if (isExpense && tx.terrenos.isNotEmpty) ...[
+                DropdownMenuItem<String>(
+                  enabled: false,
+                  value: _loteHeader,
+                  child: Text(
+                    l10n.terrenoGroupLabel,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ),
+                ...tx.terrenos.map((t) => DropdownMenuItem<String>(
+                      value: t.id,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.landscape_outlined, size: 18),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(t.name,
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                        ],
+                      ),
+                    )),
+              ],
             ],
             onChanged: (v) {
               if (v == _newCropOption) {
@@ -646,8 +705,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Moneda única: elegir cultivo ya no toca la moneda. Antes la
                 // cambiaba sola según el cultivo, y el registro podía salir
                 // en otra moneda que la que se había escrito, sin avisar.
+                final esLote = tx.terrenos.any((t) => t.id == v);
                 setState(() {
-                  _cropId = v;
+                  if (esLote) {
+                    _terrenoId = v;
+                    _cropId = null;
+                  } else {
+                    _cropId = v;
+                    _terrenoId = null;
+                  }
                   _unit = null;
                   _harvestId = null;
                 });
@@ -659,7 +725,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // ningún cultivo, lo que hay que explicar es lo que eso implica.
           // Si sí lo es, se mantiene el de siempre.
           Text(
-            _cropId == null ? l10n.commonCostsHint : l10n.cropGroupHint,
+            _terrenoId != null
+                ? l10n.terrenoGroupHint
+                : (_cropId == null ? l10n.commonCostsHint : l10n.cropGroupHint),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),

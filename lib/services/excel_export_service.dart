@@ -157,7 +157,11 @@ class ExcelExportService {
         terrenos: terrenos);
 
     _cropsSheet(excel[l10n.excelSheetCrops],
-        periodTx: periodTx, crops: crops, currency: currency, l10n: l10n);
+        periodTx: periodTx,
+        crops: crops,
+        terrenos: terrenos,
+        currency: currency,
+        l10n: l10n);
 
     _movementsSheet(excel[l10n.excelSheetMovements],
         periodTx: periodTx,
@@ -977,6 +981,7 @@ class ExcelExportService {
     Sheet sheet, {
     required List<Transaction> periodTx,
     required List<Crop> crops,
+    required List<Terreno> terrenos,
     required String currency,
     required AppLocalizations l10n,
   }) {
@@ -995,7 +1000,9 @@ class ExcelExportService {
     final breakdown = cropBreakdownRows(
       records: periodTx,
       crops: crops,
+      terrenos: terrenos,
       unspecifiedName: l10n.commonCosts,
+      loteNoRepartidoName: l10n.loteNoRepartido,
     );
     const startRow = 1;
     var r = startRow;

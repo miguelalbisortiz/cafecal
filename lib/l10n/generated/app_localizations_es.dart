@@ -1254,6 +1254,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get commonCostsHint => 'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.';
 
   @override
+  String loteNoRepartido(String name) {
+    return '$name · sin repartir';
+  }
+
+  @override
   String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».';
 
   @override
@@ -2817,4 +2822,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpCropTerreno => 'El terreno donde está plantado. Puedes dejarlo vacío.';
+
+  @override
+  String get terrenoGroupLabel => 'Lotes';
+
+  @override
+  String get terrenoGroupHint => 'El gasto sirve a varios cultivos del mismo lote, como una limpieza compartida. Se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte.';
 }

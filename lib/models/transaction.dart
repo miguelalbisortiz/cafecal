@@ -13,6 +13,21 @@ enum TransactionType {
 class Transaction {
   final String id;
   final String? cropId;
+
+  /// El lote al que sirve el gasto, en vez de un cultivo concreto.
+  ///
+  /// Es la pieza de (b): un mismo jornal limpia café y plátano del mismo
+  /// terreno, y esa plata no es "del café" ni "del plátano" — es del lote.
+  /// La app solo la reparte al mostrar el costo de cada cultivo, y únicamente
+  /// si todos los cultivos del lote tienen hectáreas anotadas; si falta alguna
+  /// sale como línea aparte "sin repartir". Nunca se inventa la proporción.
+  ///
+  /// Mutuamente excluyente con [cropId]: o es de un cultivo, o sirve al lote.
+  /// Nunca los dos — que las dos cosas a la vez sería contar el gasto dos veces.
+  ///
+  /// `null` = movimiento normal. Todos los datos viejos nacen así y siguen
+  /// comportándose exactamente igual que antes.
+  final String? terrenoId;
   final TransactionType type;
   final String category;
   final double amount;
@@ -69,6 +84,7 @@ class Transaction {
   const Transaction({
     required this.id,
     this.cropId,
+    this.terrenoId,
     required this.type,
     required this.category,
     required this.amount,
@@ -118,6 +134,7 @@ class Transaction {
   Transaction copyWith({
     String? id,
     Object? cropId = _keep,
+    Object? terrenoId = _keep,
     TransactionType? type,
     String? category,
     double? amount,
@@ -142,6 +159,9 @@ class Transaction {
     return Transaction(
       id: id ?? this.id,
       cropId: cropId == _keep ? this.cropId : cropId as String?,
+      // Misma sentinela que `cropId`: poder cambiar un gasto de "del café" a
+      // "del lote" y de vuelta sin dejar el dato atascado.
+      terrenoId: terrenoId == _keep ? this.terrenoId : terrenoId as String?,
       type: type ?? this.type,
       category: category ?? this.category,
       amount: amount ?? this.amount,
@@ -177,6 +197,7 @@ class Transaction {
   Map<String, dynamic> toJson() => {
         'id': id,
         'crop_id': cropId,
+        'terreno_id': terrenoId,
         'type': type.serialize,
         'category': category,
         'amount': amount,
@@ -203,6 +224,8 @@ class Transaction {
     return Transaction(
       id: json['id'] as String,
       cropId: json['crop_id'] as String?,
+      // Clave ausente en respaldos viejos → null → se comporta como siempre.
+      terrenoId: json['terreno_id'] as String?,
       type: TransactionType.parse(json['type'] as String),
       category: json['category'] as String,
       amount: (json['amount'] as num).toDouble(),

@@ -550,33 +550,39 @@ class _ReportScreenState extends State<ReportScreen> {
   List<_CropRow> _cropRows(TransactionProvider tx, AppLocalizations l10n) {
     final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
     final records = _recordsFor(tx);
-    final totals = <String?, _CropRow>{
-      for (final r in cropBreakdownRows(
-        records: records,
-        crops: tx.crops,
-        unspecifiedName: l10n.commonCosts,
-      ))
-        r.cropId: _CropRow(r),
-    };
-    for (final t in records) {
-      if (!t.type.isExpense) continue;
-      totals[t.cropId]?.expenseTxs.add(t);
-    }
-    // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
-    // operación del período suman exactamente lo mismo que `expenses`.
-    for (final row in totals.values) {
-      final split = metrics.splitInvestmentAndOperation(row.expenseTxs);
+    // (b) · las filas llegan ya atribuidas de [cropBreakdownRows]: el gasto
+    // del lote está repartido por hectáreas dentro de cada cultivo, o en su
+    // propia fila "sin repartir". Aquí NO se vuelve a agrupar por `cropId`:
+    // dos filas de lote colapsarían en una y la pantalla podría discrepar del
+    // PDF y del Excel, que leen la misma lista.
+    final rows = cropBreakdownRows(
+      records: records,
+      crops: tx.crops,
+      terrenos: tx.terrenos,
+      unspecifiedName: l10n.commonCosts,
+      loteNoRepartidoName: l10n.loteNoRepartido,
+    );
+    final list = <_CropRow>[];
+    for (final r in rows) {
+      if (r.expensesTotal <= 0 && r.incomesTotal <= 0) continue;
+      final row = _CropRow(r);
+      // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
+      // operación del período suman exactamente lo mismo que `expenses`.
+      // `r.expenseTxs` trae ya la porción que le toca a cada fila, así que la
+      // cuenta cuadra también cuando un gasto de lote se reparte entre varios.
+      final split = metrics.splitInvestmentAndOperation(r.expenseTxs);
       row.investment = split.investment;
       row.operation = split.operation;
+      list.add(row);
     }
-    // E2 · "Costos comunes" se pinta al final, después de cada cultivo.
-    // Son gastos de la finca entera: ordenarlos solo por monto podría dejarlos
-    // arriba de un cultivo y leerse como si fueran un lote más.
-    return totals.values.where((r) => r.expenses > 0 || r.incomes > 0).toList()
+    // Orden del contrato ([cropBreakdownRows]): cultivos, luego los lotes que
+    // no se pudieron repartir, y "Costos comunes" siempre al final. No se
+    // ordena solo por monto: eso dejaría "Costos comunes" arriba de un cultivo
+    // y se leería como si fuera un lote más.
+    return list
       ..sort((a, b) {
-        final an = a.totals.cropId == null;
-        final bn = b.totals.cropId == null;
-        if (an != bn) return an ? 1 : -1;
+        final g = _grupoDesglose(a).compareTo(_grupoDesglose(b));
+        if (g != 0) return g;
         return (b.expenses + b.incomes).compareTo(a.expenses + a.incomes);
       });
   }
@@ -2658,13 +2664,23 @@ class _TopAccountsCard extends StatelessWidget {
   }
 }
 
+/// Grupo de orden del desglose por cultivo: 0 = cultivos, 1 = lotes que no se
+/// pudieron repartir, 2 = costos comunes.
+///
+/// La regla vive en [cropBreakdownRows]; esto solo la repite para ordenar en
+/// la pantalla sin que Reportes, el PDF y el Excel se contradigan.
+int _grupoDesglose(_CropRow r) {
+  if (r.totals.cropId != null) return 0;
+  return r.totals.terrenoId != null ? 1 : 2;
+}
+
 class _CropRow {
   /// Montos del cultivo **por moneda** (helper compartido con PDF/Excel).
   final CropBreakdownRow totals;
 
-  /// Gastos del período (sin borrados), para repartirlos en
-  /// inversión inicial vs operación con [CropExpenseSplit].
-  final List<Transaction> expenseTxs = [];
+  /// Inversión inicial y operación, repartidas ya por
+  /// [ReportHarvestMetrics.splitInvestmentAndOperation] sobre
+  /// `totals.expenseTxs` — la lista trae la porción que le toca a la fila.
   double investment = 0;
   double operation = 0;
 
