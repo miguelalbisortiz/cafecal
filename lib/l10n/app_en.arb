@@ -1146,6 +1146,17 @@
   "terrenoNameRequired": "Give the plot a name.",
   "terrenoNameTaken": "There is already a plot with that name.",
   "terrenoAreaInvalid": "That number of hectares cannot be read.",
+  "terrenoLocationSection": "Plot location",
+  "terrenoLocationButton": "Get my location",
+  "terrenoLocationHelper": "The point where the plot is. Take it from your phone or type it in. The app never re-measures it on its own: moving the land silently would be inventing data.",
+  "terrenoLatLabel": "Latitude",
+  "terrenoLngLabel": "Longitude",
+  "terrenoLocationDate": "Recorded on {date}",
+  "terrenoLocationInvalid": "Latitude goes from -90 to 90 and longitude from -180 to 180.",
+  "terrenoLocationHalf": "Both coordinates must go together: one alone says nothing about where anything is.",
+  "terrenoLocationFailed": "Could not get the location. Type it in or try again.",
+  "reportTerrenosTitle": "Your plots · location",
+  "reportTerrenosHint": "The coordinate of each plot, as you recorded it. It is never re-measured on its own.",
   "@terrenoCropCount": {
     "description": "How many crops are inside a plot",
     "placeholders": { "count": { "type": "int" } }

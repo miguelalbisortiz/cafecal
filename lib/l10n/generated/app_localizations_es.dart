@@ -2750,6 +2750,41 @@ class AppLocalizationsEs extends AppLocalizations {
   String get terrenoAreaInvalid => 'Ese número de hectáreas no se puede leer.';
 
   @override
+  String get terrenoLocationSection => 'Ubicación del lote';
+
+  @override
+  String get terrenoLocationButton => 'Tomar mi ubicación';
+
+  @override
+  String get terrenoLocationHelper => 'El punto donde está el lote. Tómalo desde el celular o escríbelo a mano. La app no lo vuelve a medir sola: mover la tierra sin avisar sería inventar datos.';
+
+  @override
+  String get terrenoLatLabel => 'Latitud';
+
+  @override
+  String get terrenoLngLabel => 'Longitud';
+
+  @override
+  String terrenoLocationDate(Object date) {
+    return 'Registrado el $date';
+  }
+
+  @override
+  String get terrenoLocationInvalid => 'La latitud va de -90 a 90 y la longitud de -180 a 180.';
+
+  @override
+  String get terrenoLocationHalf => 'Las dos coordenadas deben ir juntas: una sola no dice dónde está nada.';
+
+  @override
+  String get terrenoLocationFailed => 'No pude tomar la ubicación. Escríbela a mano o inténtalo de nuevo.';
+
+  @override
+  String get reportTerrenosTitle => 'Tus terrenos · ubicación';
+
+  @override
+  String get reportTerrenosHint => 'La coordenada de cada lote, tal como la registraste. No se vuelve a medir sola.';
+
+  @override
   String terrenoCropCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -11,6 +11,7 @@ import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/tasks.dart';
+import '../models/terreno.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
@@ -46,6 +47,7 @@ class ExcelExportService {
     required AppLocalizations l10n,
     List<Harvest> harvests = const [],
     List<Sowing> sowings = const [],
+    List<Terreno> terrenos = const [],
   }) {
     final active = transactions.where((t) => !t.deleted).toList();
 
@@ -151,7 +153,8 @@ class ExcelExportService {
         crops: crops,
         period: period,
         year: year,
-        month: month);
+        month: month,
+        terrenos: terrenos);
 
     _cropsSheet(excel[l10n.excelSheetCrops],
         periodTx: periodTx, crops: crops, currency: currency, l10n: l10n);
@@ -379,6 +382,7 @@ class ExcelExportService {
     required ReportPeriod period,
     required int year,
     int? month,
+    List<Terreno> terrenos = const [],
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
 
@@ -925,6 +929,40 @@ class ExcelExportService {
         ]);
       }
       _applyCurrencyFormat(sheet, currency, 4, wsFrom, sheet.maxRows - 1);
+    }
+
+    // ── Anexo de ubicación ──
+    //
+    // Mismo texto que en Reportes y en el PDF: los tres pintadores tienen
+    // que decir lo mismo. Va en la hoja de Resumen, que es el equivalente
+    // a la pantalla de Reportes.
+    //
+    // Un terreno sin punto se lista igual por su nombre, pero con la celda
+    // de coordenadas vacía: `null` → oculto, nunca un 0 que pondría el lote
+    // en el ecuador. Sin un solo punto en toda la finca, no aparece.
+    if (terrenos.any((t) => t.lat != null && t.lng != null)) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.reportTerrenosTitle)]);
+      row([TextCellValue(l10n.reportTerrenosHint)]);
+      for (final t in terrenos) {
+        row([
+          TextCellValue(t.name),
+          // Misma forma que en el resto de la app: `2.00 ha`. Sin medir,
+          // la celda se queda vacía.
+          if (t.areaHa != null)
+            TextCellValue('${t.areaHa!.toStringAsFixed(2)} ha')
+          else
+            TextCellValue(''),
+          if (t.lat != null && t.lng != null)
+            TextCellValue(
+                '${t.lat!.toStringAsFixed(6)}, ${t.lng!.toStringAsFixed(6)}')
+          else
+            TextCellValue(''),
+        ]);
+        if (t.locatedAt != null) {
+          row([TextCellValue(l10n.terrenoLocationDate(_fmtDate(t.locatedAt!)))]);
+        }
+      }
     }
 
     sheet.setColumnWidth(0, 42);

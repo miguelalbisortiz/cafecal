@@ -799,12 +799,18 @@ class TransactionProvider extends ChangeNotifier {
   Future<Terreno> addTerreno(
     String name, {
     double? areaHa,
+    double? lat,
+    double? lng,
+    DateTime? locatedAt,
     List<String> cropIds = const [],
   }) async {
     final terreno = Terreno(
       id: _uuid.v4(),
       name: name.trim(),
       areaHa: areaHa,
+      lat: lat,
+      lng: lng,
+      locatedAt: locatedAt,
       pendingSync: true,
     );
     _terrenos = [..._terrenos, terreno];

@@ -372,6 +372,12 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
             const SizedBox(height: 20),
             _builtRecommendationsCard(context, tx, l10n),
+            // Anexo: solo si hay algún punto que mostrar. Con cero
+            // coordenadas la tarjeta no se gana el espacio.
+            if (_hasLocatedTerreno(tx)) ...[
+              const SizedBox(height: 20),
+              _builtTerrenosCard(context, tx, l10n),
+            ],
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: _exporting ? null : () => _export(tx, l10n),
@@ -1470,6 +1476,102 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
+  /// true si al menos un terreno tiene punto registrado. Es la única razón
+  /// para que el anexo de ubicación aparezca: sin un solo punto no hay nada
+  /// que identificar.
+  bool _hasLocatedTerreno(TransactionProvider tx) =>
+      tx.terrenos.any((t) => t.lat != null && t.lng != null);
+
+  /// El anexo de ubicación: cada terreno y su punto.
+  ///
+  /// No es una cifra del período, sino lo que le pide una cooperativa o una
+  /// auditoría para saber **a qué pedazo de suelo** se refieren los números
+  /// de arriba. Por eso cierra el reporte como anexo y no abre como
+  /// resultado.
+  ///
+  /// Lo que NO hace: rellenar lo que no se sabe. Un terreno sin área no
+  /// lleva `0,00 ha` y uno sin punto no lleva coordenada — `null` → oculto.
+  /// Se lista igual por su nombre, para que nadie crea que se le borró.
+  Widget _builtTerrenosCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final scheme = Theme.of(context).colorScheme;
+    final titleStyle = Theme.of(context)
+        .textTheme
+        .titleMedium
+        ?.copyWith(fontWeight: FontWeight.bold);
+
+    final children = <Widget>[
+      Row(
+        children: [
+          const Icon(Icons.explore_outlined, size: 18, color: Color(0xFF1976D2)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(l10n.reportTerrenosTitle, style: titleStyle)),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Text(
+        l10n.reportTerrenosHint,
+        style: TextStyle(
+          fontSize: 11,
+          height: 1.3,
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
+      const SizedBox(height: 8),
+    ];
+
+    for (var i = 0; i < tx.terrenos.length; i++) {
+      final t = tx.terrenos[i];
+      if (i > 0) children.add(Divider(height: 12, color: scheme.outlineVariant));
+      children.add(Text(
+        t.name,
+        style: Theme.of(context)
+            .textTheme
+            .titleSmall
+            ?.copyWith(fontWeight: FontWeight.w600),
+      ));
+      // Misma forma que en el resto de la app: `2.00 ha`. Sin medir, no se
+      // pinta nada.
+      if (t.areaHa != null) {
+        children.add(Text(
+          '${t.areaHa!.toStringAsFixed(2)} ha',
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        ));
+      }
+      if (t.lat != null && t.lng != null) {
+        children.add(const SizedBox(height: 2));
+        children.add(Text(
+          '${t.lat!.toStringAsFixed(6)}, ${t.lng!.toStringAsFixed(6)}',
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.2,
+          ),
+        ));
+        if (t.locatedAt != null) {
+          children.add(Text(
+            l10n.terrenoLocationDate(_fmtDate(t.locatedAt!)),
+            style: TextStyle(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: scheme.onSurfaceVariant,
+            ),
+          ));
+        }
+      }
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
+  }
+
   Color _severityColor(AlertSeverity s, ColorScheme scheme) => switch (s) {
         AlertSeverity.danger => scheme.error,
         AlertSeverity.warning => const Color(0xFFF9A825),
@@ -1584,6 +1686,7 @@ class _ReportScreenState extends State<ReportScreen> {
         l10n: l10n,
         harvests: tx.harvests,
         sowings: tx.sowings,
+        terrenos: tx.terrenos,
       );
 
       final fileName =
@@ -1634,6 +1737,7 @@ class _ReportScreenState extends State<ReportScreen> {
         l10n: l10n,
         harvests: tx.harvests,
         sowings: tx.sowings,
+        terrenos: tx.terrenos,
       );
 
       final fileName =

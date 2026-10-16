@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Ubicación del terreno (GPS). Se pide solo cuando el productor aprieta
+         "Tomar mi ubicación" — la app nunca mide sola. Fina porque la EUDR
+         pide la coordenada con 6 decimales; gruesa por si el equipo solo
+         da esa. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:label="mi_cafetal"
         android:name="${applicationName}"

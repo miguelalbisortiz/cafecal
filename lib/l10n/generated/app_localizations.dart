@@ -4949,6 +4949,72 @@ abstract class AppLocalizations {
   /// **'Ese número de hectáreas no se puede leer.'**
   String get terrenoAreaInvalid;
 
+  /// No description provided for @terrenoLocationSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación del lote'**
+  String get terrenoLocationSection;
+
+  /// No description provided for @terrenoLocationButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Tomar mi ubicación'**
+  String get terrenoLocationButton;
+
+  /// No description provided for @terrenoLocationHelper.
+  ///
+  /// In es, this message translates to:
+  /// **'El punto donde está el lote. Tómalo desde el celular o escríbelo a mano. La app no lo vuelve a medir sola: mover la tierra sin avisar sería inventar datos.'**
+  String get terrenoLocationHelper;
+
+  /// No description provided for @terrenoLatLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Latitud'**
+  String get terrenoLatLabel;
+
+  /// No description provided for @terrenoLngLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Longitud'**
+  String get terrenoLngLabel;
+
+  /// No description provided for @terrenoLocationDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrado el {date}'**
+  String terrenoLocationDate(Object date);
+
+  /// No description provided for @terrenoLocationInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'La latitud va de -90 a 90 y la longitud de -180 a 180.'**
+  String get terrenoLocationInvalid;
+
+  /// No description provided for @terrenoLocationHalf.
+  ///
+  /// In es, this message translates to:
+  /// **'Las dos coordenadas deben ir juntas: una sola no dice dónde está nada.'**
+  String get terrenoLocationHalf;
+
+  /// No description provided for @terrenoLocationFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No pude tomar la ubicación. Escríbela a mano o inténtalo de nuevo.'**
+  String get terrenoLocationFailed;
+
+  /// No description provided for @reportTerrenosTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus terrenos · ubicación'**
+  String get reportTerrenosTitle;
+
+  /// No description provided for @reportTerrenosHint.
+  ///
+  /// In es, this message translates to:
+  /// **'La coordenada de cada lote, tal como la registraste. No se vuelve a medir sola.'**
+  String get reportTerrenosHint;
+
   /// Cuántos cultivos hay dentro de un terreno
   ///
   /// In es, this message translates to:

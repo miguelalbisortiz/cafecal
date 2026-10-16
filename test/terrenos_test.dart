@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +31,50 @@ import 'package:mi_cafetal/widgets/terreno_editor_dialog.dart';
 ///   3. Un respaldo escrito **antes** de W1 sigue restaurando entero.
 ///   4. La subida respeta el orden de las claves foráneas: el terreno antes
 ///      que el cultivo que apunta a él, o Supabase tira el cultivo entero.
+/// Bandeja donde cae lo que devuelve un diálogo.
+///
+/// Va como objeto y no como `TerrenoFormData?` porque el asistente devuelve
+/// **al abrir**: con un valor plano se leería un null que todavía no es
+/// verdad, porque confirmar ocurre después de que el asistente ya devolvió.
+class _Picked {
+  TerrenoFormData? value;
+}
+
+/// Plataforma de ubicación falsa.
+///
+/// En pruebas no hay ningún satélite detrás y el canal del plugin real nunca
+/// responde, lo que dejaría el futuro colgado para siempre. Aquí mandamos
+/// nosotros — y de paso **contamos las llamadas**, que es la única manera de
+/// probar la regla más importante del bloque: que la app no vuelve a medir
+/// sola ni aunque ya haya una coordenada guardada.
+class _FakeGeo extends GeolocatorPlatform {
+  _FakeGeo({this.permission = LocationPermission.denied, this.position});
+
+  /// Qué responde el permiso: `denied` es el caso del que aún no autorizó.
+  final LocationPermission permission;
+
+  /// El punto que "ve" el equipo, o `null` si no hay satélite.
+  final Position? position;
+
+  int positionCalls = 0;
+
+  @override
+  Future<LocationPermission> checkPermission() async => permission;
+
+  @override
+  Future<LocationPermission> requestPermission() async => permission;
+
+  @override
+  Future<Position> getCurrentPosition({
+    LocationSettings? locationSettings,
+  }) async {
+    positionCalls++;
+    final p = position;
+    if (p == null) throw StateError('no hay satélite detrás');
+    return p;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -658,6 +703,467 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(p.provider.crops.single.terrenoId, isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Ubicación del lote (GPS)
+  //
+  // Lo que cuidan, por orden de caridad:
+  //   1. Que la app **nunca invente un punto**. Sin coordenadas el dato se
+  //      oculta (null), no se rellena con un 0 que pondría el lote en el
+  //      ecuador y el meridiano de Greenwich.
+  //   2. Que **un solo número no sirve**: una latitud sin longitud no dice
+  //      dónde está nada, y guardarlo así sería un dato a medias.
+  //   3. Que el productor **manda**: escribe a mano, corrige o borra, y la
+  //      fecha solo se guarda si hay punto que datar.
+  //   4. Que lo que sube **vuelva igual** desde Supabase.
+  // ---------------------------------------------------------------------------
+  group('Ubicación del lote', () {
+    test('el modelo conserva lat, lng y la fecha en el round-trip', () {
+      final when = DateTime.utc(2026, 10, 16, 12, 30);
+      final t = Terreno(
+        id: 't1',
+        name: 'Lote El Alto',
+        lat: 5.068421,
+        lng: -75.512387,
+        locatedAt: when,
+      );
+
+      final back = Terreno.fromJson(t.toJson());
+
+      expect(back.lat, 5.068421);
+      expect(back.lng, -75.512387);
+      expect(back.locatedAt, when);
+    });
+
+    test('copyWith borra la ubicación con centinela: null no es "no me toques"',
+        () {
+      const t = Terreno(
+        id: 't1',
+        name: 'Lote',
+        lat: 5.0,
+        lng: -75.0,
+        areaHa: 1.5,
+      );
+
+      final cleared = t.copyWith(lat: null, lng: null, locatedAt: null);
+
+      expect(cleared.lat, isNull);
+      expect(cleared.lng, isNull);
+      expect(cleared.locatedAt, isNull);
+      // El área no se toca: borrar la ubicación no deshace las hectáreas.
+      expect(cleared.areaHa, 1.5);
+    });
+
+    test('copyWith sin centinela explícita deja la ubicación como estaba', () {
+      const t = Terreno(id: 't1', name: 'Lote', lat: 5.0, lng: -75.0);
+
+      final renamed = t.copyWith(name: 'Otro nombre');
+
+      expect(renamed.lat, 5.0);
+      expect(renamed.lng, -75.0);
+    });
+
+    test('sin ubicación el JSON no lleva lat ni lng: ni ceros ni claves',
+        () {
+      final json = const Terreno(id: 't1', name: 'Lote').toJson();
+
+      expect(json.containsKey('lat'), isFalse);
+      expect(json.containsKey('lng'), isFalse);
+      expect(json.containsKey('located_at'), isFalse);
+      expect(json.containsKey('area_ha'), isFalse,
+          reason: 'misma regla que siempre: null → ausente, nunca 0');
+    });
+
+    test('una fila anterior a la ubicación se lee como "sin ubicar"', () {
+      // Exactamente lo que devuelve Supabase antes de correr la migración
+      // 202610160001: las columnas ni existen.
+      final t = Terreno.fromJson({
+        'id': 't1',
+        'name': 'Lote',
+        'area_ha': 1.5,
+        'pending_sync': false,
+      });
+
+      expect(t.lat, isNull);
+      expect(t.lng, isNull);
+      expect(t.locatedAt, isNull);
+      expect(t.areaHa, 1.5, reason: 'lo que ya se guardaba sigue intacto');
+    });
+
+    test('lo que sube se baja igual: ida y vuelta por Supabase', () async {
+      final p = await newProvider();
+      final sync = SyncProvider(p.provider);
+      final when = DateTime.utc(2026, 10, 16, 8, 5);
+      final t = Terreno(
+        id: '3f6a1d2e-0000-4000-8000-000000000001',
+        name: 'Lote El Alto',
+        areaHa: 1.5,
+        lat: 5.068421,
+        lng: -75.512387,
+        locatedAt: when,
+      );
+
+      final up = sync.buildTerrenoPayload(t, 'uid-1');
+      final back = sync.remoteToTerreno(up);
+
+      expect(back.lat, t.lat);
+      expect(back.lng, t.lng);
+      expect(back.locatedAt, t.locatedAt);
+      expect(back.areaHa, 1.5);
+      expect(up['user_id'], 'uid-1');
+    });
+
+    test('un terreno sin ubicar sube con null, no con 0', () async {
+      final p = await newProvider();
+      final sync = SyncProvider(p.provider);
+
+      final up = sync.buildTerrenoPayload(
+          const Terreno(id: 't1', name: 'Lote'), 'uid-1');
+
+      // Las columnas viajan presentes (omitirlas da PGRST204 y tumba la
+      // subida entera) pero vacías: la app no le pone un punto a nadie.
+      expect(up.containsKey('lat'), isTrue);
+      expect(up['lat'], isNull);
+      expect(up['lng'], isNull);
+      expect(up['located_at'], isNull);
+    });
+  });
+
+  group('Ubicación del lote · diálogo', () {
+    /// Abre el editor como diálogo real (no colgado del home) para poder
+    /// leer lo que devuelve al confirmar.
+    Future<_Picked> openEditor(
+      WidgetTester tester, {
+      Terreno? terreno,
+      List<Crop> crops = const [],
+      List<String> initialCropIds = const [],
+      List<String> existingNames = const [],
+    }) async {
+      tester.view.physicalSize = const Size(900, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final picked = _Picked();
+      await tester.pumpWidget(MaterialApp(
+        locale: const Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Center(
+            child: Builder(builder: (ctx) => ElevatedButton(
+                  onPressed: () async {
+                    picked.value = await showDialog<TerrenoFormData>(
+                      context: ctx,
+                      builder: (_) => TerrenoEditorDialog(
+                        terreno: terreno,
+                        crops: crops,
+                        initialCropIds: initialCropIds,
+                        existingNames: existingNames,
+                      ),
+                    );
+                  },
+                  child: const Text('OPEN'),
+                )),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+      return picked;
+    }
+
+    testWidgets('la sección trae el botón, las dos coordenadas y el aviso',
+        (tester) async {
+      await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      expect(find.text(l10n.terrenoLocationSection), findsOneWidget);
+      expect(find.text(l10n.terrenoLocationButton), findsOneWidget);
+      expect(find.text(l10n.terrenoLatLabel), findsOneWidget);
+      expect(find.text(l10n.terrenoLngLabel), findsOneWidget);
+      expect(find.text(l10n.terrenoLocationHelper), findsOneWidget);
+      // Sin medir todavía no hay fecha: contar el día de hoy sería decirle
+      // que ya se midió algo que no se midió.
+      expect(find.textContaining('Registrado el'), findsNothing);
+    });
+
+    testWidgets('escrito a mano, guarda las dos coordenadas y las fecha',
+        (tester) async {
+      final picked = await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote El Alto');
+      await tester.enterText(find.byType(TextField).at(2), '5.068421');
+      await tester.enterText(find.byType(TextField).at(3), '-75.512387');
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(picked.value, isNotNull);
+      expect(picked.value!.lat, 5.068421);
+      expect(picked.value!.lng, -75.512387);
+      expect(picked.value!.locatedAt, isNotNull,
+          reason: 'la primera anotación también se fecha');
+    });
+
+    testWidgets('acepta coma decimal, como se escribe en el celular',
+        (tester) async {
+      final picked = await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote');
+      await tester.enterText(find.byType(TextField).at(2), '5,068421');
+      await tester.enterText(find.byType(TextField).at(3), '-75,512387');
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(picked.value!.lat, 5.068421);
+      expect(picked.value!.lng, -75.512387);
+    });
+
+    testWidgets('fuera de rango no cierra y dice hasta dónde llega',
+        (tester) async {
+      await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote');
+      await tester.enterText(find.byType(TextField).at(2), '120');
+      await tester.enterText(find.byType(TextField).at(3), '-75');
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TerrenoEditorDialog), findsOneWidget);
+      expect(find.text(l10n.terrenoLocationInvalid), findsOneWidget);
+    });
+
+    testWidgets('un texto que no es número también es dato inválido',
+        (tester) async {
+      await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote');
+      await tester.enterText(find.byType(TextField).at(2), 'acá');
+      await tester.enterText(find.byType(TextField).at(3), '-75');
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TerrenoEditorDialog), findsOneWidget);
+      expect(find.text(l10n.terrenoLocationInvalid), findsOneWidget);
+    });
+
+    testWidgets('una sola coordenada no cierra: no dice dónde está nada',
+        (tester) async {
+      await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote');
+      await tester.enterText(find.byType(TextField).at(2), '5.068421');
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TerrenoEditorDialog), findsOneWidget);
+      expect(find.text(l10n.terrenoLocationHalf), findsOneWidget);
+    });
+
+    testWidgets('sin coordenadas cierra sin ubicación (null → oculto)',
+        (tester) async {
+      final picked = await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote');
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(picked.value, isNotNull);
+      expect(picked.value!.lat, isNull);
+      expect(picked.value!.lng, isNull);
+      expect(picked.value!.locatedAt, isNull);
+      expect(picked.value!.areaHa, isNull,
+          reason: 'las dos opciones se tratan igual: no medido = oculto');
+    });
+
+    testWidgets('al editar las coordenadas salen precargadas y con su fecha',
+        (tester) async {
+      final when = DateTime.utc(2026, 10, 16, 9, 0);
+      await openEditor(
+        tester,
+        terreno: const Terreno(
+          id: 't1',
+          name: 'Lote El Alto',
+          lat: 5.068421,
+          lng: -75.512387,
+        ).copyWith(locatedAt: when),
+      );
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      expect(find.widgetWithText(TextField, '5.068421'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '-75.512387'), findsOneWidget);
+      expect(find.textContaining('Registrado el'), findsOneWidget);
+      expect(find.textContaining('octubre'), findsOneWidget,
+          reason: 'se le dice cuándo se midió, con mes y año legibles');
+      expect(l10n.terrenoLocationDate('x'), isNotEmpty);
+    });
+
+    testWidgets('vaciar las coordenadas borra la ubicación y su fecha',
+        (tester) async {
+      final when = DateTime.utc(2026, 10, 16, 9, 0);
+      final picked = await openEditor(
+        tester,
+        terreno: const Terreno(
+          id: 't1',
+          name: 'Lote El Alto',
+          lat: 5.068421,
+          lng: -75.512387,
+        ).copyWith(locatedAt: when),
+      );
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).at(2), '');
+      await tester.enterText(find.byType(TextField).at(3), '');
+      await tester.tap(find.text(l10n.saveChanges));
+      await tester.pumpAndSettle();
+
+      expect(picked.value, isNotNull);
+      expect(picked.value!.lat, isNull);
+      expect(picked.value!.lng, isNull,
+          reason: 'una fecha sin punto no dice nada: se borra con él');
+      expect(picked.value!.locatedAt, isNull);
+      // Lo que no era ubicación sigue ahí.
+      expect(picked.value!.name, 'Lote El Alto');
+    });
+
+    testWidgets('corregir un número a mano no cambia la fecha de medición',
+        (tester) async {
+      final when = DateTime.utc(2026, 10, 16, 9, 0);
+      final picked = await openEditor(
+        tester,
+        terreno: const Terreno(
+          id: 't1',
+          name: 'Lote',
+          lat: 5.0,
+          lng: -75.0,
+        ).copyWith(locatedAt: when),
+      );
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).at(2), '5.111111');
+      await tester.tap(find.text(l10n.saveChanges));
+      await tester.pumpAndSettle();
+
+      expect(picked.value!.lat, 5.111111);
+      expect(picked.value!.locatedAt, when,
+          reason: 'corregir el número no es volver a medir: la fecha de '
+              'medición se conserva');
+    });
+
+    /// Pone la plataforma falsa y la devuelve a la original al terminar el
+    /// test, para que un caso no herede el GPS de otro.
+    void install(_FakeGeo fake) {
+      final previous = GeolocatorPlatform.instance;
+      addTearDown(() => GeolocatorPlatform.instance = previous);
+      GeolocatorPlatform.instance = fake;
+    }
+
+    testWidgets('si el equipo no da permiso se le avisa y no se inventa nada',
+        (tester) async {
+      final geo = _FakeGeo(permission: LocationPermission.denied);
+      install(geo);
+      await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.tap(find.text(l10n.terrenoLocationButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.terrenoLocationFailed), findsOneWidget);
+      expect(find.textContaining('Registrado el'), findsNothing,
+          reason: 'sin punto no hay fecha que mostrar');
+      expect(geo.positionCalls, 0,
+          reason: 'si no hay permiso ni se intenta medir');
+    });
+
+    testWidgets('el botón llena las coordenadas con 6 decimales y las fecha',
+        (tester) async {
+      install(_FakeGeo(
+        permission: LocationPermission.whileInUse,
+        position: Position(
+          longitude: -75.512387,
+          latitude: 5.068421,
+          timestamp: DateTime.utc(2026, 10, 16, 8),
+          accuracy: 3.0,
+          altitude: 1450.0,
+          altitudeAccuracy: 4.0,
+          heading: 0.0,
+          headingAccuracy: 1.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+        ),
+      ));
+      final res = await openEditor(tester);
+      final l10n = AppLocalizations.of(
+          tester.element(find.byType(TerrenoEditorDialog)))!;
+
+      await tester.enterText(find.byType(TextField).first, 'Lote El Alto');
+      await tester.tap(find.text(l10n.terrenoLocationButton));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextField, '5.068421'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '-75.512387'), findsOneWidget);
+      expect(find.textContaining('Registrado el'), findsOneWidget);
+
+      await tester.tap(find.text(l10n.add));
+      await tester.pumpAndSettle();
+
+      expect(res.value!.lat, 5.068421);
+      expect(res.value!.lng, -75.512387);
+      expect(res.value!.locatedAt, isNotNull);
+    });
+
+    testWidgets('abrir un terreno ya ubicado no vuelve a medir el GPS',
+        (tester) async {
+      final geo = _FakeGeo(
+        permission: LocationPermission.always,
+        position: Position(
+          longitude: -75.512387,
+          latitude: 5.068421,
+          timestamp: DateTime.utc(2027, 1, 1),
+          accuracy: 3.0,
+          altitude: 1450.0,
+          altitudeAccuracy: 4.0,
+          heading: 0.0,
+          headingAccuracy: 1.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+        ),
+      );
+      install(geo);
+      await openEditor(
+        tester,
+        terreno: const Terreno(
+          id: 't1',
+          name: 'Lote',
+          lat: 4.111111,
+          lng: -76.222222,
+        ).copyWith(locatedAt: DateTime.utc(2026, 9, 1)),
+      );
+
+      // Ni al abrir, ni siquiera al tocar el área. La coordenada es un hecho
+      // de la tierra: moverla sin avisar sería inventar datos.
+      expect(geo.positionCalls, 0);
+      expect(find.widgetWithText(TextField, '4.111111'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '-76.222222'), findsOneWidget);
     });
   });
 }

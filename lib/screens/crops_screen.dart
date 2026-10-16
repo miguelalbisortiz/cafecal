@@ -77,6 +77,9 @@ class CropsScreen extends StatelessWidget {
     await tx.addTerreno(
       form.name,
       areaHa: form.areaHa,
+      lat: form.lat,
+      lng: form.lng,
+      locatedAt: form.locatedAt,
       cropIds: form.cropIds,
     );
   }
@@ -96,8 +99,16 @@ class CropsScreen extends StatelessWidget {
       ),
     );
     if (form == null || !context.mounted) return;
+    // `copyWith` usa centinela: `form.lat == null` significa **borrar** la
+    // ubicación, y no "no me toques". Si la vacía en el diálogo, la quita.
     await tx.updateTerrenoWithCrops(
-      t.copyWith(name: form.name, areaHa: form.areaHa),
+      t.copyWith(
+        name: form.name,
+        areaHa: form.areaHa,
+        lat: form.lat,
+        lng: form.lng,
+        locatedAt: form.locatedAt,
+      ),
       form.cropIds,
     );
   }

@@ -12,6 +12,7 @@ import '../models/harvest.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/tasks.dart';
+import '../models/terreno.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import 'alert_service.dart';
@@ -58,6 +59,7 @@ class PdfExportService {
     required AppLocalizations l10n,
     List<Harvest> harvests = const [],
     List<Sowing> sowings = const [],
+    List<Terreno> terrenos = const [],
   }) async {
     final active = transactions.where((t) => !t.deleted).toList();
 
@@ -433,6 +435,13 @@ class PdfExportService {
           pw.SizedBox(height: 20),
           _recommendationsSection(
               periodTx, crops, harvests, sowings, settings.sacoKg, l10n),
+          // Anexo de ubicación: el mismo y en el mismo sitio que en
+          // Reportes y en Excel. Sin un solo punto, no aparece — y con él
+          // desaparece también el hueco que dejaría su separación.
+          if (terrenos.any((t) => t.lat != null && t.lng != null)) ...[
+            pw.SizedBox(height: 20),
+            _terrenosSection(terrenos, l10n),
+          ],
           pw.SizedBox(height: 12),
           pw.Text(
             l10n.pdfRoiFootnote,
@@ -1405,6 +1414,84 @@ class PdfExportService {
       ],
     );
   }
+
+  /// El anexo de ubicación del PDF — mismo texto y mismo orden que en
+  /// Reportes y en Excel: los tres pintadores tienen que decir lo mismo.
+  ///
+  /// Un terreno sin punto se lista igual por su nombre, pero sin línea de
+  /// coordenada. `null` → oculto, nunca un 0 que pondría el lote en el
+  /// ecuador y el meridiano de Greenwich.
+  pw.Widget _terrenosSection(List<Terreno> terrenos, AppLocalizations l10n) {
+    if (!terrenos.any((t) => t.lat != null && t.lng != null)) {
+      return pw.SizedBox.shrink();
+    }
+
+    final children = <pw.Widget>[
+      pw.Text(
+        l10n.reportTerrenosTitle,
+        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+      ),
+      pw.SizedBox(height: 3),
+      pw.Text(
+        l10n.reportTerrenosHint,
+        style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+      ),
+      pw.SizedBox(height: 6),
+    ];
+
+    for (var i = 0; i < terrenos.length; i++) {
+      final t = terrenos[i];
+      if (i > 0) {
+        children.add(pw.Container(
+          height: 0.5,
+          margin: const pw.EdgeInsets.only(top: 4, bottom: 4),
+          color: PdfColors.grey300,
+        ));
+      }
+      children.add(pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            child: pw.Text(
+              t.name,
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+            ),
+          ),
+          // Misma forma que en el resto de la app: `2.00 ha`. Sin medir,
+          // no se imprime nada.
+          if (t.areaHa != null)
+            pw.Text(
+              '${t.areaHa!.toStringAsFixed(2)} ha',
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+            ),
+        ],
+      ));
+      if (t.lat != null && t.lng != null) {
+        children.add(pw.Text(
+          '${t.lat!.toStringAsFixed(6)}, ${t.lng!.toStringAsFixed(6)}',
+          style: const pw.TextStyle(fontSize: 10),
+        ));
+        if (t.locatedAt != null) {
+          children.add(pw.Text(
+            l10n.terrenoLocationDate(_fmtDate(t.locatedAt!)),
+            style: const pw.TextStyle(
+                fontSize: 8, color: PdfColors.grey600),
+          ));
+        }
+      }
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: children,
+    );
+  }
+
+  /// Igual que en Reportes y en Excel (`dd/MM/yyyy`): los tres pintadores
+  /// tienen que poner la misma fecha.
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
   String _destinationLabel(HarvestDestination d, AppLocalizations l10n) =>
       switch (d) {

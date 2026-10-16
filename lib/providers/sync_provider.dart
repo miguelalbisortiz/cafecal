@@ -465,15 +465,30 @@ class SyncProvider extends ChangeNotifier {
     }, onConflict: 'id');
   }
 
+  /// Payload que sale hacia `terrenos`.
+  ///
+  /// Los tres campos de ubicación viajan **siempre**, aunque sean `null`:
+  /// omitir una columna que existe en la BD responde PGRST204 y tumba la
+  /// subida entera (mismo caso que `currency` y `terreno_id`). Y un terreno
+  /// sin ubicar sube con `null`, no con `0` — un `0` diría que el lote
+  /// está en el ecuador y el meridiano de Greenwich.
+  @visibleForTesting
+  Map<String, dynamic> buildTerrenoPayload(Terreno t, String userId) => {
+        'id': t.id,
+        'user_id': userId,
+        'name': t.name,
+        'area_ha': t.areaHa,
+        'lat': t.lat,
+        'lng': t.lng,
+        'located_at': t.locatedAt?.toIso8601String(),
+      };
+
   Future<void> _upsertRemoteTerreno(SupabaseService supabase, Terreno t) async {
     final user = supabase.client.auth.currentUser;
     if (user == null) return;
-    await supabase.client.from('terrenos').upsert({
-      'id': t.id,
-      'user_id': user.id,
-      'name': t.name,
-      'area_ha': t.areaHa,
-    }, onConflict: 'id');
+    await supabase.client
+        .from('terrenos')
+        .upsert(buildTerrenoPayload(t, user.id), onConflict: 'id');
   }
 
   Future<void> _pullRemote(SupabaseService supabase) async {
@@ -532,7 +547,7 @@ class SyncProvider extends ChangeNotifier {
     // de terrenos tiene que estar completa para poder mostrarlo.
     final terrenoLocalIds = _txProvider.terrenos.map((t) => t.id).toSet();
     final remoteTerrenoMapped = (remoteTerrenos as List)
-        .map((e) => _remoteToTerreno(e as Map<String, dynamic>))
+        .map((e) => remoteToTerreno(e as Map<String, dynamic>))
         .where((t) => !terrenoLocalIds.contains(t.id))
         .toList();
     if (remoteTerrenoMapped.isNotEmpty) {
@@ -586,11 +601,21 @@ class SyncProvider extends ChangeNotifier {
     await _txProvider.reconcilePhaseFromHarvests();
   }
 
-  Terreno _remoteToTerreno(Map<String, dynamic> row) {
+  /// Terreno que baja del pull. `lat`/`lng`/`located_at` pueden venir
+  /// nulos — un terreno sin ubicación llega sin ellos y se queda sin
+  /// ubicación acá, lo contrario de que la app le invente un punto en
+  /// (0, 0).
+  @visibleForTesting
+  Terreno remoteToTerreno(Map<String, dynamic> row) {
     return Terreno.fromJson({
       'id': row['id'] as String,
       'name': row['name'] as String,
       'area_ha': (row['area_ha'] as num?)?.toDouble(),
+      // Postgrest devuelve `timestamptz` como ISO 8601, que es justo lo
+      // que lee `Terreno.fromJson`. `numeric` llega como num.
+      'lat': (row['lat'] as num?)?.toDouble(),
+      'lng': (row['lng'] as num?)?.toDouble(),
+      'located_at': row['located_at'] as String?,
       'pending_sync': false,
     });
   }

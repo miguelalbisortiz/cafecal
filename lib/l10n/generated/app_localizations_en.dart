@@ -2750,6 +2750,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get terrenoAreaInvalid => 'That number of hectares cannot be read.';
 
   @override
+  String get terrenoLocationSection => 'Plot location';
+
+  @override
+  String get terrenoLocationButton => 'Get my location';
+
+  @override
+  String get terrenoLocationHelper => 'The point where the plot is. Take it from your phone or type it in. The app never re-measures it on its own: moving the land silently would be inventing data.';
+
+  @override
+  String get terrenoLatLabel => 'Latitude';
+
+  @override
+  String get terrenoLngLabel => 'Longitude';
+
+  @override
+  String terrenoLocationDate(Object date) {
+    return 'Recorded on $date';
+  }
+
+  @override
+  String get terrenoLocationInvalid => 'Latitude goes from -90 to 90 and longitude from -180 to 180.';
+
+  @override
+  String get terrenoLocationHalf => 'Both coordinates must go together: one alone says nothing about where anything is.';
+
+  @override
+  String get terrenoLocationFailed => 'Could not get the location. Type it in or try again.';
+
+  @override
+  String get reportTerrenosTitle => 'Your plots · location';
+
+  @override
+  String get reportTerrenosHint => 'The coordinate of each plot, as you recorded it. It is never re-measured on its own.';
+
+  @override
   String terrenoCropCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
