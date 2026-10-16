@@ -2131,7 +2131,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String insightLowPrice(Object history, Object recent) {
-    return 'Vendes por montos menores que tu histórico: promedio reciente $recent vs $history por venta. Revisa precio, presentación o canal de venta.';
+    return 'Vendes más barato que tu histórico: promedio reciente $recent vs $history por kilo. Revisa precio, presentación o canal de venta.';
   }
 
   @override
@@ -2220,7 +2220,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String alertLowPriceMessage(String recentAvg, String histAvg) {
-    return 'El problema: en los últimos 30 días cada venta te rinde en promedio $recentAvg, por debajo de tu promedio histórico por venta ($histAvg).';
+    return 'El problema: en los últimos 30 días vendes a $recentAvg por kilo, por debajo de tu promedio histórico de $histAvg por kilo.';
   }
 
   @override

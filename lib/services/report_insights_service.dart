@@ -1,9 +1,9 @@
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
-import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/transaction.dart';
 import 'currency_totals.dart';
+import 'low_price_check.dart';
 import 'period_delta.dart';
 
 /// Tono de cada conclusión para colorearla en la UI.
@@ -59,6 +59,12 @@ class ReportInsightsService {
     required AppLocalizations l10n,
     required String Function(double) money,
     bool mixedTotals = false,
+
+    /// Histórico completo del productor: es contra lo que compara la alerta
+    /// de Inicio, y con eso tiene que comparar también este insight — si el
+    /// reporte mirara solo el año, la misma venta daría dos precios distintos
+    /// en dos pantallas. Vacío → se usa [yearRecords] (retrocompatible).
+    List<Transaction> allRecords = const [],
   }) {
     final insights = <ReportInsight>[];
     final currentYear = yearRecords.where((t) => t.date.year == year).toList();
@@ -83,7 +89,8 @@ class ReportInsightsService {
           partialWindow: partialWindow);
     }
     _topExpense(current, l10n, money, insights, crops, mixedTotals);
-    _sales(current, currentYear, now, l10n, money, insights, crops, mixedTotals);
+    _sales(current, now, l10n, money, insights, crops, mixedTotals,
+        allRecords.isNotEmpty ? allRecords : yearRecords);
     _bestMonth(month, currentYear, l10n, money, insights, mixedTotals);
 
     return insights;
@@ -179,9 +186,9 @@ class ReportInsightsService {
 
   // ---- C. Ventas ----
 
-  void _sales(List<Transaction> current, List<Transaction> yearRecords,
-      DateTime now, AppLocalizations l10n, String Function(double) money,
-      List<ReportInsight> out, List<Crop> crops, bool mixedTotals) {
+  void _sales(List<Transaction> current, DateTime now, AppLocalizations l10n,
+      String Function(double) money, List<ReportInsight> out, List<Crop> crops,
+      bool mixedTotals, List<Transaction> allRecords) {
     final incomes = current.where((t) => !t.type.isExpense).toList();
     // El "% del total" del mejor ingreso solo es cierto en moneda única.
     if (incomes.isNotEmpty && !mixedTotals && !isMixedCurrency(incomes)) {
@@ -195,25 +202,19 @@ class ReportInsightsService {
       ));
     }
 
-    // Venta promedio reciente (30 días) vs histórico del año.
-    final sales = yearRecords
-        .where((t) => !t.type.isExpense && isSaleCategory(t.category))
-        .toList();
-    // Un promedio de montos en pesos y dólares no significa nada: se omite.
-    // Aquí no basta con el período: el año puede mezclar aunque el mes no.
-    if (sales.length >= 3 && !mixedTotals && !isMixedCurrency(sales)) {
-      final histAvg = _sumBy(sales, isExpense: false) / sales.length;
-      final threshold = DateTime(now.year, now.month, now.day - 30);
-      final recent = sales.where((t) => t.date.isAfter(threshold)).toList();
-      if (recent.length >= 2) {
-        final recentAvg = _sumBy(recent, isExpense: false) / recent.length;
-        if (recentAvg < histAvg) {
-          out.add(ReportInsight(
-            tone: InsightTone.negative,
-            text:
-                l10n.insightLowPrice(money(histAvg), money(recentAvg)),
-          ));
-        }
+    // Precio bajo: [lowPriceCheck] es la MISMA función de la alerta de Inicio
+    // (Regla 4) — aquí solo cambia quién la pinta. Mide **precio por kilo**
+    // sobre el histórico completo, y se calla si ninguna venta anotó kilos:
+    // un "precio" calculado sin cantidad sería una cifra inventada.
+    // El período mixto se descarta igual: no se cruza un precio en pesos con
+    // otro en dólares.
+    if (!mixedTotals) {
+      final check = lowPriceCheck(records: allRecords, now: now);
+      if (check != null && check.isBelow) {
+        out.add(ReportInsight(
+          tone: InsightTone.negative,
+          text: l10n.insightLowPrice(check.histAvgPerKg, check.recentAvgPerKg),
+        ));
       }
     }
   }

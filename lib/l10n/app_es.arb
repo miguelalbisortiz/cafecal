@@ -913,7 +913,7 @@
   "insightTopExpense": "Tu mayor gasto fue {category} ({amount}, el {pct} del total).",
   "insightTopExpenseDependency": "Concentras más de la mitad de tus gastos en {category}: revisa ese costo recurrente antes de que siga creciendo.",
   "insightTopIncome": "Tu mejor ingreso fue {category} ({amount}, el {pct} del total).",
-  "insightLowPrice": "Vendes por montos menores que tu histórico: promedio reciente {recent} vs {history} por venta. Revisa precio, presentación o canal de venta.",
+  "insightLowPrice": "Vendes más barato que tu histórico: promedio reciente {recent} vs {history} por kilo. Revisa precio, presentación o canal de venta.",
   "insightBestMonth": "Tu mejor mes de ventas fue {salesMonth} ({salesAmount}); tu menor gasto mensual fue {costMonth} ({costAmount}).",
 
   "@chartTitle": {
@@ -980,7 +980,7 @@
       "histAvg": { "type": "String" }
     }
   },
-  "alertLowPriceMessage": "El problema: en los últimos 30 días cada venta te rinde en promedio {recentAvg}, por debajo de tu promedio histórico por venta ({histAvg}).",
+  "alertLowPriceMessage": "El problema: en los últimos 30 días vendes a {recentAvg} por kilo, por debajo de tu promedio histórico de {histAvg} por kilo.",
   "alertLowPriceSuggestion": "Compara precios con otros compradores y evalúa esperar un mejor momento para vender parte de la cosecha.",
   "alertLowPriceManualTitle": "Vendiste café por debajo de tu precio mínimo",
   "@alertLowPriceManualMessage": {

@@ -43,4 +43,18 @@ void main() {
   test('vacío cuando no hay alertas', () {
     expect(svc.derive(const [], 4), isEmpty);
   });
+
+  test('sin tope no se queda ningún aviso fuera (igual que el banner)', () {
+    final alerts = [
+      _alert('a1', AlertRule.deficitCrop, AlertSeverity.danger),
+      _alert('a2', AlertRule.noIncome, AlertSeverity.warning),
+      _alert('a3', AlertRule.lowPrice, AlertSeverity.warning),
+      _alert('a4', AlertRule.cajaMenor, AlertSeverity.info),
+      _alert('a5', AlertRule.missingQuantity, AlertSeverity.info),
+    ];
+    // Por defecto la tarjeta enseña todo lo que la portada enseña.
+    expect(svc.derive(alerts).length, 5);
+    // El corte sigue disponible para quien lo pida (los tests de regla).
+    expect(svc.derive(alerts, 4).length, 4);
+  });
 }

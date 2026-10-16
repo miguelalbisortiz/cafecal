@@ -6,11 +6,54 @@ import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/farm_alert.dart';
 import '../models/harvest.dart';
+import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
 import 'crop_totals.dart';
+import 'low_price_check.dart';
 import 'report_payroll_metrics.dart';
+
+/// El **único** punto por el que la app le pide alertas al motor.
+///
+/// Antes cada pantalla armaba su llamada a mano y las cuatro se diferían en
+/// dos cosas:
+///
+///  * **La ventana.** Inicio y Reportes miraban todo el histórico, pero el PDF
+///    y el Excel solo el período exportado: el informe podía decir
+///    «Sin recomendaciones» mientras el banner de Inicio tenía avisos
+///    encendidos con los mismos datos.
+///  * **Los ajustes.** La caja mensual y el precio mínimo por kilo que el
+///    productor puso en Ajustes solo llegaban a Inicio. En los exportes esas
+///    dos reglas se caían sin avisar, y nadie sabía que dejaban de existir.
+///
+/// Aquí se pasan siempre las cuatro cosas: **histórico completo**, caja,
+/// umbral y peso del saco — todo sacado de [settings], que ya trae las tres
+/// últimas. Quien necesite otra cosa (una ventana de prueba, un `now` fijo)
+/// sigue llamando a [AlertService.evaluate] directamente; quien solo quiera
+/// "las alertas de la app" llama aquí y no se puede equivocar. [service] existe
+/// para poder inyectar un motor con fecha fija en tests.
+List<FarmAlert> evaluateAlerts({
+  required Iterable<Transaction> transactions,
+  required List<Crop> crops,
+  required AppLocalizations l10n,
+  required FarmSettings settings,
+  List<Harvest> harvests = const [],
+  List<Sowing> sowings = const [],
+  DateTime? now,
+  AlertService? service,
+}) =>
+    (service ?? AlertService(now: now)).evaluate(
+      transactions.toList(),
+      crops,
+      l10n,
+      manualThresholdPerKg: settings.lowPriceThresholdPerKg,
+      harvests: harvests,
+      sowings: sowings,
+      cajaMensual: settings.cajaMensualEfectiva,
+      currency: settings.currency,
+      sacoKg: settings.sacoKg,
+    );
 
 /// Motor de alertas — 5 reglas del PRD + 3 reglas Nivel 2.
 /// Funciones puras sobre datos locales; evaluar en cada registro y apertura.
@@ -278,32 +321,23 @@ class AlertService {
       }
     }
 
-    if (sales.length < 3) return;
-    final histAvg =
-        sales.fold<double>(0, (a, t) => a + pricePerKg(t)) / sales.length;
-    if (histAvg <= 0) return;
+    // Regla 4 · reciente contra histórico. La calcula [lowPriceCheck], que es
+    // la MISMA función que usa el insight de Reportes: si cada una midiera lo
+    // suyo, la misma venta podría verse normal en Inicio y barata en Reportes.
+    final check = lowPriceCheck(records: txns, now: now, sacoKg: sacoKg);
+    if (check == null || !check.isBelow) return;
 
-    final threshold = DateTime(now.year, now.month, now.day - 30);
-    final recent = sales
-        .where((t) => t.date.isAfter(threshold))
-        .toList();
-    if (recent.length < 2) return;
-
-    final recentAvg =
-        recent.fold<double>(0, (a, t) => a + pricePerKg(t)) / recent.length;
-    if (recentAvg < histAvg) {
-      out.add(FarmAlert(
-        id: 'low_price',
-        rule: AlertRule.lowPrice,
-        severity: AlertSeverity.info,
-        title: l10n.alertLowPriceTitle,
-        message: l10n.alertLowPriceMessage(
-          _money(recentAvg),
-          _money(histAvg),
-        ),
-        suggestion: l10n.alertLowPriceSuggestion,
-      ));
-    }
+    out.add(FarmAlert(
+      id: 'low_price',
+      rule: AlertRule.lowPrice,
+      severity: AlertSeverity.info,
+      title: l10n.alertLowPriceTitle,
+      message: l10n.alertLowPriceMessage(
+        _money(check.recentAvgPerKg),
+        _money(check.histAvgPerKg),
+      ),
+      suggestion: l10n.alertLowPriceSuggestion,
+    ));
   }
 
   // ---- Regla 5: cultivo con pérdidas superiores al 30% de lo invertido ----

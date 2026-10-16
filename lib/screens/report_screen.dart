@@ -95,6 +95,8 @@ class _ReportScreenState extends State<ReportScreen> {
       month: _mode == _PeriodMode.month ? _month : null,
       crops: tx.crops,
       l10n: l10n,
+      // Contra lo que también compara la alerta de Inicio: el histórico
+      // completo, no solo este año.
       // Con moneda mixta no se imprime un balance global: sería falso.
       mixedTotals: periodTotals.isMixed,
       money: (v) => formatMoneyFor(context, v, currency: _effectiveCurrency),
@@ -1426,16 +1428,15 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _builtRecommendationsCard(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
-    final alerts = const AlertService().evaluate(
-      tx.transactions,
-      tx.crops,
-      l10n,
+    final alerts = evaluateAlerts(
+      transactions: tx.transactions,
+      crops: tx.crops,
+      l10n: l10n,
+      settings: tx.settings,
       harvests: tx.harvests,
       sowings: tx.sowings,
-      sacoKg: tx.settings.sacoKg,
     );
-    final recommendations =
-        const RecommendationService().derive(alerts, 4);
+    final recommendations = const RecommendationService().derive(alerts);
     final scheme = Theme.of(context).colorScheme;
     return Card(
       child: Padding(

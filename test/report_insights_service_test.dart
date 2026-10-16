@@ -16,6 +16,8 @@ Transaction _txn({
   required DateTime date,
   String category = 'otro',
   String? cropId,
+  double? quantity,
+  String? unit,
 }) {
   return Transaction(
     id: '${type.name}_${amount}_${date.millisecondsSinceEpoch}',
@@ -25,6 +27,8 @@ Transaction _txn({
     date: date,
     createdAt: DateTime(2026, 1, 1),
     cropId: cropId,
+    quantity: quantity,
+    unit: unit,
   );
 }
 
@@ -222,6 +226,35 @@ void main() {
 
   group('Bloque C — Ventas', () {
     test('detecta venta promedio reciente menor al histórico', () {
+      // Con kilo anotado sí hay precio por kilo que comparar.
+      final year = [
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+      ];
+      final insights = service.build(
+        now: now,
+        current: year.where((t) => t.date.month == 6).toList(),
+        previousMonth: const [],
+        yearRecords: year,
+        year: 2026,
+        month: 6,
+        l10n: _es,
+        money: _money,
+      );
+      expect(
+        insights.any((i) => i.text.contains('Vendes más barato')),
+        isTrue,
+      );
+      // La cifra es precio por kilo, no monto por venta.
+      final low = insights.firstWhere((i) => i.text.contains('Vendes más barato'));
+      expect(low.text, contains('por kilo'));
+    });
+
+    test('sin kilos anotados no hay precio y el insight se calla', () {
+      // Regla de oro: un "precio" calculado sin cantidad sería inventado.
       final year = [
         _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe'),
         _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe'),
@@ -239,10 +272,7 @@ void main() {
         l10n: _es,
         money: _money,
       );
-      expect(
-        insights.any((i) => i.text.contains('Vendes por montos menores')),
-        isTrue,
-      );
+      expect(insights.any((i) => i.text.contains('Vendes más barato')), isFalse);
     });
 
     test('la mayor venta cita el cultivo (Venta Plátano ≠ Venta Café)', () {
@@ -280,11 +310,11 @@ void main() {
 
     test('las ventas con la clave nueva cuentan para el promedio', () {
       final year = [
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta'),
-        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta'),
-        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta'),
-        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta', quantity: 1, unit: 'kg'),
       ];
       final insights = service.build(
         now: now,
@@ -297,7 +327,7 @@ void main() {
         money: _money,
       );
       expect(
-        insights.any((i) => i.text.contains('Vendes por montos menores')),
+        insights.any((i) => i.text.contains('Vendes más barato')),
         isTrue,
       );
     });

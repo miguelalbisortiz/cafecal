@@ -2131,7 +2131,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insightLowPrice(Object history, Object recent) {
-    return 'You sell for lower amounts than your average: recent average $recent vs $history per sale. Check price, packaging or sales channel.';
+    return 'You sell cheaper than your historical average: recent average $recent vs $history per kg. Check price, packaging or sales channel.';
   }
 
   @override
@@ -2220,7 +2220,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertLowPriceMessage(String recentAvg, String histAvg) {
-    return 'The problem: in the last 30 days each sale brings in $recentAvg on average, below your historical average per sale ($histAvg).';
+    return 'The problem: in the last 30 days you sell at $recentAvg per kg, below your historical average of $histAvg per kg.';
   }
 
   @override

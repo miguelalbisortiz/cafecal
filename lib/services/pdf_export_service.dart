@@ -449,8 +449,12 @@ class PdfExportService {
           pw.SizedBox(height: 20),
           _workSheetSection(periodTx, crops, currency, l10n),
           pw.SizedBox(height: 20),
+          // El MISMO motor, con la MISMA ventana y los MISMOS ajustes que
+          // Inicio: histórico completo (no solo el período exportado) y la
+          // caja/umbral que puso en Ajustes. Antes el PDF podía decir
+          // «Sin recomendaciones» con el banner encendido en la portada.
           _recommendationsSection(
-              periodTx, crops, harvests, sowings, settings.sacoKg, l10n),
+              active, crops, harvests, sowings, settings, l10n),
           // Anexo de ubicación: el mismo y en el mismo sitio que en
           // Reportes y en Excel. Sin un solo punto, no aparece — y con él
           // desaparece también el hueco que dejaría su separación.
@@ -1391,21 +1395,22 @@ class PdfExportService {
   }
 
   pw.Widget _recommendationsSection(
-      Iterable<Transaction> source,
+      Iterable<Transaction> history,
       List<Crop> crops,
       List<Harvest> harvests,
       List<Sowing> sowings,
-      double sacoKg,
+      FarmSettings settings,
       AppLocalizations l10n) {
-    final alerts = const AlertService().evaluate(
-      source.toList(),
-      crops,
-      l10n,
+    final alerts = evaluateAlerts(
+      transactions: history,
+      crops: crops,
+      l10n: l10n,
+      settings: settings,
       harvests: harvests,
       sowings: sowings,
-      sacoKg: sacoKg,
     );
-    final recommendations = const RecommendationService().derive(alerts, 4);
+    // Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
+    final recommendations = const RecommendationService().derive(alerts);
     if (recommendations.isEmpty) return pw.SizedBox.shrink();
 
     return pw.Column(

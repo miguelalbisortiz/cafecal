@@ -3980,7 +3980,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightLowPrice.
   ///
   /// In es, this message translates to:
-  /// **'Vendes por montos menores que tu histórico: promedio reciente {recent} vs {history} por venta. Revisa precio, presentación o canal de venta.'**
+  /// **'Vendes más barato que tu histórico: promedio reciente {recent} vs {history} por kilo. Revisa precio, presentación o canal de venta.'**
   String insightLowPrice(Object history, Object recent);
 
   /// No description provided for @insightBestMonth.
@@ -4106,7 +4106,7 @@ abstract class AppLocalizations {
   /// No description provided for @alertLowPriceMessage.
   ///
   /// In es, this message translates to:
-  /// **'El problema: en los últimos 30 días cada venta te rinde en promedio {recentAvg}, por debajo de tu promedio histórico por venta ({histAvg}).'**
+  /// **'El problema: en los últimos 30 días vendes a {recentAvg} por kilo, por debajo de tu promedio histórico de {histAvg} por kilo.'**
   String alertLowPriceMessage(String recentAvg, String histAvg);
 
   /// No description provided for @alertLowPriceSuggestion.

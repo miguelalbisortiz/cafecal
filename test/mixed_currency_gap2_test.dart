@@ -32,6 +32,8 @@ Transaction txn({
   required DateTime date,
   String currency = 'COP',
   String category = 'venta_cafe',
+  double? quantity,
+  String? unit,
 }) =>
     Transaction(
       id: '${type.name}_${amount}_${currency}_${date.microsecondsSinceEpoch}',
@@ -41,6 +43,8 @@ Transaction txn({
       currency: currency,
       date: date,
       createdAt: date,
+      quantity: quantity,
+      unit: unit,
     );
 
 List<String> _texts(Iterable<ReportInsight> insights) =>
@@ -166,8 +170,7 @@ void main() {
       expect(texts.any((t) => t.contains('Resultado del período')), isTrue);
       expect(texts.any((t) => t.contains('Tu mejor mes')), isFalse,
           reason: 'el ranking de meses cruzaría COP con EUR');
-      expect(texts.any((t) => t.contains('Vendes por montos menores')),
-          isFalse,
+      expect(texts.any((t) => t.contains('Vendes más barato')), isFalse,
           reason: 'el promedio anual de ventas también cruzaría monedas');
     });
 
@@ -188,24 +191,29 @@ void main() {
               txn(
                   type: TransactionType.income,
                   amount: 1000,
-                  date: DateTime(2026, i, 10)),
+                  date: DateTime(2026, i, 10),
+                  quantity: 1,
+                  unit: 'kg'),
             txn(
                 type: TransactionType.income,
                 amount: 400,
-                date: DateTime(2026, 6, 1)),
+                date: DateTime(2026, 6, 1),
+                quantity: 1,
+                unit: 'kg'),
             txn(
                 type: TransactionType.income,
                 amount: 400,
                 currency: c,
-                date: DateTime(2026, 6, 8)),
+                date: DateTime(2026, 6, 8),
+                quantity: 1,
+                unit: 'kg'),
           ];
 
       final mono = _buildInsights(sales('COP'));
-      expect(mono.any((t) => t.contains('Vendes por montos menores')), isTrue);
+      expect(mono.any((t) => t.contains('Vendes más barato')), isTrue);
 
       final mixed = _buildInsights(sales('EUR'), mixedTotals: true);
-      expect(
-          mixed.any((t) => t.contains('Vendes por montos menores')), isFalse,
+      expect(mixed.any((t) => t.contains('Vendes más barato')), isFalse,
           reason: 'el promedio de ventas cruzaría pesos y euros');
       expect(mixed.where((t) => t.contains(r'$')), isEmpty);
     });

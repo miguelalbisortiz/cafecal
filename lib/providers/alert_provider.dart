@@ -26,17 +26,14 @@ class AlertProvider extends ChangeNotifier {
   }
 
   void _recompute() {
-    _alerts = _service.evaluate(
-      _transactions.transactions,
-      _transactions.crops,
-      stringsFor(_transactions.settings.language),
-      manualThresholdPerKg: _transactions.settings.lowPriceThresholdPerKg,
+    _alerts = evaluateAlerts(
+      transactions: _transactions.transactions,
+      crops: _transactions.crops,
+      l10n: stringsFor(_transactions.settings.language),
+      settings: _transactions.settings,
       harvests: _transactions.harvests,
       sowings: _transactions.sowings,
-      // Un solo pote: el aporte con la obra ya plegada dentro.
-      cajaMensual: _transactions.settings.cajaMensualEfectiva,
-      currency: _transactions.settings.currency,
-      sacoKg: _transactions.settings.sacoKg,
+      service: _service,
     );
     notifyListeners();
   }

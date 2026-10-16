@@ -175,6 +175,8 @@ class ExcelExportService {
         crops: crops,
         sowings: sowings,
         harvests: harvests,
+        active: active,
+        settings: settings,
         currency: currency,
         sacoKg: settings.sacoKg,
         l10n: l10n);
@@ -1167,6 +1169,12 @@ class ExcelExportService {
     required List<Crop> crops,
     required List<Sowing> sowings,
     required List<Harvest> harvests,
+    // "Qué hacer" necesita el histórico completo y los ajustes: el mismo
+    // motor, la misma ventana y los mismos datos que en Inicio, en Reportes
+    // y en el PDF. Solo con el período exportado podía decir
+    // «Sin recomendaciones» mientras el banner estaba encendido.
+    required List<Transaction> active,
+    required FarmSettings settings,
     required String currency,
     required double sacoKg,
     required AppLocalizations l10n,
@@ -1365,15 +1373,16 @@ class ExcelExportService {
     // "Qué hacer" derivado del motor de reglas.
     row([null, null, null]);
     row([TextCellValue(l10n.reportWhatsNext)]);
-    final alerts = const AlertService().evaluate(
-      periodTx,
-      crops,
-      l10n,
+    final alerts = evaluateAlerts(
+      transactions: active,
+      crops: crops,
+      l10n: l10n,
+      settings: settings,
       harvests: harvests,
       sowings: sowings,
-      sacoKg: sacoKg,
     );
-    final recommendations = const RecommendationService().derive(alerts, 4);
+    // Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
+    final recommendations = const RecommendationService().derive(alerts);
     if (recommendations.isEmpty) {
       row([TextCellValue(l10n.reportNoRecommendations)]);
     }
