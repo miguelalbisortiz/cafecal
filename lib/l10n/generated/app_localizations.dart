@@ -5015,6 +5015,18 @@ abstract class AppLocalizations {
   /// **'La coordenada de cada lote, tal como la registraste. No se vuelve a medir sola.'**
   String get reportTerrenosHint;
 
+  /// No description provided for @associatedCropsCostTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Costos entre cultivos asociados'**
+  String get associatedCropsCostTitle;
+
+  /// No description provided for @associatedCropsCostNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.'**
+  String get associatedCropsCostNote;
+
   /// Cuántos cultivos hay dentro de un terreno
   ///
   /// In es, this message translates to:

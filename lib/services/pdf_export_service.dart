@@ -397,6 +397,22 @@ class PdfExportService {
             _cropTable(
                 context, active.where((t) => t.date.year == year), crops, currency, l10n),
           ],
+          // Cultivos asociados: la MISMA nota que en pantalla y en Excel, y
+          // en el mismo sitio relativo al desglose por cultivo. Los tres
+          // pintadores tienen que decir lo mismo.
+          if (hasAssociatedCrops(crops)) ...[
+            pw.SizedBox(height: 10),
+            pw.Text(
+              l10n.associatedCropsCostTitle,
+              style:
+                  pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+            ),
+            pw.SizedBox(height: 2),
+            pw.Text(
+              l10n.associatedCropsCostNote,
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+            ),
+          ],
           pw.SizedBox(height: 20),
           _harvestSection(periodTx, periodHarvests, harvests, crops, sowings,
               currency, settings.sacoKg, l10n),

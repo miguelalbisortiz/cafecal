@@ -1298,6 +1298,8 @@
   "terrenoLocationFailed": "No pude tomar la ubicación. Escríbela a mano o inténtalo de nuevo.",
   "reportTerrenosTitle": "Tus terrenos · ubicación",
   "reportTerrenosHint": "La coordenada de cada lote, tal como la registraste. No se vuelve a medir sola.",
+  "associatedCropsCostTitle": "Costos entre cultivos asociados",
+  "associatedCropsCostNote": "Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.",
   "@terrenoCropCount": {
     "description": "Cuántos cultivos hay dentro de un terreno",
     "placeholders": { "count": { "type": "int" } }

@@ -1046,6 +1046,13 @@ class ExcelExportService {
             l10n.currencyMixedByCurrencyNote(mixedCurrencies.length)),
       ]);
     }
+    // Cultivos asociados: la MISMA nota que en pantalla y en el PDF. Va en
+    // la hoja "Por cultivo", que es el equivalente al desglose.
+    if (hasAssociatedCrops(crops)) {
+      sheet.appendRow([null, null, null]);
+      sheet.appendRow([TextCellValue(l10n.associatedCropsCostTitle)]);
+      sheet.appendRow([TextCellValue(l10n.associatedCropsCostNote)]);
+    }
     // Formato de moneda en columnas de montos
     _applyCurrencyFormat(sheet, currency, 2, startRow, r - 1);
     _applyCurrencyFormat(sheet, currency, 3, startRow, r - 1);

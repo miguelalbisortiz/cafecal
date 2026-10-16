@@ -2785,6 +2785,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportTerrenosHint => 'La coordenada de cada lote, tal como la registraste. No se vuelve a medir sola.';
 
   @override
+  String get associatedCropsCostTitle => 'Costos entre cultivos asociados';
+
+  @override
+  String get associatedCropsCostNote => 'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.';
+
+  @override
   String terrenoCropCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

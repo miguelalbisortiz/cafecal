@@ -114,6 +114,29 @@ List<CropBreakdownRow> cropBreakdownRows({
   return list;
 }
 
+/// true si algún terreno tiene más de un cultivo: **cultivos asociados**.
+///
+/// Es el caso normal de una finca de café con plátano, maíz o frutas en el
+/// mismo lote. Ahí un mismo jornal o la misma bolsa de abono sirve a varios
+/// cultivos a la vez, así que el costo de cada uno es una **aproximación**:
+/// el total de la finca sí cuadra, el reparto entre cultivos no.
+///
+/// No se calcula el reparto aquí (habría que inventar porcentajes). Solo se
+/// detecta el caso para que los tres pintadores avisen con el MISMO texto y
+/// en el MISMO sitio — sin acordarse entre ellos.
+///
+/// Los cultivos sin terreno no cuentan: sin lote no hay terreno compartido
+/// del que hablar.
+bool hasAssociatedCrops(List<Crop> crops) {
+  final porTerreno = <String, int>{};
+  for (final c in crops) {
+    final id = c.terrenoId;
+    if (id == null) continue;
+    porTerreno[id] = (porTerreno[id] ?? 0) + 1;
+  }
+  return porTerreno.values.any((n) => n > 1);
+}
+
 /// Montos de un mapa `moneda → monto` en una sola línea, cada moneda con su
 /// cifra y su código: `$5.000 COP · €200 EUR`. Nunca se suman entre sí.
 ///

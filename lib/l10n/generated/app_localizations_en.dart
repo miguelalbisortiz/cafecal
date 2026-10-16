@@ -2785,6 +2785,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportTerrenosHint => 'The coordinate of each plot, as you recorded it. It is never re-measured on its own.';
 
   @override
+  String get associatedCropsCostTitle => 'Costs between associated crops';
+
+  @override
+  String get associatedCropsCostNote => 'Several crops share the same plot: the same labor or fertilizer can serve several. That is why each crop\'s cost is an approximation. The farm total does add up.';
+
+  @override
   String terrenoCropCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

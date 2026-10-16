@@ -1157,6 +1157,8 @@
   "terrenoLocationFailed": "Could not get the location. Type it in or try again.",
   "reportTerrenosTitle": "Your plots · location",
   "reportTerrenosHint": "The coordinate of each plot, as you recorded it. It is never re-measured on its own.",
+  "associatedCropsCostTitle": "Costs between associated crops",
+  "associatedCropsCostNote": "Several crops share the same plot: the same labor or fertilizer can serve several. That is why each crop's cost is an approximation. The farm total does add up.",
   "@terrenoCropCount": {
     "description": "How many crops are inside a plot",
     "placeholders": { "count": { "type": "int" } }

@@ -340,6 +340,30 @@ class _ReportScreenState extends State<ReportScreen> {
                           ],
                         ),
                       ),
+                    // Cultivos asociados: el costo de cada cultivo es una
+                    // aproximación y hay que decirlo, no dejar que la cifra
+                    // finja una precisión que no tiene. Solo aparece si hay
+                    // algún lote con más de un cultivo.
+                    if (hasAssociatedCrops(tx.crops)) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.associatedCropsCostTitle,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.associatedCropsCostNote,
+                        style: TextStyle(
+                          fontSize: 11,
+                          height: 1.3,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

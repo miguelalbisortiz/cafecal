@@ -53,7 +53,7 @@ class AlertService {
     _checkConsecutiveLosses(active, now, l10n, alerts);
     _checkLowPrice(active, now, l10n, alerts,
         manualThresholdPerKg: manualThresholdPerKg, sacoKg: sacoKg);
-    _checkDeficitCrop(active, crops, l10n, alerts);
+    _checkDeficitCrop(active, crops, harvests, l10n, alerts);
     _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts,
         sacoKg: sacoKg);
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
@@ -309,7 +309,7 @@ class AlertService {
   // Modificada para Nivel 2: en establecimiento/renovación → info, no danger.
 
   void _checkDeficitCrop(List<Transaction> txns, List<Crop> crops,
-      AppLocalizations l10n, List<FarmAlert> out) {
+      List<Harvest> harvests, AppLocalizations l10n, List<FarmAlert> out) {
     final cropMap = {for (final c in crops) c.id: c};
     final totals = <String?, _CropTotals>{};
     final currencies = <String?, Set<String>>{};
@@ -350,6 +350,13 @@ class AlertService {
           return;
         }
 
+        // Sin cosecha registrada el cultivo no está produciendo de hecho,
+        // aunque su ficha diga `produccion`: creerle al formulario y no al
+        // campo sería inventar un hecho. Mismo criterio que con los gastos
+        // sin cultivo asignado — se explica el dato, no se acusa en rojo.
+        final cosechado =
+            cropId != null && harvests.any((h) => h.cropId == cropId);
+
         final label = cropId == null
             ? l10n.cropUnspecified
             : (crop?.name ?? cropId);
@@ -381,7 +388,8 @@ class AlertService {
         out.add(FarmAlert(
           id: 'deficit_$cropId',
           rule: AlertRule.deficitCrop,
-          severity: AlertSeverity.danger,
+          // Sin cosecha todavía la alerta explica, no acusa en rojo.
+          severity: cosechado ? AlertSeverity.danger : AlertSeverity.info,
           title: title,
           message: message,
           suggestion: suggestion,
