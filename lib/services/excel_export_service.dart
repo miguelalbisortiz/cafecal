@@ -1186,6 +1186,17 @@ class ExcelExportService {
     row([TextCellValue(l10n.reportHarvestSection)]);
     if (periodHarvests.isEmpty) {
       row([TextCellValue(l10n.reportNoHarvestData)]);
+      // "Qué hacer" NO depende de las cosechas del período: una venta barata
+      // de enero sigue siendo algo que hacer aunque en junio no se coseche.
+      // El PDF y la pantalla lo pintan igual; el Excel no puede quedarse sin
+      // él solo porque el período salga vacío de cosechas.
+      _whatsNextBlock(row,
+          active: active,
+          crops: crops,
+          harvests: harvests,
+          sowings: sowings,
+          settings: settings,
+          l10n: l10n);
       sheet.setColumnWidth(0, 42);
       return;
     }
@@ -1371,29 +1382,13 @@ class ExcelExportService {
     }
 
     // "Qué hacer" derivado del motor de reglas.
-    row([null, null, null]);
-    row([TextCellValue(l10n.reportWhatsNext)]);
-    final alerts = evaluateAlerts(
-      transactions: active,
-      crops: crops,
-      l10n: l10n,
-      settings: settings,
-      harvests: harvests,
-      sowings: sowings,
-    );
-    // Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
-    final recommendations = const RecommendationService().derive(alerts);
-    if (recommendations.isEmpty) {
-      row([TextCellValue(l10n.reportNoRecommendations)]);
-    }
-    for (var i = 0; i < recommendations.length; i++) {
-      row([
-        TextCellValue('${i + 1}. ${recommendations[i].title}'),
-      ]);
-      row([
-        TextCellValue(recommendations[i].message),
-      ]);
-    }
+    _whatsNextBlock(row,
+        active: active,
+        crops: crops,
+        harvests: harvests,
+        sowings: sowings,
+        settings: settings,
+        l10n: l10n);
 
     // Aviso: los costos por kilo no salen en una cifra porque los montos
     // que los componen están en más de una moneda.
@@ -1407,6 +1402,53 @@ class ExcelExportService {
 
     for (var i = 0; i < 3; i++) {
       sheet.setColumnWidth(i, i == 0 ? 46 : (i == 1 ? 20 : 18));
+    }
+  }
+
+  /// Bloque "Qué hacer" de la hoja de cosechas.
+  ///
+  /// Una sola función para una sola regla. La llaman los dos caminos de
+  /// `_harvestSheet`: el normal y el de «sin cosechas en el período».
+  ///
+  /// Antes el bloque vivía enterrado en `_harvestSheet` y quedaba detrás de
+  /// un `return` temprano cuando el período no tenía cosechas: el PDF y la
+  /// pantalla seguían enseñando "Qué hacer" y el Excel se quedaba mudo. El
+  /// propio test del export lo esquivaba dándole una cosecha al escenario,
+  /// lo que disimulaba el fallo en vez de cubrirlo.
+  ///
+  /// Usa el histórico completo (`active`) y los ajustes: el mismo motor, la
+  /// misma ventana y los mismos datos que en Inicio, en Reportes y en el PDF.
+  /// Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
+  void _whatsNextBlock(
+    void Function(List<CellValue?> cols) row, {
+    required List<Transaction> active,
+    required List<Crop> crops,
+    required List<Harvest> harvests,
+    required List<Sowing> sowings,
+    required FarmSettings settings,
+    required AppLocalizations l10n,
+  }) {
+    row([null, null, null]);
+    row([TextCellValue(l10n.reportWhatsNext)]);
+    final alerts = evaluateAlerts(
+      transactions: active,
+      crops: crops,
+      l10n: l10n,
+      settings: settings,
+      harvests: harvests,
+      sowings: sowings,
+    );
+    final recommendations = const RecommendationService().derive(alerts);
+    if (recommendations.isEmpty) {
+      row([TextCellValue(l10n.reportNoRecommendations)]);
+    }
+    for (var i = 0; i < recommendations.length; i++) {
+      row([
+        TextCellValue('${i + 1}. ${recommendations[i].title}'),
+      ]);
+      row([
+        TextCellValue(recommendations[i].message),
+      ]);
     }
   }
 

@@ -58,7 +58,9 @@ void main() {
     ),
   ];
 
-  // Con cosecha en junio para que la hoja llegue hasta "Qué hacer".
+  // Cosecha de junio, para las métricas de la hoja. "Qué hacer" ya no
+  // depende de ella: la última prueba de este archivo exporta junio sin
+  // cosecha ninguna y la sección tiene que salir igual.
   final cosechasDeJunio = [
     Harvest(
       id: 'h1',
@@ -107,5 +109,33 @@ void main() {
     expect(textos.contains(_es.reportNoRecommendations), isFalse,
         reason: 'con una venta barata en el histórico nunca puede decir que '
             'no hay nada que hacer');
+  });
+
+  test('un período sin cosechas también exporta "Qué hacer"', () {
+    // El escenario que el Excel no cubría: junio sin cosecha ninguna. Antes
+    // `_harvestSheet` volvía temprano y la hoja se quedaba mudo mientras el
+    // PDF y la pantalla seguían enseñando la sección. Los tres pintadores
+    // tienen que decir lo mismo, haya cosechas o no.
+    final libro = Excel.decodeBytes(
+      Uint8List.fromList(servicio.buildReport(
+        settings: const FarmSettings(lowPriceThresholdPerKg: 80000),
+        transactions: ventaDeEnero,
+        crops: const [Crop(id: 'cafe', name: 'Café')],
+        year: 2026,
+        month: 6,
+        period: ReportPeriod.month,
+        periodName: 'Junio 2026',
+        l10n: _es,
+        harvests: const [],
+      )),
+    );
+
+    final textos = _textos(libro, 'Cosechas');
+
+    expect(textos.contains(_es.reportWhatsNext), isTrue,
+        reason: 'la sección tiene que estar aunque no se haya cosechado');
+    expect(textos.any((t) => t.contains(_es.alertLowPriceManualTitle)), isTrue,
+        reason: 'y tiene que decir lo MISMO que con cosecha: el motor lee el '
+            'histórico, no el período exportado');
   });
 }
