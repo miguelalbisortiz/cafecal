@@ -179,16 +179,24 @@ git -C _deploy add .
 if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git add en _deploy fallo' }
 
 $staged = @(git -C _deploy diff --cached --name-only)
-if ($staged.Count -eq 0 -or [string]::IsNullOrWhiteSpace(($staged -join ' '))) {
-  Write-Host 'Sin cambios: gh-pages ya tiene este build.' -ForegroundColor Yellow
-  exit 0
+$pushNeeded = -not ($staged.Count -eq 0 -or
+  [string]::IsNullOrWhiteSpace(($staged -join ' ')))
+
+if (-not $pushNeeded) {
+  # NO se sale de aca. "Sin cambios" compara contra _deploy, no contra
+  # Pages: si la construccion anterior fallo, la app esta rota y este
+  # mensaje celebraria igual. El paso 7 sigue corriendo para confirmar lo
+  # que de verdad sirve el navegador.
+  Write-Host 'Sin cambios que subir: se confirma igual que Pages sirve este build.' -ForegroundColor Yellow
 }
 
-git -C _deploy commit -m $Message
-if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git commit en _deploy fallo' }
+if ($pushNeeded) {
+  git -C _deploy commit -m $Message
+  if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git commit en _deploy fallo' }
 
-git -C _deploy push origin gh-pages
-if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git push de gh-pages fallo' }
+  git -C _deploy push origin gh-pages
+  if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git push de gh-pages fallo' }
+}
 
 # --- 7/7 verificar publicacion -----------------------------------------------
 
@@ -234,12 +242,19 @@ for ($attempt = 1; $attempt -le 12; $attempt++) {
 }
 
 if (-not $published) {
+  # Sin duracion inventada. Son 12 intentos de 15 s de espera mas una
+  # descarga de ~4,7 MB en cada uno: en una conexion lenta tarda el doble.
+  # Decir "3 minutos" seria mentir justo en el momento del fallo.
   if ($servedHash) {
-    Stop-Deploy "GitHub Pages tras 3 minutos sigue sirviendo $servedHash y no $hash. El deploy NO esta publicado."
+    Stop-Deploy "GitHub Pages sigue sirviendo $servedHash y no $hash. El deploy NO esta publicado."
   }
-  Stop-Deploy 'GitHub Pages no respondio en 3 minutos. No se puede confirmar el deploy; revisa la pestana Actions/Pages del repo.'
+  Stop-Deploy 'GitHub Pages no respondio en ninguno de los 12 intentos. No se puede confirmar el deploy; revisa la pestana Actions/Pages del repo.'
 }
 
 Write-Host ''
-Write-Host 'Publicado y verificado en produccion.' -ForegroundColor Green
+if ($pushNeeded) {
+  Write-Host 'Publicado y verificado en produccion.' -ForegroundColor Green
+} else {
+  Write-Host 'Confirmado en produccion. No hubo cambios que subir.' -ForegroundColor Green
+}
 Write-Host "      main.dart.js en produccion : $hash" -ForegroundColor Green
