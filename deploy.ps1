@@ -15,7 +15,7 @@
     4/7  flutter build web --release --base-href=/cafecal/
     5/7  verificar base href y claves en build\web
     6/7  copiar a _deploy y pushear gh-pages   (se omite con -VerifyOnly)
-    7/7  verificar que GitHub Pages sirva el index nuevo
+    7/7  verificar que GitHub Pages sirva el bundle nuevo (sha256)
 
   Solo toca el repositorio gh-pages a traves de _deploy. main queda intacto.
 
@@ -193,28 +193,53 @@ if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git push de gh-pages fallo' }
 # --- 7/7 verificar publicacion -----------------------------------------------
 
 Write-Host '7/7  esperar a GitHub Pages' -ForegroundColor Cyan
+# Antes se comprobaba que el index publicado siguiera conteniendo el
+# <base href="/cafecal/">. Eso no comprueba NADA: TODOS los builds lo
+# contienen, el nuevo y el viejo, asi que la condicion pasaba con el archivo
+# que fuera y el script celebraba un deploy que aun no se habia publicado.
+# Paso el 2026-10-16: imprimio «Publicado y verificado en produccion» unos
+# 75 segundos antes de que fuera cierto, con Pages sirviendo el build
+# anterior.
+#
+# Lo que se compara ahora es la huella del bundle que acaba de compilarse
+# ($hash, del paso 5) contra la huella del bundle que esta sirviendo Pages.
+# Si no coinciden, no esta publicado, y ahi si se cae en rojo.
+#
 # El marcador de consulta rompe la cache del CDN: sin el, se puede leer el
-# index viejo durante minutos y creer que el deploy no sirvio.
-$probe = 'https://miguelalbisortiz.github.io/cafecal/index.html'
+# archivo viejo durante minutos y creer que el deploy no sirvio.
+$probe = 'https://miguelalbisortiz.github.io/cafecal/main.dart.js'
 $published = $false
-for ($attempt = 1; $attempt -le 20; $attempt++) {
+$servedHash = $null
+for ($attempt = 1; $attempt -le 12; $attempt++) {
   Start-Sleep -Seconds 15
+  $tmp = $null
   try {
     $cb = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
-    $resp = Invoke-WebRequest -Uri ("${probe}?cb=$cb") -UseBasicParsing -TimeoutSec 30
-    if ($resp.Content -match '<base href="/cafecal/">') {
+    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) "cafecal-probe-$cb.js"
+    Invoke-WebRequest -Uri ("${probe}?cb=$cb") -OutFile $tmp -UseBasicParsing -TimeoutSec 60
+    $servedHash = (Get-FileHash -LiteralPath $tmp -Algorithm SHA256).Hash
+    if ($servedHash -eq $hash) {
       $published = $true
       break
     }
-    Write-Host "      intento ${attempt}/20: aun sirve el index viejo"
+    $corto = $servedHash.Substring(0, 12)
+    Write-Host "      intento ${attempt}/12: aun sirve otro build ($corto)"
   } catch {
-    Write-Host "      intento ${attempt}/20: sin respuesta"
+    Write-Host "      intento ${attempt}/12: sin respuesta"
+  } finally {
+    if ($tmp -and (Test-Path -LiteralPath $tmp)) {
+      Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+    }
   }
 }
 
 if (-not $published) {
-  Stop-Deploy 'GitHub Pages sigue sirviendo el index viejo tras 5 minutos. Revisa la pestaña Actions/Pages del repo.'
+  if ($servedHash) {
+    Stop-Deploy "GitHub Pages tras 3 minutos sigue sirviendo $servedHash y no $hash. El deploy NO esta publicado."
+  }
+  Stop-Deploy 'GitHub Pages no respondio en 3 minutos. No se puede confirmar el deploy; revisa la pestana Actions/Pages del repo.'
 }
 
 Write-Host ''
 Write-Host 'Publicado y verificado en produccion.' -ForegroundColor Green
+Write-Host "      main.dart.js en produccion : $hash" -ForegroundColor Green
