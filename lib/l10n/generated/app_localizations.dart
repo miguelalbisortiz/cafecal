@@ -3993,7 +3993,7 @@ abstract class AppLocalizations {
   ///
   /// In es, this message translates to:
   /// **'Vendes más barato que tu histórico: promedio reciente {recent} vs {history} por kilo. Revisa precio, presentación o canal de venta.'**
-  String insightLowPrice(double recent, double history);
+  String insightLowPrice(String recent, String history);
 
   /// No description provided for @insightBestMonth.
   ///

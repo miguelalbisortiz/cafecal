@@ -2136,7 +2136,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String insightLowPrice(double recent, double history) {
+  String insightLowPrice(String recent, String history) {
     return 'You sell cheaper than your historical average: recent average $recent vs $history per kg. Check price, packaging or sales channel.';
   }
 

@@ -5,6 +5,7 @@ import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/report_insights_service.dart';
+import 'package:mi_cafetal/utils/format.dart';
 
 AppLocalizations get _es => stringsFor('es');
 
@@ -251,6 +252,38 @@ void main() {
       // La cifra es precio por kilo, no monto por venta.
       final low = insights.firstWhere((i) => i.text.contains('Vendes más barato'));
       expect(low.text, contains('por kilo'));
+    });
+
+    test('el precio por kilo se lee como en la alerta, no como un double', () {
+      // La alerta de Inicio cita ese mismo precio por kilo (Regla 4): si aquí
+      // saliera "400.0" serían dos notaciones para el mismo dato, y la fea
+      // —un número de máquina— sería la que lee el agricultor en Reportes.
+      final year = [
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 1, 10), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 2, 10), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 1000, date: DateTime(2026, 3, 10), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 1), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+        _txn(type: TransactionType.income, amount: 400, date: DateTime(2026, 6, 8), category: 'venta_cafe', quantity: 1, unit: 'kg'),
+      ];
+      final insights = service.build(
+        now: now,
+        current: year.where((t) => t.date.month == 6).toList(),
+        previousMonth: const [],
+        yearRecords: year,
+        year: 2026,
+        month: 6,
+        l10n: _es,
+        // El formateador de la casa, el que usa la pantalla: con el de mentira
+        // (`'$' + round()`) esta prueba no podría ver la notación real.
+        money: (v) => formatAmount(v, currency: 'COP', locale: 'es_CO'),
+      );
+      final low = insights.firstWhere((i) => i.text.contains('Vendes más barato'));
+      expect(low.text, contains('promedio reciente COP 400'),
+          reason: 'el precio reciente, con su código de moneda');
+      expect(low.text, contains('COP 760 por kilo'),
+          reason: 'el histórico, con su código de moneda');
+      expect(low.text, isNot(contains('.0')),
+          reason: 'un double crudo no es una cifra que se lea');
     });
 
     test('sin kilos anotados no hay precio y el insight se calla', () {

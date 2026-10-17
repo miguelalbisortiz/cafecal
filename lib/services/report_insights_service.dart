@@ -213,7 +213,7 @@ class ReportInsightsService {
       if (check != null && check.isBelow) {
         out.add(ReportInsight(
           tone: InsightTone.negative,
-          text: l10n.insightLowPrice(check.recentAvgPerKg, check.histAvgPerKg),
+          text: l10n.insightLowPrice(money(check.recentAvgPerKg), money(check.histAvgPerKg)),
         ));
       }
     }

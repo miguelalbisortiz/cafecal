@@ -946,8 +946,8 @@
   "insightTopIncome": "Tu mejor ingreso fue {category} ({amount}, el {pct} del total).",
   "@insightLowPrice": {
     "placeholders": {
-      "recent": { "type": "double" },
-      "history": { "type": "double" }
+      "recent": { "type": "String" },
+      "history": { "type": "String" }
     }
   },
   "insightLowPrice": "Vendes más barato que tu histórico: promedio reciente {recent} vs {history} por kilo. Revisa precio, presentación o canal de venta.",
