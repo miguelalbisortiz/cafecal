@@ -16,6 +16,10 @@ Last updated: 2026-10-17
 - Pattern: comparar por **día del calendario**, no por **instante**. La siembra de la mañana y la pérdida de la tarde del mismo día son el MISMO día: `recomputeCropState` ordena por `_dayOf` y desempata con `_kindOrder` (siembra antes que resiembra) | lib/models/sowing.dart | 2026-10-17
 - Pattern: el rango de un selector se prueba sin montar la UI si la regla vive en una función **pura** del modelo. `lossEarliestDate(sowings, cropId)` decide el tope inferior; el `showDatePicker` solo lo pinta | lib/models/sowing.dart | 2026-10-17
 - Pattern (test): un test que no atraviesa el camino real es una **guarda**, no una prueba. Los dos tests del informe pasaban igual con la librería vieja porque no montaban el diálogo; un test solo prueba si el fallo que persigue lo hace caer | test/report_screen_test.dart | 2026-10-17
+- Pattern: el copy que manda a una puerta que no existe se arregla señalando la puerta REAL. La alerta 13 pedía «registrá esa cosecha» desde que Cosechas salió del menú; lo que sí se puede hacer es anotar la venta con sus kilos, de donde la app deriva la cosecha | lib/l10n/app_es.arb, lib/services/alert_service.dart | 2026-10-17
+- Pattern: una notación por superficie, y a propósito. En pantalla el negativo lleva su signo (`formatAmount`); en PDF y Excel, el paréntesis contable (`formatMoneyLabel`), porque los lee un contador. El paréntesis en pantalla se lee como una cifra más | lib/utils/format.dart, lib/models/currencies.dart, lib/screens/report_screen.dart | 2026-10-17
+- Pattern (test): el cableado también se prueba. El diálogo tenía sus dos tests y nadie probaba que la PANTALLA encendiera la bandera (`sowingsLocked`): el test se escribe sobre la pantalla, no sobre el diálogo | test/crops_screen_test.dart | 2026-10-17
+- Pattern (verificación): si el arreglo ya estaba puesto, el rojo se consigue **apagando la pieza a mano** (la bandera, la llamada) y volviéndola a encender. Deja de ser razonado y pasa a ser visto | test/crops_screen_test.dart | 2026-10-17
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -25,6 +29,9 @@ Last updated: 2026-10-17
 - Bug: `isSecretPath` comparaba la ruta sin normalizarla, así que `D:\...\.env.<algo>` se escribía igual | normalizar `\` → `/` antes de comparar | .opencode/plugins/hookify.js | 2026-10-17
 - Bug (falso): correr `deploy.ps1` con `2>&1` dentro de una tubería reporta código de salida 1 aunque el deploy salga bien. No es el script: es mezclar el stderr de git/flutter (`Invoke-WebRequest` y el progreso escriben ahí) en la tubería | no meter `2>&1`; fiarse de la huella del paso 7 | deploy.ps1 | 2026-10-17
 - Bug: una pérdida anotada el MISMO día de la siembra se descartaba, porque la comprobación comparaba instantes y no días; el informe contaba 100 donde eran 60 | comparar por día (`_dayOf`) en `recomputeCropState`; la pérdida del mismo día entra y se aplica después de la siembra | lib/models/sowing.dart | 2026-10-17
+- Bug: la alerta 13 mandaba a registrar una cosecha que ya no tiene pantalla (Cosechas salió del menú el 2026-09-24 y la cosecha se deriva de la venta): una trampa sin salida | el texto ahora manda a la venta con sus kilos | lib/l10n/app_es.arb, lib/l10n/app_en.arb | 2026-10-17
+- Bug: el negativo se pintaba con paréntesis contables EN PANTALLA (`_accounting`, 9 usos) mientras el resto de la pantalla usaba el signo; quien no es contador lee `(COP 5.000)` como una cifra más | `_signed(tx, …)` delega en `formatAmount`; el paréntesis contable queda solo en los exportadores | lib/screens/report_screen.dart, lib/models/currencies.dart | 2026-10-17
+- Bug: el desplegable de moneda enseñaba `$ Peso colombiano (COP)`: el símbolo no identifica ninguna moneda (lo comparten COP, USD y CLP) | la etiqueta pasa a `Peso colombiano (COP)`, igual que el botón y que el texto bajo Monto | lib/widgets/currency_setup_gate.dart | 2026-10-17
 
 ## Performance
 - Sin registros todavía.
@@ -46,3 +53,4 @@ Last updated: 2026-10-17
 - Preference: stageo explícito, nunca `git add -A`; `docs/plans/` y `docs/` solo si lo pide. Única excepción: `git -C _deploy add .` | al commitear | 2026-10-17
 - Preference: los tres pintadores (Reportes, PDF y Excel) deben decir lo mismo: mismo texto, mismo sitio, mismos ajustes | al tocar informes | 2026-10-17
 - Preference: respuestas y mensajes de commit cortos, en español, sin adornos | siempre | 2026-10-17
+- Preference: el copy habla de lo que el agricultor hace **de verdad** (vender), no de pasos que la app ya no tiene | al escribir textos | 2026-10-17

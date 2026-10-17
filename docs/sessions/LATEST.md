@@ -1,25 +1,26 @@
-# Sesión — sábado 17 de octubre de 2026 (el día de la pérdida se anota)
+# Sesión — sábado 17 de octubre de 2026 (la alerta, la moneda, el signo y F4)
 
-Estado al cierre. Archivo completo en `2026-10-17-campo-de-fecha-en-perdidas.md`.
-Anteriores de hoy: `2026-10-17-entorno-motores-plugins-y-mcp.md` (la mañana) y
-`2026-10-16-cierre-mensual-y-reparto-por-hectareas.md`.
+Estado al cierre. Archivo completo en `2026-10-17-alerta-moneda-signo-y-f4.md`.
+Anteriores de hoy: `2026-10-17-campo-de-fecha-en-perdidas.md`, `2026-10-17-entorno-motores-plugins-y-mcp.md`
+y `2026-10-16-cierre-mensual-y-reparto-por-hectareas.md`.
 
 ---
 
 ## 1. ¿Dónde quedó el proyecto?
 
-La app se tocó por tercera vez hoy: el **campo de fecha del diálogo de pérdidas**. La web en vivo
-sirve ya ese despliegue, re-verificado hoy descargando el archivo publicado (HTTP 200).
+Cuarta tanda del día, y la web ya sirve lo nuevo (verificado descargando el archivo publicado,
+HTTP 200): la alerta que mandaba a una puerta que no existe, el `$` del desplegable de moneda, el
+negativo con paréntesis contables en pantalla, y el cierre de F4 con su test.
 
 | Rama | Commit | Estado |
 |---|---|---|
-| `main` | `9f86b95` | sincronizada con `origin/main` |
-| `gh-pages` | `6f8971a` | sincronizada |
+| `main` | `4efd6bc` | sincronizada con `origin/main` |
+| `gh-pages` | `6c16772` | sincronizada |
 
 Huella en producción:
 
-`C3562F9A07AA457D9BB1CF278DCFF4425668B6EABF0B3AE7D4DCCDCC89EDF0030` · 4.794.363 bytes
-(antes: `529DDF8D…` · 4.792.977).
+`F8CC64C7F04CC66240DCF3FA9ED276570F08F2F9FC4DD20564168527DB080FBC` · 4.794.508 bytes
+(antes: `71AA45E8…` · 4.794.542).
 
 Los commits de hoy, en orden:
 
@@ -30,73 +31,55 @@ Los commits de hoy, en orden:
 | `473bd34` | el bloqueo de secretos por contenido, y la raíz deja de llevar un build muerto |
 | `1498e5b` | el `DestructiveWarner` revive |
 | `0069222` | el cierre de la sesión de la tarde (siembra, el PAT y los huecos que destapó) |
-| `83fd9d1` | **perdidas: el dia se anota, y la del mismo dia deja de perderse** (código y tests) |
+| `83fd9d1` | perdidas: el dia se anota, y la del mismo dia deja de perderse |
 | `9f86b95` | docs: el PRD del campo de fecha y el informe de su revision |
+| `355831b` | docs: el cierre de la sesión del campo de fecha en las pérdidas |
+| `9bf595c` | **alerta: la salida manda a la venta, que es la puerta que existe** |
+| `79917b5` | **moneda: el desplegable nombra la moneda por su código, no por el símbolo** |
+| `3f1c952` | **informe: el negativo en pantalla lleva su signo, no paréntesis contables** |
+| `4efd6bc` | **F4: el bloqueo queda con su test de cableado, y el plan lo marca hecho** |
 
-Gate antes de commit y deploy: `flutter analyze` limpio y **930/930**.
+Gate antes de commit y deploy: `flutter analyze` limpio y **934/934**.
 
 ---
 
-## 2. Lo que se tocó la app: el día de la pérdida
+## 2. Lo que se tocó la app (cuatro cosas)
 
-El diálogo rápido de pérdidas fechaba **siempre** con `DateTime.now()`: anotar «esto pasó la
-semana pasada» era imposible. Ahora tiene un campo **Fecha**, visible, con hoy por defecto, y el
-selector va de la **última siembra** del cultivo a **hoy**. Y salió un fallo de fondo: una pérdida
-del **mismo día** de la siembra se descartaba, porque se comparaban **instantes** (siembra de la
-mañana, pérdida de la tarde) y no **días** del calendario.
+**a · La alerta dejó de mandar a una puerta que no existe.** Decía *«Si ya cosechaste, registrá esa
+cosecha y este aviso desaparece»* y no había dónde: Cosechas salió del menú el 2026-09-24. Ahora
+manda a la puerta real —**anotar la venta con sus kilos**, de donde la app deriva la cosecha— con
+el idioma que ya usa la Ayuda. El mensaje se quedó igual (decisión del usuario).
 
-`docs/prds/2026-10-17_1652-campo-de-fecha-en-perdidas.prd.md` (`status: DELIVERED`) y sus cuatro
-decisiones:
+**b · El desplegable de moneda ya no usa el `$`.** `currency_setup_gate.dart:80` pintaba
+`$ Peso colombiano (COP)`; ahora dice `Peso colombiano (COP)`, igual que el botón que lo confirma y
+que el texto bajo Monto. El **código** es el único indicador.
 
-| # | Pregunta | Decisión |
-|---|---|---|
-| Q1 | ¿Campo visible? | **Visible**, hoy por defecto; `date` **no** nullable |
-| Q2 | ¿Fecha mínima? | La **última siembra** del cultivo (`lossEarliestDate`); máxima: hoy |
-| Q3 | ¿Instante o día? | **Día calendario** en `recomputeCropState` |
-| Q4 | ¿Bloquear las anteriores a la siembra? | **Sí**, y lo hace el rango del selector |
+**c · El negativo en pantalla lleva su signo.** El `_accounting()` del informe (9 usos) pintaba
+`(COP 1.500)` en pantalla mientras el resto de la app usaba `-COP 1.500`. Ahora es `_signed(tx, …)`
+y delega en `formatAmount`. Los **exportadores** conservan el paréntesis contable
+(`formatMoneyLabel`), porque el PDF y el Excel los lee un contador, y el porqué quedó escrito ahí.
 
-**Qué se tocó**
-
-- `lib/widgets/crop_loss_dialog.dart`: `DateTime _date = DateTime.now()`; `_pickDate()`
-  (`showDatePicker`, `firstDate = min(minimo, hoy)`, `lastDate = hoy`, fecha inicial recortada con
-  `DateUtils.dateOnly`); campo visible = `InkWell` + `InputDecorator` con `l10n.dateFieldLabel` e
-  `Icons.calendar_today_outlined`; `_save` manda `date: _date`. **No** se añadió un
-  `TextFormField`, para no mover los índices que usan los tests.
-- `lib/models/sowing.dart`: `lossEarliestDate(sowings, cropId)` (sin siembras → `DateTime(2000)`;
-  si las hay → el día de la **última**); `recomputeCropState` ordena por `_dayOf` y desempata con
-  `_kindOrder` (siembra antes que resiembra el mismo día); la documentación del bloque, en español.
+**d · F4 estaba hecho; le faltaba el test del cableado.** El diálogo ya tenía la bandera
+`sowingsLocked`, los campos bloqueados con «Calculado desde tus siembras» y la salida (Registrar
+pérdida → `CropLossDialog`), y `crops_screen.dart:282` ya la encendía. Lo que no tenía era la
+prueba de que la pantalla la enciende: se añadió, **verificada en rojo** apagando la bandera a
+mano. El plan queda `[x] F4`.
 
 ---
 
 ## 3. Tests y rojo/verde
 
-5 tests nuevos en `test/sowing_test.dart` (el del mismo día + grupo `lossEarliestDate`), 3 en
-`test/crop_loss_dialog_test.dart` y 2 en `test/report_screen_test.dart`.
+Rojo medido en los cuatro: el texto viejo de la alerta · `Found 0 widgets with text "Peso colombiano
+(COP)"` · **4** widgets `(COP 5.000)` en pantalla · y 0 widgets con «Calculado desde tus siembras»
+al apagar la bandera de F4.
 
-**Rojo medido, no razonado:** sin el comparador por día, el test del mismo día da
-`Expected: <60> Actual: <100>`; con el diálogo de `HEAD` caen los 3 del diálogo; y el camino
-completo del informe (diálogo → fecha → informe) cae **solo** con el diálogo de `HEAD` (17 pasan,
-1 falla).
-
-**Guardas declaradas** (pasan antes y después, a propósito): «sin tocar la fecha queda hoy» y «una
-pérdida fechada este mes se lista en el período».
+Ojo con el finder del signo: busca el monto exacto `(COP 5.000)`, no «cualquier paréntesis con
+COP», porque el resumen tiene uno legítimo en prosa («Tu mayor gasto fue Fertilizante (COP 5.000,
+el 100% del total)»).
 
 ---
 
-## 4. La revisión y el hallazgo
-
-`docs/reports/2026-10-17_1737-code-review-campo-de-fecha-perdidas.md` → **PASS-CON-NITS**
-(0 CRITICAL, 0 HIGH). **H1 (MEDIUM) resuelto**: dos tests del informe no atravesaban el diálogo
-—pasaban igual con la librería vieja—, y el del mes pasado se rehízo como camino completo. Cerrados
-también H2, H4 y H5.
-
-**Hallazgo anotado:** «Pérdidas acumuladas» (`lib/screens/report_screen.dart:678`) suma **todo el
-historial**; la **lista del período** sí sigue la fecha (`_periodSowings`, `:614`). Documentado y
-con test: es una decisión vieja, no un efecto de esta tanda.
-
----
-
-## 5. Deudas y avisos
+## 4. Deudas y avisos
 
 🟢 **El PAT quedó revocado** (el usuario lo hizo en Supabase): la deuda del 16 está cerrada.
 
@@ -117,18 +100,23 @@ publicada y son V1. Siguen fuera de `opencode.json`.
 
 ---
 
+## 5. Hallazgos que NO se abrieron
+
+1. **Las alertas pintan los montos con `$` y sin código** (`alert_service.dart:785`), contra la
+   regla del código único. Es la misma familia que la moneda y el signo.
+2. **`CurrencyInfo.symbol` ya no lo pinta nadie**: solo lo usan su definición y su propio test.
+3. **F5 podría estar hecho en parte**: `crops_screen_test.dart` ya trae dos tests de la edad junto
+   a la fase, y el plan lo da por pendiente.
+
+---
+
 ## 6. Pendientes de producto
 
-Señalados y **sin abrir**, a la espera de verbo:
-
-1. **El diálogo de pérdidas ya no**: el campo de fecha quedó hecho en esta tanda.
-2. **El desplegable de moneda** todavía enseña `$ Peso colombiano (COP)`, y el código de moneda es
-   el único indicador (ya decidido). Falta rematarlo ahí.
-3. **El signo negativo**: en pantalla o en los exportadores, sin decidir.
-4. **Los textos que aún mienten** (Fase 6 de la cosecha derivada): la sugerencia de la alerta 13
-   sigue diciendo «registrá esa cosecha» y no hay puerta que lo haga.
-5. **F4 del plan del ciclo** (`docs/plans/2026-10-08-ciclo-cultivo-siembra-cosecha.plan.md`):
-   bloquear área y plantas en el editor cuando ya hay siembras, más el ajuste de salida.
+1. **F5 · Fecha, fase y edad** (plan del ciclo): comprobar qué falta de verdad. Incluye la
+   migración de Supabase (`crops.planted_at`), que **aplica el usuario**.
+2. **F6 · Saco configurable**: dimensionar antes de comprometerlo.
+3. **Fase 5 y 6** del plan de la cosecha derivada (la guía y sus textos).
+4. **El `$` de las alertas** (§5.1).
 
 ---
 
@@ -136,16 +124,12 @@ Señalados y **sin abrir**, a la espera de verbo:
 
 **Nada urgente y nada roto.** La web y la app están como quedaron.
 
-- Lo primero, si se retoma: **decidir los pendientes de producto** de §6.
-- Nit aceptado de la revisión, sin tocar: el test del diálogo compara contra `DateTime.now()`, así
-  que una suite que cruce la medianoche justo en ese instante fallaría (ventana de milisegundos).
-
 **Reglas de la casa que no se negocian:**
 
 - `null` → oculto, nunca 0. Nunca inventar cifras ni hechos.
-- Los tres pintadores (Reportes, PDF, Excel) dicen lo mismo, en el mismo sitio.
 - Una sola función para una sola regla.
-- Cada bug con su test, **verificado fallando sin su arreglo**.
+- Cada arreglo con su test, **verificado fallando sin su arreglo** (y si el código ya está, se apaga
+  la pieza a mano para verlo caer).
 - Stageo explícito; **nunca** `git add -A`.
 - `docs/plans/` no se commitea sin verbo.
 
