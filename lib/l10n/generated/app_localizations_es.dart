@@ -1521,7 +1521,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deleteCropTitle => '¿Eliminar cultivo?';
 
   @override
-  String deleteCropBody(Object harvests, Object name, Object sowings) {
+  String deleteCropBody(int sowings, int harvests, String name) {
     return 'Se eliminarán las siembras ($sowings) y las cosechas ($harvests) de «$name». Los gastos y ventas se quedarán sin cultivo.';
   }
 
@@ -2613,7 +2613,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get alertCashBoxDangerSuggestion => 'Revisa los gastos extras y considera reducir trabajadores este mes.';
 
   @override
-  String alertCashBoxDebtMessage(Object carry, Object used) {
+  String alertCashBoxDebtMessage(String used, String carry) {
     return 'El problema: este mes llevas $used en jornales y extras, y la caja cerró los meses anteriores en números rojos: el arrastre está en $carry.';
   }
 

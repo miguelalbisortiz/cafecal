@@ -176,6 +176,32 @@ void main() {
         reason: 'debe borrarse solo el cultivo elegido');
   });
 
+  testWidgets('C2: el aviso de borrar dice cuántas siembras y cosechas se van',
+      (tester) async {
+    final provider = await makeProvider();
+    final cafe = provider.crops.single;
+    // Dos siembras y una cosecha: con números iguales el cruce no se vería.
+    await provider.addSowing(
+        cropId: cafe.id, date: DateTime.now(), plants: 400, areaHa: 0.5);
+    await provider.addSowing(
+        cropId: cafe.id, date: DateTime.now(), plants: 50, areaHa: 0.1);
+    await provider.addHarvest(
+        cropId: cafe.id, date: DateTime.now(), amount: 40);
+    await pump(tester, provider);
+    final l10n = l10nOf(tester);
+
+    await tester.tap(find.byTooltip(l10n.delete).first);
+    await tester.pumpAndSettle();
+
+    // El texto va escrito a mano, no con `l10n.deleteCropBody(...)`: si no, la
+    // guarda daría por bueno el mismo cruce de argumentos que está probando.
+    expect(
+        find.text('Se eliminarán las siembras (2) y las cosechas (1) de «Café». '
+            'Los gastos y ventas se quedarán sin cultivo.'),
+        findsOneWidget,
+        reason: 'cada número en su casilla: siembras, cosechas y el nombre');
+  });
+
   testWidgets('F5: pinta la edad junto a la fase cuando hay datos',
       (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});

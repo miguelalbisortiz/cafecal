@@ -588,6 +588,14 @@
   "cropSetupComplete": "Completar",
   "cropSetupLater": "Ahora no",
   "deleteCropTitle": "¿Eliminar cultivo?",
+  "@deleteCropBody": {
+    "description": "El orden de los 'placeholders' es el orden de los argumentos, como se lee en la frase. Sin declararlos, el generador los ordena alfabéticamente y las cifras caen en la casilla equivocada.",
+    "placeholders": {
+      "sowings": { "type": "int" },
+      "harvests": { "type": "int" },
+      "name": { "type": "String" }
+    }
+  },
   "deleteCropBody": "Se eliminarán las siembras ({sowings}) y las cosechas ({harvests}) de «{name}». Los gastos y ventas se quedarán sin cultivo.",
   "deleteCropBodyEmpty": "«{name}» todavía no tiene siembras ni cosechas. Los gastos y ventas se quedarán sin cultivo.",
   "expenseGroupProduccion": "Gastos de producción",
@@ -1220,6 +1228,13 @@
   },
   "alertCashBoxDangerMessage": "El problema: este mes llevas {used} de {total} en jornales y extras ({percent}). Ya no queda presupuesto disponible.",
   "alertCashBoxDangerSuggestion": "Revisa los gastos extras y considera reducir trabajadores este mes.",
+  "@alertCashBoxDebtMessage": {
+    "description": "El orden de los 'placeholders' es el orden de los argumentos, como se lee en la frase: primero lo gastado y después el arrastre.",
+    "placeholders": {
+      "used": { "type": "String" },
+      "carry": { "type": "String" }
+    }
+  },
   "alertCashBoxDebtMessage": "El problema: este mes llevas {used} en jornales y extras, y la caja cerró los meses anteriores en números rojos: el arrastre está en {carry}.",
 
   "backupSectionTitle": "Respaldo",

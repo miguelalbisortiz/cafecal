@@ -827,6 +827,10 @@ void main() {
           reason: 'lo peor posible debe gritar, no desaparecer');
       expect('${found.first.title} ${found.first.message}', contains('arrastre'),
           reason: 'debe nombrar la deuda que la causó');
+      expect(found.first.message, contains('llevas COP 300'),
+          reason: 'lo gastado este mes va en su casilla, no el arrastre');
+      expect(found.first.message, contains('-COP 1.400'),
+          reason: 'el arrastre va en la suya, no en la de lo gastado');
       expect(found.first.suggestion, isNotEmpty);
     });
   });

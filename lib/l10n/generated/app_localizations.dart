@@ -2939,11 +2939,11 @@ abstract class AppLocalizations {
   /// **'¿Eliminar cultivo?'**
   String get deleteCropTitle;
 
-  /// No description provided for @deleteCropBody.
+  /// El orden de los 'placeholders' es el orden de los argumentos, como se lee en la frase. Sin declararlos, el generador los ordena alfabéticamente y las cifras caen en la casilla equivocada.
   ///
   /// In es, this message translates to:
   /// **'Se eliminarán las siembras ({sowings}) y las cosechas ({harvests}) de «{name}». Los gastos y ventas se quedarán sin cultivo.'**
-  String deleteCropBody(Object harvests, Object name, Object sowings);
+  String deleteCropBody(int sowings, int harvests, String name);
 
   /// No description provided for @deleteCropBodyEmpty.
   ///
@@ -4763,11 +4763,11 @@ abstract class AppLocalizations {
   /// **'Revisa los gastos extras y considera reducir trabajadores este mes.'**
   String get alertCashBoxDangerSuggestion;
 
-  /// No description provided for @alertCashBoxDebtMessage.
+  /// El orden de los 'placeholders' es el orden de los argumentos, como se lee en la frase: primero lo gastado y después el arrastre.
   ///
   /// In es, this message translates to:
   /// **'El problema: este mes llevas {used} en jornales y extras, y la caja cerró los meses anteriores en números rojos: el arrastre está en {carry}.'**
-  String alertCashBoxDebtMessage(Object carry, Object used);
+  String alertCashBoxDebtMessage(String used, String carry);
 
   /// No description provided for @backupSectionTitle.
   ///
