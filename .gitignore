@@ -45,10 +45,31 @@ build/
 *.iml
 .packages
 
+# Restos de un build web de septiembre copiados a la raiz. Pages publica desde
+# la rama gh-pages y deploy.ps1 escribe solo en _deploy, asi que estos archivos
+# no publican nada: se destrackearon el 2026-10-17. OJO: assets/ NO se ignora,
+# ahi vive assets/fonts/ que declara pubspec.yaml.
+/main.dart.js
+/flutter.js
+/flutter_bootstrap.js
+/flutter_service_worker.js
+/manifest.json
+/version.json
+/index.html
+/favicon.png
+/icons/
+/canvaskit/
+
 # Local env secrets
+# Cualquier *.env entra aqui: creds.env, prod.env, supabase.env... El
+# bloqueador del pack tambien los cubre por nombre, y esto evita que lleguen
+# al repositorio. Los ejemplos (*.env.example) siguen trackeandose a proposito.
 .env
 .env.local
 report_creds.env
+*.env
+*.env.local
+creds*.env
 
 # PDFs generados localmente con tool/generate_report_tool.dart
 reportes/
