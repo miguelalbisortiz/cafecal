@@ -55,6 +55,11 @@ String groupedDigits(double value,
 /// catálogo: el símbolo no decía de qué moneda era la cifra. Y no añade el
 /// código «por si acaso»: el código ya va, que es el único indicador.
 ///
+/// El paréntesis del negativo es la notación **de los exportadores** (PDF y
+/// Excel): los lee un contador. En la pantalla el negativo lleva su signo, con
+/// `formatAmount`, porque el paréntesis se lee como una cifra más si uno no lo
+/// es (PRD del 2026-10-01).
+///
 /// Quien muestra más de una moneda en la misma línea debe seguirlas
 /// distinguiendo aparte (ver `byCurrencyText`), porque esta función solo
 /// formatea un monto, nunca suma monedas distintas.

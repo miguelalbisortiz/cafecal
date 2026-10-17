@@ -1948,7 +1948,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       ? null
                       : l10n.currencyConvertedTotal(
                           _effectiveCurrency,
-                          _accounting(context, tx, balance,
+                          _signed(tx, balance,
                               currency: _effectiveCurrency),
                         )),
               if (converted != null) ...[
@@ -1992,7 +1992,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   context,
                   l10n.metricCostPriceLabel,
                   priceByKg != null
-                      ? _accounting(context, tx, priceByKg,
+                      ? _signed(tx, priceByKg,
                           currency: _effectiveCurrency)
                       : '—',
                   signal: signalOfCostPrice(
@@ -2002,7 +2002,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     costPriceVerdict(costByKg, priceByKg),
                     costByKg == null
                         ? ''
-                        : _accounting(context, tx, costByKg,
+                        : _signed(tx, costByKg,
                             currency: _effectiveCurrency),
                   ),
                 ),
@@ -2016,7 +2016,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 _metricLine(
                   context,
                   l10n.metricMarginPerKgLabel,
-                  _accounting(context, tx, priceByKg - costByKg,
+                  _signed(tx, priceByKg - costByKg,
                       currency: _effectiveCurrency),
                   signal: signalOfCostPrice(
                       costPriceVerdict(costByKg, priceByKg)),
@@ -2056,7 +2056,7 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
           Text(
-            _accounting(context, tx, value, currency: _effectiveCurrency),
+            _signed(tx, value, currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -2099,7 +2099,7 @@ class _ReportScreenState extends State<ReportScreen> {
             mixed
                 ? _byCurrencyText(
                     tx, row.byCurrency, negative: row.isExpense)
-                : _accounting(context, tx, row.isExpense ? -row.amount : row.amount,
+                : _signed(tx, row.isExpense ? -row.amount : row.amount,
                     currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 12,
@@ -2225,7 +2225,7 @@ class _ReportScreenState extends State<ReportScreen> {
           Text(
             mixed
                 ? _byCurrencyText(tx, byCurrency, negative: true)
-                : _accounting(context, tx, -amount,
+                : _signed(tx, -amount,
                     currency: _effectiveCurrency),
             style: const TextStyle(
               fontSize: 13,
@@ -2276,7 +2276,7 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
           Text(
             valueLabel ??
-                _accounting(context, tx, balance, currency: _effectiveCurrency),
+                _signed(tx, balance, currency: _effectiveCurrency),
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.bold,
@@ -2462,12 +2462,16 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  String _accounting(BuildContext context, TransactionProvider tx, double value,
-      {String? currency}) {
-    final s = formatAmount(value.abs(),
-        currency: currency ?? tx.settings.currency, locale: tx.settings.locale);
-    return value < 0 ? '($s)' : s;
-  }
+  /// Monto de una cifra que puede venir negativa: `-COP 1.500`.
+  ///
+  /// En **pantalla** el negativo lleva su signo. El paréntesis contable se lee
+  /// como una cifra más si uno no es contador (PRD del 2026-10-01), así que
+  /// queda para quien sí lo es: el PDF y el Excel, que lo pintan con
+  /// `formatMoneyLabel`.
+  String _signed(TransactionProvider tx, double value, {String? currency}) =>
+      formatAmount(value,
+          currency: currency ?? tx.settings.currency,
+          locale: tx.settings.locale);
 
   String _pct(double v) => v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 

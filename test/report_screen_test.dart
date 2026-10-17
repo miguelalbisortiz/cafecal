@@ -234,6 +234,48 @@ void main() {
     expect(find.text(l10n.expenseCategory('arriendo')), findsOneWidget);
   });
 
+  testWidgets('un negativo en pantalla lleva su signo, no paréntesis',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      amount: 5000.0,
+      description: 'Fertilizante',
+      date: DateTime.now(),
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // En pantalla el negativo lo lee el agricultor: con su signo.
+    expect(
+        find.textContaining(
+            formatAmount(-5000, currency: 'COP', locale: 'es_CO')),
+        findsWidgets,
+        reason: 'el gasto se lee con su signo, no entre paréntesis');
+    // El paréntesis contable queda para el PDF y el Excel.
+    final parentesisContable =
+        '(${formatAmount(5000, currency: 'COP', locale: 'es_CO')})';
+    expect(find.text(parentesisContable), findsNothing,
+        reason: 'quien no es contador lee el paréntesis como una cifra más');
+  });
+
   testWidgets('P2: el estado de resultados compara precio/kg con costo/kg',
       (tester) async {
     tester.view.physicalSize = const Size(900, 4000);
