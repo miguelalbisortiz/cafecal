@@ -25,6 +25,28 @@ Sowing _s({
 
 void main() {
   group('Sowing JSON', () {
+    test('una siembra con pérdidas pegadas entra limpia y para subir', () {
+      // Así quedaba el registro viejo al pasar una resiembra a siembra.
+      final json = Sowing(
+        id: 's1',
+        cropId: 'cafe',
+        date: DateTime(2026, 3, 1),
+        plants: 1000,
+        lostPlants: 50,
+        reason: 'plaga',
+      ).toJson();
+
+      final limpia = Sowing.fromJson(json);
+
+      expect(limpia.plants, 1000);
+      expect(limpia.lostPlants, isNull,
+          reason: 'una siembra no pierde: el -50 viejo se limpia al entrar');
+      expect(limpia.reason, isNull,
+          reason: 'el motivo era de la resiembra');
+      expect(limpia.pendingSync, isTrue,
+          reason: 'la corrección tiene que subir a la nube');
+    });
+
     test('round-trip conserva todos los campos', () {
       final s = _s(
         id: 's1',
@@ -104,6 +126,88 @@ void main() {
     test('sin siembras no genera estado (no sobreescribe manual)', () {
       final result = recomputeCropState(const []);
       expect(result, isEmpty);
+    });
+  });
+
+  // El formulario manda `null` en los campos que no aplican al tipo elegido
+  // (una siembra no tiene pérdidas ni motivo). Con `?? this.x` el valor viejo
+  // sobrevivía y quedaba una siembra con `-50 · plaga` encima.
+  group('copyWith — los campos opcionales se pueden borrar', () {
+    test('pasar null borra lostPlants y reason', () {
+      final r = _s(
+        id: 'r1',
+        date: DateTime(2026, 3, 1),
+        kind: SowingKind.resiembra,
+        plants: 0,
+        lostPlants: 50,
+        reason: 'plaga',
+      );
+
+      final asSiembra = r.copyWith(
+        kind: SowingKind.siembra,
+        lostPlants: null,
+        reason: null,
+      );
+
+      expect(asSiembra.kind, SowingKind.siembra);
+      expect(asSiembra.lostPlants, isNull,
+          reason: 'era el -50 de cuando era resiembra; una siembra no pierde');
+      expect(asSiembra.reason, isNull,
+          reason: 'el motivo era de la resiembra; no puede quedarse pegado');
+    });
+
+    test('no pasarlos los conserva (nadie se borra solo)', () {
+      final r = _s(
+        id: 'r1',
+        date: DateTime(2026, 3, 1),
+        kind: SowingKind.resiembra,
+        plants: 0,
+        lostPlants: 50,
+        reason: 'plaga',
+      );
+
+      final copia = r.copyWith(plants: 10);
+
+      expect(copia.plants, 10);
+      expect(copia.lostPlants, 50);
+      expect(copia.reason, 'plaga');
+    });
+  });
+
+  // Las pérdidas son cosa de la resiembra: una siembra no pierde plantas ni
+  // tiene motivo. Si un registro viejo las lleva pegadas, no cuentan ni se
+  // pintan — esta es la única regla que leen la lista y los informes.
+  group('lossOf — solo la resiembra pierde', () {
+    test('una siembra devuelve 0 pérdidas y ningún motivo', () {
+      final s = _s(
+        id: 's1',
+        date: DateTime(2026, 1, 1),
+        plants: 1000,
+        lostPlants: 50,
+        reason: 'plaga',
+      );
+
+      final loss = lossOf(s);
+
+      expect(loss.lost, 0,
+          reason: 'una siembra no pierde: el -50 pegado no cuenta');
+      expect(loss.reason, isNull);
+    });
+
+    test('una resiembra devuelve sus pérdidas y su motivo', () {
+      final r = _s(
+        id: 'r1',
+        date: DateTime(2026, 3, 1),
+        kind: SowingKind.resiembra,
+        plants: 0,
+        lostPlants: 50,
+        reason: 'plaga',
+      );
+
+      final loss = lossOf(r);
+
+      expect(loss.lost, 50);
+      expect(loss.reason, 'plaga');
     });
   });
 }

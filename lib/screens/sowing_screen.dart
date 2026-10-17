@@ -74,6 +74,9 @@ class SowingScreen extends StatelessWidget {
       AppLocalizations l10n) {
     final noYield = s.cropId != null &&
         phaseById[s.cropId] == CropPhase.establecimiento;
+    // Pérdidas y motivo son de la resiembra: `lossOf` es la única regla de
+    // lectura, así que una siembra con un -50 viejo pegado no lo pinta.
+    final perdida = lossOf(s);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -104,8 +107,9 @@ class SowingScreen extends StatelessWidget {
                 if (s.cropId != null) nameById[s.cropId] ?? s.cropId!,
                 '${s.plants}',
                 if (s.areaHa != null) '${s.areaHa!.toStringAsFixed(2)} ha',
-                if (s.lostPlants != null) '-${s.lostPlants}',
-                if (s.reason != null && s.reason!.isNotEmpty) s.reason!,
+                if (perdida.lost > 0) '-${perdida.lost}',
+                if (perdida.reason != null && perdida.reason!.isNotEmpty)
+                  perdida.reason!,
               ].join(' · '),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -320,7 +324,10 @@ class _SowingFormState extends State<_SowingForm> {
     final tx = context.read<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
     if (_cropId == null) return;
-    final plants = int.parse(_plantsController.text.trim());
+    // El campo se puede dejar en blanco: en una resiembra con pérdidas el
+    // validador lo permite (la mortandad se anota sin reponer plantas) y en
+    // blanco vale 0. Con `int.parse` el guardado reventaba.
+    final plants = int.tryParse(_plantsController.text.trim()) ?? 0;
     final areaText = _areaController.text.trim().replaceAll(',', '.');
     final area = _kind == SowingKind.siembra && areaText.isNotEmpty
         ? double.tryParse(areaText)

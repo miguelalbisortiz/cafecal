@@ -220,4 +220,99 @@ void main() {
         reason: 'hay que decirnos algo: o siembras o mueren');
     expect(provider.sowings, isEmpty);
   });
+
+  // Gemelo del test de arriba, pero sin teclear nada en "plantas nuevas":
+  // el validador lo permite (hay pérdidas), así que el guardado no puede
+  // reventar al leer un campo vacío.
+  testWidgets('F4: la resiembra se guarda con "plantas nuevas" en blanco',
+      (tester) async {
+    agrandar(tester);
+    final provider = await makeProvider();
+    await provider.addCrop('Café');
+    await pumpScreen(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(SowingScreen)))!;
+
+    await tester.tap(find.text(l10n.sowingAdd));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.sowingKindResiembra));
+    await tester.pumpAndSettle();
+
+    // No se toca el campo de plantas nuevas: queda en blanco, como lo deja
+    // el productor que solo anota que se le murieron.
+    await tester.enterText(find.byType(TextFormField).at(1), '50');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(provider.sowings, hasLength(1),
+        reason: 'en blanco vale 0 plantas nuevas y la mortandad se registra');
+    expect(provider.sowings.single.plants, 0);
+    expect(provider.sowings.single.lostPlants, 50);
+  });
+
+  // El selector siembra/resiembra está activo también al editar. Corregir el
+  // tipo no puede dejar pegado lo que era del otro tipo.
+  testWidgets('editar una resiembra a siembra borra pérdidas y motivo',
+      (tester) async {
+    agrandar(tester);
+    final provider = await makeProvider();
+    final crop = await provider.addCrop('Café');
+    await provider.addSowing(
+      cropId: crop.id,
+      date: DateTime(2026, 3, 1),
+      kind: SowingKind.resiembra,
+      plants: 0,
+      lostPlants: 50,
+      reason: 'plaga',
+    );
+    await pumpScreen(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(SowingScreen)))!;
+
+    // La fila abre el formulario en modo edición.
+    expect(find.byType(ListTile), findsOneWidget);
+    await tester.tap(find.byType(ListTile));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.sowingKindSiembra));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).at(0), '1000');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    final guardada = provider.sowings.single;
+    expect(guardada.kind, SowingKind.siembra);
+    expect(guardada.plants, 1000);
+    expect(guardada.lostPlants, isNull,
+        reason: 'era el -50 de cuando era resiembra');
+    expect(guardada.reason, isNull,
+        reason: 'el motivo era de la resiembra; no puede quedarse pegado');
+  });
+
+  // El fallo de arriba dejó registros viejos con el -50 pegado a una siembra.
+  // Aunque el dato siga ahí, la lista no puede pintarlo como mortandad.
+  testWidgets('una siembra con pérdidas pegadas no las pinta', (tester) async {
+    agrandar(tester);
+    final provider = await makeProvider();
+    final crop = await provider.addCrop('Café');
+    await provider.addSowing(
+      cropId: crop.id,
+      date: DateTime(2026, 3, 1),
+      plants: 1000,
+      lostPlants: 50,
+      reason: 'plaga',
+    );
+    await pumpScreen(tester, provider);
+
+    expect(find.textContaining('-50'), findsNothing,
+        reason: 'una siembra no pierde plantas: no se pinta el -50');
+    expect(find.textContaining('plaga'), findsNothing,
+        reason: 'el motivo era de la resiembra');
+    expect(find.textContaining('1000'), findsOneWidget,
+        reason: 'lo que sí queda es lo sembrado');
+  });
 }

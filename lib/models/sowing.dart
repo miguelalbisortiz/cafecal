@@ -1,3 +1,5 @@
+const _sentinel = Object();
+
 class Sowing {
   final String id;
   final String? cropId;
@@ -28,8 +30,8 @@ class Sowing {
     SowingKind? kind,
     int? plants,
     double? areaHa,
-    int? lostPlants,
-    String? reason,
+    Object? lostPlants = _sentinel,
+    Object? reason = _sentinel,
     bool? pendingSync,
   }) {
     return Sowing(
@@ -39,8 +41,13 @@ class Sowing {
       kind: kind ?? this.kind,
       plants: plants ?? this.plants,
       areaHa: areaHa ?? this.areaHa,
-      lostPlants: lostPlants ?? this.lostPlants,
-      reason: reason ?? this.reason,
+      // Sentinela (igual que en Crop.copyWith): los dos campos son opcionales
+      // y dependen del tipo. Al pasar una resiembra a siembra hay que poder
+      // BORRARLOS. Con `int?`/`String?` a secas, `copyWith(lostPlants: null)`
+      // conservaba el -50 viejo y la siembra seguía diciendo "se perdieron 50".
+      lostPlants:
+          lostPlants == _sentinel ? this.lostPlants : lostPlants as int?,
+      reason: reason == _sentinel ? this.reason : reason as String?,
       pendingSync: pendingSync ?? this.pendingSync,
     );
   }
@@ -58,19 +65,28 @@ class Sowing {
       };
 
   factory Sowing.fromJson(Map<String, dynamic> json) {
+    final kind = SowingKind.values.firstWhere(
+      (k) => k.name == json['kind'],
+      orElse: () => SowingKind.siembra,
+    );
+    final lost = (json['lost_plants'] as num?)?.toInt();
+    final reason = json['reason'] as String?;
+    // Puerta única de entrada (disco, nube y respaldo): una siembra no tiene
+    // pérdidas ni motivo, son cosa de la resiembra. Un registro viejo puede
+    // traerlos pegados —pasó al pasar una resiembra a siembra—: se limpian al
+    // entrar y se re-marca `pendingSync` para que la corrección suba.
+    final sucio =
+        kind != SowingKind.resiembra && (lost != null || reason != null);
     return Sowing(
       id: json['id'] as String,
       cropId: json['crop_id'] as String?,
       date: DateTime.parse(json['date'] as String),
-      kind: SowingKind.values.firstWhere(
-        (k) => k.name == json['kind'],
-        orElse: () => SowingKind.siembra,
-      ),
+      kind: kind,
       plants: (json['plants'] as num).toInt(),
       areaHa: (json['area_ha'] as num?)?.toDouble(),
-      lostPlants: (json['lost_plants'] as num?)?.toInt(),
-      reason: json['reason'] as String?,
-      pendingSync: (json['pending_sync'] as bool?) ?? false,
+      lostPlants: sucio ? null : lost,
+      reason: sucio ? null : reason,
+      pendingSync: sucio || ((json['pending_sync'] as bool?) ?? false),
     );
   }
 }
@@ -79,6 +95,15 @@ enum SowingKind {
   siembra,
   resiembra;
 }
+
+/// Las pérdidas son cosa de la resiembra: una siembra no pierde plantas ni
+/// tiene motivo de mortandad. Es la **única regla de lectura**, para el
+/// modelo, la lista y los informes: un registro viejo mal guardado no cuenta
+/// ni se pinta, aunque el dato siga en el JSON.
+({int lost, String? reason}) lossOf(Sowing s) =>
+    s.kind == SowingKind.resiembra
+        ? (lost: s.lostPlants ?? 0, reason: s.reason)
+        : (lost: 0, reason: null);
 
 /// Recomputes crop.livePlants and crop.areaHa from sowings in chronological order.
 /// Returns a list of crop update candidates: each entry is [cropId, newLivePlants, newAreaHa].
@@ -108,7 +133,7 @@ Map<String, ({int livePlants, double? areaHa})> recomputeCropState(
           if (s.areaHa != null) areaHa = s.areaHa;
         case SowingKind.resiembra:
           if (livePlants != null) {
-            livePlants = livePlants - (s.lostPlants ?? 0) + s.plants;
+            livePlants = livePlants - lossOf(s).lost + s.plants;
           }
       }
     }

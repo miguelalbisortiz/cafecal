@@ -651,6 +651,36 @@ void main() {
           reason: 'abonar el mes siguiente no es dejarlo listo');
     });
   });
+
+  test(
+      'al abrir, un registro viejo con pérdidas pegadas a una siembra se limpia',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    // El disco queda como lo dejaba el fallo: una siembra con el -50 que se
+    // le quedó pegado al pasar una resiembra a siembra.
+    final antes = TransactionProvider(LocalStore(prefs));
+    final crop = await antes.addCrop('Café');
+    await antes.addSowing(
+      cropId: crop.id,
+      date: DateTime(2026, 3, 1),
+      plants: 1000,
+      lostPlants: 50,
+      reason: 'plaga',
+    );
+
+    // Al abrir de nuevo entra limpio, y marcado para subir la corrección.
+    final ahora = TransactionProvider(LocalStore(prefs));
+    final s = ahora.sowings.single;
+
+    expect(s.plants, 1000);
+    expect(s.lostPlants, isNull,
+        reason: 'una siembra no pierde: no puede quedar el -50 viejo');
+    expect(s.reason, isNull);
+    expect(s.pendingSync, isTrue,
+        reason: 'la corrección tiene que subir a la nube');
+  });
 }
 
 CropPhase phaseOf(TransactionProvider provider, String cropId) =>

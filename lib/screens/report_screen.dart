@@ -673,8 +673,9 @@ class _ReportScreenState extends State<ReportScreen> {
       return const SizedBox.shrink();
     }
 
-    final totalLost =
-        tx.sowings.fold<int>(0, (a, s) => a + (s.lostPlants ?? 0));
+    // Solo las resiembras pierden (`lossOf`): una siembra con un -50 viejo
+    // pegado no puede inflar las pérdidas acumuladas.
+    final totalLost = tx.sowings.fold<int>(0, (a, s) => a + lossOf(s).lost);
 
     return Card(
       child: Padding(
@@ -743,8 +744,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 final kind = s.kind == SowingKind.resiembra
                     ? l10n.reportSowingsKindResiembra
                     : l10n.reportSowingsKindSiembra;
-                final lost = s.lostPlants ?? 0;
-                final reason = s.reason ?? '';
+                final loss = lossOf(s);
+                final lost = loss.lost;
+                final reason = loss.reason ?? '';
                 String? note;
                 if (lost > 0 && reason.isNotEmpty) {
                   note = l10n.reportSowingsLostLine(lost, reason);

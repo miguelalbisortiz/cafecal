@@ -136,6 +136,45 @@ void main() {
         reason: 'debe listar las siembras del período seleccionado');
   });
 
+  testWidgets('P5: una siembra con pérdidas pegadas no infla las pérdidas',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 8000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final crop = await provider.addCrop('Café');
+
+    // Registro viejo mal guardado: una siembra con el -50 que se le quedó
+    // pegado de cuando era resiembra. No puede sumar en el informe.
+    await provider.addSowing(
+      cropId: crop.id,
+      date: DateTime(2026, 3, 1),
+      plants: 1000,
+      lostPlants: 50,
+      reason: 'plaga',
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.reportSowingsLosses), findsNothing,
+        reason: 'sin resiembras no hay pérdidas acumuladas que enseñar');
+    expect(find.text(l10n.reportSowingsLostOnly(50)), findsNothing,
+        reason: 'ni la fila de la siembra puede decir que se perdió nada');
+  });
+
   testWidgets(
       'P5: el estado de resultados agrupa los gastos sin esconder el detalle',
       (tester) async {
