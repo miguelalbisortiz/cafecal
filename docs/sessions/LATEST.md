@@ -1,155 +1,180 @@
-# Sesión — sábado 17 de octubre de 2026
+# Sesión — sábado 17 de octubre de 2026 (tarde)
 
-Estado al cierre de la sesión. Anterior: `2026-10-16-cierre-mensual-y-reparto-por-hectareas.md`.
+Estado al cierre. Anteriores: `2026-10-17-entorno-motores-plugins-y-mcp.md` (la mañana de
+hoy) y `2026-10-16-cierre-mensual-y-reparto-por-hectareas.md`.
 
 ---
 
 ## 1. ¿Dónde quedó el proyecto?
 
-**Publicado y sin tocar.** Hoy **no se cambió ni una línea de la app** ni se desplegó
-nada. Todo el trabajo fue del **entorno**: motor, plugins, MCP y LSP.
+La app se tocó al mediodía (siembra y pérdidas, §2) y por la tarde **solo el entorno y la
+seguridad** (§3). El último despliegue es el del mediodía; después no hubo deploy.
 
 | Rama | Commit | Estado |
 |---|---|---|
-| `main` | `46596f5` | sincronizada con `origin/main` |
-| `gh-pages` | `347b185` | sincronizada con `origin/gh-pages` |
+| `main` | `1498e5b` | sincronizada con `origin/main` |
+| `gh-pages` | `331fd56` | sincronizada (el despliegue de siembra del mediodía) |
 
-La web en vivo y el build local **coinciden bit a bit**, re-verificado hoy descargando
-el archivo publicado:
+La web en vivo **sigue sirviendo la misma huella**, re-verificada hoy descargando el archivo
+publicado (HTTP 200):
 
-`3C3CCD3B2FD3F391A3D0FE19C3294DEAEA4EC2A1FEF6079E191312D26EA2F96C` · 4.792.536 bytes.
+`529DDF8DE3F2B4F6AFD6D46FAABA0AD6F2A30D5A5560AECAA81B1BA5B9DB81E9` · 4.792.977 bytes.
 
-Es decir: los commits de la Fase 1 y la Fase 2 del registro ya estaban desplegados
-antes de esta sesión, y siguen igual.
+Los commits de hoy, en orden:
+
+| Commit | Qué |
+|---|---|
+| `fe30be2` | siembra: el guardado en blanco que reventaba y las pérdidas pegadas a la siembra |
+| `77315e8` | los planes del ciclo cultivo, el snapshot del 16 y **`docs/LEARNING.md` (nuevo)** |
+| `473bd34` | el bloqueo por contenido llega a la shell, `*.env` al `.gitignore`, y la raíz suelta un build muerto (181.249 líneas) |
+| `1498e5b` | el `DestructiveWarner` revive (apuntes en la auditoría y en LEARNING) |
+
+Gate antes de los commits de la tarde: `flutter analyze` limpio y **920/920**.
 
 ---
 
-## 2. El hallazgo que ordena todo: hay DOS OpenCode
+## 2. Mediodía: siembra, resiembra y pérdidas (lo único que tocó la app)
 
-| | |
-|---|---|
-| **El motor que te ejecuta** | **`2.0.32`**, dentro de la app: `ai.opencode.desktop\cli\2.0.32-x64\opencode-cli.exe serve --service`. Es la **API V2**. |
-| El `opencode` de la terminal | `opencode-ai@1.19.3` (npm global). **Otro OpenCode distinto.** |
+Se revisó a fondo el ciclo siembra → resiembra → pérdidas y salieron **dos bugs de verdad**,
+los dos reproducidos con un test antes de arreglarlos:
 
-La app **no usa el npm global**: trae su propio motor. Lo que hace la app es, en
-esencia, un `opencode serve` con una ventana encima.
+- **El guardado reventaba.** Una resiembra con "plantas nuevas" en blanco y mortandad anotada
+  lanzaba `FormatException` y **no se guardaba nada** (el validador permite el campo vacío: la
+  mortandad se anota aunque no se repongan plantas). Arreglo: `int.tryParse(...) ?? 0`.
+- **Las pérdidas se quedaban pegadas.** Al pasar una resiembra a siembra, `Sowing.copyWith` no
+  podía poner `null`, así que conservaba `lostPlants` y `reason`: la fila decía "se perdieron 50"
+  y el informe inflaba las "Pérdidas acumuladas". Arreglo: centinela en `copyWith` (el mismo
+  patrón que `Crop`), y la siembra manda `null` en tipo.
 
-**Consecuencia práctica:** si algún día tecleas `opencode` en una consola dentro de
-este proyecto, leerá **tu misma config** (`opencode.json` + `.opencode/`) pero con
-**otro motor**, y puede darte resultados distintos. Eso fue exactamente lo que
-despistó el diagnóstico de hoy: dos motores escribiendo en el mismo log con mensajes
-distintos para el mismo plugin.
+Y una decisión que ordenó la lectura: **una sola regla de pérdidas**. Solo las resiembras
+cuentan pérdidas, y esa regla vive en **una** función, `lossOf(s)`, que usan el modelo
+(`recomputeCropState`), la lista y el informe. Además, `Sowing.fromJson` —puerta única de
+entrada (disco, nube y respaldo)— **limpia** los registros viejos que traían pérdidas pegadas y
+los marca `pendingSync` para subir la corrección. Seis tests nuevos; **920/920** en verde.
 
-**Decidido por el usuario: el npm global se queda.** No afecta a la app, ni al
-proyecto, ni al deploy. Es un agente OpenCode completo, instalado y parado.
+Queda **declarado intencional** (lo dice `test/sowing_test.dart`): una resiembra sin siembra
+base, o anterior a ella, se ignora. No es un bug.
+
+> Detalle de la sesión: el deploy parecía fallar con «Exited with code 1». No era el script:
+> era meter `2>&1` en la tubería, que mezcla el progreso que git y flutter escriben en stderr.
+> `deploy.ps1` llegaba a su rama de éxito. Anotado en `LEARNING.md`.
 
 ---
 
-## 3. Lo que se arregló hoy (todo del entorno)
+## 3. Tarde: un PAT dentro de un archivo, y los huecos que destapó
 
-### A · `hookify.js` — cargaba fallando; ahora carga **y actúa**
+### El incidente
 
-Era **CommonJS** y el motor pide **ESM** con la forma de la API V2. Tres cambios:
+Al commitear `docs/`, **GitHub rechazó el push**: su protección de secretos encontró un PAT de
+Supabase a texto plano en
+`docs/sessions/2026-10-16-cierre-mensual-y-reparto-por-hectareas.md:92`. **No salió nada** — el
+push se rechazó y el commit era local, así que la historia publicada nunca llevó el valor.
 
-| Antes | Ahora |
-|---|---|
-| `require("node:fs")` | `import { … } from "node:fs"` |
-| `module.exports = async () => ({…})` | `export default { id, setup, server }` |
-| Solo V1 (y fallaba igual) | **V1 y V2 desde el mismo archivo** |
+Se sustituyó el valor por la forma enmascarada (`sbp_fcc730…`, la misma que ya usaba `LATEST.md`),
+se reescribió el commit con `--amend` y el push volvió a pasar: **aceptado**, y esa aceptación es
+la prueba, porque GitHub bloquea cualquier commit que lleve un secreto. Después se purgó el objeto
+suelto (`git reflog expire --expire-unreachable=now --all` + `git gc --prune=now`, verificado con
+`git cat-file` como inexistente).
 
-La rama V2 usa `ctx.tool.hook("execute.before", …)` y **reutiliza los mismos dos
-helpers** (`secretBlocker`, `destructiveWarner`): no se duplicó ninguna regla, solo
-se traduce de dónde vienen los datos (`event.tool`/`event.input` ≡ `input.tool`/`output.args`).
+**Cerrado del todo: el usuario revocó el PAT en Supabase.** El valor filtrado ya no sirve para
+nada, aunque hubiera quedado en algún rincón.
 
-**Verificado en vivo**, sin reiniciar: el *watcher* de la sesión viva recarga al editar.
+**Lo que enseñó:** el bloqueador de secretos miraba solo el **nombre** del archivo, y exigía
+empezar por `.env`. Ni un PAT dentro de un `.md` ni un `report_creds.env` habrían pasado por su red.
 
-| Hora (UTC del log) | Qué | Resultado |
-|---|---|---|
-| 14:10 | versión anterior | ❌ `failed to load plugin` |
-| 14:14 | versión V1+V2 | ✅ carga |
-| 14:16 | tras el arreglo de rutas | ✅ carga |
+### A · El bloqueador reconoce el secreto por su forma
 
-Y no es que solo cargue: **el hook se dispara de verdad**. Bloqueó una escritura real
-en vivo, con su mensaje `[hookify:SecretBlocker] blocked write to …`.
+`hookify.js` (gitignored) mira ahora el **contenido** en `edit`/`write`: JWT, `sbp_`, tokens de
+GitHub/AWS/Stripe/Google/Slack y bloques de `PRIVATE KEY`. El patrón de nombre cubre `.env`, `env`
+y `*.env` —o sea `report_creds.env`, `creds.env` y `prod.env`—, dejando pasar los ejemplos
+(`*.env.example`).
 
-### B · 🔴 Agujero de seguridad en `SecretBlocker` — **corregido**
+Rojo/verde de verdad: **8 casos con Node, 4 en rojo antes** del arreglo y **11/11 en verde**
+después (los 3 últimos son de la shell, ver abajo). Y **dos sondas en vivo** bloqueadas por el
+plugin que corre en la app, una por nombre y otra por contenido, sin crear ningún archivo.
 
-`isSecretPath` comparaba las rutas asumiendo separador `/`. En Windows, una ruta
-normal con `\` **se colaba**: se podía escribir en `.env` desde la sesión, que es
-justo lo que este hook existe para impedir.
+### B · El bloqueo llega a la shell (y apareció un guardián que no disparaba)
 
-Arreglo en **un solo sitio**: normalizar `\` → `/` antes de comparar. Rojo/verde con
-**la misma entrada**:
+Un `echo <secreto> > archivo` se colaba. Al escribir la regla salió algo mejor: se llamaba en
+`bash`, y **en esta superficie el motor llama a la herramienta `shell`**. Ahora la regla se ata a
+que la llamada **traiga un comando**, no al nombre. Sonda en vivo: **bloqueada**.
 
-| Entrada | Antes | Ahora |
-|---|---|---|
-| `D:\…\.env.<sonda>` | ❌ **se creaba** | ✅ **bloqueado** |
+### C · El `DestructiveWarner` estaba muerto
 
-### C · `.opencode/agents/` — 11 archivos invalidaban **toda** la configuración
+Su registro (`.opencode/logs/destructive.log`) **no había escrito nunca nada**. Dos fallos:
+esperaba `bash` —otra vez— y resolvía la ruta desde `process.cwd()`, que en el motor **no es el
+proyecto**, con el error tragado por un `catch` silencioso.
 
-Once agentes tenían `write: confirm`, que **no es un valor válido** en OpenCode. El
-CLI no llegaba a arrancar:
+Arreglado: la ruta sale de la ubicación del propio plugin (`import.meta.url`), con respaldo en la
+carpeta temporal; el comando se busca por nombre y, si no, por tamaño. **Verificado en vivo**: el
+registro vuelve a escribirse, y de paso confirma que la herramienta se llama `shell`.
 
-```
-Expected PermissionActionConfig, got "confirm"   (permission.write)
-```
+### D · `.gitignore` y la raíz
 
-Corregido a `ask` (mismo significado: preguntar antes de escribir). No era un problema
-de esos once agentes: **invalidaba la configuración entera**.
+- `.gitignore`: `*.env`, `*.env.local` y `creds*.env`.
+- **La raíz soltó 181.249 líneas**: `main.dart.js`, `flutter*.js`, `canvaskit/`, `icons/`,
+  `index.html`, `favicon.png`, `manifest.json` y `version.json` eran una copia muerta de un build
+  de septiembre; se destrackearon y se ignoran. Comprobado antes: la API de GitHub confirma que
+  Pages publica desde **`gh-pages`** y `deploy.ps1` lo dice él mismo («main queda intacto»), así
+  que esos archivos no publicaban nada. **`assets/` no se tocó**: ahí vive `assets/fonts/` que
+  declara `pubspec.yaml`.
 
-### D · MCP y LSP
-
-- **`context7`**: arreglado. En Windows `npx` a secas no resuelve → `cmd /c npx …`.
-  **Probado** con una llamada real, en vivo.
-- **`supabase`**: **quitado**. El paquete declarado `@supabase/mcp-server` **no existe**
-  (404 en npm); el real tiene otro nombre. Es opcional en `mcp.optional.json`.
-- **LSP de Dart**: **probado de verdad** con `opencode debug lsp diagnostics` →
-  devuelve el error de tipo real y el lint, con `source: "dart"`. Antes no había forma
-  de comprobarlo (esa orden no existía en el motor viejo). **Estaba funcionando.**
+Informe completo: `docs/audits/2026-10-17-secretos-y-bloqueador.md`.
 
 ---
 
 ## 4. Deudas y avisos
 
-🔴 **Revocar el PAT de Supabase.** `sbp_fcc730…` **ya no está en `.env`** (se limpió),
-pero **el token sigue existiendo**. Solo tú puedes revocarlo: supabase.com →
-Settings → Access tokens.
+🟢 **El PAT quedó revocado.** La deuda del 16 está cerrada.
 
-🟡 **`opencode-vibeguard` 0.1.0 y `opencode-pty` 0.4.0 no pueden funcionar.** Son la
-**última versión publicada** de cada uno, y son V1: no existe versión V2. Se quitaron
-de `opencode.json`. Reversibles el día que publiquen V2; **ningún `npm` lo arregla**.
+🟡 **`report_creds.env` no se borra**: lo leen `tool/generate_report_tool.dart` y
+`tool/verify_auth_write_tool.dart` (EMAIL y PASSWORD de un usuario de prueba). Está gitignored,
+nunca salió del equipo y ahora además lo cubre el bloqueador. Rota esa contraseña solo si la
+reutilizas en otro sitio.
 
-🟡 **`docs/plans/` sin commitear** — 2 M + 5 ??. Trabajo propio del usuario; no se
-tocan sin verbo explícito.
+🟡 **El bloqueador es un guardián, no una jaula.** Atrapa un secreto escrito de una pieza, pero no
+uno armado en tiempo de ejecución (`"sbp_" + …`). Es lo razonable para un hook.
 
-🟡 **`deploy.ps1` no lo cubre ningún test.** Punto ciego declarado, sin cambios.
+🟡 **`deploy.ps1` no lo cubre ningún test** — punto ciego declarado, sin cambios.
 
-🟡 **`.opencode/` está gitignorado** (`.gitignore:84`) y `opencode.json` no lo sigue git:
-por eso **no hay nada que commitear** de todo lo de hoy.
+🟡 **La clave en `argv`** (`deploy.ps1:116-117`) se decidió **no tocar**: es la publishable
+—pública y ya dentro del bundle—, así que verla en la lista de procesos no expone nada.
+
+🟡 **`opencode-vibeguard` 0.1.0 y `opencode-pty` 0.4.0 no pueden funcionar**: son la última
+versión publicada y son V1. Siguen fuera de `opencode.json`. Ningún `npm` lo arregla.
+
+🟢 **Los plugins cargan bien**: el log muestra *loading plugin* en cada recarga, y el bloqueador y
+el warner actúan en vivo. El «reiniciar y comprobar» que quedaba de ayer quedó resuelto por otro
+camino.
 
 ---
 
-## 5. Cómo continuar
+## 5. Pendientes de producto (de la tanda de siembra)
 
-**Nada urgente.** Como hoy no se tocó la app, no hay nada que verificar en producción.
+Señalados y **sin arreglar**, a la espera de verbo:
 
-1. **Revocar el PAT.** Sigue siendo lo único que solo tú puedes hacer.
-2. Si quieres un arranque limpio: **reiniciar la app**. Hay que **salir de verdad**
-   desde la bandeja del sistema o el menú — cerrar con la X puede dejarla viva.
-3. Tras reiniciar, comprobar que no falla ningún plugin:
+1. **El diálogo de pérdidas** (`lib/widgets/crop_loss_dialog.dart`) fecha la resiembra con
+   `DateTime.now()` y **no tiene campo de fecha**: no deja corregir cuándo se perdió.
+2. **El desplegable de moneda** todavía enseña `$ Peso colombiano (COP)`, y el código de moneda es
+   el único indicador (ya decidido). Falta rematarlo ahí.
+3. **El signo negativo**: en pantalla o en los exportadores, sin decidir.
 
-```powershell
-Get-Content "$env:USERPROFILE\.local\share\opencode\log\opencode.log" -Tail 60 |
-  Where-Object { $_ -match 'failed to load plugin' }
-```
+---
 
-Si no imprime nada: **ningún plugin falla.**
+## 6. Cómo continuar
+
+**Nada urgente y nada roto.** La web y la app están como estaban.
+
+- Lo primero, si se retoma el ciclo: **decidir los tres pendientes de producto** de §5.
+- El árbol quedó limpio tras `1498e5b`; lo único que este mismo cierre deja pendiente de commit
+  son estos dos archivos de sesión.
 
 **Reglas de la casa que no se negocian:**
 
 - `null` → oculto, nunca 0. Nunca inventar cifras ni hechos.
 - Los tres pintadores (Reportes, PDF, Excel) dicen lo mismo, en el mismo sitio.
 - Una sola función para una sola regla.
+- Cada bug con su test, **verificado fallando sin su arreglo**.
 - Stageo explícito; **nunca** `git add -A`.
 - `docs/plans/` no se commitea sin verbo.
 
