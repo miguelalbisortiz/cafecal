@@ -9,7 +9,9 @@ import 'package:mi_cafetal/utils/format.dart';
 
 AppLocalizations get _es => stringsFor('es');
 
-String _money(double v) => '\$${v.round()}';
+/// El formateador de la casa, el que inyecta la pantalla: con uno de mentira
+/// (`'$' + round()`) el arnés no ve la notación que lee el agricultor.
+String _money(double v) => formatAmount(v, currency: 'COP', locale: 'es_CO');
 
 Transaction _txn({
   required TransactionType type,
@@ -57,7 +59,7 @@ void main() {
       // RESULTADO DEL PERÍODO.
       final bal = insights.firstWhere((i) => i.text.contains('Resultado del período'));
       expect(bal.tone, InsightTone.negative);
-      expect(bal.text, contains(r'$600'));
+      expect(bal.text, contains('COP 600'));
       expect(bal.text, contains('-150%'));
     });
 
@@ -273,9 +275,7 @@ void main() {
         year: 2026,
         month: 6,
         l10n: _es,
-        // El formateador de la casa, el que usa la pantalla: con el de mentira
-        // (`'$' + round()`) esta prueba no podría ver la notación real.
-        money: (v) => formatAmount(v, currency: 'COP', locale: 'es_CO'),
+        money: _money,
       );
       final low = insights.firstWhere((i) => i.text.contains('Vendes más barato'));
       expect(low.text, contains('promedio reciente COP 400'),
@@ -337,7 +337,7 @@ void main() {
         l10n: _es,
         money: _money,
       );
-      final top = insights.firstWhere((i) => i.text.contains(r'$800'));
+      final top = insights.firstWhere((i) => i.text.contains('COP 800'));
       expect(top.text, contains('Venta Plátano'));
     });
 
@@ -387,8 +387,8 @@ void main() {
       );
       final best = insights.firstWhere((i) => i.text.contains('Tu mejor mes'));
       expect(best.text, contains('Marzo'));
-      expect(best.text, contains(r'$9000'));
-      expect(best.text, contains(r'$1000'));
+      expect(best.text, contains('COP 9.000'));
+      expect(best.text, contains('COP 1.000'));
     });
 
     test('mirando un mes no se emite: no sirve para decidir ese mes', () {

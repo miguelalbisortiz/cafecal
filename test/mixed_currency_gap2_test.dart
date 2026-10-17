@@ -10,6 +10,7 @@ import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/movements_screen.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/services/report_insights_service.dart';
+import 'package:mi_cafetal/utils/format.dart';
 import 'package:mi_cafetal/widgets/category_breakdown.dart';
 
 /// Últimos huecos de moneda mixta (2/2):
@@ -24,7 +25,10 @@ import 'package:mi_cafetal/widgets/category_breakdown.dart';
 
 AppLocalizations get _es => stringsFor('es');
 
-String _money(double v) => '\$${v.round()}';
+/// El formateador de la casa, el que usa la pantalla. Con uno de mentira
+/// (`'$' + round()`) las guardas de más abajo no ven la notación que lee el
+/// agricultor: `contains('$')` pasaría o fallaría por culpa del falso.
+String _money(double v) => formatAmount(v, currency: 'COP', locale: 'es_CO');
 
 Transaction txn({
   required TransactionType type,
@@ -155,7 +159,8 @@ void main() {
       expect(texts.any((t) => t.contains('Tu mejor mes')), isFalse,
           reason: 'el ranking de meses cruzaría monedas');
       expect(texts.any((t) => t.contains('Resultado del período')), isFalse);
-      expect(texts.where((t) => t.contains(r'$')), isEmpty,
+      expect(texts.where((t) => t.contains('COP') || t.contains('EUR')),
+          isEmpty,
           reason: 'sin tasa no se pinta ni una cifra');
     });
 
@@ -215,7 +220,8 @@ void main() {
       final mixed = _buildInsights(sales('EUR'), mixedTotals: true);
       expect(mixed.any((t) => t.contains('Vendes más barato')), isFalse,
           reason: 'el promedio de ventas cruzaría pesos y euros');
-      expect(mixed.where((t) => t.contains(r'$')), isEmpty);
+      expect(mixed.where((t) => t.contains('COP') || t.contains('EUR')),
+          isEmpty);
     });
   });
 
@@ -336,8 +342,15 @@ void main() {
         isTrue,
         reason: 'la fila mixta lista cada moneda con su código',
       );
-      expect(find.text('\$1.550'), findsNothing,
+      // La app pinta «COP 1.550» si cruzara monedas, nunca «$1.550»: el
+      // literal viejo no podía fallar. Lo que sí se pinta es cada moneda por su
+      // cuenta (COP 1.500 de las dos filas en pesos, EUR 50 de la europea).
+      expect(find.textContaining('COP 1.550'), findsNothing,
           reason: '1000 + 50 + 500 no es una cifra real');
+      expect(find.textContaining('COP 1.500'), findsOneWidget,
+          reason: 'los dos gastos en pesos sí se suman entre ellos');
+      expect(find.textContaining('EUR 50'), findsWidgets,
+          reason: 'el gasto europeo va por su cuenta, con su código');
       expect(find.textContaining(_es.currencyMixedHint(2)), findsOneWidget);
     });
   });
@@ -414,12 +427,16 @@ void main() {
         isTrue,
         reason: 'los tres mini-stats listan sus monedas con código',
       );
-      expect(find.text('\$3.200'), findsNothing,
+      expect(find.textContaining('COP 3.200'), findsNothing,
           reason: '3000 + 200 no es un ingreso');
-      expect(find.text('\$1.050'), findsNothing,
+      expect(find.textContaining('COP 1.050'), findsNothing,
           reason: '1000 + 50 no es un gasto');
-      expect(find.text('\$2.150'), findsNothing,
+      expect(find.textContaining('COP 2.150'), findsNothing,
           reason: 'no hay resultado global entre monedas');
+      expect(find.textContaining('COP 3.000'), findsWidgets,
+          reason: 'el ingreso en pesos, por su cuenta');
+      expect(find.textContaining('EUR 200'), findsWidgets,
+          reason: 'el ingreso en euros, por su cuenta');
       expect(find.textContaining(_es.currencyMixedHint(2)), findsOneWidget,
           reason: 'la fila compacta explica por qué no hay una sola cifra');
     });
