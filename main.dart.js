@@ -33195,13 +33195,13 @@ IQ:function IQ(a,b,c){this.a=a
 this.b=b
 this.c=c},
 o1(a){return B.f.kQ(B.uY,new A.bbB(a),new A.bbC())},
-hC(a,b,c,d){var s=A.o1(b),r=c==null?s.d:c
+hC(a,b,c,d){var s=A.o1(b),r=c==null?s.c:c
 return A.CH(r>0?"#,##0."+B.p.az("0",r):"#,##0",d).hw(Math.abs(a))},
 cU(a,b,c){var s=b+" "+A.hC(a,b,null,c)
 return a<0?"("+s+")":s},
 i8:function i8(a,b,c){this.a=a
 this.b=b
-this.d=c},
+this.c=c},
 bbB:function bbB(a){this.a=a},
 bbC:function bbC(){},
 bl8(a){var s,r=A.b8(a.h(0,"id")),q=A.b8(a.h(0,"name")),p=A.df(a.h(0,"day_rate"))
@@ -121944,14 +121944,14 @@ gait(){return"Crate"},
 gaiu(){return"For fruits and vegetables. Weight varies."},
 gah_(){return"Case A \u2014 coffee in production (2 ha, 3000 plants)"},
 gagW(){return"Coffee, Producing, Perennial, 2 ha, 3000 plants"},
-gagX(){return"$500,000 expense on Fertilizer"},
-gagY(){return"$750,000 income from selling 50 kg (4 arrobas)"},
-gagZ(){return"Balance +$250,000 \xb7 Margin 33% \xb7 ROI 50%"},
+gagX(){return"COP 500,000 expense on Fertilizer"},
+gagY(){return"COP 750,000 income from selling 50 kg (4 arrobas)"},
+gagZ(){return"Balance +COP 250,000 \xb7 Margin 33% \xb7 ROI 50%"},
 gah9(){return"Case B \u2014 new plantain (500 plants on 0.5 ha)"},
 gah5(){return"Plantain, Not producing yet, Perennial, 0.5 ha, 500 plants"},
-gah6(){return"Initial planting, 500 plants, 0.5 ha, cost $200,000"},
-gah7(){return"$100,000 labor and $150,000 fertilizer"},
-gah8(){return"Investment $450,000. It does not say loss: it is an investment until it produces."},
+gah6(){return"Initial planting, 500 plants, 0.5 ha, cost COP 200,000"},
+gah7(){return"COP 100,000 labor and COP 150,000 fertilizer"},
+gah8(){return"Investment COP 450,000. It does not say loss: it is an investment until it produces."},
 gahK(){return"Glossary"},
 gahI(){return"Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting \u2212 losses + replanting). Destination: sold or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview."},
 gahJ(){return"View financial glossary"},
@@ -121965,7 +121965,7 @@ gai_(){return"Expenses per ha"},
 gahV(){return"Expenses in the period \xf7 area. How much each hectare costs to produce."},
 gai0(){return"Margin per ha"},
 gahX(){return"Sales \u2212 expenses, per hectare. Positive = the hectare leaves profit."},
-gai3(){return"Why normalize? A 3 ha plot selling $9M does not compete with a 1 ha plot selling $5M: per hectare, the second one wins. The panel divides by area so you compare by the same rule."},
+gai3(){return"Why normalize? A 3 ha plot selling COP 9,000,000 does not compete with a 1 ha plot selling COP 5,000,000: per hectare, the second one wins. The panel divides by area so you compare by the same rule."},
 gahQ(){return"How is the establishment investment recovered?"},
 gahN(){return"When editing a crop you can record the Total investment: what you invested in planting and raising the crop (seedlings, labor, initial fertilization\u2026)."},
 gahS(){return"% recovered"},
@@ -121973,7 +121973,7 @@ gahP(){return"The app divides the crop's accumulated margin (sales \u2212 expens
 gahT(){return"Payback in N years (approx.)"},
 gahU(){return"Average of the measured annual margin. It is an average of your real data, not a harvest promise."},
 gahR(){return"It is not a loss: it is an investment"},
-gahO(){return"If you invest $1,000,000 planting coffee and have not sold yet, you did not lose $1,000,000. You invested $1,000,000. When you start selling, the recovery percentage starts to rise."},
+gahO(){return"If you invest COP 1,000,000 planting coffee and have not sold yet, you did not lose COP 1,000,000. You invested COP 1,000,000. When you start selling, the recovery percentage starts to rise."},
 gahH(){return"The order of the app"},
 gahw(){return"Think of it as a chain: first you tell it what you grow, then how much you planted, then what you spent, and finally what you sold \u2014 that is where your harvest is logged."},
 gahy(){return"Define the crop"},
@@ -122750,14 +122750,14 @@ gait(){return"Caj\xf3n"},
 gaiu(){return"Para frutas y verduras. Su peso var\xeda."},
 gah_(){return"Caso A \u2014 caf\xe9 en producci\xf3n (2 ha, 3000 plantas)"},
 gagW(){return"Caf\xe9, Dando, Perenne, 2 ha, 3000 plantas"},
-gagX(){return"Gasto de $500,000 en Fertilizante"},
-gagY(){return"Ingreso de $750,000 por la venta de 50 kg (4 arrobas)"},
-gagZ(){return"Balance +$250,000 \xb7 Margen 33% \xb7 ROI 50%"},
+gagX(){return"Gasto de COP 500.000 en Fertilizante"},
+gagY(){return"Ingreso de COP 750.000 por la venta de 50 kg (4 arrobas)"},
+gagZ(){return"Balance +COP 250.000 \xb7 Margen 33% \xb7 ROI 50%"},
 gah9(){return"Caso B \u2014 pl\xe1tano nuevo (500 plantas en 0.5 ha)"},
 gah5(){return"Pl\xe1tano, Sin dar, Perenne, 0.5 ha, 500 plantas"},
-gah6(){return"Siembra inicial, 500 plantas, 0.5 ha, costo $200,000"},
-gah7(){return"$100,000 de mano de obra y $150,000 de fertilizante"},
-gah8(){return"Inversi\xf3n $450,000. No dice p\xe9rdida: es inversi\xf3n hasta que produzca."},
+gah6(){return"Siembra inicial, 500 plantas, 0.5 ha, costo COP 200.000"},
+gah7(){return"COP 100.000 de mano de obra y COP 150.000 de fertilizante"},
+gah8(){return"Inversi\xf3n COP 450.000. No dice p\xe9rdida: es inversi\xf3n hasta que produzca."},
 gahK(){return"Glosario"},
 gahI(){return"Plantines: plantas j\xf3venes que a\xfan no producen. \xc1rea: cu\xe1nto terreno ocupa el cultivo (en hect\xe1reas). Plantas vivas: las que siguen activas (sembradas \u2212 muertas + resiembras). Destino: vendido o p\xe9rdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso autom\xe1tico cuando algo necesita tu atenci\xf3n."},
 gahJ(){return"Ver glosario financiero"},
@@ -122771,7 +122771,7 @@ gai_(){return"Gastos por ha"},
 gahV(){return"Cu\xe1nto cuesta producir en cada hect\xe1rea. Divide tus gastos entre las hect\xe1reas."},
 gai0(){return"Margen por ha"},
 gahX(){return"Si cada hect\xe1rea deja ganancia. Positivo = la hect\xe1rea produce m\xe1s de lo que cuesta."},
-gai3(){return"\xbfPara qu\xe9 sirve? Imagina dos parcelas: una de 3 ha que vende $9M y otra de 1 ha que vende $5M. Por hect\xe1rea, la segunda gana m\xe1s ($5M vs $3M). Este panel te muestra esa comparaci\xf3n justa."},
+gai3(){return"\xbfPara qu\xe9 sirve? Imagina dos parcelas: una de 3 ha que vende COP 9.000.000 y otra de 1 ha que vende COP 5.000.000. Por hect\xe1rea, la segunda gana m\xe1s (COP 5.000.000 vs COP 3.000.000). Este panel te muestra esa comparaci\xf3n justa."},
 gahQ(){return"\xbfC\xf3mo s\xe9 cu\xe1ndo recupero lo invertido?"},
 gahN(){return"Cuando editas un cultivo puedes poner la Inversi\xf3n total: todo lo que invertiste para empezar (plantines, mano de obra, abono inicial). La app calcula cu\xe1nto ya recuperaste."},
 gahS(){return"% recuperado"},
@@ -122779,7 +122779,7 @@ gahP(){return"Divide lo que ya ganaste con ventas menos gastos, entre lo que inv
 gahT(){return"Se pagar\xeda en N a\xf1os (aprox.)"},
 gahU(){return"Un estimado basado en tu margen promedio real. No es una promesa \u2014 es un c\xe1lculo con tus datos."},
 gahR(){return"No es una p\xe9rdida, es una inversi\xf3n"},
-gahO(){return"Si inviertes $1,000,000 en plantar caf\xe9 y a\xfan no vendes, no perdiste $1,000,000. Invertiste $1,000,000. Cuando empieces a vender, el porcentaje de recuperaci\xf3n empieza a subir."},
+gahO(){return"Si inviertes COP 1.000.000 en plantar caf\xe9 y a\xfan no vendes, no perdiste COP 1.000.000. Invertiste COP 1.000.000. Cuando empieces a vender, el porcentaje de recuperaci\xf3n empieza a subir."},
 gahH(){return"El orden de la app"},
 gahw(){return"Piensa en esto como una cadena: primero le dices qu\xe9 cultivas, luego cu\xe1nto sembraste, luego cu\xe1nto gastaste, y por \xfaltimo cu\xe1nto vendiste \u2014 ah\xed se anota tu cosecha."},
 gahy(){return"Definir el cultivo"},
@@ -130852,7 +130852,7 @@ for(s=0;s<c;++s){r=a.og(new A.k4(b,s))
 q=A.k5(d,!0,p,p,!1,!1,B.k8,p,p,11,B.cX,!1,p,B.dY,p,0,p,p,B.bY,B.cR)
 r.c.a.a=!0
 r.a=q}},
-kC(a,b,c,d,e){var s,r,q,p=null,o=A.o1(b).d,n=A.aEV(o>0?"#,##0."+B.p.az("0",o):"#,##0")
+kC(a,b,c,d,e){var s,r,q,p=null,o=A.o1(b).c,n=A.aEV(o>0?"#,##0."+B.p.az("0",o):"#,##0")
 for(s=d;s<=e;++s){r=a.og(new A.k4(s,c))
 q=r.b
 if(q instanceof A.bZ||q instanceof A.iw){q=A.k5(B.de,!1,p,p,!1,!1,B.cB,p,p,p,B.cX,!1,p,n,p,0,p,p,B.bY,B.cR)
@@ -131092,7 +131092,7 @@ d=d0?new A.bZ(a8.gny()+a8.gng()):new A.a0(new A.a3(A.e8(a8.gik(),new A.aur(d9)),
 c=d0?new A.bZ(e-(a8.gny()+a8.gng())):new A.a0(new A.a3(e1,e0,e0))
 e3.$1(A.a([new A.a0(new A.a3(h,e0,e0)),new A.bZ(e),p,g,d,c],e7))}d1=e8.d-1
 for(a9=1;a9<=5;++a9)d9.kC(e8,f2,a9,c8,d1)
-r=A.o1(f2).d
+r=A.o1(f2).c
 d2=A.aEV(r>0?"#,##0."+B.p.az("0",r):"#,##0")
 for(a8=c8;a8<=d1;++a8){b0=e8.og(new A.k4(a8,5))
 b1=b0.b
@@ -131514,7 +131514,7 @@ A.auE.prototype={
 $1(a){var s
 if(this.a){s=this.b.h(0,a)
 s.toString}else s=this.c
-s=A.o1(s).d
+s=A.o1(s).c
 return A.aEV(s>0?"#,##0."+B.p.az("0",s):"#,##0")},
 $S:778}
 A.aup.prototype={
