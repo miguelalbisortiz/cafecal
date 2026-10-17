@@ -2246,7 +2246,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String alertDeficitNoCropMessage(String spent, String sold, String recovery, Object count) {
+  String alertDeficitNoCropMessage(String count, String spent, String sold, String recovery) {
     return 'El problema: tienes $count registros sin cultivo asignado que suman $spent en gastos y $sold en ventas (solo has recuperado el $recovery de lo invertido).';
   }
 

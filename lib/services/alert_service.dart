@@ -10,6 +10,7 @@ import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
+import '../utils/format.dart';
 import 'crop_totals.dart';
 import 'low_price_check.dart';
 import 'report_payroll_metrics.dart';
@@ -43,7 +44,7 @@ List<FarmAlert> evaluateAlerts({
   DateTime? now,
   AlertService? service,
 }) =>
-    (service ?? AlertService(now: now)).evaluate(
+    (service ?? AlertService(now: now, locale: settings.locale)).evaluate(
       transactions.toList(),
       crops,
       l10n,
@@ -67,9 +68,16 @@ List<FarmAlert> evaluateAlerts({
 /// `mixed_currency_gap_test.dart`); con una sola moneda todo funciona igual
 /// que siempre.
 class AlertService {
-  const AlertService({DateTime? now}) : _now = now;
+  const AlertService({DateTime? now, String locale = 'es_CO'})
+      : _now = now,
+        _locale = locale;
 
   final DateTime? _now;
+
+  /// Idioma con el que se pintan los montos de los avisos (`COP 1.500`).
+  /// En la app viene de [FarmSettings.locale]; el valor por defecto es el de
+  /// los tests que llaman al motor directo.
+  final String _locale;
 
   List<FarmAlert> evaluate(
     List<Transaction> transactions,
@@ -109,6 +117,15 @@ class AlertService {
 
     return alerts;
   }
+
+  /// El monto de un aviso, con el **código** de su moneda: `COP 1.500`.
+  ///
+  /// El código es el único indicador — el `$` lo comparten COP, USD y CLP en
+  /// este mismo catálogo, así que el símbolo no decía de qué moneda hablaba
+  /// el aviso. Y los decimales son los de la moneda (COP 0, USD 2), no un
+  /// redondeo fijo a cero: una cuenta en dólares conserva los centavos.
+  String _money(double value, String currency) =>
+      formatAmount(value, currency: currency, locale: _locale);
 
   // ---- Regla 1: categoría de gasto > 2× promedio histórico mensual ----
 
@@ -157,9 +174,11 @@ class AlertService {
 
       // Moneda mixta entre el mes actual y su histórico: "2× el promedio"
       // cruzaría monedas distintas, así que la categoría se salta.
-      if (_currenciesOf([...monthForCat, ...catHistory]).length > 1) {
-        continue;
-      }
+      // El monto que cita el aviso es de una sola moneda: su código es lo que
+      // la identifica.
+      final monedas = _currenciesOf([...monthForCat, ...catHistory]);
+      if (monedas.length > 1) continue;
+      final currency = monedas.first;
 
       final months = <int>{};
       for (final t in catHistory) {
@@ -177,9 +196,9 @@ class AlertService {
           severity: AlertSeverity.warning,
           title: l10n.alertExcessTitle(label),
           message: l10n.alertExcessMessage(
-            _money(current),
+            _money(current, currency),
             label,
-            _money(avg),
+            _money(avg, currency),
           ),
           suggestion: l10n.alertExcessSuggestion,
         ));
@@ -195,7 +214,8 @@ class AlertService {
     if (incomes.isEmpty) {
       final expenseTx = txns.where((t) => t.type.isExpense).toList();
       // Con gastos en más de una moneda no hay cifra de gastos que citar.
-      if (expenseTx.isNotEmpty && _currenciesOf(expenseTx).length == 1) {
+      final monedas = _currenciesOf(expenseTx);
+      if (expenseTx.isNotEmpty && monedas.length == 1) {
         final spent =
             expenseTx.fold<double>(0, (a, t) => a + t.amount);
         out.add(FarmAlert(
@@ -203,7 +223,7 @@ class AlertService {
           rule: AlertRule.noIncome,
           severity: AlertSeverity.warning,
           title: l10n.alertNoIncomeTitle,
-          message: l10n.alertNoIncomeMessage(_money(spent)),
+          message: l10n.alertNoIncomeMessage(_money(spent, monedas.first)),
           suggestion: l10n.alertNoIncomeSuggestion,
         ));
       }
@@ -294,7 +314,9 @@ class AlertService {
     // El precio por kilo se calcula por venta, pero el promedio histórico y
     // la comparación con el umbral cruzarían monedas distintas: con ventas
     // en más de una moneda la regla se calla.
-    if (_currenciesOf(sales).length > 1) return;
+    final monedas = _currenciesOf(sales);
+    if (monedas.length > 1) return;
+    final currency = monedas.first;
 
     double pricePerKg(Transaction t) =>
         t.amount / (t.quantity! * unitToKg(t.unit, sacoKg: sacoKg));
@@ -312,8 +334,8 @@ class AlertService {
           severity: AlertSeverity.warning,
           title: l10n.alertLowPriceManualTitle,
           message: l10n.alertLowPriceManualMessage(
-            _money(pricePerKg(latest)),
-            _money(manualThresholdPerKg),
+            _money(pricePerKg(latest), currency),
+            _money(manualThresholdPerKg, currency),
             DateFormat('dd/MM/yyyy').format(latest.date),
           ),
           suggestion: l10n.alertLowPriceSuggestion,
@@ -333,8 +355,8 @@ class AlertService {
       severity: AlertSeverity.info,
       title: l10n.alertLowPriceTitle,
       message: l10n.alertLowPriceMessage(
-        _money(check.recentAvgPerKg),
-        _money(check.histAvgPerKg),
+        _money(check.recentAvgPerKg, currency),
+        _money(check.histAvgPerKg, currency),
       ),
       suggestion: l10n.alertLowPriceSuggestion,
     ));
@@ -391,7 +413,9 @@ class AlertService {
     totals.forEach((cropId, row) {
       // El ROI de un cultivo que cobra y paga en monedas distintas sería
       // mentira: ese cultivo no genera aviso hasta que se unifique.
-      if ((currencies[cropId] ?? const <String>{}).length > 1) return;
+      final monedas = currencies[cropId] ?? const <String>{};
+      if (monedas.length != 1) return;
+      final currency = monedas.first;
       if (row.expenses <= 0) return;
       final ratio = (row.incomes - row.expenses) / row.expenses;
       if (ratio < -0.30) {
@@ -407,7 +431,7 @@ class AlertService {
             severity: AlertSeverity.info,
             title: l10n.alertCropEstablishmentTitle(label),
             message: l10n.alertCropEstablishmentMessage(
-              _money(row.expenses),
+              _money(row.expenses, currency),
               label,
             ),
             suggestion: l10n.alertCropEstablishmentSuggestion(label),
@@ -439,8 +463,8 @@ class AlertService {
           title = l10n.alertDeficitNoCropTitle(_percentage(ratio * 100));
           message = l10n.alertDeficitNoCropMessage(
             '$unassigned',
-            _money(row.expenses),
-            _money(row.incomes),
+            _money(row.expenses, currency),
+            _money(row.incomes, currency),
             _percentage(recovery),
           );
           suggestion =
@@ -448,9 +472,9 @@ class AlertService {
         } else {
           title = l10n.alertDeficitTitle(label, _percentage(ratio * 100));
           message = l10n.alertDeficitMessage(
-            _money(row.expenses),
+            _money(row.expenses, currency),
             label,
-            _money(row.incomes),
+            _money(row.incomes, currency),
             _percentage(recovery),
           );
           suggestion = l10n.alertDeficitSuggestion(label);
@@ -606,7 +630,8 @@ class AlertService {
         .toList();
     // El aporte es de una sola moneda: si el mes mezcla, la comparación (y el
     // saldo) sería mentira.
-    if (usedTx.isEmpty || _currenciesOf(usedTx).length > 1) return;
+    final monedas = _currenciesOf(usedTx);
+    if (usedTx.isEmpty || monedas.length > 1) return;
     final used = usedTx.fold<double>(0, (a, t) => a + t.amount);
     if (used <= 0) return;
 
@@ -634,8 +659,8 @@ class AlertService {
         severity: AlertSeverity.danger,
         title: l10n.alertCashBoxDangerTitle(month),
         message: l10n.alertCashBoxDebtMessage(
-          _money(used),
-          _money(carry ?? 0),
+          _money(used, monedas.first),
+          _money(carry ?? 0, currency),
         ),
         suggestion: l10n.alertCashBoxDangerSuggestion,
       ));
@@ -654,8 +679,8 @@ class AlertService {
         severity: AlertSeverity.danger,
         title: l10n.alertCashBoxDangerTitle(month),
         message: l10n.alertCashBoxDangerMessage(
-          _money(used),
-          _money(limit),
+          _money(used, monedas.first),
+          _money(limit, currency),
           percent,
         ),
         suggestion: l10n.alertCashBoxDangerSuggestion,
@@ -667,9 +692,9 @@ class AlertService {
         severity: AlertSeverity.warning,
         title: l10n.alertCashBoxWarningTitle(month, percent),
         message: l10n.alertCashBoxWarningMessage(
-          _money(used),
-          _money(limit),
-          _money(limit - used),
+          _money(used, monedas.first),
+          _money(limit, currency),
+          _money(limit - used, currency),
         ),
         suggestion: l10n.alertCashBoxWarningSuggestion,
       ));
@@ -698,7 +723,8 @@ class AlertService {
             t.amount > 0)
         .toList();
     if (unpaid.isEmpty) return;
-    if (_currenciesOf(unpaid).length > 1) return;
+    final monedas = _currenciesOf(unpaid);
+    if (monedas.length > 1) return;
 
     final total = unpaid.fold<double>(0, (a, t) => a + t.amount);
     final oldest =
@@ -712,7 +738,7 @@ class AlertService {
       // no lo es.
       severity: days >= 30 ? AlertSeverity.warning : AlertSeverity.info,
       title: l10n.alertUnpaidTitle,
-      message: l10n.alertUnpaidMessage(unpaid.length, _money(total), days),
+      message: l10n.alertUnpaidMessage(unpaid.length, _money(total, monedas.first), days),
       suggestion: l10n.alertUnpaidSuggestion,
     ));
   }
@@ -781,11 +807,6 @@ Set<String> _currenciesOf(Iterable<Transaction> txns) => {
       for (final t in txns)
         if (!t.deleted) t.currency,
     };
-
-String _money(double value) {
-  final digits = NumberFormat('#,##0', 'es_CO').format(value.abs());
-  return value < 0 ? '-\$$digits' : '\$$digits';
-}
 
 String _kg(double kg) {
   return '${NumberFormat('#,##0.0', 'es_CO').format(kg)} kg';

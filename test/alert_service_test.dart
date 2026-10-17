@@ -19,6 +19,7 @@ Transaction _txn({
   String? cropId,
   double? quantity,
   String? unit,
+  String currency = 'COP',
 }) {
   return Transaction(
     id: '${type.name}_${amount}_${date.millisecondsSinceEpoch}',
@@ -29,6 +30,7 @@ Transaction _txn({
     quantity: quantity,
     unit: unit,
     date: date,
+    currency: currency,
     createdAt: DateTime(2026, 1, 1),
   );
 }
@@ -57,6 +59,38 @@ void main() {
         isTrue,
         reason: 'debe dispararse excess spend',
       );
+    });
+
+    test('el monto del aviso lleva su código, no el símbolo', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 1, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 2, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 100, date: DateTime(2026, 3, 10), category: 'mano_obra'),
+        _txn(type: TransactionType.expense, amount: 300, date: DateTime(2026, 6, 10), category: 'mano_obra'),
+      ];
+      final aviso = AlertService(now: now)
+          .evaluate(txns, _crops(), _es)
+          .firstWhere((a) => a.rule == AlertRule.excessiveSpending);
+
+      expect(aviso.message, contains('COP 300'),
+          reason: 'los montos del aviso se leen como en el resto de la app');
+      expect(aviso.message, isNot(contains(r'$')),
+          reason: 'el símbolo es de COP, de USD y de CLP a la vez: no dice nada');
+    });
+
+    test('una cuenta en dólares conserva los centavos', () {
+      final txns = [
+        _txn(type: TransactionType.expense, amount: 100.50, date: DateTime(2026, 1, 10), category: 'mano_obra', currency: 'USD'),
+        _txn(type: TransactionType.expense, amount: 100.50, date: DateTime(2026, 2, 10), category: 'mano_obra', currency: 'USD'),
+        _txn(type: TransactionType.expense, amount: 100.50, date: DateTime(2026, 3, 10), category: 'mano_obra', currency: 'USD'),
+        _txn(type: TransactionType.expense, amount: 300.25, date: DateTime(2026, 6, 10), category: 'mano_obra', currency: 'USD'),
+      ];
+      final aviso = AlertService(now: now)
+          .evaluate(txns, _crops(), _es)
+          .firstWhere((a) => a.rule == AlertRule.excessiveSpending);
+
+      expect(aviso.message, contains('USD 300,25'),
+          reason: 'los decimales son los de la moneda, no un redondeo a cero');
     });
 
     test('NO dispara si el gasto mes actual estÃ¡ dentro de 2Ã—', () {
@@ -266,6 +300,27 @@ void main() {
       expect(alerts.any((a) => a.rule == AlertRule.deficitCrop), isTrue);
     });
 
+    test('aviso sin cultivo: cada dato en su casilla', () {
+      final txns = [
+        // 3 registros sin cultivo: COP 1.500 de gastos y COP 100 de ventas →
+        // recupera el 7%. Cada cifra tiene que caer en SU casilla.
+        _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10)),
+        _txn(type: TransactionType.expense, amount: 500, date: DateTime(2026, 2, 10)),
+        _txn(type: TransactionType.income, amount: 100, date: DateTime(2026, 3, 1)),
+      ];
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
+      final deficit = alerts.firstWhere((a) => a.rule == AlertRule.deficitCrop);
+
+      expect(deficit.message, contains('3 registros'),
+          reason: 'el número de registros no es un monto');
+      expect(deficit.message, contains('COP 1.500 en gastos'),
+          reason: 'los gastos son COP 1.500, no otra cosa');
+      expect(deficit.message, contains('COP 100 en ventas'),
+          reason: 'las ventas son COP 100, no otra cosa');
+      expect(deficit.message, contains('el 7% de lo invertido'),
+          reason: 'el recuperado es el porcentaje');
+    });
+
     test('NO dispara con ROI >= -30%', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
@@ -285,7 +340,10 @@ void main() {
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       final deficit = alerts.firstWhere((a) => a.rule == AlertRule.deficitCrop);
       expect(deficit.message, contains('3'));
-      expect(deficit.message, contains(r'$'));
+      expect(deficit.message, contains('COP'),
+          reason: 'los montos van con su código');
+      expect(deficit.message, isNot(contains(r'$')),
+          reason: 'el símbolo no dice de qué moneda habla');
       expect(deficit.suggestion, contains('3'));
     });
 
@@ -300,7 +358,9 @@ void main() {
       expect(deficit.title, contains('%'));
       expect(deficit.message.toLowerCase(), contains('el problema'));
       expect(deficit.message.toLowerCase(), contains('invertiste'));
-      expect(deficit.message, contains(r'$'));
+      expect(deficit.message, contains('COP'),
+          reason: 'los montos van con su código');
+      expect(deficit.message, isNot(contains(r'$')));
       expect(deficit.suggestion, isNotEmpty);
     });
   });
@@ -642,13 +702,14 @@ void main() {
         _txn(type: TransactionType.expense, amount: 80,
             date: DateTime(2026, 6, 10), category: 'energia'),
       ];
-      final alerts = AlertService(now: now)
-          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es,
+          cajaMensual: 600, currency: 'COP');
       final found = alerts.where((a) => a.rule == AlertRule.cajaMenor);
       expect(found, isNotEmpty, reason: '480/600 = 80% debe avisar');
       expect(found.first.severity, AlertSeverity.warning);
       final detail = '${found.first.title} ${found.first.message}';
-      expect(detail, contains(r'$'), reason: 'debe citar montos');
+      expect(detail, contains('COP 480'),
+          reason: 'debe citar los montos con su código');
       expect(detail, contains('%'), reason: 'debe citar el porcentaje');
       expect(found.first.suggestion, isNotEmpty);
     });
@@ -658,14 +719,15 @@ void main() {
         _txn(type: TransactionType.expense, amount: 700,
             date: DateTime(2026, 6, 5), category: 'mano_obra'),
       ];
-      final alerts = AlertService(now: now)
-          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es,
+          cajaMensual: 600, currency: 'COP');
       final found = alerts.where((a) => a.rule == AlertRule.cajaMenor);
       expect(found, isNotEmpty, reason: '700/600 > 100% debe disparar');
       expect(found.first.severity, AlertSeverity.danger);
       expect(found.first.suggestion.toLowerCase(), contains('trabajadores'));
-      expect('${found.first.title} ${found.first.message}',
-          contains(r'$'));
+      expect(
+          '${found.first.title} ${found.first.message}', contains('COP 700'),
+          reason: 'debe citar los montos con su código');
     });
 
     test('sin monto configurado no evalúa la regla', () {
@@ -684,8 +746,8 @@ void main() {
         _txn(type: TransactionType.expense, amount: 400,
             date: DateTime(2026, 6, 5), category: 'mano_obra'),
       ];
-      final alerts = AlertService(now: now)
-          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es,
+          cajaMensual: 600, currency: 'COP');
       expect(alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
           reason: '400/600 = 66% está dentro del presupuesto');
     });
@@ -722,8 +784,8 @@ void main() {
         _txn(type: TransactionType.expense, amount: 700,
             date: DateTime(2026, 5, 20), category: 'mano_obra'),
       ];
-      final alerts = AlertService(now: now)
-          .evaluate(txns, _crops(), _es, cajaMensual: 600);
+      final alerts = AlertService(now: now).evaluate(txns, _crops(), _es,
+          cajaMensual: 600, currency: 'COP');
       expect(alerts.where((a) => a.rule == AlertRule.cajaMenor), isEmpty,
           reason: 'mayo no puede agotar la caja de junio: junio está vacía');
     });

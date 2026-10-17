@@ -2246,7 +2246,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String alertDeficitNoCropMessage(String spent, String sold, String recovery, Object count) {
+  String alertDeficitNoCropMessage(String count, String spent, String sold, String recovery) {
     return 'The problem: you have $count records without an assigned crop totaling $spent in expenses and $sold in sales, recovering only $recovery of what was invested.';
   }
 

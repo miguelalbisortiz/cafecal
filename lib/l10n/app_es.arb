@@ -998,7 +998,9 @@
   },
   "alertDeficitNoCropTitle": "Gastos sin cultivo asignado no se recuperan (ROI {roi})",
   "@alertDeficitNoCropMessage": {
+    "description": "El orden de los 'placeholders' es el orden de los argumentos; 'count' va primero porque así aparece en el texto. Sin declararlo, el generador lo manda al final y las cifras caen en la casilla equivocada.",
     "placeholders": {
+      "count": { "type": "String" },
       "spent": { "type": "String" },
       "sold": { "type": "String" },
       "recovery": { "type": "String" }

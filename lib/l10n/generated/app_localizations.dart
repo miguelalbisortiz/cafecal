@@ -4145,11 +4145,11 @@ abstract class AppLocalizations {
   /// **'Gastos sin cultivo asignado no se recuperan (ROI {roi})'**
   String alertDeficitNoCropTitle(String roi);
 
-  /// No description provided for @alertDeficitNoCropMessage.
+  /// El orden de los 'placeholders' es el orden de los argumentos; 'count' va primero porque así aparece en el texto. Sin declararlo, el generador lo manda al final y las cifras caen en la casilla equivocada.
   ///
   /// In es, this message translates to:
   /// **'El problema: tienes {count} registros sin cultivo asignado que suman {spent} en gastos y {sold} en ventas (solo has recuperado el {recovery} de lo invertido).'**
-  String alertDeficitNoCropMessage(String spent, String sold, String recovery, Object count);
+  String alertDeficitNoCropMessage(String count, String spent, String sold, String recovery);
 
   /// No description provided for @alertDeficitNoCropSuggestion.
   ///
