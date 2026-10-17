@@ -2417,6 +2417,18 @@ abstract class AppLocalizations {
   /// **'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.'**
   String get commonCostsHint;
 
+  /// No description provided for @noCropLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin cultivo'**
+  String get noCropLabel;
+
+  /// No description provided for @noCropHint.
+  ///
+  /// In es, this message translates to:
+  /// **'No pertenece a ningún cultivo. Se queda en el resultado general de la finca.'**
+  String get noCropHint;
+
   /// Fila del desglose por cultivo: gasto de un lote con varios cultivos que no se pudo repartir porque a alguno le falta la hectárea
   ///
   /// In es, this message translates to:

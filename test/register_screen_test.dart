@@ -322,4 +322,110 @@ void main() {
     expect(find.text(_es.cropGroupHint), findsOneWidget);
     expect(find.text(_es.terrenoGroupHint), findsNothing);
   });
+
+  // B · el ítem nulo del desplegable.
+  //
+  // Se llamaba «Costos comunes» también en ingresos, y su aviso hablaba de
+  // «cerca, camino, luz». Una venta podía quedar con ese texto debajo.
+  testWidgets('un ingreso sin cultivo dice «Sin cultivo», no «Costos comunes»',
+      (tester) async {
+    final provider = await makeProvider();
+    await pumpRegister(tester, provider,
+        initialType: TransactionType.income);
+
+    // En un desplegable cerrado solo se construye el ítem ELEGIDO. Con
+    // `_cropId` vacío, el elegido es el nulo.
+    expect(find.text(_es.noCropLabel), findsOneWidget,
+        reason: 'un ingreso no tiene «costos comunes»: es un ingreso');
+    expect(find.text(_es.commonCosts), findsNothing);
+    expect(find.text(_es.noCropHint), findsOneWidget);
+    expect(find.text(_es.commonCostsHint), findsNothing,
+        reason: 'el aviso de una venta no puede hablar de cerca, camino y luz');
+  });
+
+  testWidgets('un gasto sin cultivo sigue siendo «Costos comunes»',
+      (tester) async {
+    final provider = await makeProvider();
+    await pumpRegister(tester, provider);
+
+    // El arreglo es solo para ingresos: en un gasto la etiqueta vieja es la
+    // correcta y es la que lleva toda la vida.
+    expect(find.text(_es.commonCosts), findsOneWidget);
+    expect(find.text(_es.commonCostsHint), findsOneWidget);
+    expect(find.text(_es.noCropLabel), findsNothing);
+  });
+
+  // C · la cantidad heredada.
+  //
+  // El campo de cantidad se oculta al cambiar de categoría, pero el texto se
+  // queda en el controlador. Se escribía 50 en una Venta, se cambiaba a
+  // SUBVENCIÓN, y esa subvención se guardaba con quantity=50 y unit=null.
+  // report_harvest_metrics suma `quantity * unitToKg(unit)` a «kg vendidos»
+  // sin comprobar que sea venta, y unitToKg(null) es 1: un millón de
+  // subvención inflando cincuenta kilos vendidos.
+  testWidgets(
+      'cambiar de venta a subvención no hereda la cantidad: cero kilos fantasma',
+      (tester) async {
+    // El formulario es un ListView perezoso: lo que queda fuera de pantalla
+    // no se construye, y el botón de Guardar cierra la lista. Se ensancha la
+    // ventana ANTES de montar la pantalla para que el formulario entero entre.
+    //
+    // Va por `tester.view`: `binding.window.physicalSizeTestValue` ya no mueve
+    // la vista en Flutter 3.24 y la ventana se quedaba en 800×600.
+    tester.view.physicalSize = const Size(800, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final provider = await makeProvider();
+    final crop = await provider.addCrop('Café');
+    await pumpRegister(tester, provider,
+        initialType: TransactionType.income);
+
+    await tester.tap(dropdownWithValue(crop.id));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🌱 Café').last);
+    await tester.pumpAndSettle();
+
+    // Venta: aparece el campo de cantidad.
+    await tester.tap(dropdownWithValue(kIncomeCategorySale));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🌱 Venta Café').last);
+    await tester.pumpAndSettle();
+
+    // `TextFormField.decoration` no es público en Flutter 3.24, así que se
+    // va por el rótulo ya pintado: es un Text descendente del propio campo.
+    Finder byLabel(String label) => find.ancestor(
+        of: find.text(label), matching: find.byType(TextFormField));
+
+    final qtyField = byLabel(_es.quantityFieldLabel);
+    expect(qtyField, findsOneWidget);
+    await tester.enterText(qtyField, '50');
+
+    // Se equivoca de categoría: era una subvención, no una venta.
+    await tester.tap(dropdownWithValue(kIncomeCategorySale));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining(_es.catSubvenciones).last);
+    await tester.pumpAndSettle();
+
+    // El campo DESAPARECE de la pantalla…
+    expect(qtyField, findsNothing);
+
+    // …pero el texto se queda en el controlador. Ese es el truco.
+    await tester.enterText(byLabel(_es.amountFieldLabel), '1000000');
+
+    // Se pica el rótulo y no el botón. Los dos apuntan al mismo sitio —el
+    // texto está dentro del botón—, pero `find.byType(FilledButton)` da 0 en
+    // el árbol aunque el botón esté ahí, mientras que `find.text` lo ve
+    // seguro. Más vale lo que se puede medir.
+    final guardar = find.text(_es.saveRecord);
+    await tester.ensureVisible(guardar);
+    await tester.tap(guardar);
+    await tester.pumpAndSettle();
+
+    final guardado = provider.transactions.single;
+    expect(guardado.quantity, isNull,
+        reason: 'una subvención no vende kilos: quantity heredado de una venta '
+            'anterior inflaba «kg vendidos»');
+    expect(guardado.unit, isNull);
+  });
 }

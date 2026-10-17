@@ -479,6 +479,8 @@
   "cropGroupHint": "Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.",
   "commonCosts": "Common costs",
   "commonCostsHint": "It's a farm-wide expense (fence, road, electricity). It doesn't affect any crop's cost/kg, but it does affect the bottom line.",
+  "noCropLabel": "No crop",
+  "noCropHint": "It doesn't belong to any crop. It stays in the farm's overall result.",
   "loteNoRepartido": "{name} · not split",
   "@loteNoRepartido": {
     "description": "Row in the crop breakdown: a plot expense shared by several crops that could not be apportioned because one of them is missing its hectares",

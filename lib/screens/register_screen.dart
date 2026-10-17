@@ -208,16 +208,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       }
     } else {
-      // Preselecciona el último cultivo usado para agilizar los gastos
-      // recurrentes del mismo cultivo. Solo si aún existe.
       final provider = context.read<TransactionProvider>();
-      final last = provider.settings.lastCropId;
-      if (last != null && provider.crops.any((c) => c.id == last)) {
-        _cropId = last;
-      }
       _currency = provider.settings.currency;
       if (widget.initialType != null) {
         _type = widget.initialType!;
+      }
+
+      // Preselecciona lo último usado para agilizar los gastos recurrentes.
+      //
+      // El lote va primero: es mutuamente excluyente con el cultivo, y si el
+      // registro anterior fue un gasto compartido, lo que hay que volver a
+      // elegir es el lote y no uno de sus cultivos.
+      //
+      // Solo en gastos. Un ingreso no tiene lote —es de un cultivo o de la
+      // finca entera—, y preseleccionarlo aquí metería un terrenoId en una
+      // venta.
+      if (_type.isExpense) {
+        final lastTerreno = provider.settings.lastTerrenoId;
+        if (lastTerreno != null &&
+            provider.terrenos.any((t) => t.id == lastTerreno)) {
+          _terrenoId = lastTerreno;
+        }
+      }
+      // El cultivo solo si no quedó un lote puesto: los dos no conviven.
+      if (_terrenoId == null) {
+        final last = provider.settings.lastCropId;
+        if (last != null && provider.crops.any((c) => c.id == last)) {
+          _cropId = last;
+        }
       }
     }
   }
@@ -392,7 +410,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else {
       amount = double.parse(_amountController.text.replaceAll(',', '.'));
       final qtyText = _quantityController.text.trim().replaceAll(',', '.');
-      quantity = qtyText.isEmpty ? null : double.tryParse(qtyText);
+      // La cantidad y la unidad son UNA sola cosa: los kilos de la venta.
+      // `unit` ya se guardaba solo si era venta; `quantity` no.
+      //
+      // No es un detalle: el campo de cantidad se oculta al cambiar de
+      // categoría, pero el texto se queda en el controlador. El agricultor
+      // escribe 50 en una Venta, se da cuenta de que era una SUBVENCIÓN y
+      // la cambia, y esa subvención se guardaba con quantity=50 y unit=null.
+      // Aguas abajo, report_harvest_metrics suma `quantity * unitToKg(unit)`
+      // a «kg vendidos» sin comprobar que sea venta, y `unitToKg(null)` es
+      // 1. Un millón de subvención inflando cincuenta kilos vendidos.
+      quantity =
+          (isSale && qtyText.isNotEmpty) ? double.tryParse(qtyText) : null;
       unit = (isSale && quantity != null) ? (_unit ?? 'kg') : null;
       client = isSale ? _clientController.text.trim() : null;
       provider = _type == TransactionType.expense
@@ -482,9 +511,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       task: task,
     );
 
-    // Recuerda el cultivo elegido para preseleccionarlo la próxima vez.
-    // Null (= "Sin cultivo") limpia el recordatorio.
-    await tx.updateSettings(tx.settings.copyWith(lastCropId: _cropId));
+    // Recuerda lo elegido para preseleccionarlo la próxima vez.
+    //
+    // Se guardan LOS DOS y se limpian LOS DOS juntos, porque son mutuamente
+    // excluyentes. Si el gasto fue de un lote, `_cropId` viene en `null` y con
+    // él se borraba el recordatorio del cultivo sin que el lote ocupara su
+    // sitio: el siguiente gasto compartido arrancaba en "Costos comunes" y
+    // dejaba de repartirse por hectáreas.
+    await tx.updateSettings(tx.settings
+        .copyWith(lastCropId: _cropId, lastTerrenoId: _terrenoId));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -659,7 +694,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 value: null,
                 // E2 · "Sin especificar" no le decía nada a nadie. Al ser el
                 // único grupo que NO es de un cultivo, se llama por lo que es.
-                child: Text(l10n.commonCosts),
+                // En ingresos, "lo que es" no es un costo: una venta sin
+                // cultivo no es «Costos comunes», y el aviso de abajo (que
+                // habla de cerca, camino y luz) tampoco le corresponde.
+                child: Text(isExpense ? l10n.commonCosts : l10n.noCropLabel),
               ),
               DropdownMenuItem<String>(
                 value: _newCropOption,
@@ -725,9 +763,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // ningún cultivo, lo que hay que explicar es lo que eso implica.
           // Si sí lo es, se mantiene el de siempre.
           Text(
+            // En ingresos el ítem nulo no son costos comunes, así que el
+            // aviso tampoco puede serlo.
             _terrenoId != null
                 ? l10n.terrenoGroupHint
-                : (_cropId == null ? l10n.commonCostsHint : l10n.cropGroupHint),
+                : (_cropId == null
+                    ? (isExpense ? l10n.commonCostsHint : l10n.noCropHint)
+                    : l10n.cropGroupHint),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),

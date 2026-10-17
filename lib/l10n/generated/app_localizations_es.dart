@@ -1254,6 +1254,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get commonCostsHint => 'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.';
 
   @override
+  String get noCropLabel => 'Sin cultivo';
+
+  @override
+  String get noCropHint => 'No pertenece a ningún cultivo. Se queda en el resultado general de la finca.';
+
+  @override
   String loteNoRepartido(String name) {
     return '$name · sin repartir';
   }

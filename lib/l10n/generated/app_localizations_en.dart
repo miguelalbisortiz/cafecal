@@ -1254,6 +1254,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCostsHint => 'It\'s a farm-wide expense (fence, road, electricity). It doesn\'t affect any crop\'s cost/kg, but it does affect the bottom line.';
 
   @override
+  String get noCropLabel => 'No crop';
+
+  @override
+  String get noCropHint => 'It doesn\'t belong to any crop. It stays in the farm\'s overall result.';
+
+  @override
   String loteNoRepartido(String name) {
     return '$name · not split';
   }

@@ -8,6 +8,19 @@ class FarmSettings {
   /// "Registrar" para agilizar gastos recurrentes del mismo cultivo.
   final String? lastCropId;
 
+  /// Último lote elegido al registrar, para agilizar los gastos que sirven a
+  /// varios cultivos del mismo terreno (una limpieza compartida, el abono de
+  /// todo el lote).
+  ///
+  /// Existe aparte de [lastCropId] porque los dos son mutuamente excluyentes:
+  /// un gasto es de un cultivo o del lote, nunca de los dos.
+  ///
+  /// Sin este campo, registrar un gasto de lote dejaba `_cropId` en `null` y
+  /// el `copyWith(lastCropId: null)` **borraba** el recordatorio a propósito.
+  /// El siguiente gasto compartido arrancaba en "Costos comunes" y dejaba de
+  /// repartirse por hectáreas, sin que nadie lo viera.
+  final String? lastTerrenoId;
+
   /// Umbral manual de alerta de precio bajo (moneda activa por kg).
   /// Si se define, se dispara una alerta cuando una venta con cantidad
   /// se registra por debajo de este precio por kilogramo.
@@ -52,6 +65,7 @@ class FarmSettings {
     this.locale = 'es_CO',
     this.language = 'es',
     this.lastCropId,
+    this.lastTerrenoId,
     this.lowPriceThresholdPerKg,
     this.cajaMenorMensual,
     this.presupuestoObraMensual,
@@ -64,6 +78,7 @@ class FarmSettings {
     String? locale,
     String? language,
     Object? lastCropId = _sentinel,
+    Object? lastTerrenoId = _sentinel,
     Object? lowPriceThresholdPerKg = _sentinel,
     Object? cajaMenorMensual = _sentinel,
     Object? presupuestoObraMensual = _sentinel,
@@ -77,6 +92,13 @@ class FarmSettings {
       lastCropId: lastCropId == _sentinel
           ? this.lastCropId
           : lastCropId as String?,
+      // Mismo patrón que lastCropId: hace falta centinela para poder VACIARLO.
+      // Elegir cultivo limpia el lote y viceversa, y esa limpieza tiene que
+      // llegar a los ajustes o el desplegable arrancaría con lo del registro
+      // anterior.
+      lastTerrenoId: lastTerrenoId == _sentinel
+          ? this.lastTerrenoId
+          : lastTerrenoId as String?,
       lowPriceThresholdPerKg: lowPriceThresholdPerKg == _sentinel
           ? this.lowPriceThresholdPerKg
           : lowPriceThresholdPerKg as double?,
@@ -121,6 +143,7 @@ class FarmSettings {
         'locale': locale,
         'language': language,
         if (lastCropId != null) 'last_crop_id': lastCropId,
+        if (lastTerrenoId != null) 'last_terreno_id': lastTerrenoId,
         if (lowPriceThresholdPerKg != null)
           'low_price_threshold_per_kg': lowPriceThresholdPerKg,
         if (cajaMenorMensual != null)
@@ -139,6 +162,9 @@ class FarmSettings {
       locale: (json['locale'] as String?) ?? 'es_CO',
       language: (json['language'] as String?) ?? 'es',
       lastCropId: (json['last_crop_id'] as String?),
+      // Respaldos y bajadas viejos no traen la clave → null → sin preselección
+      // de lote, que es como se comportó siempre.
+      lastTerrenoId: (json['last_terreno_id'] as String?),
       lowPriceThresholdPerKg:
           (json['low_price_threshold_per_kg'] as num?)?.toDouble(),
       cajaMenorMensual: (json['caja_menor_mensual'] as num?)?.toDouble(),
