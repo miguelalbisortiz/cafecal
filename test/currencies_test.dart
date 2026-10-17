@@ -11,14 +11,13 @@ import 'package:mi_cafetal/utils/format.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('catálogo cubre las monedas de la región y sus símbolos', () {
+  test('catálogo cubre las monedas de la región', () {
     expect(supportedCurrencies.map((c) => c.code),
         containsAll(['COP', 'USD', 'EUR', 'BRL', 'PEN', 'CLP', 'BOB', 'CRC']));
-    expect(currencyInfo('BRL').symbol, 'R\$');
-    expect(currencyInfo('PEN').symbol, 'S/');
-    expect(currencyInfo('BOB').symbol, 'Bs');
-    expect(currencyInfo('CRC').symbol, '₡');
-    expect(currencyInfo('COP').symbol, r'$');
+    for (final c in supportedCurrencies) {
+      expect(c.name, isNotEmpty, reason: '${c.code} debe tener nombre');
+      expect(c.decimals, greaterThanOrEqualTo(0));
+    }
   });
 
   test('fetchRate parsea la tasa real del API', () async {

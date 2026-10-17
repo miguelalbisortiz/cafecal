@@ -3,13 +3,11 @@ import 'package:intl/intl.dart';
 class CurrencyInfo {
   final String code;
   final String name;
-  final String symbol;
   final int decimals;
 
   const CurrencyInfo({
     required this.code,
     required this.name,
-    required this.symbol,
     this.decimals = 0,
   });
 }
@@ -17,21 +15,23 @@ class CurrencyInfo {
 /// Monedas soportadas: potencias en producción de café, banano o frutas
 /// (región latinoamericana: Colombia, Ecuador/USD, Brasil, Perú, Chile,
 /// Bolivia, Costa Rica).
+///
+/// Sin símbolo: `$` lo comparten COP, USD y CLP, así que no identifica nada.
+/// El único indicador es el [code] (ver `formatMoneyLabel`).
 const List<CurrencyInfo> supportedCurrencies = [
-  CurrencyInfo(code: 'COP', name: 'Peso colombiano', symbol: r'$'),
-  CurrencyInfo(code: 'USD', name: 'Dólar estadounidense', symbol: r'$', decimals: 2),
-  CurrencyInfo(code: 'EUR', name: 'Euro', symbol: '€', decimals: 2),
-  CurrencyInfo(code: 'BRL', name: 'Real brasileño', symbol: r'R$', decimals: 2),
-  CurrencyInfo(code: 'PEN', name: 'Sol peruano', symbol: 'S/', decimals: 2),
-  CurrencyInfo(code: 'CLP', name: 'Peso chileno', symbol: r'$'),
-  CurrencyInfo(code: 'BOB', name: 'Boliviano', symbol: 'Bs', decimals: 2),
-  CurrencyInfo(code: 'CRC', name: 'Colón costarricense', symbol: '₡'),
+  CurrencyInfo(code: 'COP', name: 'Peso colombiano'),
+  CurrencyInfo(code: 'USD', name: 'Dólar estadounidense', decimals: 2),
+  CurrencyInfo(code: 'EUR', name: 'Euro', decimals: 2),
+  CurrencyInfo(code: 'BRL', name: 'Real brasileño', decimals: 2),
+  CurrencyInfo(code: 'PEN', name: 'Sol peruano', decimals: 2),
+  CurrencyInfo(code: 'CLP', name: 'Peso chileno'),
+  CurrencyInfo(code: 'BOB', name: 'Boliviano', decimals: 2),
+  CurrencyInfo(code: 'CRC', name: 'Colón costarricense'),
 ];
 
 CurrencyInfo currencyInfo(String code) => supportedCurrencies.firstWhere(
       (c) => c.code == code,
-      orElse: () => const CurrencyInfo(
-          code: 'COP', name: 'Peso colombiano', symbol: r'$'),
+      orElse: () => const CurrencyInfo(code: 'COP', name: 'Peso colombiano'),
     );
 
 /// Dígitos de un monto agrupados por [locale] con los decimales de su moneda.
