@@ -218,8 +218,8 @@ DONE: se registran siembras/resiembras y cosechas (incl. retroactivo), se asocia
 - **Regla nueva: conciliación venta vs cosecha** (`AlertRule.harvestVsSales`,
   `warning`): por cultivo, últimos 12 meses,
   `kgVendidos` (qty de ventas `venta_*` normalizado con `unitToKg`) vs
-  `kgCosechados` (suma de amount de cosechas normalizado); si `kgVendidos >
-  kgCosechados * 1.1` y ambos > 0 → alerta con ambos números y acción sugerida.
+  `kgCosechados` (suma de amount de cosechas normalizado); si
+  `kgVendidos > kgCosechados * 1.1` y ambos > 0 → alerta con ambos números y acción sugerida.
 - **Regla nueva (info): siembra/resiembra reciente** (`AlertRule.cropRecentlyPlanted`):
   si se registró una siembra/resiembra en los últimos 15 días → recordatorio de
   actualizar plantas vivas si el conteo no coincide. Leve, informativa.

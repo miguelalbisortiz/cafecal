@@ -77,12 +77,12 @@ En el Home, antes de los resúmenes, se muestra una **tarjeta compacta** con:
 - `enum NextStepType { crop, sowing, expenses, harvest, sale }`
 - `class NextStep { NextStepType type; String? cropId; }` — el widget localiza títulos
   y etiquetas vía i18n según el tipo (y el nombre del cultivo para la siembra).
-- `NextStep? nextStepFor({required List<Crop> crops, required List<Sowing> sowings,
-  required List<Harvest> harvests, required List<Transaction> transactions,
-  required int year})`
+- `NextStep? nextStepFor({required List<Crop> crops, required List<Sowing> sowings,`
+  `required List<Harvest> harvests, required List<Transaction> transactions,`
+  `required int year})`
   implementa las reglas de prioridad de la tabla (pura, testeable, sin Flutter).
-- Criterio de siembra: existe al menos un cultivo con `phase == establecimiento ||
-  renovacion` que no tenga una `Sowing` propia (incluye `kind == siembra`; una
+- Criterio de siembra: existe al menos un cultivo con
+  `phase == establecimiento || renovacion` que no tenga una `Sowing` propia (incluye `kind == siembra`; una
   `resiembra` sola no cubre).
 - Criterio de gastos: `transactions` no contiene ningún gasto (`type == expense`) del año.
 - Criterio de cosecha: hay gastos del año y `harvests` está vacío.
