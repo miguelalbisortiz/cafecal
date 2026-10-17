@@ -236,13 +236,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseAEx1 => 'Café, Dando, Perenne, 2 ha, 3000 plantas';
 
   @override
-  String get helpCaseAEx2 => 'Gasto de \$500,000 en Fertilizante';
+  String get helpCaseAEx2 => 'Gasto de COP 500.000 en Fertilizante';
 
   @override
-  String get helpCaseAEx4 => 'Ingreso de \$750,000 por la venta de 50 kg (4 arrobas)';
+  String get helpCaseAEx4 => 'Ingreso de COP 750.000 por la venta de 50 kg (4 arrobas)';
 
   @override
-  String get helpCaseAEx5 => 'Balance +\$250,000 · Margen 33% · ROI 50%';
+  String get helpCaseAEx5 => 'Balance +COP 250.000 · Margen 33% · ROI 50%';
 
   @override
   String get helpCaseBExampleTitle => 'Caso B — plátano nuevo (500 plantas en 0.5 ha)';
@@ -251,13 +251,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseBEx1 => 'Plátano, Sin dar, Perenne, 0.5 ha, 500 plantas';
 
   @override
-  String get helpCaseBEx2 => 'Siembra inicial, 500 plantas, 0.5 ha, costo \$200,000';
+  String get helpCaseBEx2 => 'Siembra inicial, 500 plantas, 0.5 ha, costo COP 200.000';
 
   @override
-  String get helpCaseBEx3 => '\$100,000 de mano de obra y \$150,000 de fertilizante';
+  String get helpCaseBEx3 => 'COP 100.000 de mano de obra y COP 150.000 de fertilizante';
 
   @override
-  String get helpCaseBEx4 => 'Inversión \$450,000. No dice pérdida: es inversión hasta que produzca.';
+  String get helpCaseBEx4 => 'Inversión COP 450.000. No dice pérdida: es inversión hasta que produzca.';
 
   @override
   String get helpGlossaryTitle => 'Glosario';
@@ -299,7 +299,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpPerHaMargin => 'Si cada hectárea deja ganancia. Positivo = la hectárea produce más de lo que cuesta.';
 
   @override
-  String get helpPerHaWhy => '¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende \$9M y otra de 1 ha que vende \$5M. Por hectárea, la segunda gana más (\$5M vs \$3M). Este panel te muestra esa comparación justa.';
+  String get helpPerHaWhy => '¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende COP 9.000.000 y otra de 1 ha que vende COP 5.000.000. Por hectárea, la segunda gana más (COP 5.000.000 vs COP 3.000.000). Este panel te muestra esa comparación justa.';
 
   @override
   String get helpPaybackTitle => '¿Cómo sé cuándo recupero lo invertido?';
@@ -323,7 +323,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpPaybackTitleNotLoss => 'No es una pérdida, es una inversión';
 
   @override
-  String get helpPaybackNotLoss => 'Si inviertes \$1,000,000 en plantar café y aún no vendes, no perdiste \$1,000,000. Invertiste \$1,000,000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.';
+  String get helpPaybackNotLoss => 'Si inviertes COP 1.000.000 en plantar café y aún no vendes, no perdiste COP 1.000.000. Invertiste COP 1.000.000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.';
 
   @override
   String get helpFlowTitle => 'El orden de la app';

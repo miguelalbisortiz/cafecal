@@ -548,19 +548,19 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseAEx2.
   ///
   /// In es, this message translates to:
-  /// **'Gasto de \$500,000 en Fertilizante'**
+  /// **'Gasto de COP 500.000 en Fertilizante'**
   String get helpCaseAEx2;
 
   /// No description provided for @helpCaseAEx4.
   ///
   /// In es, this message translates to:
-  /// **'Ingreso de \$750,000 por la venta de 50 kg (4 arrobas)'**
+  /// **'Ingreso de COP 750.000 por la venta de 50 kg (4 arrobas)'**
   String get helpCaseAEx4;
 
   /// No description provided for @helpCaseAEx5.
   ///
   /// In es, this message translates to:
-  /// **'Balance +\$250,000 · Margen 33% · ROI 50%'**
+  /// **'Balance +COP 250.000 · Margen 33% · ROI 50%'**
   String get helpCaseAEx5;
 
   /// No description provided for @helpCaseBExampleTitle.
@@ -578,19 +578,19 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseBEx2.
   ///
   /// In es, this message translates to:
-  /// **'Siembra inicial, 500 plantas, 0.5 ha, costo \$200,000'**
+  /// **'Siembra inicial, 500 plantas, 0.5 ha, costo COP 200.000'**
   String get helpCaseBEx2;
 
   /// No description provided for @helpCaseBEx3.
   ///
   /// In es, this message translates to:
-  /// **'\$100,000 de mano de obra y \$150,000 de fertilizante'**
+  /// **'COP 100.000 de mano de obra y COP 150.000 de fertilizante'**
   String get helpCaseBEx3;
 
   /// No description provided for @helpCaseBEx4.
   ///
   /// In es, this message translates to:
-  /// **'Inversión \$450,000. No dice pérdida: es inversión hasta que produzca.'**
+  /// **'Inversión COP 450.000. No dice pérdida: es inversión hasta que produzca.'**
   String get helpCaseBEx4;
 
   /// No description provided for @helpGlossaryTitle.
@@ -674,7 +674,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaWhy.
   ///
   /// In es, this message translates to:
-  /// **'¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende \$9M y otra de 1 ha que vende \$5M. Por hectárea, la segunda gana más (\$5M vs \$3M). Este panel te muestra esa comparación justa.'**
+  /// **'¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende COP 9.000.000 y otra de 1 ha que vende COP 5.000.000. Por hectárea, la segunda gana más (COP 5.000.000 vs COP 3.000.000). Este panel te muestra esa comparación justa.'**
   String get helpPerHaWhy;
 
   /// No description provided for @helpPaybackTitle.
@@ -722,7 +722,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPaybackNotLoss.
   ///
   /// In es, this message translates to:
-  /// **'Si inviertes \$1,000,000 en plantar café y aún no vendes, no perdiste \$1,000,000. Invertiste \$1,000,000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.'**
+  /// **'Si inviertes COP 1.000.000 en plantar café y aún no vendes, no perdiste COP 1.000.000. Invertiste COP 1.000.000. Cuando empieces a vender, el porcentaje de recuperación empieza a subir.'**
   String get helpPaybackNotLoss;
 
   /// No description provided for @helpFlowTitle.

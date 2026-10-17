@@ -236,13 +236,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseAEx1 => 'Coffee, Producing, Perennial, 2 ha, 3000 plants';
 
   @override
-  String get helpCaseAEx2 => '\$500,000 expense on Fertilizer';
+  String get helpCaseAEx2 => 'COP 500,000 expense on Fertilizer';
 
   @override
-  String get helpCaseAEx4 => '\$750,000 income from selling 50 kg (4 arrobas)';
+  String get helpCaseAEx4 => 'COP 750,000 income from selling 50 kg (4 arrobas)';
 
   @override
-  String get helpCaseAEx5 => 'Balance +\$250,000 · Margin 33% · ROI 50%';
+  String get helpCaseAEx5 => 'Balance +COP 250,000 · Margin 33% · ROI 50%';
 
   @override
   String get helpCaseBExampleTitle => 'Case B — new plantain (500 plants on 0.5 ha)';
@@ -251,13 +251,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseBEx1 => 'Plantain, Not producing yet, Perennial, 0.5 ha, 500 plants';
 
   @override
-  String get helpCaseBEx2 => 'Initial planting, 500 plants, 0.5 ha, cost \$200,000';
+  String get helpCaseBEx2 => 'Initial planting, 500 plants, 0.5 ha, cost COP 200,000';
 
   @override
-  String get helpCaseBEx3 => '\$100,000 labor and \$150,000 fertilizer';
+  String get helpCaseBEx3 => 'COP 100,000 labor and COP 150,000 fertilizer';
 
   @override
-  String get helpCaseBEx4 => 'Investment \$450,000. It does not say loss: it is an investment until it produces.';
+  String get helpCaseBEx4 => 'Investment COP 450,000. It does not say loss: it is an investment until it produces.';
 
   @override
   String get helpGlossaryTitle => 'Glossary';
@@ -299,7 +299,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPerHaMargin => 'Sales − expenses, per hectare. Positive = the hectare leaves profit.';
 
   @override
-  String get helpPerHaWhy => 'Why normalize? A 3 ha plot selling \$9M does not compete with a 1 ha plot selling \$5M: per hectare, the second one wins. The panel divides by area so you compare by the same rule.';
+  String get helpPerHaWhy => 'Why normalize? A 3 ha plot selling COP 9,000,000 does not compete with a 1 ha plot selling COP 5,000,000: per hectare, the second one wins. The panel divides by area so you compare by the same rule.';
 
   @override
   String get helpPaybackTitle => 'How is the establishment investment recovered?';
@@ -323,7 +323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPaybackTitleNotLoss => 'It is not a loss: it is an investment';
 
   @override
-  String get helpPaybackNotLoss => 'If you invest \$1,000,000 planting coffee and have not sold yet, you did not lose \$1,000,000. You invested \$1,000,000. When you start selling, the recovery percentage starts to rise.';
+  String get helpPaybackNotLoss => 'If you invest COP 1,000,000 planting coffee and have not sold yet, you did not lose COP 1,000,000. You invested COP 1,000,000. When you start selling, the recovery percentage starts to rise.';
 
   @override
   String get helpFlowTitle => 'The order of the app';
