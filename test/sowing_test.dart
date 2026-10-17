@@ -108,7 +108,8 @@ void main() {
         _s(id: 's1', date: DateTime(2026, 5, 1), plants: 100, areaHa: 0.5),
       ]);
       final state = result['cafe']!;
-      // La resiembra es previa a la siembra base → no suma.
+      // La resiembra es de un día anterior a la siembra base → no suma.
+      // El descarte es por DÍA calendario: la del mismo día sí cuenta (abajo).
       expect(state.livePlants, 100);
       expect(state.areaHa, 0.5);
     });
@@ -126,6 +127,24 @@ void main() {
     test('sin siembras no genera estado (no sobreescribe manual)', () {
       final result = recomputeCropState(const []);
       expect(result, isEmpty);
+    });
+
+    test('pérdida del MISMO DÍA que la siembra base SÍ aplica', () {
+      // La siembra se selló a las 10:00 y la pérdida del selector llega a las
+      // 00:00: comparando instantes quedaba «antes» y se perdía en silencio.
+      final result = recomputeCropState([
+        _s(id: 's1', date: DateTime(2026, 1, 1, 10), plants: 100, areaHa: 0.5),
+        _s(
+          id: 'r1',
+          date: DateTime(2026, 1, 1),
+          kind: SowingKind.resiembra,
+          plants: 0,
+          lostPlants: 40,
+        ),
+      ]);
+      final state = result['cafe']!;
+      expect(state.livePlants, 60, reason: '100 − 40: el mismo día cuenta');
+      expect(state.areaHa, 0.5);
     });
   });
 
@@ -208,6 +227,44 @@ void main() {
 
       expect(loss.lost, 50);
       expect(loss.reason, 'plaga');
+    });
+  });
+
+  // Hasta dónde se puede fechar una pérdida. Lo lee el selector del diálogo
+  // rápido: el mínimo es la siembra más reciente, porque una pérdida anterior
+  // no la cuenta el contador y sí subiría «Pérdidas acumuladas» del informe.
+  group('lossEarliestDate — hasta dónde se puede fechar', () {
+    test('sin siembras arranca en el año 2000', () {
+      expect(lossEarliestDate(const [], 'cafe'), DateTime(2000));
+    });
+
+    test('manda la siembra más reciente, y sin la hora', () {
+      final dia = lossEarliestDate([
+        _s(id: 's1', date: DateTime(2026, 1, 1, 10), plants: 100),
+        _s(id: 's2', date: DateTime(2026, 4, 1, 18), plants: 120),
+      ], 'cafe');
+      expect(dia, DateTime(2026, 4, 1));
+    });
+
+    test('una resiembra no mueve el mínimo', () {
+      final dia = lossEarliestDate([
+        _s(id: 's1', date: DateTime(2026, 1, 1), plants: 100),
+        _s(
+          id: 'r1',
+          date: DateTime(2026, 6, 1),
+          kind: SowingKind.resiembra,
+          plants: 10,
+        ),
+      ], 'cafe');
+      expect(dia, DateTime(2026, 1, 1));
+    });
+
+    test('solo mira el cultivo que se le pide', () {
+      final dia = lossEarliestDate([
+        _s(id: 's1', date: DateTime(2026, 1, 1), plants: 100),
+        _s(id: 's2', cropId: 'otro', date: DateTime(2026, 8, 1), plants: 50),
+      ], 'cafe');
+      expect(dia, DateTime(2026, 1, 1));
     });
   });
 }

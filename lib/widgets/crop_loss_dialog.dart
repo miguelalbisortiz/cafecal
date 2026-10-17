@@ -21,6 +21,9 @@ import '../providers/transaction_provider.dart';
 /// - **no cuadraba su cuenta** → `quedan > las que había` → resiembra que
 ///   suma la diferencia. El ajuste de salida, por si se le olvidó anotar algo.
 ///
+/// La **fecha** se anota: por defecto hoy, y se lleva hacia atrás hasta la
+/// última siembra del cultivo, que es hasta donde el contador la admite.
+///
 /// No se pisa ningún dato: el modelo ya sabe mover el contador con
 /// `livePlants − perdidas + nuevas` (`recomputeCropState`), y el registro
 /// queda en el historial como cualquier otra resiembra.
@@ -45,6 +48,9 @@ class _CropLossDialogState extends State<CropLossDialog> {
   final _remainingController = TextEditingController();
   final _reasonController = TextEditingController();
 
+  /// El día en que ocurrió la pérdida. Arranca en hoy y se mueve hacia atrás.
+  DateTime _date = DateTime.now();
+
   int? get _remaining {
     final t = _remainingController.text.trim();
     if (t.isEmpty) return null;
@@ -64,6 +70,28 @@ class _CropLossDialogState extends State<CropLossDialog> {
     super.dispose();
   }
 
+  /// El día de la pérdida: no antes de la siembra (no contaría) ni futuro.
+  Future<void> _pickDate() async {
+    final ahora = DateTime.now();
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+    final minimo = lossEarliestDate(
+        context.read<TransactionProvider>().sowings, widget.crop.id);
+    final primera = minimo.isAfter(hoy) ? hoy : minimo;
+
+    var inicial = DateUtils.dateOnly(_date);
+    if (inicial.isBefore(primera)) inicial = primera;
+    if (inicial.isAfter(hoy)) inicial = hoy;
+
+    final elegida = await showDatePicker(
+      context: context,
+      initialDate: inicial,
+      firstDate: primera,
+      lastDate: hoy,
+    );
+    if (elegida == null || !mounted) return;
+    setState(() => _date = elegida);
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final delta = _delta;
@@ -73,7 +101,7 @@ class _CropLossDialogState extends State<CropLossDialog> {
     final tx = context.read<TransactionProvider>();
     await tx.addSowing(
       cropId: widget.crop.id,
-      date: DateTime.now(),
+      date: _date,
       kind: SowingKind.resiembra,
       // `livePlants − perdidas + nuevas` = el total que él anotó.
       plants: delta > 0 ? delta : 0,
@@ -145,6 +173,20 @@ class _CropLossDialogState extends State<CropLossDialog> {
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _pickDate,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: l10n.dateFieldLabel,
+                  prefixIcon: const Icon(Icons.calendar_today_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                child: Text(
+                  MaterialLocalizations.of(context).formatShortDate(_date),
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _reasonController,

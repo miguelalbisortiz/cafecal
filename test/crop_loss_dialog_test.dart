@@ -18,14 +18,17 @@ import 'package:mi_cafetal/widgets/crop_loss_dialog.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<TransactionProvider> setup({int plantas = 500}) async {
+  Future<TransactionProvider> setup({
+    int plantas = 500,
+    DateTime? siembra,
+  }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final prefs = await SharedPreferences.getInstance();
     final provider = TransactionProvider(LocalStore(prefs));
     await provider.addCrop('Café');
     await provider.addSowing(
       cropId: provider.crops.single.id,
-      date: DateTime(2026, 3, 1),
+      date: siembra ?? DateTime(2026, 3, 1),
       plants: plantas,
     );
     return provider;
@@ -142,5 +145,70 @@ void main() {
 
     expect(find.text(l10n.cropLossInvalid), findsOneWidget);
     expect(provider.sowings, hasLength(1));
+  });
+
+  testWidgets('F4: el diálogo muestra el día de la pérdida', (tester) async {
+    final provider = await setup(plantas: 500);
+    await pumpLoss(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+    final material = MaterialLocalizations.of(
+        tester.element(find.byType(CropLossDialog)));
+
+    expect(find.text(l10n.dateFieldLabel), findsOneWidget);
+    expect(find.text(material.formatShortDate(DateTime.now())), findsOneWidget,
+        reason: 'arranca en hoy: lo normal es que la pérdida sea de hoy');
+  });
+
+  // Guarda (no rojo/verde): fija que el valor por defecto sigue siendo hoy.
+  testWidgets('F4: sin tocar la fecha, la pérdida queda de hoy',
+      (tester) async {
+    final provider = await setup(plantas: 500);
+    await pumpLoss(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+
+    await tester.enterText(find.byType(TextFormField).at(0), '450');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    final ahora = DateTime.now();
+    final guardada = provider.sowings.last.date;
+    expect(
+      DateTime(guardada.year, guardada.month, guardada.day),
+      DateTime(ahora.year, ahora.month, ahora.day),
+    );
+  });
+
+  testWidgets('F4: la pérdida se fecha el día que él elige', (tester) async {
+    // La siembra arranca el 1 del mes pasado: así el selector deja navegar
+    // hacia atrás sin depender del mes en que corran los tests.
+    final ahora = DateTime.now();
+    final primeraSiembra = DateTime(ahora.year, ahora.month - 1, 1);
+    final provider = await setup(plantas: 500, siembra: primeraSiembra);
+    await pumpLoss(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+    final material = MaterialLocalizations.of(
+        tester.element(find.byType(CropLossDialog)));
+
+    await tester.tap(find.byIcon(Icons.calendar_today_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(material.okButtonLabel));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).at(0), '450');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(provider.sowings.last.date, DateTime(ahora.year, ahora.month - 1, 15),
+        reason: 'anota el día de la pérdida, no el día en que la escribe');
+    expect(provider.crops.single.livePlants, 450);
   });
 }

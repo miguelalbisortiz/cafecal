@@ -105,9 +105,38 @@ enum SowingKind {
         ? (lost: s.lostPlants ?? 0, reason: s.reason)
         : (lost: 0, reason: null);
 
-/// Recomputes crop.livePlants and crop.areaHa from sowings in chronological order.
-/// Returns a list of crop update candidates: each entry is [cropId, newLivePlants, newAreaHa].
-/// If there are no sowings for a crop, its values are left untouched.
+/// El día desde el que tiene sentido fechar una pérdida de este cultivo: la
+/// **siembra más reciente**.
+///
+/// Una pérdida anterior a esa siembra no cuenta: el contador lo fija la
+/// siembra que viene después (`recomputeCropState`), así que el registro
+/// subiría «Pérdidas acumuladas» del informe sin bajar el contador — dos
+/// números del mismo informe contradiciéndose. El selector de fecha no deja
+/// elegir ese día.
+///
+/// Sin siembras, arranca en el año 2000, igual que el formulario de siembras.
+DateTime lossEarliestDate(List<Sowing> sowings, String cropId) {
+  DateTime? ultima;
+  for (final s in sowings) {
+    if (s.cropId != cropId || s.kind != SowingKind.siembra) continue;
+    if (ultima == null || s.date.isAfter(ultima)) ultima = s.date;
+  }
+  return ultima == null
+      ? DateTime(2000)
+      : DateTime(ultima.year, ultima.month, ultima.day);
+}
+
+/// Recalcula `crop.livePlants` y `crop.areaHa` a partir de las siembras,
+/// **por día**.
+///
+/// El orden es el del calendario, no el del instante: una pérdida y su siembra
+/// del **mismo día** cuentan juntas, porque el registro se guarda por día (la
+/// fecha del selector llega a las 00:00) y comparar instantes descartaba la
+/// pérdida en silencio. Dentro de un mismo día manda la siembra: es la que fija
+/// el contador contra el que cuenta la resiembra.
+///
+/// Devuelve una entrada por cultivo: [cropId, nuevas plantas, nueva área]. Si un
+/// cultivo no tiene siembras, sus valores se dejan como estaban.
 Map<String, ({int livePlants, double? areaHa})> recomputeCropState(
     List<Sowing> sowings) {
   final result = <String, ({int livePlants, double? areaHa})>{};
@@ -121,7 +150,13 @@ Map<String, ({int livePlants, double? areaHa})> recomputeCropState(
 
   for (final entry in byCrop.entries) {
     final sorted = entry.value.toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+      ..sort((a, b) {
+        final byDay = _dayOf(a.date).compareTo(_dayOf(b.date));
+        if (byDay != 0) return byDay;
+        final byKind = _kindOrder(a.kind) - _kindOrder(b.kind);
+        if (byKind != 0) return byKind;
+        return a.date.compareTo(b.date);
+      });
 
     int? livePlants;
     double? areaHa;
@@ -145,3 +180,10 @@ Map<String, ({int livePlants, double? areaHa})> recomputeCropState(
 
   return result;
 }
+
+/// El día calendario de una fecha, sin la hora.
+DateTime _dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
+
+/// Dentro de un mismo día: primero la siembra (fija el contador), después la
+/// resiembra (lo ajusta).
+int _kindOrder(SowingKind kind) => kind == SowingKind.siembra ? 0 : 1;

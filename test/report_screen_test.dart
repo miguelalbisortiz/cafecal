@@ -16,6 +16,7 @@ import 'package:mi_cafetal/services/currency_conversion.dart';
 import 'package:mi_cafetal/services/currency_rates_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/utils/format.dart';
+import 'package:mi_cafetal/widgets/crop_loss_dialog.dart';
 import 'package:mi_cafetal/widgets/currency_breakdown.dart';
 import 'package:mi_cafetal/widgets/period_totals.dart';
 
@@ -846,5 +847,147 @@ void main() {
       isEmpty,
       reason: 'los porcentajes exigirían sumar pesos con euros',
     );
+  });
+
+  // F4 · Guarda (no rojo/verde): una pérdida de hoy sí entra en el período que
+  // se está mirando. Fija que la lista del período sigue funcionando.
+  testWidgets('F4 · una pérdida fechada este mes se lista en el período',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 8000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final crop = await provider.addCrop('Café');
+    final hoy = DateTime.now();
+
+    await provider.addSowing(
+      cropId: crop.id,
+      date: DateTime(hoy.year, hoy.month, 1),
+      plants: 500,
+    );
+    await provider.addSowing(
+      cropId: crop.id,
+      date: hoy,
+      kind: SowingKind.resiembra,
+      plants: 0,
+      lostPlants: 50,
+      reason: 'se murieron',
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(
+      find.text(l10n.reportSowingsLostLine(50, 'se murieron')),
+      findsOneWidget,
+      reason: 'la pérdida de hoy entra en el período que se está mirando',
+    );
+  });
+
+  // F4 · Camino completo y **rojo/verde**: él anota la pérdida con el diálogo y
+  // elige el mes pasado. La lista del período sale de `s.date`
+  // (`_periodSowings`, `report_screen.dart:614`), así que no entra en el informe
+  // de este mes; la tarjeta «Pérdidas acumuladas» sí la cuenta, porque suma
+  // todo el historial a propósito.
+  testWidgets('F4 · la pérdida re-fechada al mes pasado no entra en el período',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 8000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final crop = await provider.addCrop('Café');
+    final hoy = DateTime.now();
+    final mesPasado = DateTime(hoy.year, hoy.month - 1, 15);
+
+    await provider.addSowing(
+      cropId: crop.id,
+      date: DateTime(mesPasado.year, mesPasado.month, 1),
+      plants: 500,
+    );
+
+    // 1) El diálogo de pérdidas, con la fecha llevada al mes pasado.
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: MaterialApp(
+        locale: const Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () => showDialog<int>(
+                  context: context,
+                  builder: (_) => CropLossDialog(
+                    crop: provider.crops.single,
+                    currentPlants: provider.crops.single.livePlants!,
+                  ),
+                ),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    final dl10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+    final material = MaterialLocalizations.of(
+        tester.element(find.byType(CropLossDialog)));
+
+    await tester.tap(find.byIcon(Icons.calendar_today_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.chevron_left)); // al mes pasado
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(material.okButtonLabel));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).at(0), '450');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, dl10n.add));
+    await tester.pumpAndSettle();
+
+    expect(provider.sowings.last.date, mesPasado,
+        reason: 'la pérdida quedó fechada el día que él eligió');
+
+    // 2) El informe de este mes.
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.reportSowingsLostOnly(50)), findsNothing,
+        reason: 'el informe mira este mes; esa resiembra fue el mes pasado');
+    expect(find.text(l10n.reportSowingsLosses), findsOneWidget,
+        reason: 'el acumulado sí la cuenta: suma todo el historial');
+    expect(provider.crops.single.livePlants, 450,
+        reason: 'y el contador del cultivo ya bajó: la pérdida cuenta');
   });
 }
