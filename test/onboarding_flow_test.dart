@@ -110,6 +110,20 @@ void main() {
         reason: 'una sola fuente de verdad: lo que elige aquí lo lee todo');
   });
 
+  testWidgets('el desplegable nombra la moneda por su código, no por el símbolo',
+      (tester) async {
+    final (tx, auth) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+
+    expect(find.text('Peso colombiano (COP)'), findsOneWidget,
+        reason: 'la etiqueta dice lo mismo que el botón que la confirma, y el '
+            'texto que queda bajo Monto');
+    expect(find.text(r'$ Peso colombiano (COP)'), findsNothing,
+        reason: 'El símbolo `\$` lo comparten COP, USD y CLP: no dice de qué '
+            'moneda es; el código sí');
+  });
+
   testWidgets('finca vacía: solo la puerta, sin resumen ni pestañas',
       (tester) async {
     final (tx, auth) = await makeProviders();

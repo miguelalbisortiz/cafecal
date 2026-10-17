@@ -77,7 +77,11 @@ class _CurrencySetupGateState extends State<CurrencySetupGate> {
                   .map((c) => DropdownMenuItem(
                         value: c.code,
                         child: Text(
-                          '${c.symbol} ${c.name} (${c.code})',
+                          // Sin símbolo: `$` lo comparten COP, USD y CLP, así
+                          // que el código es el único que dice de qué moneda
+                          // es. La etiqueta queda igual que la del botón que
+                          // la confirma y que el texto bajo Monto.
+                          '${c.name} (${c.code})',
                           overflow: TextOverflow.ellipsis,
                         ),
                       ))
