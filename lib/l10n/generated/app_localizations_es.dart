@@ -2098,7 +2098,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String insightVsPrev(Object expChange, Object incChange, Object month) {
+  String insightVsPrev(String month, String incChange, String expChange) {
     return 'Frente a $month: ventas $incChange y gastos $expChange.';
   }
 
@@ -2121,7 +2121,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insightChangeFlat => 'sin cambios';
 
   @override
-  String insightTopExpense(Object amount, Object category, Object pct) {
+  String insightTopExpense(String category, String amount, String pct) {
     return 'Tu mayor gasto fue $category ($amount, el $pct del total).';
   }
 
@@ -2131,17 +2131,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String insightTopIncome(Object amount, Object category, Object pct) {
+  String insightTopIncome(String category, String amount, String pct) {
     return 'Tu mejor ingreso fue $category ($amount, el $pct del total).';
   }
 
   @override
-  String insightLowPrice(Object history, Object recent) {
+  String insightLowPrice(double recent, double history) {
     return 'Vendes más barato que tu histórico: promedio reciente $recent vs $history por kilo. Revisa precio, presentación o canal de venta.';
   }
 
   @override
-  String insightBestMonth(Object costAmount, Object costMonth, Object salesAmount, Object salesMonth) {
+  String insightBestMonth(String salesMonth, String salesAmount, String costMonth, String costAmount) {
     return 'Tu mejor mes de ventas fue $salesMonth ($salesAmount); tu menor gasto mensual fue $costMonth ($costAmount).';
   }
 
@@ -2236,7 +2236,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get alertLowPriceManualTitle => 'Vendiste café por debajo de tu precio mínimo';
 
   @override
-  String alertLowPriceManualMessage(String price, String threshold, String date) {
+  String alertLowPriceManualMessage(String date, String price, String threshold) {
     return 'El $date vendiste a $price por kg, por debajo de tu precio mínimo de $threshold. Considera negociar un mejor precio o esperar.';
   }
 
@@ -2531,7 +2531,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop) {
+  String alertHarvestVsSalesMessage(String soldKg, String crop, String harvestedKg) {
     return 'El problema: en los últimos 12 meses vendiste $soldKg de $crop, pero solo registraste $harvestedKg de cosecha. Revisa si te faltó registrar alguna cosecha o si usaste la misma unidad en la cosecha y en la venta.';
   }
 

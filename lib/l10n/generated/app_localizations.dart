@@ -3945,7 +3945,7 @@ abstract class AppLocalizations {
   ///
   /// In es, this message translates to:
   /// **'Frente a {month}: ventas {incChange} y gastos {expChange}.'**
-  String insightVsPrev(Object expChange, Object incChange, Object month);
+  String insightVsPrev(String month, String incChange, String expChange);
 
   /// B1: cuando el mes que se mira es el mes en curso, el mes anterior se recorta al mismo tramo de días
   ///
@@ -3975,7 +3975,7 @@ abstract class AppLocalizations {
   ///
   /// In es, this message translates to:
   /// **'Tu mayor gasto fue {category} ({amount}, el {pct} del total).'**
-  String insightTopExpense(Object amount, Object category, Object pct);
+  String insightTopExpense(String category, String amount, String pct);
 
   /// No description provided for @insightTopExpenseDependency.
   ///
@@ -3987,19 +3987,19 @@ abstract class AppLocalizations {
   ///
   /// In es, this message translates to:
   /// **'Tu mejor ingreso fue {category} ({amount}, el {pct} del total).'**
-  String insightTopIncome(Object amount, Object category, Object pct);
+  String insightTopIncome(String category, String amount, String pct);
 
   /// No description provided for @insightLowPrice.
   ///
   /// In es, this message translates to:
   /// **'Vendes más barato que tu histórico: promedio reciente {recent} vs {history} por kilo. Revisa precio, presentación o canal de venta.'**
-  String insightLowPrice(Object history, Object recent);
+  String insightLowPrice(double recent, double history);
 
   /// No description provided for @insightBestMonth.
   ///
   /// In es, this message translates to:
   /// **'Tu mejor mes de ventas fue {salesMonth} ({salesAmount}); tu menor gasto mensual fue {costMonth} ({costAmount}).'**
-  String insightBestMonth(Object costAmount, Object costMonth, Object salesAmount, Object salesMonth);
+  String insightBestMonth(String salesMonth, String salesAmount, String costMonth, String costAmount);
 
   /// No description provided for @chartTitle.
   ///
@@ -4137,7 +4137,7 @@ abstract class AppLocalizations {
   ///
   /// In es, this message translates to:
   /// **'El {date} vendiste a {price} por kg, por debajo de tu precio mínimo de {threshold}. Considera negociar un mejor precio o esperar.'**
-  String alertLowPriceManualMessage(String price, String threshold, String date);
+  String alertLowPriceManualMessage(String date, String price, String threshold);
 
   /// No description provided for @alertDeficitNoCropTitle.
   ///
@@ -4647,7 +4647,7 @@ abstract class AppLocalizations {
   ///
   /// In es, this message translates to:
   /// **'El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si te faltó registrar alguna cosecha o si usaste la misma unidad en la cosecha y en la venta.'**
-  String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop);
+  String alertHarvestVsSalesMessage(String soldKg, String crop, String harvestedKg);
 
   /// No description provided for @alertHarvestVsSalesSuggestion.
   ///

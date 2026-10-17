@@ -907,6 +907,13 @@
   "insightBalanceNoIncome": "Resultado del período: {spent} en gastos y ninguna venta en este período.",
   "insightBalancePositive": "Resultado del período: ganancia de {balance} con {margin} de margen sobre las ventas.",
   "insightBalanceNegative": "Resultado del período: pérdida de {loss} con margen de {margin} sobre las ventas.",
+  "@insightVsPrev": {
+    "placeholders": {
+      "month": { "type": "String" },
+      "incChange": { "type": "String" },
+      "expChange": { "type": "String" }
+    }
+  },
   "insightVsPrev": "Frente a {month}: ventas {incChange} y gastos {expChange}.",
   "insightVsPrevPartial": "Frente a {month} (mismos días): ventas {incChange} y gastos {expChange}.",
   "@insightVsPrevPartial": {
@@ -920,10 +927,38 @@
   "insightChangeUp": "subieron {pct}",
   "insightChangeDown": "bajaron {pct}",
   "insightChangeFlat": "sin cambios",
+  "@insightTopExpense": {
+    "placeholders": {
+      "category": { "type": "String" },
+      "amount": { "type": "String" },
+      "pct": { "type": "String" }
+    }
+  },
   "insightTopExpense": "Tu mayor gasto fue {category} ({amount}, el {pct} del total).",
   "insightTopExpenseDependency": "Concentras más de la mitad de tus gastos en {category}: revisa ese costo recurrente antes de que siga creciendo.",
+  "@insightTopIncome": {
+    "placeholders": {
+      "category": { "type": "String" },
+      "amount": { "type": "String" },
+      "pct": { "type": "String" }
+    }
+  },
   "insightTopIncome": "Tu mejor ingreso fue {category} ({amount}, el {pct} del total).",
+  "@insightLowPrice": {
+    "placeholders": {
+      "recent": { "type": "double" },
+      "history": { "type": "double" }
+    }
+  },
   "insightLowPrice": "Vendes más barato que tu histórico: promedio reciente {recent} vs {history} por kilo. Revisa precio, presentación o canal de venta.",
+  "@insightBestMonth": {
+    "placeholders": {
+      "salesMonth": { "type": "String" },
+      "salesAmount": { "type": "String" },
+      "costMonth": { "type": "String" },
+      "costAmount": { "type": "String" }
+    }
+  },
   "insightBestMonth": "Tu mejor mes de ventas fue {salesMonth} ({salesAmount}); tu menor gasto mensual fue {costMonth} ({costAmount}).",
 
   "@chartTitle": {
@@ -995,9 +1030,9 @@
   "alertLowPriceManualTitle": "Vendiste café por debajo de tu precio mínimo",
   "@alertLowPriceManualMessage": {
     "placeholders": {
+      "date": { "type": "String" },
       "price": { "type": "String" },
-      "threshold": { "type": "String" },
-      "date": { "type": "String" }
+      "threshold": { "type": "String" }
     }
   },
   "alertLowPriceManualMessage": "El {date} vendiste a {price} por kg, por debajo de tu precio mínimo de {threshold}. Considera negociar un mejor precio o esperar.",
@@ -1162,7 +1197,7 @@
   },
   "alertHarvestVsSalesTitle": "Vendiste más de lo que cosechaste en {crop}",
   "@alertHarvestVsSalesMessage": {
-    "placeholders": { "soldKg": { "type": "String" }, "harvestedKg": { "type": "String" }, "crop": { "type": "String" } }
+    "placeholders": { "soldKg": { "type": "String" }, "crop": { "type": "String" }, "harvestedKg": { "type": "String" } }
   },
   "alertHarvestVsSalesMessage": "El problema: en los últimos 12 meses vendiste {soldKg} de {crop}, pero solo registraste {harvestedKg} de cosecha. Revisa si te faltó registrar alguna cosecha o si usaste la misma unidad en la cosecha y en la venta.",
   "@alertHarvestVsSalesSuggestion": {

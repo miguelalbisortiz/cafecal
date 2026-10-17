@@ -147,9 +147,9 @@ class ReportInsightsService {
                   changeText(expDelta, l10n),
                 )
               : l10n.insightVsPrev(
-                  changeText(expDelta, l10n),
-                  changeText(incDelta, l10n),
                   monthName,
+                  changeText(incDelta, l10n),
+                  changeText(expDelta, l10n),
                 ),
         ));
       }
@@ -174,7 +174,7 @@ class ReportInsightsService {
     out.add(ReportInsight(
       tone: pct >= 50 ? InsightTone.negative : InsightTone.info,
       text: l10n.insightTopExpense(
-          money(top.amount), top.label, '${pct.toStringAsFixed(0)}%'),
+          top.label, money(top.amount), '${pct.toStringAsFixed(0)}%'),
     ));
     if (pct >= 50) {
       out.add(ReportInsight(
@@ -198,7 +198,7 @@ class ReportInsightsService {
       out.add(ReportInsight(
         tone: InsightTone.positive,
         text: l10n.insightTopIncome(
-            money(top.amount), top.label, '${pct.toStringAsFixed(0)}%'),
+            top.label, money(top.amount), '${pct.toStringAsFixed(0)}%'),
       ));
     }
 
@@ -213,7 +213,7 @@ class ReportInsightsService {
       if (check != null && check.isBelow) {
         out.add(ReportInsight(
           tone: InsightTone.negative,
-          text: l10n.insightLowPrice(check.histAvgPerKg, check.recentAvgPerKg),
+          text: l10n.insightLowPrice(check.recentAvgPerKg, check.histAvgPerKg),
         ));
       }
     }
@@ -261,10 +261,10 @@ class ReportInsightsService {
     out.add(ReportInsight(
       tone: InsightTone.info,
       text: l10n.insightBestMonth(
-        money(lowest.value.$2),
-        l10n.monthFull[lowest.key - 1],
-        money(best.value.$1),
         l10n.monthFull[best.key - 1],
+        money(best.value.$1),
+        l10n.monthFull[lowest.key - 1],
+        money(lowest.value.$2),
       ),
     ));
   }

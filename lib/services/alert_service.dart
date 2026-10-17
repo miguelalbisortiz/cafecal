@@ -334,9 +334,9 @@ class AlertService {
           severity: AlertSeverity.warning,
           title: l10n.alertLowPriceManualTitle,
           message: l10n.alertLowPriceManualMessage(
+            DateFormat('dd/MM/yyyy').format(latest.date),
             _money(pricePerKg(latest), currency),
             _money(manualThresholdPerKg, currency),
-            DateFormat('dd/MM/yyyy').format(latest.date),
           ),
           suggestion: l10n.alertLowPriceSuggestion,
         ));
@@ -544,8 +544,8 @@ class AlertService {
           title: l10n.alertHarvestVsSalesTitle(label),
           message: l10n.alertHarvestVsSalesMessage(
             _kg(soldKg),
-            _kg(harvestedKg),
             label,
+            _kg(harvestedKg),
           ),
           suggestion: l10n.alertHarvestVsSalesSuggestion(label),
         ));

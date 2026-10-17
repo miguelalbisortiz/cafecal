@@ -2098,7 +2098,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String insightVsPrev(Object expChange, Object incChange, Object month) {
+  String insightVsPrev(String month, String incChange, String expChange) {
     return 'Compared to $month: sales $incChange and expenses $expChange.';
   }
 
@@ -2121,7 +2121,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightChangeFlat => 'unchanged';
 
   @override
-  String insightTopExpense(Object amount, Object category, Object pct) {
+  String insightTopExpense(String category, String amount, String pct) {
     return 'Your biggest expense was $category ($amount, $pct of the total).';
   }
 
@@ -2131,17 +2131,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String insightTopIncome(Object amount, Object category, Object pct) {
+  String insightTopIncome(String category, String amount, String pct) {
     return 'Your best income was $category ($amount, $pct of the total).';
   }
 
   @override
-  String insightLowPrice(Object history, Object recent) {
+  String insightLowPrice(double recent, double history) {
     return 'You sell cheaper than your historical average: recent average $recent vs $history per kg. Check price, packaging or sales channel.';
   }
 
   @override
-  String insightBestMonth(Object costAmount, Object costMonth, Object salesAmount, Object salesMonth) {
+  String insightBestMonth(String salesMonth, String salesAmount, String costMonth, String costAmount) {
     return 'Your best sales month was $salesMonth ($salesAmount); your lowest monthly expense was $costMonth ($costAmount).';
   }
 
@@ -2236,7 +2236,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertLowPriceManualTitle => 'You sold coffee below your minimum price';
 
   @override
-  String alertLowPriceManualMessage(String price, String threshold, String date) {
+  String alertLowPriceManualMessage(String date, String price, String threshold) {
     return 'On $date you sold at $price per kg, below your minimum price of $threshold. Consider negotiating a better price or waiting.';
   }
 
@@ -2531,7 +2531,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String alertHarvestVsSalesMessage(String soldKg, String harvestedKg, String crop) {
+  String alertHarvestVsSalesMessage(String soldKg, String crop, String harvestedKg) {
     return 'The problem: in the last 12 months you sold $soldKg of $crop, but only recorded $harvestedKg of harvest. Check whether a harvest is missing, or whether the harvest and the sale use the same unit.';
   }
 
