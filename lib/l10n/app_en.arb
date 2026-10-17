@@ -1029,7 +1029,7 @@
     "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }
   },
   "alertFirstHarvestMessage": "You estimated the first harvest of {crop} for {date} and haven't recorded any harvest yet.",
-  "alertFirstHarvestSuggestion": "Check the crop: if something changed or that date no longer fits, edit it. If you already harvested, record it and this notice goes away.",
+  "alertFirstHarvestSuggestion": "Check the crop: if something changed or that date no longer fits, edit it. If you already sold, record that sale with the kilos and the money you were paid: with those kilos the app already knows you harvested and this notice goes away.",
   "alertMissingQtyTitle": "You have sales without recorded kilos",
   "@alertMissingQtyMessage": {
     "placeholders": { "count": { "type": "int" } }

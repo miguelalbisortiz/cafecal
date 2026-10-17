@@ -4688,7 +4688,7 @@ abstract class AppLocalizations {
   /// No description provided for @alertFirstHarvestSuggestion.
   ///
   /// In es, this message translates to:
-  /// **'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya cosechaste, registrá esa cosecha y este aviso desaparece.'**
+  /// **'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya vendiste, anotá esa venta con los kilos y el dinero que te pagaron: con esos kilos la app ya sabe que cosechaste y este aviso desaparece.'**
   String get alertFirstHarvestSuggestion;
 
   /// No description provided for @alertMissingQtyTitle.

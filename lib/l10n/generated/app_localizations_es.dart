@@ -2562,7 +2562,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get alertFirstHarvestSuggestion => 'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya cosechaste, registrá esa cosecha y este aviso desaparece.';
+  String get alertFirstHarvestSuggestion => 'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya vendiste, anotá esa venta con los kilos y el dinero que te pagaron: con esos kilos la app ya sabe que cosechaste y este aviso desaparece.';
 
   @override
   String get alertMissingQtyTitle => 'Tienes ventas sin kilos registrados';

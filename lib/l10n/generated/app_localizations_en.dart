@@ -2562,7 +2562,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get alertFirstHarvestSuggestion => 'Check the crop: if something changed or that date no longer fits, edit it. If you already harvested, record it and this notice goes away.';
+  String get alertFirstHarvestSuggestion => 'Check the crop: if something changed or that date no longer fits, edit it. If you already sold, record that sale with the kilos and the money you were paid: with those kilos the app already knows you harvested and this notice goes away.';
 
   @override
   String get alertMissingQtyTitle => 'You have sales without recorded kilos';

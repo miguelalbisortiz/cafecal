@@ -1173,7 +1173,7 @@
     "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }
   },
   "alertFirstHarvestMessage": "Estimaste la primera cosecha de {crop} para el {date} y hasta ahora no registraste ninguna cosecha.",
-  "alertFirstHarvestSuggestion": "Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya cosechaste, registrá esa cosecha y este aviso desaparece.",
+  "alertFirstHarvestSuggestion": "Revisá el cultivo: si cambió algo o la fecha ya no va, editala. Si ya vendiste, anotá esa venta con los kilos y el dinero que te pagaron: con esos kilos la app ya sabe que cosechaste y este aviso desaparece.",
   "alertMissingQtyTitle": "Tienes ventas sin kilos registrados",
   "@alertMissingQtyMessage": {
     "placeholders": { "count": { "type": "int" } }
