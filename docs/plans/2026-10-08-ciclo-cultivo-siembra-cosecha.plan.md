@@ -32,7 +32,8 @@ gasto, con ritmo semanal** — no lote con nombre.
 - [x] **F1** — cosecha → venta + B1 (2026-10-09) · analyze limpio · **470/470** (12 nuevos)
 - [x] **F2** — costo en la resiembra (2026-10-09) · analyze limpio · **473/473** (3 nuevos)
 - [x] **F3** — Inversión total (2026-10-09) · analyze limpio · **482/482** (9 nuevos)
-- [ ] F4 … F6
+- [x] **F4** — Pérdida sin plantar (2026-10-17) · analyze limpio · **934/934** (1 nuevo: el cableado)
+- [ ] F5 … F6
 
 ---
 
@@ -148,9 +149,18 @@ Nueva cosecha
 - **Tests**: se auto-rellena · excluye resiembras · edición manual persiste ·
   `null` → sigue oculto (regla de oro: null → oculto, nunca 0).
 
-### F4 · Pérdida sin plantar 🟡
+### F4 · Pérdida sin plantar 🟡 ✅ **HECHO 2026-10-17**
 
 **Este es el que habilita el bloqueo del 0-A.**
+
+> Las cuatro partes estaban puestas: la bandera `sowingsLocked` y el bloqueo de los dos campos
+> en `crop_editor_dialog.dart` (`enabled: !sowingsLocked` + `cropLockedHint`), los textos
+> *«Calculado desde tus siembras»* y *«Registrar pérdida»*, y la **salida** (`_registerLoss` abre
+> el `CropLossDialog`). El cableado también: `crops_screen.dart:282` pasa
+> `sowingsLocked: _hasInitialSowing(tx, crop)` (`:347`, «siembra inicial de ese cultivo»).
+> Lo que faltaba era lo que ata las dos piezas: el **test de cableado**
+> (`test/crops_screen_test.dart`), verificado en **rojo** apagando la bandera. La parte **a**
+> (mortandad sin reponer) había quedado hecha con la tanda de siembra.
 
 | Parte | Archivo | Cambio |
 |---|---|---|

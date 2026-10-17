@@ -76,6 +76,40 @@ void main() {
     expect(provider.crops.single.name, 'Café');
   });
 
+  testWidgets(
+      'F4 · un cultivo que ya tiene siembra no deja escribir área ni plantas',
+      (tester) async {
+    final provider = await makeProvider();
+    await provider.addSowing(
+      cropId: provider.crops.single.id,
+      date: DateTime.now(),
+      plants: 400,
+      areaHa: 0.5,
+    );
+    await pump(tester, provider);
+    final l10n = l10nOf(tester);
+
+    await tester.tap(find.byTooltip(l10n.edit));
+    await tester.pumpAndSettle();
+
+    final dialogL10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    // El contador sale de las siembras: se enseña, pero no se teclea.
+    expect(find.text(dialogL10n.cropLockedHint), findsNWidgets(2),
+        reason: 'área y plantas dicen de dónde sale el número');
+    expect(tester.widget<TextField>(find.byType(TextField).at(1)).enabled,
+        isFalse,
+        reason: 'el área la manda la siembra, no el editor');
+    expect(tester.widget<TextField>(find.byType(TextField).at(2)).enabled,
+        isFalse,
+        reason: 'las plantas vivas las manda la siembra, no el editor');
+
+    // Y la salida sigue a mano: la app no encierra a nadie.
+    expect(find.text(dialogL10n.cropLossRegister), findsOneWidget,
+        reason: 'sin esta puerta, el caficultor queda encerrado');
+  });
+
   testWidgets('C5: crear un cultivo guarda fase y área desde el formulario',
       (tester) async {
     final provider = await makeProvider();
