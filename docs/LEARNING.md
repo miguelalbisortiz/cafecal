@@ -13,6 +13,9 @@ Last updated: 2026-10-17
 - Pattern (plugin): el bloqueador de secretos mira por NOMBRE y por CONTENIDO, y reconoce los secretos por su FORMA (`sbp_` + 20 alfanuméricos, JWT de tres segmentos) y no por palabras sueltas — así la documentación que habla de secretos sigue pasando | .opencode/plugins/hookify.js | 2026-10-17
 - Pattern (probar un plugin de `.opencode/`): con Node y sin tocar el original. Se copia el `.js` a un `.mjs` temporal (`.opencode/package.json` no declara `type: module`), se llama a `setup()` con un `ctx` falso que captura el hook y se pasan casos rojo/verde | .opencode/plugins/hookify.js | 2026-10-17
 - Pattern: el motor V2 recarga los plugins **en caliente**: al reescribir `hookify.js`, las reglas nuevas ya bloqueaban en la misma sesión (dos sondas bloqueadas, sin crear archivo) | .opencode/plugins/ | 2026-10-17
+- Pattern: comparar por **día del calendario**, no por **instante**. La siembra de la mañana y la pérdida de la tarde del mismo día son el MISMO día: `recomputeCropState` ordena por `_dayOf` y desempata con `_kindOrder` (siembra antes que resiembra) | lib/models/sowing.dart | 2026-10-17
+- Pattern: el rango de un selector se prueba sin montar la UI si la regla vive en una función **pura** del modelo. `lossEarliestDate(sowings, cropId)` decide el tope inferior; el `showDatePicker` solo lo pinta | lib/models/sowing.dart | 2026-10-17
+- Pattern (test): un test que no atraviesa el camino real es una **guarda**, no una prueba. Los dos tests del informe pasaban igual con la librería vieja porque no montaban el diálogo; un test solo prueba si el fallo que persigue lo hace caer | test/report_screen_test.dart | 2026-10-17
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -21,6 +24,7 @@ Last updated: 2026-10-17
 - Bug: `npx` pelado no resuelve en Windows, así que el MCP `context7` no arrancaba | anteponer `cmd /c` | opencode.json | 2026-10-17
 - Bug: `isSecretPath` comparaba la ruta sin normalizarla, así que `D:\...\.env.<algo>` se escribía igual | normalizar `\` → `/` antes de comparar | .opencode/plugins/hookify.js | 2026-10-17
 - Bug (falso): correr `deploy.ps1` con `2>&1` dentro de una tubería reporta código de salida 1 aunque el deploy salga bien. No es el script: es mezclar el stderr de git/flutter (`Invoke-WebRequest` y el progreso escriben ahí) en la tubería | no meter `2>&1`; fiarse de la huella del paso 7 | deploy.ps1 | 2026-10-17
+- Bug: una pérdida anotada el MISMO día de la siembra se descartaba, porque la comprobación comparaba instantes y no días; el informe contaba 100 donde eran 60 | comparar por día (`_dayOf`) en `recomputeCropState`; la pérdida del mismo día entra y se aplica después de la siembra | lib/models/sowing.dart | 2026-10-17
 
 ## Performance
 - Sin registros todavía.

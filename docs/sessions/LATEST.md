@@ -1,173 +1,144 @@
-# Sesión — sábado 17 de octubre de 2026 (tarde)
+# Sesión — sábado 17 de octubre de 2026 (el día de la pérdida se anota)
 
-Estado al cierre. Anteriores: `2026-10-17-entorno-motores-plugins-y-mcp.md` (la mañana de
-hoy) y `2026-10-16-cierre-mensual-y-reparto-por-hectareas.md`.
+Estado al cierre. Archivo completo en `2026-10-17-campo-de-fecha-en-perdidas.md`.
+Anteriores de hoy: `2026-10-17-entorno-motores-plugins-y-mcp.md` (la mañana) y
+`2026-10-16-cierre-mensual-y-reparto-por-hectareas.md`.
 
 ---
 
 ## 1. ¿Dónde quedó el proyecto?
 
-La app se tocó al mediodía (siembra y pérdidas, §2) y por la tarde **solo el entorno y la
-seguridad** (§3). El último despliegue es el del mediodía; después no hubo deploy.
+La app se tocó por tercera vez hoy: el **campo de fecha del diálogo de pérdidas**. La web en vivo
+sirve ya ese despliegue, re-verificado hoy descargando el archivo publicado (HTTP 200).
 
 | Rama | Commit | Estado |
 |---|---|---|
-| `main` | `1498e5b` | sincronizada con `origin/main` |
-| `gh-pages` | `331fd56` | sincronizada (el despliegue de siembra del mediodía) |
+| `main` | `9f86b95` | sincronizada con `origin/main` |
+| `gh-pages` | `6f8971a` | sincronizada |
 
-La web en vivo **sigue sirviendo la misma huella**, re-verificada hoy descargando el archivo
-publicado (HTTP 200):
+Huella en producción:
 
-`529DDF8DE3F2B4F6AFD6D46FAABA0AD6F2A30D5A5560AECAA81B1BA5B9DB81E9` · 4.792.977 bytes.
+`C3562F9A07AA457D9BB1CF278DCFF4425668B6EABF0B3AE7D4DCCDCC89EDF0030` · 4.794.363 bytes
+(antes: `529DDF8D…` · 4.792.977).
 
 Los commits de hoy, en orden:
 
 | Commit | Qué |
 |---|---|
 | `fe30be2` | siembra: el guardado en blanco que reventaba y las pérdidas pegadas a la siembra |
-| `77315e8` | los planes del ciclo cultivo, el snapshot del 16 y **`docs/LEARNING.md` (nuevo)** |
-| `473bd34` | el bloqueo por contenido llega a la shell, `*.env` al `.gitignore`, y la raíz suelta un build muerto (181.249 líneas) |
-| `1498e5b` | el `DestructiveWarner` revive (apuntes en la auditoría y en LEARNING) |
+| `77315e8` | los planes del ciclo, el snapshot del 16 y **`docs/LEARNING.md` (nuevo)** |
+| `473bd34` | el bloqueo de secretos por contenido, y la raíz deja de llevar un build muerto |
+| `1498e5b` | el `DestructiveWarner` revive |
+| `0069222` | el cierre de la sesión de la tarde (siembra, el PAT y los huecos que destapó) |
+| `83fd9d1` | **perdidas: el dia se anota, y la del mismo dia deja de perderse** (código y tests) |
+| `9f86b95` | docs: el PRD del campo de fecha y el informe de su revision |
 
-Gate antes de los commits de la tarde: `flutter analyze` limpio y **920/920**.
-
----
-
-## 2. Mediodía: siembra, resiembra y pérdidas (lo único que tocó la app)
-
-Se revisó a fondo el ciclo siembra → resiembra → pérdidas y salieron **dos bugs de verdad**,
-los dos reproducidos con un test antes de arreglarlos:
-
-- **El guardado reventaba.** Una resiembra con "plantas nuevas" en blanco y mortandad anotada
-  lanzaba `FormatException` y **no se guardaba nada** (el validador permite el campo vacío: la
-  mortandad se anota aunque no se repongan plantas). Arreglo: `int.tryParse(...) ?? 0`.
-- **Las pérdidas se quedaban pegadas.** Al pasar una resiembra a siembra, `Sowing.copyWith` no
-  podía poner `null`, así que conservaba `lostPlants` y `reason`: la fila decía "se perdieron 50"
-  y el informe inflaba las "Pérdidas acumuladas". Arreglo: centinela en `copyWith` (el mismo
-  patrón que `Crop`), y la siembra manda `null` en tipo.
-
-Y una decisión que ordenó la lectura: **una sola regla de pérdidas**. Solo las resiembras
-cuentan pérdidas, y esa regla vive en **una** función, `lossOf(s)`, que usan el modelo
-(`recomputeCropState`), la lista y el informe. Además, `Sowing.fromJson` —puerta única de
-entrada (disco, nube y respaldo)— **limpia** los registros viejos que traían pérdidas pegadas y
-los marca `pendingSync` para subir la corrección. Seis tests nuevos; **920/920** en verde.
-
-Queda **declarado intencional** (lo dice `test/sowing_test.dart`): una resiembra sin siembra
-base, o anterior a ella, se ignora. No es un bug.
-
-> Detalle de la sesión: el deploy parecía fallar con «Exited with code 1». No era el script:
-> era meter `2>&1` en la tubería, que mezcla el progreso que git y flutter escriben en stderr.
-> `deploy.ps1` llegaba a su rama de éxito. Anotado en `LEARNING.md`.
+Gate antes de commit y deploy: `flutter analyze` limpio y **930/930**.
 
 ---
 
-## 3. Tarde: un PAT dentro de un archivo, y los huecos que destapó
+## 2. Lo que se tocó la app: el día de la pérdida
 
-### El incidente
+El diálogo rápido de pérdidas fechaba **siempre** con `DateTime.now()`: anotar «esto pasó la
+semana pasada» era imposible. Ahora tiene un campo **Fecha**, visible, con hoy por defecto, y el
+selector va de la **última siembra** del cultivo a **hoy**. Y salió un fallo de fondo: una pérdida
+del **mismo día** de la siembra se descartaba, porque se comparaban **instantes** (siembra de la
+mañana, pérdida de la tarde) y no **días** del calendario.
 
-Al commitear `docs/`, **GitHub rechazó el push**: su protección de secretos encontró un PAT de
-Supabase a texto plano en
-`docs/sessions/2026-10-16-cierre-mensual-y-reparto-por-hectareas.md:92`. **No salió nada** — el
-push se rechazó y el commit era local, así que la historia publicada nunca llevó el valor.
+`docs/prds/2026-10-17_1652-campo-de-fecha-en-perdidas.prd.md` (`status: DELIVERED`) y sus cuatro
+decisiones:
 
-Se sustituyó el valor por la forma enmascarada (`sbp_fcc730…`, la misma que ya usaba `LATEST.md`),
-se reescribió el commit con `--amend` y el push volvió a pasar: **aceptado**, y esa aceptación es
-la prueba, porque GitHub bloquea cualquier commit que lleve un secreto. Después se purgó el objeto
-suelto (`git reflog expire --expire-unreachable=now --all` + `git gc --prune=now`, verificado con
-`git cat-file` como inexistente).
+| # | Pregunta | Decisión |
+|---|---|---|
+| Q1 | ¿Campo visible? | **Visible**, hoy por defecto; `date` **no** nullable |
+| Q2 | ¿Fecha mínima? | La **última siembra** del cultivo (`lossEarliestDate`); máxima: hoy |
+| Q3 | ¿Instante o día? | **Día calendario** en `recomputeCropState` |
+| Q4 | ¿Bloquear las anteriores a la siembra? | **Sí**, y lo hace el rango del selector |
 
-**Cerrado del todo: el usuario revocó el PAT en Supabase.** El valor filtrado ya no sirve para
-nada, aunque hubiera quedado en algún rincón.
+**Qué se tocó**
 
-**Lo que enseñó:** el bloqueador de secretos miraba solo el **nombre** del archivo, y exigía
-empezar por `.env`. Ni un PAT dentro de un `.md` ni un `report_creds.env` habrían pasado por su red.
-
-### A · El bloqueador reconoce el secreto por su forma
-
-`hookify.js` (gitignored) mira ahora el **contenido** en `edit`/`write`: JWT, `sbp_`, tokens de
-GitHub/AWS/Stripe/Google/Slack y bloques de `PRIVATE KEY`. El patrón de nombre cubre `.env`, `env`
-y `*.env` —o sea `report_creds.env`, `creds.env` y `prod.env`—, dejando pasar los ejemplos
-(`*.env.example`).
-
-Rojo/verde de verdad: **8 casos con Node, 4 en rojo antes** del arreglo y **11/11 en verde**
-después (los 3 últimos son de la shell, ver abajo). Y **dos sondas en vivo** bloqueadas por el
-plugin que corre en la app, una por nombre y otra por contenido, sin crear ningún archivo.
-
-### B · El bloqueo llega a la shell (y apareció un guardián que no disparaba)
-
-Un `echo <secreto> > archivo` se colaba. Al escribir la regla salió algo mejor: se llamaba en
-`bash`, y **en esta superficie el motor llama a la herramienta `shell`**. Ahora la regla se ata a
-que la llamada **traiga un comando**, no al nombre. Sonda en vivo: **bloqueada**.
-
-### C · El `DestructiveWarner` estaba muerto
-
-Su registro (`.opencode/logs/destructive.log`) **no había escrito nunca nada**. Dos fallos:
-esperaba `bash` —otra vez— y resolvía la ruta desde `process.cwd()`, que en el motor **no es el
-proyecto**, con el error tragado por un `catch` silencioso.
-
-Arreglado: la ruta sale de la ubicación del propio plugin (`import.meta.url`), con respaldo en la
-carpeta temporal; el comando se busca por nombre y, si no, por tamaño. **Verificado en vivo**: el
-registro vuelve a escribirse, y de paso confirma que la herramienta se llama `shell`.
-
-### D · `.gitignore` y la raíz
-
-- `.gitignore`: `*.env`, `*.env.local` y `creds*.env`.
-- **La raíz soltó 181.249 líneas**: `main.dart.js`, `flutter*.js`, `canvaskit/`, `icons/`,
-  `index.html`, `favicon.png`, `manifest.json` y `version.json` eran una copia muerta de un build
-  de septiembre; se destrackearon y se ignoran. Comprobado antes: la API de GitHub confirma que
-  Pages publica desde **`gh-pages`** y `deploy.ps1` lo dice él mismo («main queda intacto»), así
-  que esos archivos no publicaban nada. **`assets/` no se tocó**: ahí vive `assets/fonts/` que
-  declara `pubspec.yaml`.
-
-Informe completo: `docs/audits/2026-10-17-secretos-y-bloqueador.md`.
+- `lib/widgets/crop_loss_dialog.dart`: `DateTime _date = DateTime.now()`; `_pickDate()`
+  (`showDatePicker`, `firstDate = min(minimo, hoy)`, `lastDate = hoy`, fecha inicial recortada con
+  `DateUtils.dateOnly`); campo visible = `InkWell` + `InputDecorator` con `l10n.dateFieldLabel` e
+  `Icons.calendar_today_outlined`; `_save` manda `date: _date`. **No** se añadió un
+  `TextFormField`, para no mover los índices que usan los tests.
+- `lib/models/sowing.dart`: `lossEarliestDate(sowings, cropId)` (sin siembras → `DateTime(2000)`;
+  si las hay → el día de la **última**); `recomputeCropState` ordena por `_dayOf` y desempata con
+  `_kindOrder` (siembra antes que resiembra el mismo día); la documentación del bloque, en español.
 
 ---
 
-## 4. Deudas y avisos
+## 3. Tests y rojo/verde
 
-🟢 **El PAT quedó revocado.** La deuda del 16 está cerrada.
+5 tests nuevos en `test/sowing_test.dart` (el del mismo día + grupo `lossEarliestDate`), 3 en
+`test/crop_loss_dialog_test.dart` y 2 en `test/report_screen_test.dart`.
+
+**Rojo medido, no razonado:** sin el comparador por día, el test del mismo día da
+`Expected: <60> Actual: <100>`; con el diálogo de `HEAD` caen los 3 del diálogo; y el camino
+completo del informe (diálogo → fecha → informe) cae **solo** con el diálogo de `HEAD` (17 pasan,
+1 falla).
+
+**Guardas declaradas** (pasan antes y después, a propósito): «sin tocar la fecha queda hoy» y «una
+pérdida fechada este mes se lista en el período».
+
+---
+
+## 4. La revisión y el hallazgo
+
+`docs/reports/2026-10-17_1737-code-review-campo-de-fecha-perdidas.md` → **PASS-CON-NITS**
+(0 CRITICAL, 0 HIGH). **H1 (MEDIUM) resuelto**: dos tests del informe no atravesaban el diálogo
+—pasaban igual con la librería vieja—, y el del mes pasado se rehízo como camino completo. Cerrados
+también H2, H4 y H5.
+
+**Hallazgo anotado:** «Pérdidas acumuladas» (`lib/screens/report_screen.dart:678`) suma **todo el
+historial**; la **lista del período** sí sigue la fecha (`_periodSowings`, `:614`). Documentado y
+con test: es una decisión vieja, no un efecto de esta tanda.
+
+---
+
+## 5. Deudas y avisos
+
+🟢 **El PAT quedó revocado** (el usuario lo hizo en Supabase): la deuda del 16 está cerrada.
 
 🟡 **`report_creds.env` no se borra**: lo leen `tool/generate_report_tool.dart` y
 `tool/verify_auth_write_tool.dart` (EMAIL y PASSWORD de un usuario de prueba). Está gitignored,
-nunca salió del equipo y ahora además lo cubre el bloqueador. Rota esa contraseña solo si la
-reutilizas en otro sitio.
+nunca salió del equipo y lo cubre el bloqueador. Rota esa contraseña solo si la reutilizas.
 
-🟡 **El bloqueador es un guardián, no una jaula.** Atrapa un secreto escrito de una pieza, pero no
-uno armado en tiempo de ejecución (`"sbp_" + …`). Es lo razonable para un hook.
+🟡 **El bloqueador es un guardián, no una jaula.** Atrapa un secreto escrito de una pieza, no uno
+armado en tiempo de ejecución (`"sbp_" + …`). Es lo razonable para un hook.
 
 🟡 **`deploy.ps1` no lo cubre ningún test** — punto ciego declarado, sin cambios.
 
 🟡 **La clave en `argv`** (`deploy.ps1:116-117`) se decidió **no tocar**: es la publishable
 —pública y ya dentro del bundle—, así que verla en la lista de procesos no expone nada.
 
-🟡 **`opencode-vibeguard` 0.1.0 y `opencode-pty` 0.4.0 no pueden funcionar**: son la última
-versión publicada y son V1. Siguen fuera de `opencode.json`. Ningún `npm` lo arregla.
-
-🟢 **Los plugins cargan bien**: el log muestra *loading plugin* en cada recarga, y el bloqueador y
-el warner actúan en vivo. El «reiniciar y comprobar» que quedaba de ayer quedó resuelto por otro
-camino.
+🟡 **`opencode-vibeguard` 0.1.0 y `opencode-pty` 0.4.0 no pueden funcionar**: son la última versión
+publicada y son V1. Siguen fuera de `opencode.json`.
 
 ---
 
-## 5. Pendientes de producto (de la tanda de siembra)
+## 6. Pendientes de producto
 
-Señalados y **sin arreglar**, a la espera de verbo:
+Señalados y **sin abrir**, a la espera de verbo:
 
-1. **El diálogo de pérdidas** (`lib/widgets/crop_loss_dialog.dart`) fecha la resiembra con
-   `DateTime.now()` y **no tiene campo de fecha**: no deja corregir cuándo se perdió.
+1. **El diálogo de pérdidas ya no**: el campo de fecha quedó hecho en esta tanda.
 2. **El desplegable de moneda** todavía enseña `$ Peso colombiano (COP)`, y el código de moneda es
    el único indicador (ya decidido). Falta rematarlo ahí.
 3. **El signo negativo**: en pantalla o en los exportadores, sin decidir.
+4. **Los textos que aún mienten** (Fase 6 de la cosecha derivada): la sugerencia de la alerta 13
+   sigue diciendo «registrá esa cosecha» y no hay puerta que lo haga.
+5. **F4 del plan del ciclo** (`docs/plans/2026-10-08-ciclo-cultivo-siembra-cosecha.plan.md`):
+   bloquear área y plantas en el editor cuando ya hay siembras, más el ajuste de salida.
 
 ---
 
-## 6. Cómo continuar
+## 7. Cómo continuar
 
-**Nada urgente y nada roto.** La web y la app están como estaban.
+**Nada urgente y nada roto.** La web y la app están como quedaron.
 
-- Lo primero, si se retoma el ciclo: **decidir los tres pendientes de producto** de §5.
-- El árbol quedó limpio tras `1498e5b`; lo único que este mismo cierre deja pendiente de commit
-  son estos dos archivos de sesión.
+- Lo primero, si se retoma: **decidir los pendientes de producto** de §6.
+- Nit aceptado de la revisión, sin tocar: el test del diálogo compara contra `DateTime.now()`, así
+  que una suite que cruce la medianoche justo en ese instante fallaría (ventana de milisegundos).
 
 **Reglas de la casa que no se negocian:**
 
