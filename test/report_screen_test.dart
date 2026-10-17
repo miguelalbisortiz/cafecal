@@ -758,30 +758,42 @@ void main() {
         formatAmount(v, currency: currency, locale: 'es_CO');
 
     // Cada fila de categoría lleva su moneda y su código.
+    //
+    // El ingreso en COP sale DOS veces —subtotal del bloque y fila del
+    // cultivo—, como ya salían los gastos. Antes coincidía una sola vez con
+    // `find.text` porque las dos se pintaban distinto (`$5.000` en un sitio
+    // y `$5.000 COP` en otro): mismas cifras, dos formas. Con el código
+    // dentro del monto las dos dicen lo mismo.
     expect(
       find.descendant(
-          of: statement, matching: find.text('${money(5000, 'COP')} COP')),
-      findsOneWidget,
-      reason: 'la fila de ingresos en COP no se pinta como si fuera única',
-    );
-    expect(
-      find.descendant(
-          of: statement, matching: find.text('${money(200, 'EUR')} EUR')),
-      findsOneWidget,
-      reason: 'la fila de ingresos en EUR conserva su moneda',
-    );
-    // Los gastos salen en sus dos bloques: subtotal del grupo y detalle.
-    expect(
-      find.descendant(
-          of: statement, matching: find.text('-${money(1000, 'COP')} COP')),
+          of: statement, matching: find.text(money(5000, 'COP'))),
       findsNWidgets(2),
-      reason: 'subtotal del bloque y fila de fertilizante, ambos en COP',
+      reason: 'subtotal del bloque y fila de café, ambos en COP',
     );
     expect(
       find.descendant(
-          of: statement, matching: find.text('-${money(50, 'EUR')} EUR')),
+          of: statement, matching: find.text(money(200, 'EUR'))),
+      // Mismo motivo que en COP: la cifra en EUR salía antes en dos formas
+      // (`€200,00` y `€200,00 EUR`) y solo una coincidía. Ahora las dos
+      // dicen `EUR 200,00`.
       findsNWidgets(2),
-      reason: 'subtotal del bloque y fila de transporte, ambos en EUR',
+      reason: 'subtotal del bloque y fila del cultivo, ambos en EUR',
+    );
+    // Los gastos salen en tres bloques: el subtotal del grupo, el total del
+    // período y la fila de fertilizante. Antes solo dos coincidían con
+    // `find.text` porque la tercera se escribía `-$1.000 COP`: mismas cifras,
+    // dos grafías. Ahora las tres dicen lo mismo.
+    expect(
+      find.descendant(
+          of: statement, matching: find.text('-${money(1000, 'COP')}')),
+      findsNWidgets(3),
+      reason: 'subtotal, total y fila de fertilizante, todos en COP',
+    );
+    expect(
+      find.descendant(
+          of: statement, matching: find.text('-${money(50, 'EUR')}')),
+      findsNWidgets(3),
+      reason: 'subtotal, total y fila de transporte, todos en EUR',
     );
 
     // Sin tasa no hay total global: ningún % se calcula sobre monedas cruzadas.

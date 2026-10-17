@@ -98,8 +98,7 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
       if (soleCurrency == null || soleCurrency == tx.settings.currency) {
         return formatMoney(context, v);
       }
-      return '${formatAmount(v, currency: soleCurrency, locale: tx.settings.locale)} '
-          '$soleCurrency';
+      return formatAmount(v, currency: soleCurrency, locale: tx.settings.locale);
     }
     final typeColor =
         widget.type.isExpense ? Colors.red.shade600 : Colors.green.shade700;
@@ -146,7 +145,7 @@ class _CategoryBreakdownState extends State<CategoryBreakdown> {
               // Moneda mixta: no se suma una sola cifra (sería falsa),
               // se lista el total de cada moneda por separado.
               mixed
-                  ? '${l10n.currencyMixedHint(byCurrency.length)}: ${byCurrency.entries.map((e) => '${formatAmount(e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}').join(' · ')}'
+                  ? '${l10n.currencyMixedHint(byCurrency.length)}: ${byCurrency.entries.map((e) => formatAmount(e.value, currency: e.key, locale: tx.settings.locale)).join(' · ')}'
                   : l10n.categoryBreakdownTotal(monoAmount(total)),
               style: TextStyle(
                 fontSize: 12,

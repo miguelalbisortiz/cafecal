@@ -130,11 +130,11 @@ void main() {
       expect(
           find.descendant(
               of: desglose,
-              matching: find.text('${money(1000, 'COP')} COP')),
+              matching: find.text(money(1000, 'COP'))),
           findsOneWidget);
       expect(
           find.descendant(
-              of: desglose, matching: find.text('${money(200, 'EUR')} EUR')),
+              of: desglose, matching: find.text(money(200, 'EUR'))),
           findsOneWidget);
       expect(
         find.descendant(

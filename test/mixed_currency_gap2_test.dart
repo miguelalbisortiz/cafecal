@@ -255,8 +255,8 @@ void main() {
 
       expect(find.text('67%'), findsOneWidget);
       expect(find.text('33%'), findsOneWidget);
-      expect(find.text('\$1.000'), findsOneWidget);
-      expect(find.text('\$500'), findsOneWidget);
+      expect(find.text('COP 1.000'), findsOneWidget);
+      expect(find.text('COP 500'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsNWidgets(2));
       expect(find.textContaining(_es.currencyMixedHint(2)), findsNothing);
     });
@@ -290,9 +290,10 @@ void main() {
       expect(labels.any((l) => l.contains('EUR')), isTrue,
           reason: 'total y filas llevan la moneda que realmente son');
       expect(
-        labels.any((l) => l.contains(r'$1.500') || l.contains(r'$1.000')),
+        labels.any((l) => l.contains('COP')),
         isFalse,
-        reason: 'el símbolo de Ajustes no puede acompañar a montos en EUR',
+        reason: 'Ajustes está en COP, pero estos montos son todos EUR: el '
+            'código de Ajustes no puede acompañarlos',
       );
       expect(find.textContaining(_es.currencyMixedHint(2)), findsNothing,
           reason: 'sigue siendo moneda única: no se lista como mezcla');
@@ -369,9 +370,9 @@ void main() {
 
       await pumpMovements(tester, tx);
 
-      expect(find.text('\$5.000'), findsOneWidget, reason: 'ingresos');
-      expect(find.text('\$1.000'), findsOneWidget, reason: 'gastos');
-      expect(find.text('\$4.000'), findsOneWidget, reason: 'resultado');
+      expect(find.text('COP 5.000'), findsOneWidget, reason: 'ingresos');
+      expect(find.text('COP 1.000'), findsOneWidget, reason: 'gastos');
+      expect(find.text('COP 4.000'), findsOneWidget, reason: 'resultado');
       expect(find.textContaining(_es.currencyMixedHint(2)), findsNothing);
     });
 

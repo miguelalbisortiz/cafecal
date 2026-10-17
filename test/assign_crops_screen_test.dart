@@ -73,10 +73,11 @@ void main() {
     await pumpScreen(tester, provider);
 
     expect(find.textContaining('Abono USD'), findsOneWidget);
-    expect(find.textContaining('\$500,00'), findsOneWidget,
-        reason: 'debe pintar los 2 decimales de USD (coma en español). En COP, '
-            'que tiene 0 decimales, el mismo monto saldría como "\$500" suelto, '
-            'así que ver la coma ya demuestra que manda la moneda del registro.');
+    expect(find.textContaining('USD 500,00'), findsOneWidget,
+        reason: 'debe pintar los 2 decimales de USD (coma en español) y con '
+            'el código de SU moneda. En COP, que tiene 0 decimales, el mismo '
+            'monto saldría como "COP 500" suelto, así que ver la coma ya '
+            'demuestra que manda la moneda del registro.');
   });
 
   testWidgets('asigna cultivo a un registro sin cultivo', (tester) async {

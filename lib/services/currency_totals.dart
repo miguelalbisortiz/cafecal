@@ -121,6 +121,21 @@ Map<String, Map<String, double>> groupAmountsByCurrency(
 double amountsTotal(Map<String, double> amounts) =>
     amounts.values.fold<double>(0, (a, b) => a + b);
 
+/// ¿Se puede restar este gasto a un presupuesto que está en [budgetCurrency]?
+///
+/// Solo si el mes gastó en **una** moneda —o no gastó nada— y esa moneda es
+/// además la del presupuesto. Con dos monedas, o con una sola pero ajena a la
+/// del presupuesto, restarlos sería cruzar monedas: no hay saldo posible y lo
+/// correcto es no imprimir ninguno.
+///
+/// Esta es la ÚNICA casa donde se decide esto. Reportes, PDF y Excel pasan
+/// por aquí: antes la pantalla comprobaba la moneda y los dos exportadores no,
+/// así que con presupuesto en pesos y un solo gasto en euros el exportador
+/// imprimía `800.000 − 100 = 799.900` mientras la pantalla se callaba.
+bool comparableToBudget(Set<String> currencies, String budgetCurrency) =>
+    currencies.isEmpty ||
+    (currencies.length == 1 && currencies.first == budgetCurrency);
+
 /// true si los montos dados tocan más de una moneda.
 ///
 /// Es la pregunta que decide si una cifra agregada (costo por kilo, ROI,

@@ -48,22 +48,44 @@ void main() {
     expect(() => svc.fetchRate('COP', 'PEN'), throwsException);
   });
 
-  test('formatAmount usa el símbolo y decimales de la moneda', () {
+  test('el código es el único indicador, con los decimales de la moneda', () {
+    // `$` lo comparten COP, USD y CLP en este mismo catálogo, así que el
+    // símbolo no identificaba nada. El código sí, y una sola vez: antes los
+    // reportes imprimían `$2.400.000 COP`, con dos indicadores.
     expect(formatAmount(2500, currency: 'PEN', locale: 'es_CO'),
-        'S/2.500,00');
+        'PEN 2.500,00');
     expect(
         formatAmount(2500, currency: 'PEN', locale: 'es_CO', decimals: 0),
-        'S/2.500');
-    expect(formatAmount(2500, currency: 'BRL', locale: 'es_CO'), 'R\$2.500,00');
-    expect(formatAmount(2500, currency: 'BOB', locale: 'es_CO'), 'Bs2.500,00');
-    expect(formatAmount(2500, currency: 'CRC', locale: 'es_CO'), '₡2.500');
-    expect(formatAmount(-2500, currency: 'COP', locale: 'es_CO'), '-\$2.500');
+        'PEN 2.500');
+    expect(formatAmount(2500, currency: 'BRL', locale: 'es_CO'), 'BRL 2.500,00');
+    expect(formatAmount(2500, currency: 'BOB', locale: 'es_CO'), 'BOB 2.500,00');
+    expect(formatAmount(2500, currency: 'CRC', locale: 'es_CO'), 'CRC 2.500');
+    expect(formatAmount(-2500, currency: 'COP', locale: 'es_CO'), '-COP 2.500');
   });
 
-  test('formato PDF usa el símbolo y decimales de la moneda', () {
+  test('el símbolo ambiguo no aparece en ninguna cifra', () {
+    for (final moneda
+        in ['COP', 'USD', 'CLP', 'EUR', 'BRL', 'PEN', 'BOB', 'CRC']) {
+      final texto = formatAmount(2400000, currency: moneda, locale: 'es_CO');
+      expect(texto, startsWith('$moneda '),
+          reason: '$moneda debe identificarse por su código');
+      expect(texto, isNot(contains(r'$')),
+          reason: '\$ es de COP, de USD y de CLP a la vez: no dice nada');
+    }
+  });
+
+  test('el PDF agrupa los miles igual que la pantalla', () {
     final svc = PdfExportService();
-    expect(svc.formatPdfMoney(2500, 'PEN'), 'S/2500.00');
-    expect(svc.formatPdfMoney(-2500, 'BRL'), '(R\$2500.00)');
-    expect(svc.formatPdfMoney(2500, 'CRC'), '₡2500');
+    // Antes imprimía `S/2500.00` mientras la misma app mostraba `S/2.500,00`
+    // en pantalla: dos pintadores, dos cifras para el mismo número.
+    expect(svc.formatPdfMoney(2500, 'PEN'), 'PEN 2.500,00');
+    expect(svc.formatPdfMoney(-2500, 'BRL'), '(BRL 2.500,00)');
+    expect(svc.formatPdfMoney(2500, 'CRC'), 'CRC 2.500');
+    expect(svc.formatPdfMoney(2400000, 'COP'), 'COP 2.400.000');
+    // Y lo que dice el export es exactamente lo que diría la pantalla.
+    expect(svc.formatPdfMoney(2400000, 'COP'),
+        formatAmount(2400000, currency: 'COP', locale: 'es'));
+    expect(svc.formatPdfMoney(2500, 'PEN'),
+        formatAmount(2500, currency: 'PEN', locale: 'es'));
   });
 }

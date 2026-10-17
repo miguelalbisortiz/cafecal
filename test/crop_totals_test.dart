@@ -138,19 +138,21 @@ void main() {
   group('byCurrencyText', () {
     test('lista cada moneda ordenada con su código, sin sumarlas', () {
       // Formato de mentira: el helper solo une, nunca opera entre monedas.
-      String fmt(double v, String c) => v.toStringAsFixed(0);
+      // El código lo pone el FORMATEADOR — ahí vive la regla de usar el
+      // código como único indicador— y el helper no lo repite.
+      String fmt(double v, String c) => '$c ${v.toStringAsFixed(0)}';
 
       expect(
         byCurrencyText({'EUR': 200.0, 'COP': 5000.0}, fmt),
-        '5000 COP · 200 EUR',
+        'COP 5000 · EUR 200',
         reason: 'orden alfabético de códigos y una cifra por moneda',
       );
     });
 
     test('un solo monto también sale con su código', () {
       expect(
-        byCurrencyText({'COP': 5000.0}, (v, c) => v.toStringAsFixed(0)),
-        '5000 COP',
+        byCurrencyText({'COP': 5000.0}, (v, c) => '$c ${v.toStringAsFixed(0)}'),
+        'COP 5000',
       );
     });
 

@@ -285,10 +285,12 @@ bool hasAssociatedCrops(List<Crop> crops) {
 }
 
 /// Montos de un mapa `moneda → monto` en una sola línea, cada moneda con su
-/// cifra y su código: `$5.000 COP · €200 EUR`. Nunca se suman entre sí.
+/// cifra y su código: `COP 5.000 · EUR 200,00`. Nunca se suman entre sí.
 ///
 /// [format] recibe el monto y el código (para que cada render use su
-/// formato: pantalla, PDF o Excel).
+/// formato: pantalla, PDF o Excel). Es ese formateador quien lleva el
+/// código —`formatAmount` y `formatMoneyLabel` devuelven `COP 5.000`—, así
+/// que el helper NO lo vuelve a añadir: juntarlos daba `COP 5.000 COP`.
 String byCurrencyText(
   Map<String, double> amounts,
   String Function(double amount, String currency) format, {
@@ -296,5 +298,5 @@ String byCurrencyText(
 }) {
   final entries = amounts.entries.toList()
     ..sort((a, b) => a.key.compareTo(b.key));
-  return entries.map((e) => '${format(e.value, e.key)} ${e.key}').join(separator);
+  return entries.map((e) => format(e.value, e.key)).join(separator);
 }

@@ -207,11 +207,16 @@ void main() {
         reason: 'sin margen anual no se estima el pago');
     // Un aviso por bloque: los KPIs del período y el histórico.
     expect(find.textContaining(l10n.currencyMixedHint(2)), findsNWidgets(2));
-    // Lo que sí es de una sola moneda sale con esa moneda al lado.
-    expect(find.textContaining('USD'), findsOneWidget,
-        reason: 'ingresos por ha medidos solo en USD');
-    expect(find.textContaining('COP'), findsOneWidget,
-        reason: 'gastos por ha medidos solo en COP');
+    // Lo que sí es de una sola moneda sale con ESA moneda. El código va
+    // dentro del propio monto, así que ya no se busca «COP» a secas: la
+    // inversión del establecimiento también está en COP y ahora también lo
+    // dice, que es correcto, no un fallo.
+    expect(find.text('USD 150,00'), findsOneWidget,
+        reason: 'ingresos por ha medidos solo en USD: 300 / 2 ha');
+    expect(find.text('COP 100.000'), findsOneWidget,
+        reason: 'gastos por ha medidos solo en COP: 200.000 / 2 ha');
+    expect(find.text('COP 8.000.000'), findsOneWidget,
+        reason: 'la inversión es de Ajustes, y ahora lo dice con su código');
   });
 
   // ---- E4 · El rendimiento: la referencia es SU tierra ----

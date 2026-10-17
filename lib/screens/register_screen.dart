@@ -341,7 +341,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _jornalWorkerValue = employee.id;
       _jornalDropKey++;
-      if (employee.dayRate != null) {
+      // Misma regla que en el desplegable: el jornal pertenece a la moneda
+      // de la cuenta, así que no se rellena si este registro vive en otra.
+      if (employee.dayRate != null && _currency == tx.settings.currency) {
         final r = employee.dayRate!;
         _jornalRateController.text =
             (r % 1 == 0) ? r.toInt().toString() : r.toString();
@@ -1024,8 +1026,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       final match = tx.employees
                           .where((e) => e.id == v)
                           .toList();
+                      // El jornal de un trabajador se guarda y se pinta
+                      // SIEMPRE en la moneda de la cuenta: así se registran
+                      // y así se muestran en Trabajadores. Aquí solo se
+                      // autocompleta si este registro vive en esa misma
+                      // moneda. Si es un registro viejo en otra —se edita
+                      // conservando su moneda— meter el número sería
+                      // presentar pesos como dólares.
                       if (match.isNotEmpty &&
-                          match.first.dayRate != null) {
+                          match.first.dayRate != null &&
+                          _currency == tx.settings.currency) {
                         final r = match.first.dayRate!;
                         _jornalRateController.text =
                             (r % 1 == 0) ? r.toInt().toString() : r.toString();

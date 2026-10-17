@@ -1078,8 +1078,8 @@ class _ReportScreenState extends State<ReportScreen> {
               final monthLabel = multiYear
                   ? '${l10n.monthFull[r.month - 1]} ${r.year}'
                   : l10n.monthFull[r.month - 1];
-              final comparable = r.currencies.isEmpty ||
-                  (!r.isMixed && r.currencies.first == budgetCurrency);
+              final comparable =
+                  comparableToBudget(r.currencies, budgetCurrency);
               if (comparable) {
                 final negative = r.balance < 0;
                 return Padding(
@@ -1294,8 +1294,8 @@ class _ReportScreenState extends State<ReportScreen> {
               final monthLabel = multiYear
                   ? '${l10n.monthFull[r.month - 1]} ${r.year}'
                   : l10n.monthFull[r.month - 1];
-              final comparable = r.currencies.isEmpty ||
-                  (!r.isMixed && r.currencies.first == budgetCurrency);
+              final comparable =
+                  comparableToBudget(r.currencies, budgetCurrency);
               if (comparable) {
                 final negative = r.balance < 0;
                 return Padding(
@@ -2118,7 +2118,8 @@ class _ReportScreenState extends State<ReportScreen> {
       ..sort((a, b) => a.key.compareTo(b.key));
     return entries
         .map((e) =>
-            '${formatAmount(negative ? -e.value : e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}')
+            formatAmount(negative ? -e.value : e.value,
+                currency: e.key, locale: tx.settings.locale))
         .join(' · ');
   }
 
@@ -2414,7 +2415,7 @@ class _ReportScreenState extends State<ReportScreen> {
             currency: amounts.first.key, locale: tx.settings.locale)
         : amounts
             .map((e) =>
-                '${formatAmount(e.value, currency: e.key, locale: tx.settings.locale)} ${e.key}')
+                formatAmount(e.value, currency: e.key, locale: tx.settings.locale))
             .join(' · ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2640,7 +2641,7 @@ class _TopAccountsCard extends StatelessWidget {
           : (e.value.byCurrency.entries.toList()
                 ..sort((a, b) => a.key.compareTo(b.key)))
               .map((c) =>
-                  '${formatAmount(c.value, currency: c.key, locale: locale)} ${c.key}')
+                  formatAmount(c.value, currency: c.key, locale: locale))
               .join(' · ');
       return Padding(
         padding: const EdgeInsets.only(bottom: 4),
@@ -2738,7 +2739,7 @@ class _CropBreakdownTile extends StatelessWidget {
 
   /// Monto con su código: `$5.000 COP`. Cada moneda conserva su cifra.
   String _amountIn(double v, String currency) =>
-      '${formatAmount(v, currency: currency, locale: locale)} $currency';
+      formatAmount(v, currency: currency, locale: locale);
 
   /// Cultivo con movimientos en dos o más monedas.
   ///

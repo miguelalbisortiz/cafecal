@@ -27,6 +27,12 @@ import 'week_utils.dart';
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
 /// con Excel) manteniendo la misma lógica de cálculo que el PDF.
 class ExcelExportService {
+  /// Locale del export que se está construyendo.
+  ///
+  /// El servicio se crea por cada export (uno por llamada a [buildReport]) y
+  /// la app no exporta dos cosas a la vez: esto es el idioma de UN solo
+  /// Excel. Se fija al empezar y no cambia durante él.
+  String _locale = 'es';
   // Colores para headers y formatos condicionales (usando ExcelColor)
   static final _excelBrown = ExcelColor.fromHexString('FF6D4C41');
   static final _excelGreenSoft = ExcelColor.fromHexString('FFE8F5E9');
@@ -129,6 +135,9 @@ class ExcelExportService {
     final receivables = receivablesByCurrency(periodTx);
 
     final currency = settings.currency;
+    // Sin locale los exportadores imprimían `2400000` y `€200.00` donde la
+    // misma app mostraba `2.400.000` y `€200,00` en pantalla.
+    _locale = settings.locale;
     final excel = Excel.createExcel();
     excel.rename('Sheet1', l10n.excelSheetSummary);
 
@@ -404,7 +413,7 @@ class ExcelExportService {
             negative
                 ? {for (final e in amounts.entries) e.key: -e.value}
                 : amounts,
-            (v, c) => formatMoneyLabel(v, c));
+            (v, c) => formatMoneyLabel(v, c, locale: _locale));
 
     row([TextCellValue(settings.farmName)]);
     row([TextCellValue(l10n.pdfIncomeStatement(periodName))]);
@@ -491,7 +500,9 @@ class ExcelExportService {
         TextCellValue(costPriceCaption(
           l10n,
           costPriceVerdict(costByKg, priceByKg),
-          costByKg == null ? '' : formatMoneyLabel(costByKg, currency),
+          costByKg == null
+              ? ''
+              : formatMoneyLabel(costByKg, currency, locale: _locale),
         )),
         null,
         null,
@@ -743,7 +754,7 @@ class ExcelExportService {
           // Trabajador con varias monedas → cada moneda con su código.
           r.isMixed
               ? TextCellValue(
-                  byCurrencyText(r.byCurrency, (v, c) => formatMoneyLabel(v, c)))
+                  byCurrencyText(r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
               : DoubleCellValue(r.subtotal),
         ]);
       }
@@ -753,7 +764,7 @@ class ExcelExportService {
         null,
         payroll.isMixed
             ? TextCellValue(byCurrencyText(
-                payroll.totalByCurrency, (v, c) => formatMoneyLabel(v, c)))
+                payroll.totalByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
             : DoubleCellValue(payroll.total),
       ]);
       _applyCurrencyFormat(
@@ -812,26 +823,29 @@ class ExcelExportService {
       };
       final cashFrom = sheet.maxRows;
       for (final r in cashRows) {
+        // Misma regla que Reportes y el PDF ([comparableToBudget]): solo hay
+        // saldo si el mes gastó en la moneda del presupuesto. Con una moneda
+        // ajena —aunque fuera una sola, así que isMixed era false— esto
+        // imprimía 800.000 − 100 = 799.900: pesos menos euros.
+        final comparable = comparableToBudget(r.currencies, currency);
         row([
           TextCellValue(multiYear
               ? '${l10n.monthFull[r.month - 1]} ${r.year}'
               : l10n.monthFull[r.month - 1]),
           DoubleCellValue(r.budget),
-          // Mes con moneda mixta: cada moneda con su código y sin saldo
-          // (compararlo con el presupuesto sería mentira).
-          r.isMixed
-              ? TextCellValue(byCurrencyText(
-                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c)))
-              : DoubleCellValue(r.labor),
-          r.isMixed
-              ? TextCellValue(byCurrencyText(
-                  r.extrasByCurrency, (v, c) => formatMoneyLabel(v, c)))
-              : DoubleCellValue(r.extras),
-          r.isMixed
-              ? TextCellValue(byCurrencyText(
-                  r.totalByCurrency, (v, c) => formatMoneyLabel(v, c)))
-              : DoubleCellValue(r.total),
-          r.isMixed ? TextCellValue('—') : DoubleCellValue(r.balance),
+          comparable
+              ? DoubleCellValue(r.labor)
+              : TextCellValue(byCurrencyText(
+                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable
+              ? DoubleCellValue(r.extras)
+              : TextCellValue(byCurrencyText(
+                  r.extrasByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable
+              ? DoubleCellValue(r.total)
+              : TextCellValue(byCurrencyText(
+                  r.totalByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable ? DoubleCellValue(r.balance) : TextCellValue('—'),
         ]);
       }
       final cashTo = sheet.maxRows - 1;
@@ -884,16 +898,19 @@ class ExcelExportService {
       final workMultiYear = workRows.map((r) => r.year).toSet().length > 1;
       final workFrom = sheet.maxRows;
       for (final r in workRows) {
+        // Misma regla que en caja: solo hay saldo en la moneda del
+        // presupuesto ([comparableToBudget]).
+        final comparable = comparableToBudget(r.currencies, currency);
         row([
           TextCellValue(workMultiYear
               ? '${l10n.monthFull[r.month - 1]} ${r.year}'
               : l10n.monthFull[r.month - 1]),
           DoubleCellValue(r.budget),
-          r.isMixed
-              ? TextCellValue(byCurrencyText(
-                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c)))
-              : DoubleCellValue(r.used),
-          r.isMixed ? TextCellValue('—') : DoubleCellValue(r.balance),
+          comparable
+              ? DoubleCellValue(r.used)
+              : TextCellValue(byCurrencyText(
+                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable ? DoubleCellValue(r.balance) : TextCellValue('—'),
         ]);
       }
       final workTo = sheet.maxRows - 1;
@@ -930,7 +947,7 @@ class ExcelExportService {
           r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
           r.isMixed
               ? TextCellValue(byCurrencyText(
-                  r.byCurrency, (v, c) => formatMoneyLabel(v, c)))
+                  r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
               : DoubleCellValue(r.total),
         ]);
       }
@@ -1016,9 +1033,9 @@ class ExcelExportService {
           TextCellValue(row.name),
           IntCellValue(row.count),
           TextCellValue(
-              byCurrencyText(row.expenses, (v, c) => formatMoneyLabel(v, c))),
+              byCurrencyText(row.expenses, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
           TextCellValue(
-              byCurrencyText(row.incomes, (v, c) => formatMoneyLabel(v, c))),
+              byCurrencyText(row.incomes, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
           TextCellValue('—'),
           TextCellValue('—'),
         ]);
@@ -1269,7 +1286,7 @@ class ExcelExportService {
           TextCellValue('${crop.name} — ${l10n.reportInvestmentEstablecimiento}'),
           cropMixed
               ? TextCellValue(byCurrencyText(amountsByCurrency(cropExpenses),
-                  (v, cur) => formatMoneyLabel(v, cur)))
+                  (v, cur) => formatMoneyLabel(v, cur, locale: _locale)))
               : DoubleCellValue(metrics.accumulatedInvestment(cropExpenses)),
         ]);
       } else {

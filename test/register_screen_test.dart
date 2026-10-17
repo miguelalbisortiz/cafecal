@@ -428,4 +428,73 @@ void main() {
             'anterior inflaba «kg vendidos»');
     expect(guardado.unit, isNull);
   });
+
+  // 3 · el jornal pertenece a la moneda de la cuenta.
+  //
+  // Un trabajador no tiene moneda propia: se registra y se pinta en la
+  // moneda de Ajustes. Elegirlo en el formulario rellenaba su tarifa a
+  // secas… también en un registro VIEJO que se edita conservando su moneda.
+  // El 50.000 significaba pesos y quedaba escrito dentro de un gasto en
+  // euros: la cifra crecía sola y ya no era de nadie.
+  Future<void> elegirTrabajador(WidgetTester tester, TransactionProvider p,
+      {required String moneda}) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    // El valor del ítem es el id del trabajador, no su nombre: el nombre es
+    // solo el texto pintado.
+    final juan = await p.addEmployee('Juan', dayRate: 50000);
+    await pumpRegister(
+      tester,
+      p,
+      editing: Transaction(
+        id: 'viejo1',
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 100,
+        currency: moneda,
+        // Sin tarifa guardada: el único origen posible del número es la
+        // ficha del trabajador.
+        date: DateTime(2025, 3, 1),
+        createdAt: DateTime(2025, 3, 1),
+      ),
+    );
+
+    await tester.tap(dropdownWithValue(juan.id));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Juan').last);
+    await tester.pumpAndSettle();
+  }
+
+  String tarifaEnPantalla(WidgetTester tester) => tester
+      .widget<TextFormField>(find.ancestor(
+          of: find.text(_es.workerDayRateShort),
+          matching: find.byType(TextFormField)))
+      .controller!
+      .text;
+
+  testWidgets(
+      'elegir trabajador en un registro viejo en euros NO rellena el jornal',
+      (tester) async {
+    final provider = await makeProvider();
+    await elegirTrabajador(tester, provider, moneda: 'EUR');
+
+    expect(tarifaEnPantalla(tester), isEmpty,
+        reason: 'la tarifa de Juan son 50.000 PESOS; este gasto está en '
+            'euros, y meter ese número aquí sería presentar euros que no '
+            'existen. El jornal no tiene moneda propia: es el de la cuenta.');
+  });
+
+  testWidgets(
+      'elegir trabajador en un registro de la moneda de la cuenta SÍ lo rellena',
+      (tester) async {
+    final provider = await makeProvider();
+    await elegirTrabajador(tester, provider, moneda: 'COP');
+
+    // El control: el arreglo no puede haber sido apagar el autocompletado a
+    // piñón. En la moneda de la cuenta —que es donde vive la tarifa— sigue
+    // llegando solo.
+    expect(tarifaEnPantalla(tester), '50000');
+  });
 }

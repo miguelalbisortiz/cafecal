@@ -113,6 +113,9 @@ class PdfExportService {
     };
 
     final currency = settings.currency;
+    // Sin locale los exportadores imprimían `2400000` y `€200.00` donde la
+    // misma app mostraba `2.400.000` y `€200,00` en pantalla.
+    _locale = settings.locale;
     final showYearAnnex = period != ReportPeriod.year;
 
     // Totales del período por moneda: la fuente de verdad del encabezado.
@@ -579,8 +582,15 @@ class PdfExportService {
     );
   }
 
+  /// Locale del export que se está construyendo.
+  ///
+  /// El servicio se crea por cada export (uno por llamada a [buildReport]) y
+  /// la app no exporta dos cosas a la vez: esto es el idioma de UN solo PDF.
+  /// Se fija al empezar y no cambia durante él.
+  String _locale = 'es';
+
   String formatPdfMoney(double value, String currency) =>
-      formatMoneyLabel(value, currency);
+      formatMoneyLabel(value, currency, locale: _locale);
 
   /// Sección "Principales compradores / proveedores" del período.
   /// Solo se muestra si hay ventas con cliente o gastos con proveedor.
@@ -617,7 +627,7 @@ class PdfExportService {
               ? formatPdfMoney(e.value.amount!, currency)
               : (e.value.byCurrency.entries.toList()
                     ..sort((a, b) => a.key.compareTo(b.key)))
-                  .map((c) => '${formatPdfMoney(c.value, c.key)} ${c.key}')
+                  .map((c) => formatPdfMoney(c.value, c.key))
                   .join(' · ');
           return _statementRow(
             '    ${e.key} (${e.value.count})',
@@ -1147,8 +1157,9 @@ class PdfExportService {
                   cell(r.days > 0 ? daysLabel(r.days) : '—'),
                   r.isMixed
                       ? cell(byCurrencyText(
-                          r.byCurrency, (v, c) => formatMoneyLabel(v, c)))
-                      : cell(formatMoneyLabel(r.total, currency)),
+                          r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
+                      : cell(formatMoneyLabel(r.total, currency,
+                          locale: _locale)),
                 ],
               ),
           ],
@@ -1226,14 +1237,20 @@ class PdfExportService {
                   cell(multiYear
                       ? '${l10n.monthFull[r.month - 1]} ${r.year}'
                       : l10n.monthFull[r.month - 1]),
-                  cell(formatMoneyLabel(r.budget, currency)),
-                  r.isMixed
-                      ? cell(byCurrencyText(
-                          r.laborByCurrency, (v, c) => formatMoneyLabel(v, c)))
-                      : cell(formatMoneyLabel(r.used, currency)),
-                  r.isMixed
-                      ? cell('—')
-                      : cell(formatMoneyLabel(r.balance, currency)),
+                  cell(formatMoneyLabel(r.budget, currency,
+                      locale: _locale)),
+                  // Misma regla que Reportes y el Excel: solo hay saldo si
+                  // el mes gastó en la moneda del presupuesto. Con una moneda
+                  // ajena esto imprimía pesos menos euros.
+                  comparableToBudget(r.currencies, currency)
+                      ? cell(formatMoneyLabel(r.used, currency,
+                          locale: _locale))
+                      : cell(byCurrencyText(r.laborByCurrency,
+                          (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+                  comparableToBudget(r.currencies, currency)
+                      ? cell(formatMoneyLabel(r.balance, currency,
+                          locale: _locale))
+                      : cell('—'),
                 ],
               ),
           ],
@@ -1330,25 +1347,28 @@ class PdfExportService {
                       ? '${l10n.monthFull[r.month - 1]} ${r.year}'
                       : l10n.monthFull[r.month - 1]),
                   cell(formatPdfMoney(r.budget, currency)),
-                  // Mes con moneda mixta: cada moneda con su código y sin
-                  // saldo (compararlo con el presupuesto sería mentira).
-                  cell(r.isMixed
-                      ? byCurrencyText(
-                          r.laborByCurrency, (v, c) => formatPdfMoney(v, c))
-                      : formatPdfMoney(r.labor, currency)),
-                  cell(r.isMixed
-                      ? byCurrencyText(
-                          r.extrasByCurrency, (v, c) => formatPdfMoney(v, c))
-                      : formatPdfMoney(r.extras, currency)),
-                  cell(r.isMixed
-                      ? byCurrencyText(
-                          r.totalByCurrency, (v, c) => formatPdfMoney(v, c))
-                      : formatPdfMoney(r.total, currency)),
+                  // Misma regla que Reportes y el Excel ([comparableToBudget]):
+                  // solo hay saldo si el mes gastó en la moneda del
+                  // presupuesto. Con una moneda ajena —aunque fuera una sola,
+                  // así que isMixed era false— esto imprimía pesos menos euros.
+                  comparableToBudget(r.currencies, currency)
+                      ? cell(formatPdfMoney(r.labor, currency))
+                      : cell(byCurrencyText(r.laborByCurrency,
+                          (v, c) => formatPdfMoney(v, c))),
+                  comparableToBudget(r.currencies, currency)
+                      ? cell(formatPdfMoney(r.extras, currency))
+                      : cell(byCurrencyText(r.extrasByCurrency,
+                          (v, c) => formatPdfMoney(v, c))),
+                  comparableToBudget(r.currencies, currency)
+                      ? cell(formatPdfMoney(r.total, currency))
+                      : cell(byCurrencyText(r.totalByCurrency,
+                          (v, c) => formatPdfMoney(v, c))),
                   cell(
-                    r.isMixed
-                        ? '—'
-                        : formatPdfMoney(r.balance, currency),
-                    color: (!r.isMixed && r.balance < 0)
+                    comparableToBudget(r.currencies, currency)
+                        ? formatPdfMoney(r.balance, currency)
+                        : '—',
+                    color: (comparableToBudget(r.currencies, currency) &&
+                            r.balance < 0)
                         ? _pdfNegative
                         : _pdfPositive,
                     bold: true,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../models/currencies.dart';
@@ -22,32 +21,32 @@ String formatMoneyFor(BuildContext context, double value,
 
 /// Formato de moneda sin contexto — usado por PDF/HTML export.
 /// Sin [decimals] usa los decimales naturales de la moneda (COP 0, PEN 2…).
+/// El código de la moneda es el **único** indicador: `$` lo comparten COP,
+/// USD y CLP en este mismo catálogo, así que el símbolo no identificaba nada,
+/// y juntar símbolo y código (`$2.400.000 COP`) era decirlo dos veces.
 String formatAmount(double value,
     {required String currency, required String locale, int? decimals}) {
-  final info = currencyInfo(currency);
-  final dec = decimals ?? info.decimals;
-  final pattern = dec > 0 ? '#,##0.${'0' * dec}' : '#,##0';
-  final digits = NumberFormat(pattern, locale).format(value.abs());
+  final digits = groupedDigits(
+      value, currency: currency, locale: locale, decimals: decimals);
   final sign = value < 0 ? '-' : '';
-  return '$sign${info.symbol}$digits';
+  return '$sign$currency $digits';
 }
 
 /// Formato compacto para tarjetas: 2.400.000 → $2,4M; 96.000 → $96k.
 /// Incluye el signo para valores negativos.
 String formatCompact(BuildContext context, double value) {
   final tx = context.read<TransactionProvider>();
-  final symbol = currencyInfo(tx.settings.currency).symbol;
-  return _formatCompactWith(value, symbol);
+  return _formatCompactWith(value, tx.settings.currency);
 }
 
 /// Formato compacto con moneda explícita (para dashboards con moneda mixta).
 String formatCompactExplicit(double value,
-    {required String currency, required String locale}) {
-  final symbol = currencyInfo(currency).symbol;
-  return _formatCompactWith(value, symbol);
-}
+        {required String currency, required String locale}) =>
+    _formatCompactWith(value, currency);
 
-String _formatCompactWith(double value, String symbol) {
+/// Igual que [formatAmount]: el código va solo, nunca el símbolo. `$` es de
+/// COP, de USD y de CLP a la vez.
+String _formatCompactWith(double value, String code) {
   final sign = value < 0 ? '-' : '';
   final abs = value.abs();
 
@@ -61,7 +60,7 @@ String _formatCompactWith(double value, String symbol) {
   } else {
     core = abs.toStringAsFixed(0);
   }
-  return '$sign$symbol$core';
+  return '$sign$code $core';
 }
 
 String _compactDec(double v) {

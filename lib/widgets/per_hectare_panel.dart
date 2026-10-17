@@ -347,7 +347,7 @@ class PerHectarePanel extends StatelessWidget {
   /// que está realmente medida y su código al lado.
   String _money(BuildContext context, double value, String? currency) {
     if (currency == null) return formatMoney(context, value);
-    return '${formatMoneyFor(context, value, currency: currency)} $currency';
+    return formatMoneyFor(context, value, currency: currency);
   }
 
   /// Aviso de moneda mixta: explica por qué no hay una cifra única, sin
