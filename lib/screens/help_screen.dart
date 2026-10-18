@@ -59,6 +59,13 @@ class HelpScreen extends StatelessWidget {
                         '${l10n.tabRegister} (${l10n.expenseTypeLabel})'),
                     (l10n.helpRowIncome,
                         '${l10n.tabRegister} (${l10n.incomeTypeLabel})'),
+                    (l10n.helpRowReport, l10n.menuReport),
+                    (l10n.helpRowWorkers, l10n.menuWorkers),
+                    (l10n.helpRowJornal,
+                        '${l10n.tabRegister} (${l10n.expenseTypeLabel})'),
+                    (l10n.helpRowLote, l10n.menuCrops),
+                    (l10n.helpRowSettings, l10n.menuSettings),
+                    (l10n.helpRowHistory, l10n.tabHistory),
                   ],
                 ),
               ),
@@ -223,6 +230,23 @@ class HelpScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              _Section(title: l10n.helpPerPlantTitle),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.helpPerPlantIntro,
+                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                    const SizedBox(height: 8),
+                    Text(l10n.helpPerPlantOwn,
+                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                    const SizedBox(height: 8),
+                    Text(l10n.helpPerPlantAlert,
+                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               _Section(title: l10n.helpPaybackTitle),
               _Card(
                 child: Column(
@@ -238,6 +262,64 @@ class HelpScreen extends StatelessWidget {
                     ]),
                   ],
                 ),
+              ),
+              const SizedBox(height: 20),
+              _Section(title: l10n.helpOtherTitle),
+              _HelpBlock(
+                title: l10n.helpTerrenosTitle,
+                parrafos: [
+                  l10n.helpTerrenosIntro,
+                  l10n.helpTerrenosWhere,
+                  l10n.helpTerrenosLocation,
+                  l10n.helpTerrenosSplit,
+                  l10n.helpTerrenosReport,
+                ],
+              ),
+              const SizedBox(height: 12),
+              _HelpBlock(
+                title: l10n.helpWorkersTitle,
+                parrafos: [
+                  l10n.helpWorkersIntro,
+                  l10n.helpWorkersWhere,
+                  l10n.helpWorkersJornal,
+                  l10n.helpWorkersReport,
+                ],
+              ),
+              const SizedBox(height: 12),
+              _HelpBlock(
+                title: l10n.helpCajaTitle,
+                parrafos: [
+                  l10n.helpCajaIntro,
+                  l10n.helpCajaWhere,
+                  l10n.helpCajaCarry,
+                ],
+              ),
+              const SizedBox(height: 12),
+              _HelpBlock(
+                title: l10n.helpReportTitle,
+                parrafos: [
+                  l10n.helpReportIntro,
+                  l10n.helpReportExport,
+                ],
+              ),
+              const SizedBox(height: 12),
+              _HelpBlock(
+                title: l10n.helpBackupTitle,
+                parrafos: [
+                  l10n.helpBackupIntro,
+                  l10n.helpBackupWhere,
+                  l10n.helpBackupAdditive,
+                  l10n.helpBackupVsSync,
+                ],
+              ),
+              const SizedBox(height: 12),
+              _HelpBlock(
+                title: l10n.helpLanguageTitle,
+                parrafos: [
+                  l10n.helpLanguageIntro,
+                  l10n.helpLanguageNumbers,
+                  l10n.helpLanguageCurrency,
+                ],
               ),
               const SizedBox(height: 20),
               _Section(title: l10n.helpGlossaryTitle),
@@ -306,6 +388,34 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+/// Una tarjeta con el título del bloque y sus párrafos: las piezas de la
+/// sección «Lo demás que hace la app», donde cada bloque se lee de corrido.
+class _HelpBlock extends StatelessWidget {
+  final String title;
+  final List<String> parrafos;
+
+  const _HelpBlock({required this.title, required this.parrafos});
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+          ),
+          for (final parrafo in parrafos) ...[
+            const SizedBox(height: 8),
+            Text(parrafo, style: const TextStyle(fontSize: 13, height: 1.4)),
+          ],
+        ],
+      ),
     );
   }
 }

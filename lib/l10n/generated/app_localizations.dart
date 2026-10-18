@@ -353,6 +353,42 @@ abstract class AppLocalizations {
   /// **'Registrar cuánto te pagaron por lo que vendiste'**
   String get helpRowIncome;
 
+  /// No description provided for @helpRowReport.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver si ganaste o perdiste y sacar el reporte en PDF o Excel'**
+  String get helpRowReport;
+
+  /// No description provided for @helpRowWorkers.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar tus trabajadores y su pago por día'**
+  String get helpRowWorkers;
+
+  /// No description provided for @helpRowJornal.
+  ///
+  /// In es, this message translates to:
+  /// **'Anotar el pago de un jornal'**
+  String get helpRowJornal;
+
+  /// No description provided for @helpRowLote.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear un terreno (lote) y decir qué cultivos van dentro'**
+  String get helpRowLote;
+
+  /// No description provided for @helpRowSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir el idioma, la caja del mes y sacar tu respaldo'**
+  String get helpRowSettings;
+
+  /// No description provided for @helpRowHistory.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar lo que registraste y corregirlo'**
+  String get helpRowHistory;
+
   /// No description provided for @helpCaseTitle.
   ///
   /// In es, this message translates to:
@@ -586,6 +622,198 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Inversión COP 450.000. No dice pérdida: es inversión hasta que produzca.'**
   String get helpCaseBEx4;
+
+  /// No description provided for @helpPerPlantTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Y por planta? ¿Cuándo empieza a rendir?'**
+  String get helpPerPlantTitle;
+
+  /// No description provided for @helpPerPlantIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Si sabes cuántas plantas vivas tiene el cultivo, la app también muestra los kilos por planta. Sirve cuando contaste las matas pero no mediste el terreno.'**
+  String get helpPerPlantIntro;
+
+  /// No description provided for @helpPerPlantOwn.
+  ///
+  /// In es, this message translates to:
+  /// **'Al lado te pone tu propio promedio de años anteriores. No es una tabla de nadie: la app mide contra tu propia tierra.'**
+  String get helpPerPlantOwn;
+
+  /// No description provided for @helpPerPlantAlert.
+  ///
+  /// In es, this message translates to:
+  /// **'Si anotaste para cuándo esperabas la primera cosecha y pasó esa fecha sin ninguna cosecha, la app te avisa: “debería estar rindiendo desde …”.'**
+  String get helpPerPlantAlert;
+
+  /// No description provided for @helpOtherTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo demás que hace la app'**
+  String get helpOtherTitle;
+
+  /// No description provided for @helpTerrenosTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus terrenos (lotes)'**
+  String get helpTerrenosTitle;
+
+  /// No description provided for @helpTerrenosIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Un terreno es el lote donde va tu cultivo. Sirve para dos cosas: llevar la ubicación del lote y repartir un gasto que es de varios cultivos juntos.'**
+  String get helpTerrenosIntro;
+
+  /// No description provided for @helpTerrenosWhere.
+  ///
+  /// In es, this message translates to:
+  /// **'En Cultivos, toca el icono de montaña y crea el terreno: nombre, las hectáreas si las mediste, qué cultivos van dentro y, si quieres, la ubicación.'**
+  String get helpTerrenosWhere;
+
+  /// No description provided for @helpTerrenosLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'La ubicación la puedes tomar desde el celular, escribirla a mano o dejarla vacía. La app nunca la vuelve a medir sola.'**
+  String get helpTerrenosLocation;
+
+  /// No description provided for @helpTerrenosSplit.
+  ///
+  /// In es, this message translates to:
+  /// **'Un gasto del lote entero (una limpieza, el abono) se anota en el lote y se reparte por hectáreas. Si a un cultivo le falta el área, esa parte no se reparte y sale aparte.'**
+  String get helpTerrenosSplit;
+
+  /// No description provided for @helpTerrenosReport.
+  ///
+  /// In es, this message translates to:
+  /// **'En Reporte aparece “Tus terrenos · ubicación” solo si algún lote tiene coordenada.'**
+  String get helpTerrenosReport;
+
+  /// No description provided for @helpWorkersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajadores y jornales'**
+  String get helpWorkersTitle;
+
+  /// No description provided for @helpWorkersIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardas tus trabajadores para no escribir su pago cada vez.'**
+  String get helpWorkersIntro;
+
+  /// No description provided for @helpWorkersWhere.
+  ///
+  /// In es, this message translates to:
+  /// **'En el menú ⋮ → Trabajadores. Ponle nombre y, si quieres, su pago por día; si lo dejas vacío, lo escribes al registrar cada jornal.'**
+  String get helpWorkersWhere;
+
+  /// No description provided for @helpWorkersJornal.
+  ///
+  /// In es, this message translates to:
+  /// **'El jornal se anota como un gasto de mano de obra en Registrar: eliges el trabajador y los días. El nombre queda guardado con el registro, así que borrar a un trabajador no borra su historia.'**
+  String get helpWorkersJornal;
+
+  /// No description provided for @helpWorkersReport.
+  ///
+  /// In es, this message translates to:
+  /// **'En Reporte ves la nómina del período (quién, cuántos días, cuánto suma) y la planilla del mes.'**
+  String get helpWorkersReport;
+
+  /// No description provided for @helpCajaTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'La caja del mes'**
+  String get helpCajaTitle;
+
+  /// No description provided for @helpCajaIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'La caja del mes es la plata que sacas cada mes para la finca: cubre los jornales y los gastos chicos (luz, agua, arreglos).'**
+  String get helpCajaIntro;
+
+  /// No description provided for @helpCajaWhere.
+  ///
+  /// In es, this message translates to:
+  /// **'La defines en Configuración → “Aporte mensual de caja”. Si la dejas vacía, la tarjeta no aparece.'**
+  String get helpCajaWhere;
+
+  /// No description provided for @helpCajaCarry.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que no se gasta no se pierde: se arrastra al mes siguiente. La barra se pone verde, ámbar o roja según lo que llevas gastado.'**
+  String get helpCajaCarry;
+
+  /// No description provided for @helpReportTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'El reporte y sus archivos'**
+  String get helpReportTitle;
+
+  /// No description provided for @helpReportIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'En Reporte eliges el período (semana, mes, año o a la fecha) y ves si ganaste o perdiste, cuánto costó cada kilo, cómo va cada cultivo, la caja del mes y qué conviene hacer.'**
+  String get helpReportIntro;
+
+  /// No description provided for @helpReportExport.
+  ///
+  /// In es, this message translates to:
+  /// **'Con los botones de exportar lo llevas en PDF o en Excel, y una plantilla de balance. Se comparte por donde quieras.'**
+  String get helpReportExport;
+
+  /// No description provided for @helpBackupTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu respaldo'**
+  String get helpBackupTitle;
+
+  /// No description provided for @helpBackupIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'El respaldo es un archivo tuyo con todos tus datos: cultivos, siembras, gastos, ventas, trabajadores y ajustes.'**
+  String get helpBackupIntro;
+
+  /// No description provided for @helpBackupWhere.
+  ///
+  /// In es, this message translates to:
+  /// **'En Configuración → Respaldo lo exportas (y lo compartes) y lo restauras cuando quieras.'**
+  String get helpBackupWhere;
+
+  /// No description provided for @helpBackupAdditive.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar no borra nada: lo que ya tienes se queda y lo del archivo se suma.'**
+  String get helpBackupAdditive;
+
+  /// No description provided for @helpBackupVsSync.
+  ///
+  /// In es, this message translates to:
+  /// **'Esto no es lo mismo que sincronizar. Sincronizar guarda en la nube para verlo desde otro dispositivo.'**
+  String get helpBackupVsSync;
+
+  /// No description provided for @helpLanguageTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Idioma y cómo se leen los números'**
+  String get helpLanguageTitle;
+
+  /// No description provided for @helpLanguageIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'La app habla español e inglés: lo eliges en Configuración → “Idioma”.'**
+  String get helpLanguageIntro;
+
+  /// No description provided for @helpLanguageNumbers.
+  ///
+  /// In es, this message translates to:
+  /// **'Los números se leen como tu idioma: en español COP 1.500 y en inglés COP 1,500.'**
+  String get helpLanguageNumbers;
+
+  /// No description provided for @helpLanguageCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'La moneda se elige una sola vez y siempre se lee con su código (COP), nunca con un símbolo.'**
+  String get helpLanguageCurrency;
 
   /// No description provided for @helpGlossaryTitle.
   ///

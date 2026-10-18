@@ -140,6 +140,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpRowIncome => 'Registrar cuánto te pagaron por lo que vendiste';
 
   @override
+  String get helpRowReport => 'Ver si ganaste o perdiste y sacar el reporte en PDF o Excel';
+
+  @override
+  String get helpRowWorkers => 'Guardar tus trabajadores y su pago por día';
+
+  @override
+  String get helpRowJornal => 'Anotar el pago de un jornal';
+
+  @override
+  String get helpRowLote => 'Crear un terreno (lote) y decir qué cultivos van dentro';
+
+  @override
+  String get helpRowSettings => 'Elegir el idioma, la caja del mes y sacar tu respaldo';
+
+  @override
+  String get helpRowHistory => 'Buscar lo que registraste y corregirlo';
+
+  @override
   String get helpCaseTitle => '¿Por dónde empiezo? Depende de tu situación';
 
   @override
@@ -255,6 +273,102 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpCaseBEx4 => 'Inversión COP 450.000. No dice pérdida: es inversión hasta que produzca.';
+
+  @override
+  String get helpPerPlantTitle => '¿Y por planta? ¿Cuándo empieza a rendir?';
+
+  @override
+  String get helpPerPlantIntro => 'Si sabes cuántas plantas vivas tiene el cultivo, la app también muestra los kilos por planta. Sirve cuando contaste las matas pero no mediste el terreno.';
+
+  @override
+  String get helpPerPlantOwn => 'Al lado te pone tu propio promedio de años anteriores. No es una tabla de nadie: la app mide contra tu propia tierra.';
+
+  @override
+  String get helpPerPlantAlert => 'Si anotaste para cuándo esperabas la primera cosecha y pasó esa fecha sin ninguna cosecha, la app te avisa: “debería estar rindiendo desde …”.';
+
+  @override
+  String get helpOtherTitle => 'Lo demás que hace la app';
+
+  @override
+  String get helpTerrenosTitle => 'Tus terrenos (lotes)';
+
+  @override
+  String get helpTerrenosIntro => 'Un terreno es el lote donde va tu cultivo. Sirve para dos cosas: llevar la ubicación del lote y repartir un gasto que es de varios cultivos juntos.';
+
+  @override
+  String get helpTerrenosWhere => 'En Cultivos, toca el icono de montaña y crea el terreno: nombre, las hectáreas si las mediste, qué cultivos van dentro y, si quieres, la ubicación.';
+
+  @override
+  String get helpTerrenosLocation => 'La ubicación la puedes tomar desde el celular, escribirla a mano o dejarla vacía. La app nunca la vuelve a medir sola.';
+
+  @override
+  String get helpTerrenosSplit => 'Un gasto del lote entero (una limpieza, el abono) se anota en el lote y se reparte por hectáreas. Si a un cultivo le falta el área, esa parte no se reparte y sale aparte.';
+
+  @override
+  String get helpTerrenosReport => 'En Reporte aparece “Tus terrenos · ubicación” solo si algún lote tiene coordenada.';
+
+  @override
+  String get helpWorkersTitle => 'Trabajadores y jornales';
+
+  @override
+  String get helpWorkersIntro => 'Guardas tus trabajadores para no escribir su pago cada vez.';
+
+  @override
+  String get helpWorkersWhere => 'En el menú ⋮ → Trabajadores. Ponle nombre y, si quieres, su pago por día; si lo dejas vacío, lo escribes al registrar cada jornal.';
+
+  @override
+  String get helpWorkersJornal => 'El jornal se anota como un gasto de mano de obra en Registrar: eliges el trabajador y los días. El nombre queda guardado con el registro, así que borrar a un trabajador no borra su historia.';
+
+  @override
+  String get helpWorkersReport => 'En Reporte ves la nómina del período (quién, cuántos días, cuánto suma) y la planilla del mes.';
+
+  @override
+  String get helpCajaTitle => 'La caja del mes';
+
+  @override
+  String get helpCajaIntro => 'La caja del mes es la plata que sacas cada mes para la finca: cubre los jornales y los gastos chicos (luz, agua, arreglos).';
+
+  @override
+  String get helpCajaWhere => 'La defines en Configuración → “Aporte mensual de caja”. Si la dejas vacía, la tarjeta no aparece.';
+
+  @override
+  String get helpCajaCarry => 'Lo que no se gasta no se pierde: se arrastra al mes siguiente. La barra se pone verde, ámbar o roja según lo que llevas gastado.';
+
+  @override
+  String get helpReportTitle => 'El reporte y sus archivos';
+
+  @override
+  String get helpReportIntro => 'En Reporte eliges el período (semana, mes, año o a la fecha) y ves si ganaste o perdiste, cuánto costó cada kilo, cómo va cada cultivo, la caja del mes y qué conviene hacer.';
+
+  @override
+  String get helpReportExport => 'Con los botones de exportar lo llevas en PDF o en Excel, y una plantilla de balance. Se comparte por donde quieras.';
+
+  @override
+  String get helpBackupTitle => 'Tu respaldo';
+
+  @override
+  String get helpBackupIntro => 'El respaldo es un archivo tuyo con todos tus datos: cultivos, siembras, gastos, ventas, trabajadores y ajustes.';
+
+  @override
+  String get helpBackupWhere => 'En Configuración → Respaldo lo exportas (y lo compartes) y lo restauras cuando quieras.';
+
+  @override
+  String get helpBackupAdditive => 'Restaurar no borra nada: lo que ya tienes se queda y lo del archivo se suma.';
+
+  @override
+  String get helpBackupVsSync => 'Esto no es lo mismo que sincronizar. Sincronizar guarda en la nube para verlo desde otro dispositivo.';
+
+  @override
+  String get helpLanguageTitle => 'Idioma y cómo se leen los números';
+
+  @override
+  String get helpLanguageIntro => 'La app habla español e inglés: lo eliges en Configuración → “Idioma”.';
+
+  @override
+  String get helpLanguageNumbers => 'Los números se leen como tu idioma: en español COP 1.500 y en inglés COP 1,500.';
+
+  @override
+  String get helpLanguageCurrency => 'La moneda se elige una sola vez y siempre se lee con su código (COP), nunca con un símbolo.';
 
   @override
   String get helpGlossaryTitle => 'Glosario';

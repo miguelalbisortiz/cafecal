@@ -140,6 +140,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpRowIncome => 'Sales of your harvest';
 
   @override
+  String get helpRowReport => 'See whether you made or lost money and get the report as PDF or Excel';
+
+  @override
+  String get helpRowWorkers => 'Save your workers and their pay per day';
+
+  @override
+  String get helpRowJornal => 'Log a day wage';
+
+  @override
+  String get helpRowLote => 'Create a plot (terreno) and say which crops go inside';
+
+  @override
+  String get helpRowSettings => 'Pick the language, the month\'s cash box, and get your backup';
+
+  @override
+  String get helpRowHistory => 'Look up what you logged and fix it';
+
+  @override
   String get helpCaseTitle => 'Where do I start? Depends on your case';
 
   @override
@@ -255,6 +273,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpCaseBEx4 => 'Investment COP 450,000. It does not say loss: it is an investment until it produces.';
+
+  @override
+  String get helpPerPlantTitle => 'And per plant? When does it start yielding?';
+
+  @override
+  String get helpPerPlantIntro => 'If you know how many live plants the crop has, the app also shows kilos per plant. It helps when you counted the plants but did not measure the land.';
+
+  @override
+  String get helpPerPlantOwn => 'Next to it you get your own average from previous years. It is nobody\'s table: the app measures against your own land.';
+
+  @override
+  String get helpPerPlantAlert => 'If you wrote when you expected the first harvest and that date passed with no harvest, the app warns you: “should be yielding since …”.';
+
+  @override
+  String get helpOtherTitle => 'The rest of what the app does';
+
+  @override
+  String get helpTerrenosTitle => 'Your plots (terrenos)';
+
+  @override
+  String get helpTerrenosIntro => 'A plot is the land where your crop sits. It does two things: keeps the plot\'s location and splits one expense that belongs to several crops together.';
+
+  @override
+  String get helpTerrenosWhere => 'In Crops, tap the mountain icon to create the plot: name, hectares if you measured them, which crops go inside, and the location if you want.';
+
+  @override
+  String get helpTerrenosLocation => 'You can take the location from the phone, type it by hand, or leave it empty. The app never re-measures it on its own.';
+
+  @override
+  String get helpTerrenosSplit => 'An expense for the whole plot (a clearing, the fertilizer) is logged on the plot and split by hectares. If a crop has no area, that part is not split and shows separately.';
+
+  @override
+  String get helpTerrenosReport => 'In Report a “Your plots · location” card appears only if some plot has a coordinate.';
+
+  @override
+  String get helpWorkersTitle => 'Workers and day wages';
+
+  @override
+  String get helpWorkersIntro => 'You save your workers so you don\'t type their pay each time.';
+
+  @override
+  String get helpWorkersWhere => 'In the ⋮ menu → Workers. Give a name and, if you want, their pay per day; if you leave it empty, you write it when logging each day wage.';
+
+  @override
+  String get helpWorkersJornal => 'The day wage is logged as a labor expense in Record: you pick the worker and the days. The name is saved with the record, so deleting a worker does not delete their history.';
+
+  @override
+  String get helpWorkersReport => 'In Report you see the period\'s payroll (who, how many days, the total) and the monthly timesheet.';
+
+  @override
+  String get helpCajaTitle => 'The month\'s cash box';
+
+  @override
+  String get helpCajaIntro => 'The cash box is the money you set aside each month for the farm: it covers day wages and small expenses (power, water, repairs).';
+
+  @override
+  String get helpCajaWhere => 'You set it in Settings → “Monthly cash contribution”. If you leave it empty, the card does not show.';
+
+  @override
+  String get helpCajaCarry => 'What you don\'t spend is not lost: it carries over to the next month. The bar turns green, amber, or red depending on how much you have spent.';
+
+  @override
+  String get helpReportTitle => 'The report and its files';
+
+  @override
+  String get helpReportIntro => 'In Report you pick the period (week, month, year, or year-to-date) and see whether you made or lost money, the cost per kilo, how each crop is doing, the month\'s cash box, and what is worth doing next.';
+
+  @override
+  String get helpReportExport => 'With the export buttons you take it as PDF or Excel, plus a balance template. Share it wherever you want.';
+
+  @override
+  String get helpBackupTitle => 'Your backup';
+
+  @override
+  String get helpBackupIntro => 'A backup is a file of your own with all your data: crops, plantings, expenses, sales, workers, and settings.';
+
+  @override
+  String get helpBackupWhere => 'In Settings → Backup you export it (and share it) and restore it whenever you want.';
+
+  @override
+  String get helpBackupAdditive => 'Restoring deletes nothing: what you already have stays and the file\'s data is added.';
+
+  @override
+  String get helpBackupVsSync => 'This is not the same as syncing. Syncing saves to the cloud so you can see it from another device.';
+
+  @override
+  String get helpLanguageTitle => 'Language and how numbers are read';
+
+  @override
+  String get helpLanguageIntro => 'The app speaks Spanish and English: you pick it in Settings → “Language”.';
+
+  @override
+  String get helpLanguageNumbers => 'Numbers are read the way your language does: in Spanish COP 1.500 and in English COP 1,500.';
+
+  @override
+  String get helpLanguageCurrency => 'The currency is picked once and always read with its code (COP), never with a symbol.';
 
   @override
   String get helpGlossaryTitle => 'Glossary';
