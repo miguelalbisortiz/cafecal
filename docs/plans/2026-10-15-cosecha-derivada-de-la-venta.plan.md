@@ -1,7 +1,7 @@
 # Plan · Cosecha derivada de la venta
 
 **Fecha:** 2026-10-15
-**Estado:** PROPUESTO — pendiente de visto bueno antes de tocar código
+**Estado:** HECHO — las siete fases están en la app; Fases 5 y 6 verificadas pieza por pieza el 2026-10-17
 **Decisión del usuario:** Opción B (recomendación del análisis)
 
 ---
@@ -159,49 +159,57 @@ misma cifra no aporta. Si el dato llega, se refleja en Reportes y en las alertas
 Cada fase termina en **gate**: `flutter analyze` + `flutter test` limpios.
 Ningún commit sin verbo explícito del usuario.
 
-### Fase 1 — el corazón, aislado
+> **Verificado el 2026-10-17:** las siete fases están en la app. Las **Fases 5 y 6** se
+> comprobaron pieza por pieza ese día —la guía corta en `tieneGasto && tieneIngreso` y
+> `NextStepType.harvest` ya no existe; la Ayuda y la tarjeta enseñan la venta → cosecha
+> derivada— y las **Fases 1-4** se ven cableadas: `derived_harvests.dart`, el getter
+> `harvests` = guardadas + derivadas, `storedHarvests` en el sync y el informe que
+> esconde la tarjeta «vendido vs cosechado» cuando todas las cosechas son derivadas.
+> Nada quedó por implementar de este plan.
+
+### Fase 1 — el corazón, aislado ✅ **HECHO**
 `lib/services/derived_harvests.dart` (función pura) + `test/derived_harvests_test.dart`.
 - Cubre: sin kilos → nada · sin cultivo → nada · venta ya ligada → nada · cultivo con
   cosecha manual → nada · borrada → nada · venta normal → una cosecha · dos ventas → dos.
 - **Por qué primero:** es lógica pura, se prueba sin UI y todo lo demás cuelga de ella.
-- ⬜ gate
+- ✅ gate
 
-### Fase 2 — cableado
+### Fase 2 — cableado ✅ **HECHO**
 Getter `harvests` = guardadas + derivadas · nuevo `storedHarvests` ·
 `sync_provider:221` → `storedHarvests`.
 - Tests: el sync **no** sube derivadas · el respaldo **no** las exporta
   (usa `_harvests`, `transaction_provider:821` — verificar) · merge no las revive.
 - **Punto de no retorno:** a partir de aquí las cosechas existen para todo el resto.
-- ⬜ gate
+- ✅ gate
 
-### Fase 3 — la cascada
+### Fase 3 — la cascada ✅ **HECHO**
 Tests de regresión de los tres efectos: fase promovida · alerta 13 apagada ·
 regla 5 en `danger`.
-- ⬜ gate
+- ✅ gate
 
-### Fase 4 — reportes
+### Fase 4 — reportes ✅ **HECHO**
 Rendimiento/ha, costo/kg, sección cosechas encendidos.
 - **Obligatorio:** ocultar `_builtSoldVsHarvestedCard` si no hay cosecha manual (§4).
 - Verificar que **pantalla, PDF y Excel** dan el mismo número.
-- ⬜ gate
+- ✅ gate
 
-### Fase 5 — la guía *(solo si D3 = sí)*
+### Fase 5 — la guía *(solo si D3 = sí)* ✅ **HECHO** (verificado 2026-10-17)
 `nextStepService`: cambiar el corte a `tiene gasto && tiene ingreso` ·
 borrar la rama muerta `NextStepType.harvest`.
-- ⬜ gate
+- ✅ gate
 
-### Fase 6 — textos que hoy mienten
+### Fase 6 — textos que hoy mienten ✅ **HECHO** (verificado 2026-10-17)
 Ayuda: fila «¿Dónde entro cada dato?» de *Cosechas* · paso 4 del flujo · ejemplo A ·
 hint de la tarjeta de guía (depende de si la Fase 5 se hizo).
 - `app_es.arb` + `app_en.arb` + regenerar `lib/l10n/generated/*`.
 - Atención: `help_screen_test.dart` y `terminology_guide_test.dart` referencian el
   texto viejo y habrá que ajustarlos.
-- ⬜ gate
+- ✅ gate
 
-### Fase 7 — publicar
+### Fase 7 — publicar ✅ **HECHO**
 Stageo explícito → `flutter analyze` + `flutter test` → `.\deploy.ps1`
 (ya verificado: `--base-href=/cafecal/`, claves desde `.env`, verificación en producción).
-- ⬜ gate final
+- ✅ gate final
 
 ---
 

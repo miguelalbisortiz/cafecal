@@ -1,7 +1,7 @@
 ---
-status: IN-PROGRESS  <!-- Gate 0 cerrado 2026-10-09 · en curso F1 -->
+status: DONE  <!-- F1-F6 hechas · F5 y F6 verificadas 2026-10-17 -->
 created: 2026-10-08
-last_updated: 2026-10-09
+last_updated: 2026-10-17
 start_date: 2026-10-09  <!-- "mañana empezamos" (usuario, 2026-10-08) -->
 ---
 
@@ -33,7 +33,8 @@ gasto, con ritmo semanal** — no lote con nombre.
 - [x] **F2** — costo en la resiembra (2026-10-09) · analyze limpio · **473/473** (3 nuevos)
 - [x] **F3** — Inversión total (2026-10-09) · analyze limpio · **482/482** (9 nuevos)
 - [x] **F4** — Pérdida sin plantar (2026-10-17) · analyze limpio · **934/934** (1 nuevo: el cableado)
-- [ ] F5 … F6
+- [x] **F5** — Fecha, fase y edad (commit `fa5e282`) · verificado 2026-10-17
+- [x] **F6** — Saco configurable (commit `fa5e282`) · verificado 2026-10-17
 
 ---
 
@@ -175,9 +176,25 @@ Nueva cosecha
   ambos vacíos → error · cultivo **con** siembras no deja editar área/plantas ·
   cultivo **sin** siembras sí lo deja (ruta "ya está plantado").
 
-### F5 · Fecha, fase y edad 🟡
+### F5 · Fecha, fase y edad 🟡 ✅ **HECHO** (`fa5e282`, verificado 2026-10-17)
 
 **Bloque de modelo — incluye la migración. Va al final de F1-F4 para no mezclar.**
+
+> Verificado el 2026-10-17: `plantedAt` está en `Crop` con `copyWith`/JSON y sus cuatro tests
+> (`test/crop_test.dart:50`); el sync lo envía y lo recibe (`sync_provider.dart:400,674`); el editor
+> pide la fecha **solo** en perenne, **opcional**, y **no la pregunta si el cultivo ya tiene
+> siembras**; la **edad** vive en `edadDeCrop` con todos los casos probados (la última siembra gana
+> sobre `plantedAt`, una resiembra **no** reinicia la edad, sin datos → nada, anual → nada, menos de
+> un año → `0`, no «sin datos»), y `crops_screen` la pinta junto a la fase.
+>
+> **La parte (e) cambió a propósito**: la fase de un cultivo nuevo **no** se deduce de la edad. Un
+> umbral de años sería el del café puesto en boca de todos (hallazgo H2, ver `crop.dart:300-335`):
+> se deduce de la **primera cosecha estimada** que él anota (E5) y, sin ese dato, nace en
+> `establecimiento` (P3 intacto). Al editar no se re-deduce.
+>
+> Migración `crops.planted_at` **aplicada y verificada** en Supabase — lo registra el plan del
+> replanteo v2 (2026-10-11, §0.1) y el archivo está versionado en
+> `supabase/migrations/202610100001_add_crops_planted_at.sql`.
 
 | Parte | Archivo | Cambio |
 |---|---|---|
@@ -193,7 +210,17 @@ Nueva cosecha
   no se re-deduces al editar · fecha de siembra reciente gana sobre `plantedAt` ·
   sin datos → nada · anual → nada · JSON antiguo sin el campo → `null`
 
-### F6 · Saco configurable ❓
+### F6 · Saco configurable ❓ ✅ **HECHO** (`fa5e282`, verificado 2026-10-17)
+
+> Se dimensionó y salió **S**: no hubo que pasar ajustes por todos los caminos. El peso del saco es
+> un ajuste (`settings.sacoKg`, defecto 70, en Ajustes junto al umbral) y `unitToKg` lo **recibe por
+> parámetro** donde se usa: alertas (`alert_service.dart:55`), ventas y cosechas, informes y
+> exportadores. Migración `settings.saco_kg` **aplicada y verificada** en Supabase (plan del
+> replanteo v2, §0.1) y versionada en
+> `supabase/migrations/202610100002_add_settings_saco_kg.sql`.
+> Tests: `alert_service_test.dart:192` (el peso del saco decide si la alerta dispara) ·
+> `evaluate_alerts_test.dart:96` (el precio por kg con el peso real) · `backup_service_test.dart:207`
+> (el respaldo conserva el que él eligió).
 
 - **⚠️ Dimensionar antes de comprometer fecha.** Parece un número en Ajustes, pero
   `unitToKg('saco')` es una **función pura** llamada desde cosechas, reportes, PDF y Excel.
