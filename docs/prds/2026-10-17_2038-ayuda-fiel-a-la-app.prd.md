@@ -19,6 +19,12 @@ clave en vez de pintarla). La planificación de la implementación vive en
 `docs/plans/2026-10-17-ayuda-fiel-a-la-app.plan.md`.
 No se implementa código desde este documento: solo se especifica.
 
+**Segunda vuelta (2026-10-17, después de T3):** el usuario leyó la Ayuda publicada y trajo
+cuatro observaciones (A4–A7, §Arreglos). Se cerraron con su decisión —cuatro pasos, la finca
+vacía no se llama «cultivo», tipografía y sangría unificadas, y un arranque que dice la
+finalidad, la funcionalidad y de quién son los datos— y quedaron publicadas con las guardas
+G3–G6. Criterios nuevos: SC19–SC23.
+
 ## Context
 
 `mi_cafetal` es una app Flutter local-first para el caficultor. La sección
@@ -342,6 +348,94 @@ un término, poner uno que el agricultor **sí** ve en Reporte:
 - EN: "Sold vs harvested: how much of the harvest has already gone out as a sale."
 **Alternativa:** borrar la frase y no reponer nada. → **Decisión (D4).**
 
+### A4–A7 · La revisión del usuario (segunda vuelta, 2026-10-17)
+
+Con la Ayuda ya publicada (T3), el usuario la leyó y trajo cuatro observaciones. Las cuatro
+se verificaron contra el código antes de tocar nada y se cerraron con su decisión.
+
+**A4 · «El orden de la app» hablaba de cinco pasos, uno de ellos inexistente.**
+Ponía «La cosecha» como paso 4, antes de la venta, y su propio texto decía que la cosecha se
+anota con los kilos de la venta: se contradecía. `lib/services/next_step_service.dart`
+(líneas 7-21) deriva `crop → sowing → expenses → sale`, con la nota de que la cosecha
+**nace de la propia venta** y no hay un «registrar cosecha» aparte. **Decisión del usuario:
+cuatro pasos y la cosecha dentro de la venta** (es la guía real de la app).
+
+| Paso | ES | EN |
+|---|---|---|
+| 1 | Definir el cultivo | Define the crop |
+| 2 | Registrar la siembra | Record the planting |
+| 3 | Anotar gastos | Log expenses |
+| 4 | **Registrar la venta** — «A quién vendiste, cuánto y los kilos: de ahí sale tu cosecha.» | **Record the sale** — «Who you sold to, how much and the kilos: that is where your harvest comes from.» |
+
+`helpFlowStep5Title`/`helpFlowStep5Body` **borradas** de los dos ARB y del código.
+
+**A5 · A la finca vacía se la llamaba «cultivo».**
+**Decisión del usuario:** sin nada registrado el texto habla de *lo que vas a sembrar*, no de
+un cultivo que todavía no existe. Cambios ES (el EN es espejo):
+- `helpCaseBTitle`: «Estoy empezando un cultivo nuevo desde cero» → **«No tengo nada todavía
+  y voy a empezar»**.
+- `helpCaseB1`: → «Dile a la app qué vas a sembrar: en Cultivos crea tu cultivo (por ejemplo
+  Café o Plátano) y ponle fase Sin dar. Si sabes el área, ponla.»
+- `helpCaseB2`: → «En Siembras, registra cuántas plantas pusiste y en qué área, y si quieres
+  el costo. Si tu cultivo no está en la lista, elige «Crear nuevo cultivo» y lo creas ahí
+  mismo.» (cita `sowingNewCropOption`, que existe: el desplegable de Siembras crea el cultivo
+  con `tx.addCrop`).
+- `helpCaseB4`: «…sigue el flujo del caso anterior: cosechas y ventas.» → «…las ventas, y de
+  ahí sale tu cosecha.»
+- `helpCaseBExampleTitle`: «plátano nuevo» → «plátano recién sembrado».
+
+Lo que **no** se toca: el orden real de la app (el cultivo se define antes de la siembra),
+porque el defecto era cómo se nombraba la finca vacía, no el flujo.
+
+**A6 · Tipografía y sangría desparejas.** Verificado: **ninguna** pantalla de la app
+justifica el texto (0 usos de `TextAlign.justify` en `lib/`) y la Ayuda mezclaba seis
+tamaños (11, 12, 12.5, 13, 13.5, 14). **Decisión del usuario: unificar tipografía y sangría**
+(sin justificar). Queda un tamaño por papel: **11** el número del paso, **12.5** las celdas
+de tabla y los chips, **13** la prosa y las etiquetas, **13.5** los títulos de bloque, **14**
+solo el párrafo de arranque. Las flechas y las tablas (estructura) se conservan.
+
+**A7 · El arranque de la Ayuda (lo prioritario para el usuario).** En sus palabras: «el
+resumen de la app … debe representar la finalidad, funcionalidad y beneficio … y dar
+confianza y control». **Decisión: párrafo de arranque + tres filas**, bajo el rótulo «Guía
+para empezar» (que no cambia). Texto aprobado (ES):
+
+- Arranque (`helpIntro`): «Mi Cafetal es el cuaderno de cuentas de tu finca: tú anotas lo que
+  gastas y lo que vendes, y la app hace las cuentas. Al final sabes lo que de verdad importa:
+  si tu finca está ganando o perdiendo, y por qué.»
+- `helpWhyTitle`/`helpWhyBody` · **Para qué te sirve** — «Para saber si vas ganando o
+  perdiendo, cuánto te cuesta cada kilo que produces y cómo va cada cultivo y cada mes. Con
+  esos números decides tú: qué sembrar, cuándo vender, en qué apretar el gasto.»
+- `helpDoesTitle`/`helpDoesBody` · **Qué hace** — «Suma sola lo que registras —gastos,
+  siembras, ventas y el jornal de tus trabajadores— y te muestra el mes, el año, la caja, el
+  costo por kilo y los kilos por hectárea o por planta. Te avisa si algo va mal y te deja
+  sacar reportes en PDF o Excel.»
+- `helpDataTitle`/`helpDataBody` · **Tus datos son tuyos** — «Se guardan en tu teléfono y la
+  app funciona sin internet. Nada se inventa: si un dato falta, lo deja en blanco en vez de
+  poner un cero. Puedes respaldarlos en un archivo o sincronizarlos para verlos desde otro
+  dispositivo.»
+
+Cada afirmación sale del código: la caja (`helpCaja*`), el jornal (`helpWorkersJornal`), los
+kilos por hectárea (`helpPerHa*`) y por planta (`helpPerPlant*`), las alertas, los reportes
+(`helpReportExport`), el respaldo (`helpBackup*`) y la sincronización (`helpBackupVsSync`).
+`helpIntroPromesa` («La app no inventa números…») queda **absorbida** por la fila 3: se borra
+de los dos ARB para no decir dos veces lo mismo.
+
+**Defecto encontrado de paso:** el arranque en inglés **decía otra cosa** que el español
+(«how much you invest, produce and sell, per crop, per month and per year»). Los dos idiomas
+dicen ya lo mismo.
+
+**Success Criteria de la segunda vuelta (SC19–SC23)**
+
+- **SC19** — «El orden de la app» tiene exactamente cuatro pasos y el cuarto es la venta;
+  ningún paso se llama «cosecha».
+- **SC20** — El título del caso B no llama «cultivo» a la finca vacía, y la puerta que cita
+  («Crear nuevo cultivo») existe en la app.
+- **SC21** — La Ayuda usa un tamaño de letra por papel (`{11, 12.5, 13, 13.5}` + el 14 del
+  arranque una sola vez).
+- **SC22** — El arranque dice la finalidad, la funcionalidad y de quién son los datos, y las
+  tres filas se pintan.
+- **SC23** — ES y EN del arranque dicen lo mismo (mismo contenido, no solo el mismo tema).
+
 ## Success Criteria (EARS)
 
 The work is complete when ALL of the following are true (cada uno verificable).
@@ -455,6 +549,27 @@ no los tests, porque una clave usada únicamente en un test tampoco se pinta; (c
 alcance «`^help`» deja deliberadamente fuera `phaseHelp`/`datePickerHelp`, que sí se
 pintan.
 
+### Guardas G3–G6 · la segunda vuelta (T4) — implementadas
+
+Todas en `test/help_coherencia_test.dart`, y todas vistas **caer** contra los archivos de
+`HEAD` (copiados a `%TEMP%` con `git show`, sin tocar el árbol de trabajo) antes de su
+arreglo.
+
+- **G3** — cuenta las claves `helpFlowStep\d+(Title|Body)` en ES y EN (deben ser 8: cuatro
+  pasos × título y cuerpo) y exige que ningún título de paso mencione la cosecha. *Rojo
+  visto:* 10 claves (el paso 5 seguía ahí).
+- **G4** — `helpCaseBTitle` sin «cultivo»; y si el paso de la siembra cita «Crear nuevo
+  cultivo», el ARB tiene que declarar esa opción. *Rojo visto:* «estoy empezando un cultivo
+  nuevo desde cero».
+- **G5** — barre los `fontSize:` de `help_screen.dart`: todos dentro de
+  `{11, 12.5, 13, 13.5, 14}` y el 14 exactamente una vez. *Rojo visto:*
+  `[11.0, 12.0, 12.5, 13.0, 13.5, 14.0]`.
+- **G6** — monta `HelpScreen` (ventana 900x12000) y exige pintados `helpWhyTitle`,
+  `helpDoesTitle` y `helpDataTitle`. *Rojo:* esas claves no existían en `HEAD`.
+
+Lo que G3–G6 **no** prueban: que el texto esté bien escrito o sea cierto. Eso es lectura
+humana, y en esta vuelta la hizo el usuario.
+
 ## Riesgos
 
 | Riesgo | Prob. | Impacto | Mitigación |
@@ -543,8 +658,13 @@ del PRD delante):
 | 3 | Bloques nuevos 9.1–9.6 + «por planta» | la Ayuda nombra terrenos, trabajadores, caja, reporte, respaldo e idioma | **hecho (2026-10-17)** | `a47bdc2` |
 | 4 | Mapa ampliado (SC1) | cada destino de datos del menú tiene su fila | **hecho (2026-10-17)** | `a47bdc2` |
 | 5 | Guardas G1 y G2, con rojo/verde | un menú o una clave sin usar hacen caer la suite | **hecho (2026-10-17)** | `81ccc0c`, `a47bdc2` |
+| 6 | Revisión del usuario (A4–A7) + guardas G3–G6 | el orden son 4 pasos, la finca vacía no es «un cultivo», un tamaño de letra por papel y un arranque que dice finalidad, función y datos | **hecho (2026-10-17)** | `0b5a1de` (gh-pages) |
 
 ---
 
-*Status: APPROVED — requirements only. D1–D8 cerradas el 2026-10-17: `/plan` queda
+*Status: APPROVED — requirements only. D1–D8 cerradas el 2026-10-17: `/plan` quedó
 desbloqueado. Plan de la tanda: `docs/plans/2026-10-17-ayuda-fiel-a-la-app.plan.md`.*
+
+*Segunda vuelta publicada el 2026-10-17: `gh-pages` en `0b5a1de`, huella
+`D3E4CA3754E8079C30378F151D50DAA0C9F880FD9AB7EE2EFFBDEA0CDD3945C7`, 4.808.752 bytes,
+verificada sirviendo en producción. Gate: `flutter analyze` sin issues · 954/954 tests.*

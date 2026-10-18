@@ -35,15 +35,12 @@ class HelpScreen extends StatelessWidget {
                     Text(l10n.helpIntro,
                         style: const TextStyle(
                             fontSize: 14, height: 1.4)),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.helpIntroPromesa,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: scheme.onSurface.withOpacity(0.75),
-                      ),
-                    ),
+                    const SizedBox(height: 12),
+                    _DefList(items: [
+                      (l10n.helpWhyTitle, l10n.helpWhyBody),
+                      (l10n.helpDoesTitle, l10n.helpDoesBody),
+                      (l10n.helpDataTitle, l10n.helpDataBody),
+                    ]),
                   ],
                 ),
               ),
@@ -86,16 +83,14 @@ class HelpScreen extends StatelessWidget {
                       (l10n.helpFlowStep3Title, l10n.helpFlowStep3Body,
                           Icons.trending_down_outlined),
                       (l10n.helpFlowStep4Title, l10n.helpFlowStep4Body,
-                          Icons.agriculture_outlined),
-                      (l10n.helpFlowStep5Title, l10n.helpFlowStep5Body,
                           Icons.sell_outlined),
                     ]),
                     const SizedBox(height: 4),
                     Text(
                       l10n.helpFlowHint,
                       style: TextStyle(
-                        fontSize: 12,
-                        height: 1.35,
+                        fontSize: 12.5,
+                        height: 1.4,
                         fontStyle: FontStyle.italic,
                         color: scheme.onSurface.withOpacity(0.7),
                       ),
@@ -220,8 +215,8 @@ class HelpScreen extends StatelessWidget {
                     Text(
                       l10n.helpPerHaWhy,
                       style: TextStyle(
-                        fontSize: 12,
-                        height: 1.35,
+                        fontSize: 12.5,
+                        height: 1.4,
                         fontStyle: FontStyle.italic,
                         color: scheme.onSurface.withOpacity(0.75),
                       ),
@@ -445,11 +440,11 @@ class _WhereTable extends StatelessWidget {
                     children: [
                       Text(situation,
                           style: const TextStyle(
-                              fontSize: 13, height: 1.3)),
+                              fontSize: 13, height: 1.4)),
                       Text(
                         destination,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w600,
                           color: scheme.primary,
                         ),
@@ -488,8 +483,8 @@ class _DefList extends StatelessWidget {
                 Text(
                   body,
                   style: TextStyle(
-                    fontSize: 12.5,
-                    height: 1.35,
+                    fontSize: 13,
+                    height: 1.4,
                     color: scheme.onSurface.withOpacity(0.8),
                   ),
                 ),
@@ -542,7 +537,7 @@ class _MiniTable extends StatelessWidget {
                       rows[i].$2,
                       style: TextStyle(
                         fontSize: 12.5,
-                        height: 1.3,
+                        height: 1.4,
                         color: scheme.onSurface.withOpacity(0.8),
                       ),
                     ),
@@ -577,8 +572,8 @@ class _CaseExample extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
               color: scheme.primary,
             ),
           ),
@@ -605,7 +600,7 @@ class _StepsCard extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         for (var i = 0; i < steps.length; i++)
@@ -630,7 +625,7 @@ class _StepsCard extends StatelessWidget {
                 Expanded(
                   child: Text(steps[i],
                       style: const TextStyle(
-                          fontSize: 13, height: 1.35)),
+                          fontSize: 13, height: 1.4)),
                 ),
               ],
             ),
@@ -639,8 +634,8 @@ class _StepsCard extends StatelessWidget {
           Text(
             endNote!,
             style: TextStyle(
-              fontSize: 12,
-              height: 1.35,
+              fontSize: 12.5,
+              height: 1.4,
               fontStyle: FontStyle.italic,
               color: scheme.onSurface.withOpacity(0.7),
             ),
@@ -667,7 +662,7 @@ class _UnitChip extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 12.5,
           fontWeight: FontWeight.w600,
           color: scheme.onSecondaryContainer,
         ),
@@ -712,8 +707,8 @@ class _FlowSteps extends StatelessWidget {
                     Text(
                       items[i].$2,
                       style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.3,
+                        fontSize: 13,
+                        height: 1.4,
                         color: scheme.onSurface.withOpacity(0.75),
                       ),
                     ),

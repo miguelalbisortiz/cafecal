@@ -116,10 +116,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpSectionGuide => 'Guía para empezar';
 
   @override
-  String get helpIntro => 'Mi Cafetal te dice si tu finca está ganando o perdiendo dinero. Tú le dices cuánto gastas y cuánto vendes. La app hace las cuentas y te avisa si algo va mal.';
+  String get helpIntro => 'Mi Cafetal es el cuaderno de cuentas de tu finca: tú anotas lo que gastas y lo que vendes, y la app hace las cuentas. Al final sabes lo que de verdad importa: si tu finca está ganando o perdiendo, y por qué.';
 
   @override
-  String get helpIntroPromesa => 'La app no inventa números: todo sale de lo que tú registras. Si le das pocos datos, te da poca información. Si le das más, te da más.';
+  String get helpWhyTitle => 'Para qué te sirve';
+
+  @override
+  String get helpWhyBody => 'Para saber si vas ganando o perdiendo, cuánto te cuesta cada kilo que produces y cómo va cada cultivo y cada mes. Con esos números decides tú: qué sembrar, cuándo vender, en qué apretar el gasto.';
+
+  @override
+  String get helpDoesTitle => 'Qué hace';
+
+  @override
+  String get helpDoesBody => 'Suma sola lo que registras —gastos, siembras, ventas y el jornal de tus trabajadores— y te muestra el mes, el año, la caja, el costo por kilo y los kilos por hectárea o por planta. Te avisa si algo va mal y te deja sacar reportes en PDF o Excel.';
+
+  @override
+  String get helpDataTitle => 'Tus datos son tuyos';
+
+  @override
+  String get helpDataBody => 'Se guardan en tu teléfono y la app funciona sin internet. Nada se inventa: si un dato falta, lo deja en blanco en vez de poner un cero. Puedes respaldarlos en un archivo o sincronizarlos para verlos desde otro dispositivo.';
 
   @override
   String get helpWhereTitle => '¿Dónde entro cada dato?';
@@ -179,19 +194,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseAEnd => 'Mira el Resumen: ahí ves si estás ganando o perdiendo. Las alertas te avisan si algo necesita atención.';
 
   @override
-  String get helpCaseBTitle => 'Estoy empezando un cultivo nuevo desde cero';
+  String get helpCaseBTitle => 'No tengo nada todavía y voy a empezar';
 
   @override
-  String get helpCaseB1 => 'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Sin dar. Elige si es Anual o Perenne.';
+  String get helpCaseB1 => 'Dile a la app qué vas a sembrar: en Cultivos crea tu cultivo (por ejemplo Café o Plátano) y ponle fase Sin dar. Si sabes el área, ponla.';
 
   @override
-  String get helpCaseB2 => 'En Siembras, registra cuántas plantas pusiste, en qué área, y si quieres el costo.';
+  String get helpCaseB2 => 'En Siembras, registra cuántas plantas pusiste y en qué área, y si quieres el costo. Si tu cultivo no está en la lista, elige «Crear nuevo cultivo» y lo creas ahí mismo.';
 
   @override
   String get helpCaseB3 => 'Mientras no dé fruto, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.';
 
   @override
-  String get helpCaseB4 => 'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: cosechas y ventas.';
+  String get helpCaseB4 => 'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: las ventas, y de ahí sale tu cosecha.';
 
   @override
   String get helpUnitsTitle => '¿Qué unidad uso?';
@@ -260,7 +275,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpCaseAEx5 => 'Balance +COP 250.000 · Margen 33% · ROI 50%';
 
   @override
-  String get helpCaseBExampleTitle => 'Caso B — plátano nuevo (500 plantas en 0.5 ha)';
+  String get helpCaseBExampleTitle => 'Caso B — plátano recién sembrado (500 plantas en 0.5 ha)';
 
   @override
   String get helpCaseBEx1 => 'Plátano, Sin dar, Perenne, 0.5 ha, 500 plantas';
@@ -461,16 +476,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpFlowStep3Body => 'Qué invertiste.';
 
   @override
-  String get helpFlowStep4Title => 'La cosecha';
+  String get helpFlowStep4Title => 'Registrar la venta';
 
   @override
-  String get helpFlowStep4Body => 'Se anota sola con los kilos de tu venta.';
-
-  @override
-  String get helpFlowStep5Title => 'Registrar venta';
-
-  @override
-  String get helpFlowStep5Body => 'A quién vendiste y cuánto.';
+  String get helpFlowStep4Body => 'A quién vendiste, cuánto y los kilos: de ahí sale tu cosecha.';
 
   @override
   String get helpFlowHint => 'La tarjeta \"Tu próximo paso\" en el Resumen te dice exactamente cuál es el siguiente registro que necesitas. Cuando ya registraste tus gastos y tus ventas, la tarjeta desaparece sola.';

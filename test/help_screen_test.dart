@@ -21,7 +21,7 @@ void main() {
   final l10n = stringsFor('es');
 
   testWidgets('la sección Ayuda muestra toda la guía', (tester) async {
-    tester.view.physicalSize = const Size(900, 6000);
+    tester.view.physicalSize = const Size(900, 12000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await pumpHelp(tester);

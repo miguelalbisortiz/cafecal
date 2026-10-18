@@ -308,14 +308,44 @@ abstract class AppLocalizations {
   /// No description provided for @helpIntro.
   ///
   /// In es, this message translates to:
-  /// **'Mi Cafetal te dice si tu finca está ganando o perdiendo dinero. Tú le dices cuánto gastas y cuánto vendes. La app hace las cuentas y te avisa si algo va mal.'**
+  /// **'Mi Cafetal es el cuaderno de cuentas de tu finca: tú anotas lo que gastas y lo que vendes, y la app hace las cuentas. Al final sabes lo que de verdad importa: si tu finca está ganando o perdiendo, y por qué.'**
   String get helpIntro;
 
-  /// No description provided for @helpIntroPromesa.
+  /// No description provided for @helpWhyTitle.
   ///
   /// In es, this message translates to:
-  /// **'La app no inventa números: todo sale de lo que tú registras. Si le das pocos datos, te da poca información. Si le das más, te da más.'**
-  String get helpIntroPromesa;
+  /// **'Para qué te sirve'**
+  String get helpWhyTitle;
+
+  /// No description provided for @helpWhyBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Para saber si vas ganando o perdiendo, cuánto te cuesta cada kilo que produces y cómo va cada cultivo y cada mes. Con esos números decides tú: qué sembrar, cuándo vender, en qué apretar el gasto.'**
+  String get helpWhyBody;
+
+  /// No description provided for @helpDoesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué hace'**
+  String get helpDoesTitle;
+
+  /// No description provided for @helpDoesBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Suma sola lo que registras —gastos, siembras, ventas y el jornal de tus trabajadores— y te muestra el mes, el año, la caja, el costo por kilo y los kilos por hectárea o por planta. Te avisa si algo va mal y te deja sacar reportes en PDF o Excel.'**
+  String get helpDoesBody;
+
+  /// No description provided for @helpDataTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus datos son tuyos'**
+  String get helpDataTitle;
+
+  /// No description provided for @helpDataBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se guardan en tu teléfono y la app funciona sin internet. Nada se inventa: si un dato falta, lo deja en blanco en vez de poner un cero. Puedes respaldarlos en un archivo o sincronizarlos para verlos desde otro dispositivo.'**
+  String get helpDataBody;
 
   /// No description provided for @helpWhereTitle.
   ///
@@ -434,19 +464,19 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseBTitle.
   ///
   /// In es, this message translates to:
-  /// **'Estoy empezando un cultivo nuevo desde cero'**
+  /// **'No tengo nada todavía y voy a empezar'**
   String get helpCaseBTitle;
 
   /// No description provided for @helpCaseB1.
   ///
   /// In es, this message translates to:
-  /// **'En Cultivos, crea tu cultivo (o edita el que está) y ponle fase Sin dar. Elige si es Anual o Perenne.'**
+  /// **'Dile a la app qué vas a sembrar: en Cultivos crea tu cultivo (por ejemplo Café o Plátano) y ponle fase Sin dar. Si sabes el área, ponla.'**
   String get helpCaseB1;
 
   /// No description provided for @helpCaseB2.
   ///
   /// In es, this message translates to:
-  /// **'En Siembras, registra cuántas plantas pusiste, en qué área, y si quieres el costo.'**
+  /// **'En Siembras, registra cuántas plantas pusiste y en qué área, y si quieres el costo. Si tu cultivo no está en la lista, elige «Crear nuevo cultivo» y lo creas ahí mismo.'**
   String get helpCaseB2;
 
   /// No description provided for @helpCaseB3.
@@ -458,7 +488,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseB4.
   ///
   /// In es, this message translates to:
-  /// **'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: cosechas y ventas.'**
+  /// **'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: las ventas, y de ahí sale tu cosecha.'**
   String get helpCaseB4;
 
   /// No description provided for @helpUnitsTitle.
@@ -596,7 +626,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCaseBExampleTitle.
   ///
   /// In es, this message translates to:
-  /// **'Caso B — plátano nuevo (500 plantas en 0.5 ha)'**
+  /// **'Caso B — plátano recién sembrado (500 plantas en 0.5 ha)'**
   String get helpCaseBExampleTitle;
 
   /// No description provided for @helpCaseBEx1.
@@ -998,26 +1028,14 @@ abstract class AppLocalizations {
   /// No description provided for @helpFlowStep4Title.
   ///
   /// In es, this message translates to:
-  /// **'La cosecha'**
+  /// **'Registrar la venta'**
   String get helpFlowStep4Title;
 
   /// No description provided for @helpFlowStep4Body.
   ///
   /// In es, this message translates to:
-  /// **'Se anota sola con los kilos de tu venta.'**
+  /// **'A quién vendiste, cuánto y los kilos: de ahí sale tu cosecha.'**
   String get helpFlowStep4Body;
-
-  /// No description provided for @helpFlowStep5Title.
-  ///
-  /// In es, this message translates to:
-  /// **'Registrar venta'**
-  String get helpFlowStep5Title;
-
-  /// No description provided for @helpFlowStep5Body.
-  ///
-  /// In es, this message translates to:
-  /// **'A quién vendiste y cuánto.'**
-  String get helpFlowStep5Body;
 
   /// No description provided for @helpFlowHint.
   ///

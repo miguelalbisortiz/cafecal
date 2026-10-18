@@ -66,6 +66,40 @@ nuevos más «¿Y por planta?». Nada de comportamiento nuevo: solo copy, bloque
   cinco patrones y cinco bugs en `docs/LEARNING.md`, PRD y plan al día.
 - Commits: `81ccc0c` (T1), `59db9fc` (docs PRD y plan), `a47bdc2` (T2), más el papeleo.
 
+### T4 · La revisión del usuario — hecho
+
+El usuario revisó la Ayuda publicada y trajo cuatro observaciones (2026-10-17, después de
+T3). Las cuatro quedaron cerradas, publicadas y con guarda.
+
+- **A4 · el orden de la app eran cinco pasos, y contradecían a la app.** La Ayuda ponía
+  «La cosecha» como paso 4, *antes* de «Registrar venta» (paso 5), cuando su propio texto
+  decía que la cosecha sale de los kilos de la venta. `lib/services/next_step_service.dart`
+  (líneas 7-21) deriva **cuatro** pasos (`crop → sowing → expenses → sale`) y anota que no
+  hay un «registrar cosecha» aparte. Ahora: 4 pasos, el cuarto es la venta («A quién
+  vendiste, cuánto y los kilos: de ahí sale tu cosecha»), con el icono de venta; las claves
+  `helpFlowStep5*` se borraron de los dos ARB y del código.
+- **A5 · a la finca vacía se la llamaba «cultivo».** El caso B pasa a «No tengo nada
+  todavía y voy a empezar»; su paso 1 dice «Dile a la app qué vas a sembrar» y el paso 2
+  nombra la puerta que existe (`sowingNewCropOption` = «+ Crear nuevo cultivo.», el
+  desplegable de Siembras). El ejemplo pasa a «plátano recién sembrado» y `helpCaseB4`
+  deja de decir «cosechas y ventas».
+- **A6 · tipografía y sangría desparejas.** La pantalla mezclaba seis tamaños (11, 12,
+  12.5, 13, 13.5, 14). Queda **un tamaño por papel**: 11 el número del paso, 12.5 las
+  celdas de tabla y los chips, 13 la prosa y las etiquetas, 13.5 los títulos de bloque y
+  14 solo el párrafo de arranque del resumen. Las flechas y las tablas se conservan.
+- **A7 · el arranque no representaba la app (lo más importante para el usuario).** La
+  tarjeta de «Guía para empezar» pasa a un párrafo de arranque («Mi Cafetal es el cuaderno
+  de cuentas de tu finca…») y **tres filas**: «Para qué te sirve» (finalidad), «Qué hace»
+  (funcionalidad) y «Tus datos son tuyos» (confianza y control: «nada se inventa: si un
+  dato falta, lo deja en blanco en vez de poner un cero»). `helpIntroPromesa` queda
+  absorbida por la fila 3 y se borra de los dos ARB.
+- **Defecto de paso encontrado:** el `helpIntro` en inglés decía **otra cosa** que el
+  español (invertía, cultivo/mes/año). Los dos idiomas dicen ya lo mismo.
+- **Cierre T4:** gate completo ✅ y publicado ✅ — `gh-pages` en `0b5a1de`, huella
+  `D3E4CA3754E8079C30378F151D50DAA0C9F880FD9AB7EE2EFFBDEA0CDD3945C7` · 4.808.752 bytes
+  (producido y verificado en producción). `flutter analyze` sin issues · **954/954** tests
+  (950 previos + las 4 guardas nuevas).
+
 ## Guardas
 
 - **G1 · menú ↔ mapa** (`test/help_menu_map_test.dart`). Extrae los `value: '<string>'`
@@ -78,6 +112,23 @@ nuevos más «¿Y por planta?». Nada de comportamiento nuevo: solo copy, bloque
   junta las claves que empiezan por `help`, busca `l10n.<clave>` en `lib/screens/` y
   `lib/widgets/` (solo producción, nunca el generado ni los tests) y falla listando las
   que nadie pinta.
+- **G3 · el orden de la app son cuatro pasos** (`test/help_coherencia_test.dart`, ES y EN).
+  Cuenta las claves `helpFlowStep\d+(Title|Body)` de los dos ARB (tienen que ser 8) y exige
+  que ningún título de paso mencione la cosecha.
+- **G4 · a la finca vacía no se la llama «cultivo»** (mismo archivo). El título del caso B
+  no dice «cultivo»; y si el paso de la siembra cita «Crear nuevo cultivo», esa opción
+  tiene que existir de verdad en el ARB (`sowingNewCropOption`).
+- **G5 · un tamaño de letra por papel** (mismo archivo). Barre los `fontSize:` de
+  `help_screen.dart`: todos dentro de `{11, 12.5, 13, 13.5, 14}` y el 14 exactamente una
+  vez (el párrafo de arranque).
+- **G6 · el arranque dice finalidad, funcionalidad y datos** (mismo archivo). Monta
+  `HelpScreen` y exige pintados los tres rótulos del resumen.
+  G3–G5 se vieron **caer** contra los archivos de `HEAD` (copiados a `%TEMP%` con
+  `git show`, sin tocar el árbol de trabajo) antes del arreglo: 10 claves de paso en vez de
+  8, «estoy empezando un cultivo nuevo desde cero», y el tamaño `12.0` colado en la lista.
+- **Ajuste de una guarda vieja:** `test/help_screen_test.dart` montaba la pantalla en una
+  ventana de 900x6000 y, al crecer el arranque, el Glosario quedaba fuera del viewport
+  (`find.text` no lo veía). La ventana sube a 900x12000 —lo que verifica no cambia—.
 
 ## Criterios de aceptación
 

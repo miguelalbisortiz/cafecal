@@ -116,10 +116,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpSectionGuide => 'Getting started guide';
 
   @override
-  String get helpIntro => 'Mi Cafetal keeps track of your farm: how much you invest, produce and sell, per crop, per month and per year.';
+  String get helpIntro => 'Mi Cafetal is the account book for your farm: you write down what you spend and what you sell, and the app does the math. In the end you know what really matters: whether your farm is making or losing money, and why.';
 
   @override
-  String get helpIntroPromesa => 'The app never guesses your production: the numbers come from what you record. The more complete your records, the more useful the results.';
+  String get helpWhyTitle => 'What it is for';
+
+  @override
+  String get helpWhyBody => 'To know whether you are making or losing money, how much each kilo you produce costs you, and how each crop and each month is doing. With those numbers you decide: what to plant, when to sell, where to cut costs.';
+
+  @override
+  String get helpDoesTitle => 'What it does';
+
+  @override
+  String get helpDoesBody => 'It adds up what you record —expenses, plantings, sales and your workers\' daily pay— and shows you the month, the year, the cash box, the cost per kilo and the kilos per hectare or per plant. It warns you when something is off and lets you export reports to PDF or Excel.';
+
+  @override
+  String get helpDataTitle => 'Your data is yours';
+
+  @override
+  String get helpDataBody => 'It is stored on your phone and the app works without internet. Nothing is made up: if a figure is missing, it is left blank instead of being filled with a zero. You can back it up to a file or sync it to see it from another device.';
 
   @override
   String get helpWhereTitle => 'Where do I enter each piece of data?';
@@ -179,19 +194,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseAEnd => 'Check the Overview: balance and indicators start making sense.';
 
   @override
-  String get helpCaseBTitle => 'Case B — I\'m going to plant something new';
+  String get helpCaseBTitle => 'I have nothing yet and I am starting';
 
   @override
-  String get helpCaseB1 => 'Crops: create your crop with stage Not producing yet (cycle Annual or Perennial).';
+  String get helpCaseB1 => 'Tell the app what you are going to plant: in Crops create your crop (coffee or plantain, for example) and set the stage to Not producing yet. Add the area if you know it.';
 
   @override
-  String get helpCaseB2 => 'Plantings: record the initial planting (plants and area; you can link its cost).';
+  String get helpCaseB2 => 'In Plantings, record how many plants you put in and on what area, and the cost if you want. If your crop is not in the list, pick \"Create new crop\" and you create it right there.';
 
   @override
   String get helpCaseB3 => 'While the crop is not producing yet the app does not flag losses: it is investment, not production.';
 
   @override
-  String get helpCaseB4 => 'When it starts Producing, follow the Case A flow of harvests and sales.';
+  String get helpCaseB4 => 'When it starts Producing, follow the Case A flow: the sales, and that is where your harvest comes from.';
 
   @override
   String get helpUnitsTitle => 'Units';
@@ -260,7 +275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseAEx5 => 'Balance +COP 250,000 · Margin 33% · ROI 50%';
 
   @override
-  String get helpCaseBExampleTitle => 'Case B — new plantain (500 plants on 0.5 ha)';
+  String get helpCaseBExampleTitle => 'Case B — freshly planted plantain (500 plants on 0.5 ha)';
 
   @override
   String get helpCaseBEx1 => 'Plantain, Not producing yet, Perennial, 0.5 ha, 500 plants';
@@ -461,16 +476,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpFlowStep3Body => 'What you invested.';
 
   @override
-  String get helpFlowStep4Title => 'The harvest';
+  String get helpFlowStep4Title => 'Record the sale';
 
   @override
-  String get helpFlowStep4Body => 'It is logged on its own with the kilos from your sale.';
-
-  @override
-  String get helpFlowStep5Title => 'Record the sale';
-
-  @override
-  String get helpFlowStep5Body => 'Who you sold to and for how much.';
+  String get helpFlowStep4Body => 'Who you sold to, how much and the kilos: that is where your harvest comes from.';
 
   @override
   String get helpFlowHint => 'The \"Your next step\" card on the Overview tells you exactly which record you need next. Once you have logged your expenses and your sales, the card disappears on its own.';
