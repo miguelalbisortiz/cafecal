@@ -227,9 +227,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpUnitsCajonRowDesc => 'Para frutas y verduras. Su peso varía.';
 
   @override
-  String get helpExampleTitle => '¿Cómo se ve en la práctica? Ejemplos con números';
-
-  @override
   String get helpCaseAExampleTitle => 'Caso A — café en producción (2 ha, 3000 plantas)';
 
   @override
@@ -263,7 +260,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpGlossaryTitle => 'Glosario';
 
   @override
-  String get helpGlossaryBody => 'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.';
+  String get helpGlossaryBody => 'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Vendido vs cosechado: cuánto de la cosecha ya salió como venta. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.';
 
   @override
   String get helpGlossaryFinance => 'Ver glosario financiero';
@@ -650,12 +647,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpUnitShort => 'Unidad con la que cosechás o vendés este cultivo.';
-
-  @override
-  String get helpCropCurrencyShort => 'Moneda de tu cuenta. Todos tus cultivos usan la misma.';
-
-  @override
-  String get helpCropCurrency => 'Todos tus cultivos usan la moneda de tu cuenta. Ya no se puede elegir otra moneda por cultivo.';
 
   @override
   String get helpCycleShort => 'Perenne o anual';

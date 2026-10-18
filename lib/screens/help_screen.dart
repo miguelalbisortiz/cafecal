@@ -167,8 +167,12 @@ class HelpScreen extends StatelessWidget {
                       spacing: 6,
                       children: [
                         const _UnitChip('kg'),
+                        _UnitChip(l10n.unitLb),
                         _UnitChip(l10n.unitArroba),
                         _UnitChip(l10n.unitSaco),
+                        _UnitChip(l10n.unitCarga),
+                        _UnitChip(l10n.unitRacimo),
+                        _UnitChip(l10n.unitCajon),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -180,8 +184,10 @@ class HelpScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     _MiniTable(rows: [
                       (l10n.helpUnitsKgRow, l10n.helpUnitsKgRowDesc),
+                      (l10n.helpUnitsLbRow, l10n.helpUnitsLbRowDesc),
                       (l10n.helpUnitsArrobaRow, l10n.helpUnitsArrobaRowDesc),
                       (l10n.helpUnitsSacoRow, l10n.helpUnitsSacoRowDesc),
+                      (l10n.helpUnitsCargaRow, l10n.helpUnitsCargaRowDesc),
                       (l10n.helpUnitsRacimoRow, l10n.helpUnitsRacimoRowDesc),
                       (l10n.helpUnitsCajonRow, l10n.helpUnitsCajonRowDesc),
                     ]),

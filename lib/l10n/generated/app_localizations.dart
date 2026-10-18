@@ -527,12 +527,6 @@ abstract class AppLocalizations {
   /// **'Para frutas y verduras. Su peso varía.'**
   String get helpUnitsCajonRowDesc;
 
-  /// No description provided for @helpExampleTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'¿Cómo se ve en la práctica? Ejemplos con números'**
-  String get helpExampleTitle;
-
   /// No description provided for @helpCaseAExampleTitle.
   ///
   /// In es, this message translates to:
@@ -602,7 +596,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpGlossaryBody.
   ///
   /// In es, this message translates to:
-  /// **'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Destino: vendido o pérdida. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.'**
+  /// **'Plantines: plantas jóvenes que aún no producen. Área: cuánto terreno ocupa el cultivo (en hectáreas). Plantas vivas: las que siguen activas (sembradas − muertas + resiembras). Vendido vs cosechado: cuánto de la cosecha ya salió como venta. Sincronizar: guardar en la nube para tenerlo en cualquier dispositivo. Alerta: aviso automático cuando algo necesita tu atención.'**
   String get helpGlossaryBody;
 
   /// No description provided for @helpGlossaryFinance.
@@ -1288,18 +1282,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Unidad con la que cosechás o vendés este cultivo.'**
   String get helpUnitShort;
-
-  /// No description provided for @helpCropCurrencyShort.
-  ///
-  /// In es, this message translates to:
-  /// **'Moneda de tu cuenta. Todos tus cultivos usan la misma.'**
-  String get helpCropCurrencyShort;
-
-  /// No description provided for @helpCropCurrency.
-  ///
-  /// In es, this message translates to:
-  /// **'Todos tus cultivos usan la moneda de tu cuenta. Ya no se puede elegir otra moneda por cultivo.'**
-  String get helpCropCurrency;
 
   /// No description provided for @helpCycleShort.
   ///

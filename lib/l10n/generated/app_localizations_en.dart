@@ -227,9 +227,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpUnitsCajonRowDesc => 'For fruits and vegetables. Weight varies.';
 
   @override
-  String get helpExampleTitle => 'What does it look like in practice? Examples with numbers';
-
-  @override
   String get helpCaseAExampleTitle => 'Case A — coffee in production (2 ha, 3000 plants)';
 
   @override
@@ -263,7 +260,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpGlossaryTitle => 'Glossary';
 
   @override
-  String get helpGlossaryBody => 'Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Destination: sold or loss. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.';
+  String get helpGlossaryBody => 'Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Sold vs harvested: how much of the harvest has already gone out as a sale. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.';
 
   @override
   String get helpGlossaryFinance => 'View financial glossary';
@@ -650,12 +647,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpUnitShort => 'Unit you harvest or sell this crop in.';
-
-  @override
-  String get helpCropCurrencyShort => 'Your account currency. All your crops use the same one.';
-
-  @override
-  String get helpCropCurrency => 'All your crops use your account currency. You can no longer pick a different currency per crop.';
 
   @override
   String get helpCycleShort => 'Perennial or annual';
