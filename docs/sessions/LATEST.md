@@ -1,119 +1,95 @@
-# Sesión — sábado 17 de octubre de 2026 (las cifras con su código, y las guardas)
+# Sesión — sábado 17 de octubre de 2026 (la notación sigue al idioma)
 
-Estado al cierre. Archivo completo en `2026-10-17-cifras-con-su-codigo-y-guardas.md`.
+Estado al cierre. Archivo completo en `2026-10-17-la-notacion-sigue-al-idioma.md`.
 
-Quinta tanda del día. Anteriores de hoy: `2026-10-17-alerta-moneda-signo-y-f4.md`,
-`2026-10-17-campo-de-fecha-en-perdidas.md` y `2026-10-17-entorno-motores-plugins-y-mcp.md`.
+Sexta tanda del día. Anteriores de hoy: `2026-10-17-cifras-con-su-codigo-y-guardas.md`,
+`2026-10-17-alerta-moneda-signo-y-f4.md`, `2026-10-17-campo-de-fecha-en-perdidas.md` y
+`2026-10-17-entorno-motores-plugins-y-mcp.md`.
 
 ---
 
 ## 1. ¿Dónde quedó el proyecto?
 
-La tanda empezó en el `$` de una alerta y cerró la familia entera: **el monto se lee con su
-código de moneda** (nunca con el símbolo) y hay guardas que lo vigilan donde antes no había
-ninguna. Se cerraron además los pendientes que colgaban de esa regla y se verificó, leyendo el
-código, que la cosecha derivada de la venta ya estaba terminada.
+La tanda empezó como un barrido de la familia que se cerró ayer —«¿alguien pinta dinero por su
+cuenta?»— y terminó en la regla que faltaba: **la notación de las cifras sigue al idioma**.
+`settings.locale` era un campo que nadie editaba (Ajustes solo toca el idioma), así que se quedaba
+clavado en `es_CO`: con la app en inglés salían las fechas y los conteos del generador l10n en
+inglés, pero la plata y los kilos con la notación del español.
 
 | Rama | Commit | Estado |
 |---|---|---|
-| `main` | `e92b07c` | sincronizada con `origin/main` |
-| `gh-pages` | `9f67afd` | sincronizada |
+| `main` | `3a5c970` | sincronizada con `origin/main` |
+| `gh-pages` | `3b49a79` | sincronizada |
 
 Huella en producción:
 
-`2C453D77472F4D6EACB49571C4CFA6DE7AC30FF31678C265B9D08F59A668B12F` · 4.794.925 bytes
-(antes: `2E52BB5E…` · 4.794.805).
+`584C22F42DBAE545B5EF5CD8AC92E11F0422BB32ACC76695843E89B953E6E17D` · 4.796.882 bytes
+(antes: `2C453D77…` · 4.794.925).
 
-Los siete commits de la tanda, en orden:
+Un solo commit de código:
 
 | Commit | Qué |
 |---|---|
-| `1f8a66c` | **alertas: los montos con su código de moneda, y el déficit con cada cifra en su casilla** |
-| `29a53d0` | **mensajes: el borrado de cultivo y la caja en rojo dicen sus cifras en su casilla** |
-| `612cfa3` | **mensajes: el orden de los datos se declara como se lee la frase, con guarda** |
-| `085f812` | **reportes: el precio por kilo se lee como lo lee la alerta** |
-| `4e49792` | **pruebas: las guardas de moneda mixta hablan la notación de la app** |
-| `38bc550` | **ayuda: los ejemplos citan sus cifras con el código de la moneda** |
-| `e92b07c` | **monedas: el catálogo deja de llevar el símbolo** |
+| `3a5c970` | **cifras: la notación de los números sigue al idioma, y el kg con ella** |
 
-Gate antes de commit y deploy: `flutter analyze` limpio y **942/942** (venía de 934).
+Gate antes de commit y deploy: `flutter analyze` limpio (esta vez sobre el proyecto entero,
+`tool/` incluido) y **946/946** (venía de 943).
 
 ---
 
-## 2. Lo que se tocó la app (siete cosas)
+## 2. Lo que se tocó la app
 
-**a · Las alertas dejaron de pintar los montos con `$`.** `_money` pasa a recibir la moneda y
-delega en `formatAmount` → `COP 1.500`. Los 21 sitios usan **la moneda que cada regla ya validaba**:
-el exceso, la que quedó del mes; el déficit por cultivo, la del cultivo; la caja menor, la que
-gastó. El idioma sale del `locale` de `AlertService` (`settings.locale`), no de `localeName`.
-Bonus: los decimales son los de la moneda —una cuenta en USD conserva los centavos
-(`USD 300,25`), antes redondeaba a 0—.
+**a · El barrido: nadie pinta dinero fuera de `formatAmount`.** Los cinco helpers de número que se
+revisaron —`_num` y `_numKg` de Reportes y PDF, `_pctOf` de Excel, `_decimal`— son de cantidades,
+conteos, hectáreas, días y porcentajes; el `_num(e.value)` que parecía un monto es el **conteo** de
+cosechas por destino. Los `$` que quedan en `lib/` son los diez de las razones en prosa («por cada
+$100 vendidos»), la excepción acordada que ya vigila `l10n_money_notation_test`. **Nada que
+arreglar ahí.**
 
-**b · Tres mensajes que mentían.** Los tres salían de la misma trampa (el punto **c**):
-el aviso del déficit decía que `3` registros eran `3` pesos; el aviso previo a borrar un cultivo
-leía «Se eliminarán las siembras (Café) y las cosechas (2) de «1»» (los datos en la casilla del
-vecino); y la caja en rojo decía que lo gastado era el arrastre. Arreglados **sin tocar Dart**:
-declarando los placeholders en el ARB en el orden de la frase, que es lo que fija las firmas.
+**b · El `kg` del motor de alertas.** `_kg` formateaba con `es_CO` clavado, así que un aviso en
+inglés decía «you sold 1.200,0 kg». Ahora recibe el locale del servicio, igual que `_money`.
 
-**c · La trampa de los siete mensajes.** Los placeholders que el ARB **no** declara los ordena el
-generador por su cuenta (alfabéticamente), así que una llamada escrita «como se lee» cae en la
-casilla de al lado y el mensaje miente en silencio. Siete mensajes estaban en esa situación
-(`insightVsPrev`, `insightTopExpense`, `insightTopIncome`, `insightLowPrice`, `insightBestMonth`,
-`alertLowPriceManualMessage` y `alertHarvestVsSalesMessage`): se declararon en el orden de la
-frase y se giraron sus siete llamadas. **Nada cambió de lo que se lee** (los placeholders van por
-nombre); lo que cambió es que la regla es una sola: la llamada se escribe como se lee.
+**c · La regla: la notación sigue al idioma.** `FarmSettings.numberLocale` se deduce del idioma
+(`en` → `en_US`, resto → `es_CO`) y **el campo `locale` desaparece del modelo**. Todo lo que
+formatea cifras pasa por ahí: pantallas, widgets, alertas, PDF, Excel y HTML (≈20 sitios). Para el
+español no cambia un número: la salida es idéntica.
 
-**d · El precio por kilo de Reportes.** El insight decía «promedio reciente **400.0** vs 760.0 por
-kilo» mientras la alerta de Inicio, con el mismo número, dice «**COP 400** por kilo». Ahora pasa
-por el mismo formateador que el resto de los insights. De paso: ya **ningún mensaje declara
-`double` ni `num`**, así que ningún otro texto puede colar un número de máquina.
+**d · La nube no cambia de forma.** El payload de sincronización sigue mandando su columna
+`locale`, ahora con el valor deducido, así que la tabla no necesita migración.
 
-**e · Las guardas ciegas de moneda mixta.** Dos arneses se armaban con un formateador de mentira
-(`'$' + round()`) y luego asertaban literales con `$` (`'\$1.550'`) que la **app nunca pinta**
-(pinta `COP 1.550`): la guarda pasaba por culpa del falso. Ahora los dos usan el formateador de la
-casa, las guardas hablan de `COP`/`EUR` y los cuatro literales vacuos se volvieron la notación
-real **más** la cifra que sí se pinta por moneda (para que la guarda tenga su lado positivo).
+**e · Los ajustes viejos se curan al leerse.** `fromJson` ya no lee la clave `locale` guardada:
+quien tenía `language: 'en'` con `locale: 'es_CO'` queda en inglés al abrir, sin migración y sin
+tocar nada. `mergeBackupSettings` deja de fusionar el campo viejo. Mismo patrón de la casa que la
+limpieza de siembras: **los datos viejos se arreglan al entrar, no con una migración nueva**.
 
-**f · La Ayuda.** Los ocho ejemplos con cifras concretas (casos A y B, el panel «Por hectárea» y
-el payback) citaban el símbolo y el separador de otro idioma («$500,000», «vende $9M»): ahora usan
-«COP 500.000», con el separador del idioma (`. ` en es, `,` en en). Las **razones** en prosa («por
-cada `$100` vendidos», el glosario y las tarjetas de margen y ratio) se quedan: ahí el símbolo no
-cita un monto, cita una proporción.
+**f · Los dos tools de desarrollo** construían un `FarmSettings` con `locale:`
+(`generate_report_tool`, `demo_report_tool`): el primero pasa a leer `language` de la fila y el
+segundo deja el idioma por defecto (misma salida). Sin esto, `flutter analyze` sobre el proyecto
+entero se cae — de ahí que el gate se corra **sin acotar a `lib test`**.
 
-**g · El catálogo de monedas.** `CurrencyInfo.symbol` no lo pintaba nadie: se va, con su bloque de
-test, que pasa a vigilar que cada moneda tenga nombre y decimales válidos.
+### Las pruebas nuevas (tres)
 
-**h · La cosecha derivada estaba terminada.** Las **Fases 5 y 6** del plan del 2026-10-15 se
-verificaron pieza por pieza: `NextStepType` ya no tiene `harvest` y el corte de la guía es
-`tieneGasto && tieneIngreso`; la tabla de la Ayuda tiene cinco filas (sin Cosechas), el paso 4 dice
-«La cosecha · Se anota sola con los kilos de tu venta», el caso A manda a Registrar el ingreso y la
-tarjeta dice «Al registrarla se anotan solos los kilos cosechados de ese cultivo», en ES y EN.
-**No había nada que implementar.**
-
-### Las guardas nuevas (tres)
-
-| Guarda | Qué vigila |
+| Prueba | Qué vigila |
 |---|---|
-| `test/l10n_placeholder_order_test.dart` | el orden de los placeholders del texto es el de la firma que los recibe, para los 35 mensajes con dos o más datos |
-| `test/l10n_money_notation_test.dart` | ningún texto cita un monto con el símbolo (salvo las razones) y los ocho ejemplos de la Ayuda usan el código, leído del material generado |
-| `test/report_insights_service_test.dart` + `test/mixed_currency_gap2_test.dart` | la notación se prueba con el formateador **real**, no con uno de mentira |
+| `test/number_locale_follows_language_test.dart` | la pantalla de verdad (`MovementsScreen`) con los ajustes en español (`COP 1.500`) y en inglés (`COP 1,500`), cada uno con la notación contraria **prohibida** |
+| (mismo archivo) | la cura de un ajuste viejo: `fromJson` con `language: 'en'` y `locale: 'es_CO'` guardado sale en `en_US` |
+| `test/alert_service_test.dart` | el aviso del vendido, en los dos idiomas |
 
 ---
 
 ## 3. Tests y rojo/verde
 
-Todo verificado **fallando primero** (o apagando la pieza a mano):
+Todo verificado **fallando primero** (apagando la pieza a mano, que es la regla cuando el arreglo ya
+está puesto):
 
-- el `$` de las alertas: `Actual: '…llevas $300…'`; y `USD 300,25` conserva los centavos.
-- el aviso del déficit: «tienes 7% registros … suman 3 en gastos … el COP 100 de lo invertido».
-- el aviso de borrar cultivo: widget en rojo con el texto literal completo.
-- el orden declarado: al devolver `@insightVsPrev` a su orden viejo, cae nombrando
-  `texto: month, incChange, expChange` / `firma: expChange, incChange, month`.
-- el precio por kilo: `Actual: '…promedio reciente 400.0 vs 760.0 por kilo…'`.
-- las guardas ciegas: **forzando el cruce de monedas** a propósito en `amountsByCurrency`,
-  `groupAmountsByCurrency` y `isMixedCurrency` caen cuatro tests, incluidos los dos que se
-  blindaron; la inyección se revirtió y el archivo de producción quedó limpio.
-- la Ayuda: `Actual: Set:['helpCaseAEx2']` y `Actual: 'Gasto de $500,000 en Fertilizante'`.
+- **el `kg`**: con el `es_CO` devuelto a `_kg`, el aviso en inglés cae con
+  `Actual: 'The problem: … you sold 1.200,0 kg of Cafe, but only recorded 500,0 kg…'`.
+- **la notación**: con `numberLocale` fijo en `es_CO`, el caso inglés cae con
+  `Found 0 widgets with text "COP 1,500"` — la app en inglés pintaba `COP 1.500`. **El caso español
+  sigue pasando con la pieza apagada**, que es la prueba de que el arreglo es aditivo.
+- **los tests que armaban su texto esperado con `settings.locale`** (reporte, planilla, cosecha,
+  curva mensual) pasaron a la regla nueva. Sin eso el proyecto no compilaba, así que la deuda
+  quedó a la vista sola: cuatro archivos de test leían el campo viejo.
 
 ---
 
@@ -124,22 +100,22 @@ Todo verificado **fallando primero** (o apagando la pieza a mano):
 🟡 **Las razones en prosa conservan el `$`** («por cada $100 vendidos»), a propósito: es una
 proporción, no un monto. La excepción está escrita y acotada en `l10n_money_notation_test`.
 
-🟡 **El ítem de menú de Cosechas y la rama `if (v == 'harvests')`** (`home_screen.dart:189,228-236`)
-siguen vivos a propósito: son el «descomentar y volver» que documenta el plan (§7).
+🟡 **`settings.locale` sobrevive en la base y en los respaldos viejos** como dato muerto: ya nadie
+lo lee, y escribirlo no hace daño. Limpiarlo sería una migración para nada.
 
-🟢 **Las ~28 llamadas cuyo orden ya coincidía** no hubo que leerlas a mano: la guarda de orden las
-cubre por construcción (si el texto y la firma concuerdan, la llamada escrita como se lee es
-correcta).
+🟢 **El barrido dejó escrito qué NO es dinero**: `_num`, `_numKg`, `_pctOf` y `_decimal` son de
+cantidades, conteos, hectáreas, días y porcentajes. Si algún día uno empieza a recibir un monto, la
+revisión está hecha y a mano.
 
 ---
 
 ## 5. Hallazgos que NO se abrieron
 
-1. **El campo «kilos recolectados» en el jornal de labor «Cosechar»** (plan de la cosecha derivada,
-   §5.1, Tanda 2): es la única forma de que la regla 6 (vendido > cosechado) reviva y de medir la
-   pérdida en campo. Fuera por la regla propia «si se puede pedir después, no se pide ahora».
-2. **Una pantalla de cosechas de solo lectura**: no. Reportes ya es esa pantalla y duplicar la
-   misma cifra no aporta.
+1. **Un selector de notación aparte en Ajustes** (app en inglés con números en español): se
+   descartó al decidir la regla. Si alguna vez hace falta, el sitio único es `numberLocale`.
+2. **El campo «kilos recolectados» del jornal «Cosechar»** (Tanda 2 de la cosecha derivada): sigue
+   esperando evidencia de uso real.
+3. **W1-c · agrupar cultivos por terreno en Reportes**: sigue esperando un uso concreto.
 
 ---
 
@@ -148,7 +124,8 @@ correcta).
 1. **La verificación manual del usuario** que lista el plan del ciclo (§Verificación manual):
    moneda con y sin internet, respaldo P1, banner L2.5b, PDF y Excel de período mezclado, borrado
    real, `/backup.html` y la cosecha con precio → venta.
-2. **Tanda 2 de la cosecha derivada**, solo si hay evidencia de uso real (punto 1 de §5).
+2. **El PAT de Supabase sin revocar** (punto 1 de la auditoría de secretos del 2026-10-17).
+3. **Tanda 2 de la cosecha derivada**, solo si hay evidencia de uso real.
 
 Nada urgente y nada roto.
 
@@ -163,6 +140,7 @@ Leer este archivo y `docs/LEARNING.md`; el estado de la app es el de la tabla de
 - `null` → oculto, nunca 0. Nunca inventar cifras ni hechos.
 - Una sola función para una sola regla.
 - El **código** de moneda es el único indicador (`COP 1.500`), nunca el símbolo.
+- La **notación** de las cifras sigue al **idioma** del usuario (nuevo, 2026-10-17).
 - Cada arreglo con su test, **verificado fallando sin su arreglo** (y si el código ya está, se apaga
   la pieza a mano para verlo caer).
 - Un test que no atraviesa el camino real es una **guarda**, no una prueba.

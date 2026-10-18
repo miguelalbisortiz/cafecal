@@ -1,7 +1,7 @@
 ---
 status: ACTIVE
 created: 2026-10-11
-updated: 2026-10-13
+updated: 2026-10-17
 supersedes: docs/plans/2026-10-08-ciclo-cultivo-siembra-cosecha.plan.md (F1-F6 CERRADAS)
 ---
 
@@ -282,6 +282,13 @@ gasto → ganancia cuando ya está en venta**, para **todo** lo sembrado en ese 
 - Su papel: menú de 17 líneas + hoja semanal L-M-M-J-V-S-D · eje = **producto y categoría de
   gasto** · costal = **60 kg** · líneas 15/16 "colinos de plátano" · línea 7 con FECHA ·
   frutas mango/palta/mandarina · 4 jornales + caja menor mensual · el plátano tapa la caja.
+
+- **La notación de las cifras sigue al idioma** (decisión del 2026-10-17, commit `3a5c970`): el
+  campo `locale` desapareció del modelo y `FarmSettings.numberLocale` se deduce de `language`
+  (`en` → `en_US`, resto → `es_CO`). Quien elige inglés lee las fechas, los conteos, los montos y
+  los kilos en inglés. `settings.locale` sigue en la base y en los respaldos viejos como **dato
+  muerto** (la columna no se toca y los ajustes viejos se curan al leerse). Si algún día se quiere
+  un selector de notación aparte del idioma, el sitio único es `numberLocale`.
 
 ---
 

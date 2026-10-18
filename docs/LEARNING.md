@@ -28,6 +28,10 @@ Last updated: 2026-10-17
 - Pattern (verificación): una guarda se comprueba **apagando la pieza que protege** (se fuerza el fallo a propósito, p. ej. el cruce de monedas) y viendo caer los tests; luego se revierte y se comprueba que el archivo quedó limpio | lib/services/currency_totals.dart | 2026-10-17
 - Pattern: el código de moneda es el único indicador, así que el catálogo no lleva símbolo: `CurrencyInfo.symbol` no lo pintaba nadie (lo compartían COP, USD y CLP) | lib/models/currencies.dart | 2026-10-17
 - Pattern: un plan se verifica **leyendo el código**, no la casilla. Las Fases 5 y 6 del plan de la cosecha derivada figuraban pendientes y estaban hechas (`NextStepType.harvest` ya no existía; la Ayuda ya enseñaba la venta → cosecha derivada) | docs/plans/2026-10-15-cosecha-derivada-de-la-venta.plan.md | 2026-10-17
+- Pattern: la notación de las cifras sigue al **idioma**, no a un campo aparte. `FarmSettings.numberLocale` se deduce de `language` (`en` → `en_US`, resto → `es_CO`); un `locale` guardado que nadie editaba dejaba media app en la notación del español | lib/models/settings.dart | 2026-10-17
+- Pattern: un dato derivado se deduce en el sitio de uso pero **se sigue mandando a la nube con el valor deducido**: la columna no se toca, no hay migración y una versión vieja de la app la sigue entendiendo | lib/providers/sync_provider.dart | 2026-10-17
+- Pattern (barrido): antes de unificar formateo hay que separar QUÉ es cada cifra. `_num`, `_numKg`, `_pctOf` y `_decimal` pintan cantidades, conteos, hectáreas, días y porcentajes; solo el dinero pasa por `formatAmount` | lib/screens/report_screen.dart, lib/services/pdf_export_service.dart | 2026-10-17
+- Pattern: el gate se corre sobre el proyecto **entero** (`flutter analyze` sin acotar a `lib test`): los `tool/` construyen modelos y se rompen con ellos | tool/generate_report_tool.dart | 2026-10-17
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -46,6 +50,9 @@ Last updated: 2026-10-17
 - Bug: la alerta de caja en rojo decía que lo gastado era el arrastre | declarar los placeholders en el orden de la frase (`alertCashBoxDebtMessage`) | lib/l10n/app_es.arb | 2026-10-17
 - Bug: el insight del precio bajo citaba los promedios crudos («promedio reciente 400.0 vs 760.0 por kilo») mientras la alerta del mismo número decía «COP 400 por kilo» | pasa por `money(...)`, el formateador de la casa, y los placeholders se declaran `String` | lib/services/report_insights_service.dart | 2026-10-17
 - Bug (test): dos arneses de moneda mixta asertaban literales que la app **nunca pinta** (`'\$1.550'` cuando la app pinta `COP 1.550`): la guarda pasaba por culpa de su formateador de mentira y no podía fallar | formateador real, notación real y, al lado, la cifra que sí se pinta por moneda | test/mixed_currency_gap2_test.dart, test/report_insights_service_test.dart | 2026-10-17
+- Bug: la app en inglés leía las fechas y los conteos en inglés pero **la plata y los kilos con la notación del español** (`COP 1.500`): `settings.locale` era un campo que Ajustes nunca editaba y quedaba clavado en `es_CO` | `numberLocale` deducido del idioma; el campo desaparece del modelo y los ajustes viejos se curan en `fromJson` | lib/models/settings.dart | 2026-10-17
+- Bug: el aviso de vendido vs cosechado formateaba los kilos con `es_CO` clavado, así que en inglés decía «you sold 1.200,0 kg» | `_kg(kg, locale)` recibe el locale del servicio, como `_money` | lib/services/alert_service.dart | 2026-10-17
+- Bug (deuda visible): cuatro archivos de test armaban su texto esperado con `settings.locale`, así que el campo tenía dueños fuera de producción y quitarlo no compilaba | pasaron a la regla nueva | test/report_screen_test.dart, test/mixed_currency_report_test.dart, test/harvest_screen_test.dart, test/monthly_trend_chart_test.dart | 2026-10-17
 
 ## Performance
 - Sin registros todavía.
@@ -68,3 +75,4 @@ Last updated: 2026-10-17
 - Preference: los tres pintadores (Reportes, PDF y Excel) deben decir lo mismo: mismo texto, mismo sitio, mismos ajustes | al tocar informes | 2026-10-17
 - Preference: respuestas y mensajes de commit cortos, en español, sin adornos | siempre | 2026-10-17
 - Preference: el copy habla de lo que el agricultor hace **de verdad** (vender), no de pasos que la app ya no tiene | al escribir textos | 2026-10-17
+- Preference: una sola regla por encima del control extra. Ante «notación por idioma» frente a «selector de notación aparte», eligió la regla | al decidir comportamiento | 2026-10-17
