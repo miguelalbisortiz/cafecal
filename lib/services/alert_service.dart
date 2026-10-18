@@ -44,7 +44,7 @@ List<FarmAlert> evaluateAlerts({
   DateTime? now,
   AlertService? service,
 }) =>
-    (service ?? AlertService(now: now, locale: settings.locale)).evaluate(
+    (service ?? AlertService(now: now, locale: settings.numberLocale)).evaluate(
       transactions.toList(),
       crops,
       l10n,
@@ -75,7 +75,7 @@ class AlertService {
   final DateTime? _now;
 
   /// Idioma con el que se pintan los montos de los avisos (`COP 1.500`).
-  /// En la app viene de [FarmSettings.locale]; el valor por defecto es el de
+  /// En la app viene de [FarmSettings.numberLocale]; el valor por defecto es el de
   /// los tests que llaman al motor directo.
   final String _locale;
 
@@ -543,9 +543,9 @@ class AlertService {
           severity: AlertSeverity.warning,
           title: l10n.alertHarvestVsSalesTitle(label),
           message: l10n.alertHarvestVsSalesMessage(
-            _kg(soldKg),
+            _kg(soldKg, _locale),
             label,
-            _kg(harvestedKg),
+            _kg(harvestedKg, _locale),
           ),
           suggestion: l10n.alertHarvestVsSalesSuggestion(label),
         ));
@@ -808,8 +808,13 @@ Set<String> _currenciesOf(Iterable<Transaction> txns) => {
         if (!t.deleted) t.currency,
     };
 
-String _kg(double kg) {
-  return '${NumberFormat('#,##0.0', 'es_CO').format(kg)} kg';
+/// Los kilos de un aviso, con el separador del **idioma** del usuario —en
+/// español `1.200,0 kg`, en inglés `1,200.0 kg`—, igual que `_money`.
+///
+/// Estaba clavado en `es_CO`: la cifra no se arma a mano, se le pregunta al
+/// idioma que el usuario eligió.
+String _kg(double kg, String locale) {
+  return '${NumberFormat('#,##0.0', locale).format(kg)} kg';
 }
 
 String _percentage(double value) {

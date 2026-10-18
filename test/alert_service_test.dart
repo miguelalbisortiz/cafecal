@@ -560,6 +560,39 @@ void main() {
           reason: '150 vendidos > 1.1x(100 respaldados); la pÃ©rdida no cuenta');
     });
 
+    test('el aviso del vendido cita los kilos con el separador del idioma', () {
+      // El kg salía con `es_CO` clavado: un aviso en otro idioma se leía con la
+      // notación del español. La cifra la pone el idioma del usuario.
+      const crops = [
+        Crop(id: 'cafe', name: 'Cafe', icon: 'c', color: '#111111'),
+      ];
+      final txns = [
+        _txn(
+            type: TransactionType.income,
+            amount: 1000000,
+            quantity: 1200,
+            unit: 'kg',
+            date: DateTime(2026, 6, 1),
+            category: 'venta_cafe',
+            cropId: 'cafe'),
+      ];
+      final harvests = [
+        harvest(cropId: 'cafe', amount: 500, date: DateTime(2026, 5, 1)),
+      ];
+
+      final es = AlertService(now: now)
+          .evaluate(txns, crops, _es, harvests: harvests)
+          .firstWhere((a) => a.rule == AlertRule.harvestVsSales);
+      expect(es.message, contains('1.200,0 kg'),
+          reason: 'en español el separador de miles es el punto');
+
+      final en = AlertService(now: now, locale: 'en_US')
+          .evaluate(txns, crops, stringsFor('en'), harvests: harvests)
+          .firstWhere((a) => a.rule == AlertRule.harvestVsSales);
+      expect(en.message, contains('1,200.0 kg'),
+          reason: 'en inglés el separador de miles es la coma');
+    });
+
     test('solo cosechas perdidas NO respaldan ventas (R6 no dispara)', () {
       final txns = [
         _txn(type: TransactionType.income, amount: 1000000, quantity: 150,

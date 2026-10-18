@@ -80,7 +80,7 @@ class MonthlyTrendChart extends StatelessWidget {
     final tx = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final locale = tx.settings.locale;
+    final locale = tx.settings.numberLocale;
 
     final title = Text(
       l10n.chartCumulativeTitle(year),

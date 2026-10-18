@@ -161,7 +161,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final l10n = stringsFor('es');
-    final locale = provider.settings.locale;
+    final locale = provider.settings.numberLocale;
     expect(find.byType(LineChart), findsNothing,
         reason: 'la curva sumaría pesos con euros: no se grafica');
     expect(find.byType(BarChart), findsNothing);

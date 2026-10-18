@@ -310,7 +310,6 @@ FarmSettings mergeBackupSettings(FarmSettings local, FarmSettings backup) {
         : backup.farmName,
     currency:
         backup.currency == defaults.currency ? local.currency : backup.currency,
-    locale: backup.locale == defaults.locale ? local.locale : backup.locale,
     language:
         backup.language == defaults.language ? local.language : backup.language,
     lastCropId: backup.lastCropId ?? local.lastCropId,

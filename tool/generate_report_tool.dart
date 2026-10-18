@@ -134,7 +134,7 @@ void main() {
     final settings = FarmSettings(
       farmName: (row?['farm_name'] as String?) ?? 'Mi Cafetal',
       currency: (row?['currency'] as String?) ?? 'COP',
-      locale: (row?['locale'] as String?) ?? 'es_CO',
+      language: (row?['language'] as String?) ?? 'es',
     );
 
     final l10n = stringsFor('es');

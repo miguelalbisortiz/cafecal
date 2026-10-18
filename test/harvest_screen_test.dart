@@ -155,7 +155,7 @@ void main() {
     // La vista previa usa la moneda y el locale reales, no un formato fijo.
     final esperado = formatAmount(2400000,
         currency: provider.settings.currency,
-        locale: provider.settings.locale);
+        locale: provider.settings.numberLocale);
     expect(find.text(l10n.harvestSalePreview(esperado)), findsOneWidget,
         reason: 'la vista previa se calcula sola: 8 × 300.000');
 

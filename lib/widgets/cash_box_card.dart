@@ -40,7 +40,7 @@ class CashBoxCard extends StatelessWidget {
 
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    final locale = tx.settings.locale;
+    final locale = tx.settings.numberLocale;
     final budgetCurrency = tx.settings.currency;
 
     // Gastos de caja del mes **por moneda**: nunca se suman monedas distintas.

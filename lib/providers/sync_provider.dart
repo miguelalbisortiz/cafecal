@@ -298,7 +298,7 @@ class SyncProvider extends ChangeNotifier {
         'user_id': userId,
         'farm_name': s.farmName,
         'currency': s.currency,
-        'locale': s.locale,
+        'locale': s.numberLocale,
         'language': s.language,
         'last_crop_id': s.lastCropId,
         'low_price_threshold_per_kg': s.lowPriceThresholdPerKg,

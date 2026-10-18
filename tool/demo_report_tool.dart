@@ -37,7 +37,6 @@ void main() {
     const settings = FarmSettings(
       farmName: 'Finca El Progreso',
       currency: 'COP',
-      locale: 'es_CO',
     );
     const crops = [
       Crop(id: 'cafe', name: 'Café'),

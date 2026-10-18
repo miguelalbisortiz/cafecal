@@ -349,7 +349,7 @@ class CropsScreen extends StatelessWidget {
 
   /// Formato corto de hectáreas en lenguaje llano: `0,4 ha`, `2 ha`.
   static String _ha(TransactionProvider tx, double v) =>
-      NumberFormat('0.###', tx.settings.locale).format(v);
+      NumberFormat('0.###', tx.settings.numberLocale).format(v);
 
   Widget _row(
       BuildContext context, TransactionProvider tx, Crop crop, AppLocalizations l10n) {

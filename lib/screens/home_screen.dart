@@ -470,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // B · el mes en curso contra el mismo tramo de días del mes anterior.
     final comparison = hasAnyRecord
-        ? _monthComparison(tx, monthTotals, now, l10n, tx.settings.locale)
+        ? _monthComparison(tx, monthTotals, now, l10n, tx.settings.numberLocale)
         : null;
 
     // B — la conversión llega sola, sin bloquear la pantalla: mientras no
@@ -602,7 +602,7 @@ class _HomeScreenState extends State<HomeScreen> {
         incomes: totals.incomes,
         expenses: totals.expenses,
         l10n: l10n,
-        locale: tx.settings.locale,
+        locale: tx.settings.numberLocale,
       );
     }
 
@@ -620,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _threeCards(l10n, incomes, expenses, balance, currency,
-            tx.settings.locale,
+            tx.settings.numberLocale,
             comparison: comparison),
         if (comparison != null) ...[
           const SizedBox(height: 6),
@@ -691,7 +691,7 @@ class _HomeScreenState extends State<HomeScreen> {
             l10n.currencyConvertedTotal(
               c.currency,
               formatAmount(c.result,
-                  currency: c.currency, locale: tx.settings.locale),
+                  currency: c.currency, locale: tx.settings.numberLocale),
             ),
             style: TextStyle(
               fontSize: 12,

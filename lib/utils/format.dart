@@ -7,7 +7,7 @@ import '../providers/transaction_provider.dart';
 String formatMoney(BuildContext context, double value, {int? decimals}) {
   final tx = context.read<TransactionProvider>();
   return formatAmount(value,
-      currency: tx.settings.currency, locale: tx.settings.locale, decimals: decimals);
+      currency: tx.settings.currency, locale: tx.settings.numberLocale, decimals: decimals);
 }
 
 /// Formato de moneda con moneda explícita (para cuando la transacción
@@ -16,7 +16,7 @@ String formatMoneyFor(BuildContext context, double value,
     {required String currency, int? decimals}) {
   final tx = context.read<TransactionProvider>();
   return formatAmount(value,
-      currency: currency, locale: tx.settings.locale, decimals: decimals);
+      currency: currency, locale: tx.settings.numberLocale, decimals: decimals);
 }
 
 /// Formato de moneda sin contexto — usado por PDF/HTML export.

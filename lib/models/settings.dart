@@ -1,8 +1,18 @@
 class FarmSettings {
   final String farmName;
   final String currency;
-  final String locale;
+
+  /// Idioma de la app: `es` o `en`.
   final String language;
+
+  /// La notación de las cifras —separador de miles y de decimales— **sigue al
+  /// idioma**: quien pone la app en inglés lee los números en inglés.
+  ///
+  /// Antes era un campo aparte que nadie editaba, así que se quedaba clavado en
+  /// `es_CO`: con el idioma en inglés salían las fechas y los conteos en
+  /// inglés, pero la plata y los kilos con la notación del español. Ahora hay un
+  /// solo origen —el idioma— y los ajustes viejos se curan al leerlos.
+  String get numberLocale => language == 'en' ? 'en_US' : 'es_CO';
 
   /// Último cultivo elegido al registrar: se preselecciona al abrir
   /// "Registrar" para agilizar gastos recurrentes del mismo cultivo.
@@ -62,7 +72,6 @@ class FarmSettings {
   const FarmSettings({
     this.farmName = 'Mi Caferin',
     this.currency = 'COP',
-    this.locale = 'es_CO',
     this.language = 'es',
     this.lastCropId,
     this.lastTerrenoId,
@@ -75,7 +84,6 @@ class FarmSettings {
   FarmSettings copyWith({
     String? farmName,
     String? currency,
-    String? locale,
     String? language,
     Object? lastCropId = _sentinel,
     Object? lastTerrenoId = _sentinel,
@@ -87,7 +95,6 @@ class FarmSettings {
     return FarmSettings(
       farmName: farmName ?? this.farmName,
       currency: currency ?? this.currency,
-      locale: locale ?? this.locale,
       language: language ?? this.language,
       lastCropId: lastCropId == _sentinel
           ? this.lastCropId
@@ -140,7 +147,6 @@ class FarmSettings {
   Map<String, dynamic> toJson() => {
         'farm_name': farmName,
         'currency': currency,
-        'locale': locale,
         'language': language,
         if (lastCropId != null) 'last_crop_id': lastCropId,
         if (lastTerrenoId != null) 'last_terreno_id': lastTerrenoId,
@@ -159,7 +165,6 @@ class FarmSettings {
     return FarmSettings(
       farmName: (json['farm_name'] as String?) ?? 'Mi Caferin',
       currency: (json['currency'] as String?) ?? 'COP',
-      locale: (json['locale'] as String?) ?? 'es_CO',
       language: (json['language'] as String?) ?? 'es',
       lastCropId: (json['last_crop_id'] as String?),
       // Respaldos y bajadas viejos no traen la clave → null → sin preselección

@@ -108,7 +108,7 @@ void main() {
           of: find.text(titulo), matching: find.byType(Card));
       expect(desglose, findsOneWidget);
       String money(double v, String c) =>
-          formatAmount(v, currency: c, locale: tx.settings.locale);
+          formatAmount(v, currency: c, locale: tx.settings.numberLocale);
 
       expect(
         find.descendant(
@@ -183,7 +183,7 @@ void main() {
           of: find.text(titulo), matching: find.byType(Card));
       expect(desglose, findsOneWidget);
       String money(double v) =>
-          formatAmount(v, currency: 'COP', locale: tx.settings.locale);
+          formatAmount(v, currency: 'COP', locale: tx.settings.numberLocale);
 
       expect(
           find.descendant(
@@ -255,7 +255,7 @@ void main() {
         reason: 'fila del trabajador y total, ambos moneda por moneda',
       );
       final falsoTotal = formatAmount(400100,
-          currency: 'COP', locale: tx.settings.locale);
+          currency: 'COP', locale: tx.settings.numberLocale);
       expect(
         find.descendant(of: planilla, matching: find.text(falsoTotal)),
         findsNothing,
@@ -285,7 +285,7 @@ void main() {
           of: find.text(l10n.reportPayrollSection), matching: find.byType(Card));
       expect(planilla, findsOneWidget);
       final total = formatAmount(400000,
-          currency: 'COP', locale: tx.settings.locale);
+          currency: 'COP', locale: tx.settings.numberLocale);
 
       expect(
         find.descendant(of: planilla, matching: find.text(total)),

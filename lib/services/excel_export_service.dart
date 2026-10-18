@@ -137,7 +137,7 @@ class ExcelExportService {
     final currency = settings.currency;
     // Sin locale los exportadores imprimían `2400000` y `€200.00` donde la
     // misma app mostraba `2.400.000` y `€200,00` en pantalla.
-    _locale = settings.locale;
+    _locale = settings.numberLocale;
     final excel = Excel.createExcel();
     excel.rename('Sheet1', l10n.excelSheetSummary);
 

@@ -897,7 +897,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               quantity: _netSaleQuantity(),
               unit: _unit,
               currency: _currency,
-              locale: tx.settings.locale,
+              locale: tx.settings.numberLocale,
               l10n: l10n,
             ),
             const SizedBox(height: 12),
@@ -1149,7 +1149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     .trim()
                     .replaceAll(',', '.')),
                 currency: _currency,
-                locale: tx.settings.locale,
+                locale: tx.settings.numberLocale,
                 l10n: l10n,
               ),
               const SizedBox(height: 12),

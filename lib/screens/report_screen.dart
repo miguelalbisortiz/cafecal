@@ -277,7 +277,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 records: records,
                 l10n: l10n,
                 effectiveCurrency: _effectiveCurrency,
-                locale: tx.settings.locale),
+                locale: tx.settings.numberLocale),
             const SizedBox(height: 20),
             Card(
               child: Padding(
@@ -310,7 +310,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           row: row,
                           l10n: l10n,
                           currency: row.currency,
-                          locale: tx.settings.locale,
+                          locale: tx.settings.numberLocale,
                           scheme: Theme.of(context).colorScheme,
                         )),
                     if (cropRows.isEmpty)
@@ -1887,7 +1887,7 @@ class _ReportScreenState extends State<ReportScreen> {
       incomes: periodTotals.incomes,
       expenses: periodTotals.expenses,
       l10n: l10n,
-      locale: tx.settings.locale,
+      locale: tx.settings.numberLocale,
     );
 
     return Card(
@@ -2121,7 +2121,7 @@ class _ReportScreenState extends State<ReportScreen> {
     return entries
         .map((e) =>
             formatAmount(negative ? -e.value : e.value,
-                currency: e.key, locale: tx.settings.locale))
+                currency: e.key, locale: tx.settings.numberLocale))
         .join(' · ');
   }
 
@@ -2414,10 +2414,10 @@ class _ReportScreenState extends State<ReportScreen> {
     // falso.
     final shown = amounts.length == 1
         ? formatAmount(amounts.first.value,
-            currency: amounts.first.key, locale: tx.settings.locale)
+            currency: amounts.first.key, locale: tx.settings.numberLocale)
         : amounts
             .map((e) =>
-                formatAmount(e.value, currency: e.key, locale: tx.settings.locale))
+                formatAmount(e.value, currency: e.key, locale: tx.settings.numberLocale))
             .join(' · ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2471,7 +2471,7 @@ class _ReportScreenState extends State<ReportScreen> {
   String _signed(TransactionProvider tx, double value, {String? currency}) =>
       formatAmount(value,
           currency: currency ?? tx.settings.currency,
-          locale: tx.settings.locale);
+          locale: tx.settings.numberLocale);
 
   String _pct(double v) => v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 

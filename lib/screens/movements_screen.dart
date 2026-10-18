@@ -268,7 +268,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   /// código (`$5.000 COP · €200,00 EUR`) en la misma línea, sin sumarlos.
   Widget _miniStatByCurrency(
       String label, Map<String, double> amounts, Color color) {
-    final locale = context.read<TransactionProvider>().settings.locale;
+    final locale = context.read<TransactionProvider>().settings.numberLocale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

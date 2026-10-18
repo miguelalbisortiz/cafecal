@@ -545,7 +545,7 @@ void main() {
         reason: 'la tarjeta del desglose por cultivo');
 
     String money(double v) =>
-        formatAmount(v, currency: 'COP', locale: provider.settings.locale);
+        formatAmount(v, currency: 'COP', locale: provider.settings.numberLocale);
 
     expect(
         find.descendant(
