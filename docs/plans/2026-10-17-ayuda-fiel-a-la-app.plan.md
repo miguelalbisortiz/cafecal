@@ -1,5 +1,5 @@
 ---
-status: ACTIVE
+status: DONE
 created: 2026-10-17
 updated: 2026-10-17
 prd: docs/prds/2026-10-17_2038-ayuda-fiel-a-la-app.prd.md
@@ -57,11 +57,14 @@ nuevos más «¿Y por planta?». Nada de comportamiento nuevo: solo copy, bloque
 - **Prueba T2:** la guarda **G1** (menú ↔ mapa) y una prueba de pantalla que monta
   `HelpScreen` y exige los 8 destinos y los títulos de los 6 bloques nuevos.
 
-### T3 · Cierre
+### T3 · Cierre — hecho
 
-- Gate completo (analyze del proyecto entero + test), snapshot en `docs/sessions/` +
-  `LATEST.md`, patrón nuevo en `docs/LEARNING.md`, PRD y plan actualizados.
-- Commit + push + deploy **con verbo del usuario** en ese turno.
+- Gate completo (analyze del proyecto entero + test) ✅ y publicado ✅: `gh-pages` en
+  `441db97`, huella `EFC05ADC15E5B0D09FCB1906C35274CDD1A8E847294A34842D8107E29378173A`
+  · 4.806.917 bytes.
+- Snapshot en `docs/sessions/2026-10-17-la-ayuda-fiel-a-la-app.md` + `LATEST.md`,
+  cinco patrones y cinco bugs en `docs/LEARNING.md`, PRD y plan al día.
+- Commits: `81ccc0c` (T1), `59db9fc` (docs PRD y plan), `a47bdc2` (T2), más el papeleo.
 
 ## Guardas
 

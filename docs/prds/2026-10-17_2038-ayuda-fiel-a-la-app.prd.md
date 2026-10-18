@@ -119,7 +119,7 @@ layout. Orden propuesto (arriba→abajo). **[N]** = bloque nuevo, **[E]** = exis
 | 1 | Guía para empezar (intro + promesa) | [E] | — |
 | 2 | ¿Dónde entro cada dato? | [F] | +6 filas (Reporte, Trabajadores, Jornal, Lote, Configuración, Historial) |
 | 3 | El orden de la app | [E] | — |
-| 4 | ¿Por dónde empiezo? (casos A/B) | [F] | pintar `helpExampleTitle` como título de los ejemplos |
+| 4 | ¿Por dónde empiezo? (casos A/B) | [F] | se borra `helpExampleTitle` (D3: pintarlo dejaría dos títulos seguidos) |
 | 5 | ¿Qué unidad uso? | [F] | +filas libra y carga; +chips lb y carga |
 | 6 | ¿Qué es el panel «Por hectárea»? | [E] | — |
 | 7 | ¿Y por planta? ¿Cuándo empieza a rendir? | [N] | kg/planta + promedio propio + alerta «debería rendir» |
@@ -539,10 +539,10 @@ del PRD delante):
 | # | Milestone | Outcome | Status | Plan |
 |---|---|---|---|---|
 | 1 | Decisiones D1–D8 registradas | este PRD queda cerrado con las respuestas | **hecho (2026-10-17)** | — |
-| 2 | Arreglos A1–A3 | tabla de unidades completa, título de ejemplos pintado, glosario honesto | pending | — |
-| 3 | Bloques nuevos 9.1–9.6 + «por planta» | la Ayuda nombra terrenos, trabajadores, caja, reporte, respaldo e idioma | pending | — |
-| 4 | Mapa ampliado (SC1) | cada destino de datos del menú tiene su fila | pending | — |
-| 5 | Guardas G1 y G2, con rojo/verde | un menú o una clave sin usar hacen caer la suite | pending | — |
+| 2 | Arreglos A1–A3 | tabla de unidades completa, `helpExampleTitle` borrado (D3), glosario honesto | **hecho (2026-10-17)** | `81ccc0c` |
+| 3 | Bloques nuevos 9.1–9.6 + «por planta» | la Ayuda nombra terrenos, trabajadores, caja, reporte, respaldo e idioma | **hecho (2026-10-17)** | `a47bdc2` |
+| 4 | Mapa ampliado (SC1) | cada destino de datos del menú tiene su fila | **hecho (2026-10-17)** | `a47bdc2` |
+| 5 | Guardas G1 y G2, con rojo/verde | un menú o una clave sin usar hacen caer la suite | **hecho (2026-10-17)** | `81ccc0c`, `a47bdc2` |
 
 ---
 
