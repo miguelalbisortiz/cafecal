@@ -300,3 +300,200 @@ String byCurrencyText(
     ..sort((a, b) => a.key.compareTo(b.key));
   return entries.map((e) => format(e.value, e.key)).join(separator);
 }
+
+// ---- W1-c · el desglose por terreno -------------------------------------
+
+/// Una banda del desglose: un terreno y las filas del período que le
+/// pertenecen, con el total ya sumado **por moneda**.
+///
+/// `terrenoId == null` es la banda «Sin terreno» (los cultivos que no tienen
+/// lote, o cuyo lote ya no existe). No es una fila más: solo existe cuando la
+/// finca usa terrenos y quedó algo suelto.
+class CropBreakdownBand {
+  /// Terreno de la banda; `null` = «Sin terreno».
+  final String? terrenoId;
+
+  /// Nombre ya resuelto para mostrar (el del terreno o el rótulo de huérfanos).
+  final String name;
+
+  /// Hectáreas del terreno, si las anotó. `null` = oculto, nunca 0.
+  final double? areaHa;
+
+  /// Filas visibles de la banda, en el orden en que se pintan.
+  final List<CropBreakdownRow> rows;
+
+  /// Gastos sumados **moneda por moneda** (nunca cruzadas).
+  final Map<String, double> expenses;
+
+  /// Ingresos sumados moneda por moneda.
+  final Map<String, double> incomes;
+
+  CropBreakdownBand({
+    required this.terrenoId,
+    required this.name,
+    required this.areaHa,
+    required this.rows,
+    required this.expenses,
+    required this.incomes,
+  });
+
+  /// Monedas presentes en la banda (gastos o ingresos).
+  Set<String> get currencies => {...expenses.keys, ...incomes.keys};
+
+  /// true cuando la banda toca más de una moneda: no hay neto ni ROI único.
+  bool get isMixed => currencies.length > 1;
+
+  /// Suma aritmética usada **solo para ordenar**: con moneda mixta no es una
+  /// cifra que se pueda pintar.
+  double get expensesTotal => expenses.values.fold<double>(0, (a, b) => a + b);
+
+  /// Ídem para los ingresos.
+  double get incomesTotal => incomes.values.fold<double>(0, (a, b) => a + b);
+}
+
+/// El desglose ya agrupado: bandas por terreno (si la finca los usa) y
+/// «Costos comunes» aparte, siempre al final.
+class CropBreakdownLayout {
+  /// true si al menos una fila visible pertenece a un terreno existente.
+  ///
+  /// Con `false` los pintadores deben usar su camino plano de siempre: la
+  /// app sin terrenos no cambia ni un rótulo.
+  final bool hasBands;
+
+  /// Bandas en orden de pintado: terrenos por movimiento total y, al final,
+  /// «Sin terreno» si hay huérfanos. Vacía cuando [hasBands] es false.
+  final List<CropBreakdownBand> bands;
+
+  /// La fila «Costos comunes» si tiene algún monto; nunca dentro de una banda.
+  final CropBreakdownRow? commonCosts;
+
+  const CropBreakdownLayout({
+    required this.hasBands,
+    required this.bands,
+    required this.commonCosts,
+  });
+}
+
+/// Agrupa las filas de [cropBreakdownRows] por terreno.
+///
+/// **Pertenencia:** una fila de cultivo es de `Crop.terrenoId`; una fila de
+/// lote (`cropId == null`, `terrenoId != null`) es de ese lote; si el id no
+/// resuelve a un [Terreno], la fila cae en «Sin terreno» (no se inventa una
+/// banda con un UUID). «Costos comunes» queda fuera.
+///
+/// **Visibilidad:** solo entran filas con algún monto (`hasAnyAmount`), la
+/// misma regla que ya usan el PDF y el Excel. Una banda vacía no existe.
+///
+/// **Orden:** bandas por gastos+ingresos descendente (suma solo para ordenar),
+/// desempate por nombre y luego por id; dentro, igual. «Sin terreno» va
+/// siempre al final, antes de los comunes.
+///
+/// Función pura: misma entrada, misma salida. La comparten pantalla, PDF y
+/// Excel para que los tres digan exactamente lo mismo.
+CropBreakdownLayout cropBreakdownLayout({
+  required List<CropBreakdownRow> rows,
+  required List<Crop> crops,
+  required List<Terreno> terrenos,
+  required String sinTerrenoName,
+}) {
+  final cropById = {for (final c in crops) c.id: c};
+  final terrenoById = {for (final t in terrenos) t.id: t};
+
+  CropBreakdownRow? comunes;
+  final porTerreno = <String, List<CropBreakdownRow>>{};
+  final huerfanos = <CropBreakdownRow>[];
+
+  for (final r in rows) {
+    if (!r.hasAnyAmount) continue;
+    if (r.cropId == null && r.terrenoId == null) {
+      comunes = r;
+      continue;
+    }
+    final tid = r.cropId != null ? cropById[r.cropId]?.terrenoId : r.terrenoId;
+    if (tid != null && terrenoById.containsKey(tid)) {
+      porTerreno.putIfAbsent(tid, () => []).add(r);
+    } else {
+      huerfanos.add(r);
+    }
+  }
+
+  if (porTerreno.isEmpty) {
+    return CropBreakdownLayout(
+      hasBands: false,
+      bands: const [],
+      commonCosts: comunes,
+    );
+  }
+
+  final bands = <CropBreakdownBand>[
+    for (final e in porTerreno.entries)
+      _bandDeTerreno(
+        terrenoId: e.key,
+        name: terrenoById[e.key]!.name,
+        areaHa: terrenoById[e.key]!.areaHa,
+        rows: e.value,
+      ),
+  ]..sort(_compareBands);
+  if (huerfanos.isNotEmpty) {
+    bands.add(_bandDeTerreno(
+      terrenoId: null,
+      name: sinTerrenoName,
+      areaHa: null,
+      rows: huerfanos,
+    ));
+  }
+
+  return CropBreakdownLayout(
+    hasBands: true,
+    bands: bands,
+    commonCosts: comunes,
+  );
+}
+
+CropBreakdownBand _bandDeTerreno({
+  required String? terrenoId,
+  required String name,
+  required double? areaHa,
+  required List<CropBreakdownRow> rows,
+}) {
+  final expenses = <String, double>{};
+  final incomes = <String, double>{};
+  for (final r in rows) {
+    for (final e in r.expenses.entries) {
+      expenses[e.key] = (expenses[e.key] ?? 0) + e.value;
+    }
+    for (final e in r.incomes.entries) {
+      incomes[e.key] = (incomes[e.key] ?? 0) + e.value;
+    }
+  }
+  final ordenadas = [...rows]..sort(_compareRows);
+  return CropBreakdownBand(
+    terrenoId: terrenoId,
+    name: name,
+    areaHa: areaHa,
+    rows: ordenadas,
+    expenses: expenses,
+    incomes: incomes,
+  );
+}
+
+double _pesoDeFila(CropBreakdownRow r) => r.expensesTotal + r.incomesTotal;
+
+String _idDeFila(CropBreakdownRow r) => r.cropId ?? r.terrenoId ?? '';
+
+int _compareRows(CropBreakdownRow a, CropBreakdownRow b) {
+  final porPeso = _pesoDeFila(b).compareTo(_pesoDeFila(a));
+  if (porPeso != 0) return porPeso;
+  final porNombre = a.name.compareTo(b.name);
+  if (porNombre != 0) return porNombre;
+  return _idDeFila(a).compareTo(_idDeFila(b));
+}
+
+int _compareBands(CropBreakdownBand a, CropBreakdownBand b) {
+  final porPeso = (b.expensesTotal + b.incomesTotal)
+      .compareTo(a.expensesTotal + a.incomesTotal);
+  if (porPeso != 0) return porPeso;
+  final porNombre = a.name.compareTo(b.name);
+  if (porNombre != 0) return porNombre;
+  return (a.terrenoId ?? '').compareTo(b.terrenoId ?? '');
+}

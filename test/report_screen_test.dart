@@ -1032,4 +1032,111 @@ void main() {
     expect(provider.crops.single.livePlants, 450,
         reason: 'y el contador del cultivo ya bajó: la pérdida cuenta');
   });
+
+  // ---- W1-c · el desglose por terreno ------------------------------------
+
+  testWidgets(
+      'W1-c: el desglose por cultivo se agrupa bajo la banda de su terreno',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final alto = await provider.addTerreno('Lote Alto', areaHa: 2);
+    final bajo = await provider.addTerreno('Lote Bajo');
+    final cafe = await provider.addCrop('Café', terrenoId: alto.id, areaHa: 1.2);
+    final platano =
+        await provider.addCrop('Plátano', terrenoId: alto.id, areaHa: 0.8);
+    // Sin hectáreas: el gasto de su lote no se puede repartir y sale como
+    // fila propia, pero DENTRO de la banda del lote.
+    await provider.addCrop('Maíz', terrenoId: bajo.id);
+
+    final hoy = DateTime.now();
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      cropId: cafe.id,
+      amount: 30000,
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: 'venta_cafe',
+      cropId: platano.id,
+      amount: 50000,
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      terrenoId: bajo.id,
+      amount: 70000,
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text('Lote Alto'), findsOneWidget);
+    expect(find.text('Lote Bajo'), findsOneWidget);
+    expect(find.text(l10n.loteNoRepartido('Lote Bajo')), findsOneWidget);
+
+    // El orden manda: el lote con más movimiento arriba y la fila «sin
+    // repartir» debajo de SU cabecera, no suelta al final del desglose.
+    final yAlto = tester.getTopLeft(find.text('Lote Alto')).dy;
+    final yBajo = tester.getTopLeft(find.text('Lote Bajo')).dy;
+    final ySinRepartir =
+        tester.getTopLeft(find.text(l10n.loteNoRepartido('Lote Bajo'))).dy;
+    expect(yAlto, lessThan(yBajo));
+    expect(yBajo, lessThan(ySinRepartir),
+        reason: 'la fila del lote va dentro de su banda');
+    // El área solo se pinta donde está anotada.
+    expect(find.text('2 ha'), findsOneWidget);
+  });
+
+  testWidgets(
+      'W1-c: una finca sin terrenos no estrena bandas ni «Sin terreno»',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final cafe = await provider.addCrop('Café');
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      cropId: cafe.id,
+      amount: 30000,
+      date: DateTime.now(),
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text(stringsFor('es').cropTerrenoNone), findsNothing,
+        reason: 'sin terrenos no hay nada que agrupar');
+  });
 }

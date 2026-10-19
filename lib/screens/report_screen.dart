@@ -83,8 +83,18 @@ class _ReportScreenState extends State<ReportScreen> {
     // A — totales por moneda: nunca se suman monedas distintas.
     final periodTotals = PeriodCurrencyTotals.fromRecords(records);
 
-    // Desglose por cultivo, calculado una sola vez por build.
-    final cropRows = _cropRows(tx, l10n);
+    // W1-c · el desglose se calcula una sola vez. La misma lista de filas
+    // alimenta la agrupación por terreno y el camino plano: pantalla, PDF y
+    // Excel comparten la regla y no pueden separarse.
+    final breakdownRows = _breakdownRows(tx, l10n);
+    final breakdownLayout = cropBreakdownLayout(
+      rows: breakdownRows,
+      crops: tx.crops,
+      terrenos: tx.terrenos,
+      sinTerrenoName: l10n.cropTerrenoNone,
+    );
+    final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
+    final cropRows = _cropRows(breakdownRows, metrics);
 
     final insights = const ReportInsightsService().build(
       now: DateTime.now(),
@@ -306,13 +316,34 @@ class _ReportScreenState extends State<ReportScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    ...cropRows.map((row) => _CropBreakdownTile(
-                          row: row,
+                    // W1-c · con terrenos, cada lote es una banda y sus
+                    // cultivos van debajo; «Costos comunes» sigue al final,
+                    // fuera de toda banda. Sin terrenos, la lista de siempre.
+                    if (breakdownLayout.hasBands) ...[
+                      for (var i = 0;
+                          i < breakdownLayout.bands.length;
+                          i++) ...[
+                        _CropBreakdownBandHeader(
+                          band: breakdownLayout.bands[i],
+                          first: i == 0,
                           l10n: l10n,
-                          currency: row.currency,
                           locale: tx.settings.numberLocale,
                           scheme: Theme.of(context).colorScheme,
-                        )),
+                        ),
+                        for (final r in breakdownLayout.bands[i].rows)
+                          _tileFrom(r, metrics, l10n, tx),
+                      ],
+                      if (breakdownLayout.commonCosts != null)
+                        _tileFrom(
+                            breakdownLayout.commonCosts!, metrics, l10n, tx),
+                    ] else
+                      ...cropRows.map((row) => _CropBreakdownTile(
+                            row: row,
+                            l10n: l10n,
+                            currency: row.currency,
+                            locale: tx.settings.numberLocale,
+                            scheme: Theme.of(context).colorScheme,
+                          )),
                     if (cropRows.isEmpty)
                       Text(l10n.noCropData),
                     // El consejo de ROI solo tiene sentido si hay alguna fila
@@ -549,34 +580,32 @@ class _ReportScreenState extends State<ReportScreen> {
   /// Así, un cultivo de una sola moneda se pinta exactamente como siempre
   /// y uno con dos o más monedas no llega a imprimir un neto ni un ROI
   /// falsos (se desglosa por moneda en su tarjeta).
-  List<_CropRow> _cropRows(TransactionProvider tx, AppLocalizations l10n) {
-    final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
-    final records = _recordsFor(tx);
+  List<CropBreakdownRow> _breakdownRows(
+      TransactionProvider tx, AppLocalizations l10n) {
     // (b) · las filas llegan ya atribuidas de [cropBreakdownRows]: el gasto
     // del lote está repartido por hectáreas dentro de cada cultivo, o en su
     // propia fila "sin repartir". Aquí NO se vuelve a agrupar por `cropId`:
     // dos filas de lote colapsarían en una y la pantalla podría discrepar del
     // PDF y del Excel, que leen la misma lista.
-    final rows = cropBreakdownRows(
-      records: records,
+    return cropBreakdownRows(
+      records: _recordsFor(tx),
       crops: tx.crops,
       terrenos: tx.terrenos,
       unspecifiedName: l10n.commonCosts,
       loteNoRepartidoName: l10n.loteNoRepartido,
     );
-    final list = <_CropRow>[];
-    for (final r in rows) {
-      if (r.expensesTotal <= 0 && r.incomesTotal <= 0) continue;
-      final row = _CropRow(r);
-      // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
-      // operación del período suman exactamente lo mismo que `expenses`.
-      // `r.expenseTxs` trae ya la porción que le toca a cada fila, así que la
-      // cuenta cuadra también cuando un gasto de lote se reparte entre varios.
-      final split = metrics.splitInvestmentAndOperation(r.expenseTxs);
-      row.investment = split.investment;
-      row.operation = split.operation;
-      list.add(row);
-    }
+  }
+
+  /// El camino plano: la lista de siempre, ordenada por grupo y monto.
+  ///
+  /// Solo se pinta cuando la finca no tiene terrenos (`hasBands == false`),
+  /// para que la app sin terrenos se vea exactamente igual que antes de W1-c.
+  List<_CropRow> _cropRows(
+      List<CropBreakdownRow> rows, ReportHarvestMetrics metrics) {
+    final list = <_CropRow>[
+      for (final r in rows)
+        if (r.hasAnyAmount) _cropRow(r, metrics),
+    ];
     // Orden del contrato ([cropBreakdownRows]): cultivos, luego los lotes que
     // no se pudieron repartir, y "Costos comunes" siempre al final. No se
     // ordena solo por monto: eso dejaría "Costos comunes" arriba de un cultivo
@@ -587,6 +616,32 @@ class _ReportScreenState extends State<ReportScreen> {
         if (g != 0) return g;
         return (b.expenses + b.incomes).compareTo(a.expenses + a.incomes);
       });
+  }
+
+  /// Fila pintable con su inversión/operación ya separadas.
+  _CropRow _cropRow(CropBreakdownRow r, ReportHarvestMetrics metrics) {
+    final row = _CropRow(r);
+    // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
+    // operación del período suman exactamente lo mismo que `expenses`.
+    // `r.expenseTxs` trae ya la porción que le toca a cada fila, así que la
+    // cuenta cuadra también cuando un gasto de lote se reparte entre varios.
+    final split = metrics.splitInvestmentAndOperation(r.expenseTxs);
+    row.investment = split.investment;
+    row.operation = split.operation;
+    return row;
+  }
+
+  /// Tarjeta de una fila del desglose, venga de una banda o del camino plano.
+  Widget _tileFrom(CropBreakdownRow r, ReportHarvestMetrics metrics,
+      AppLocalizations l10n, TransactionProvider tx) {
+    final row = _cropRow(r, metrics);
+    return _CropBreakdownTile(
+      row: row,
+      l10n: l10n,
+      currency: row.currency,
+      locale: tx.settings.numberLocale,
+      scheme: Theme.of(context).colorScheme,
+    );
   }
 
   // ---- Nivel 2: secciÃ³n cosechas, vendido vs cosechado, y "QuÃ© hacer" ----
@@ -2889,38 +2944,167 @@ class _CropBreakdownTile extends StatelessWidget {
     );
   }
 
-  Widget _miniLine({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required Color labelColor,
-    required String value,
-    required Color valueColor,
-    bool bold = false,
-  }) {
-    final w = TextStyle(
-      fontSize: 12,
-      color: labelColor,
-      fontWeight: bold ? FontWeight.bold : FontWeight.w500,
-    );
+}
+
+/// Línea corta de un monto dentro de una tarjeta o de una banda.
+Widget _miniLine({
+  required IconData icon,
+  required Color iconColor,
+  required String label,
+  required Color labelColor,
+  required String value,
+  required Color valueColor,
+  bool bold = false,
+}) {
+  final w = TextStyle(
+    fontSize: 12,
+    color: labelColor,
+    fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+  );
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 2),
+    child: Row(
+      children: [
+        Icon(icon, size: 14, color: iconColor),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(label, style: w),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// W1-c · cabecera de una banda: el terreno, su área si la anotó y el total
+/// del período. Nunca neto ni ROI: esa cifra vive en cada cultivo.
+///
+/// Con una sola moneda pinta «Gastos» e «Ingresos»; con dos o más, una línea
+/// por moneda y por total, cada una con su código. Nunca suma monedas.
+class _CropBreakdownBandHeader extends StatelessWidget {
+  final CropBreakdownBand band;
+  final bool first;
+  final AppLocalizations l10n;
+  final String locale;
+  final ColorScheme scheme;
+
+  const _CropBreakdownBandHeader({
+    required this.band,
+    required this.first,
+    required this.l10n,
+    required this.locale,
+    required this.scheme,
+  });
+
+  static const _green = Color(0xFF2E7D32);
+
+  String _amount(double v, String code) =>
+      formatAmount(v, currency: code, locale: locale);
+
+  List<Widget> _totals() {
+    final codes = band.currencies.toList()..sort();
+    final lines = <Widget>[];
+    if (band.isMixed) {
+      for (final code in codes) {
+        final exp = band.expenses[code] ?? 0;
+        final inc = band.incomes[code] ?? 0;
+        if (exp != 0) {
+          lines.add(_miniLine(
+            icon: Icons.trending_down,
+            iconColor: scheme.onSurfaceVariant,
+            label: '${l10n.cropBreakdownSummaryG} · $code',
+            labelColor: scheme.onSurfaceVariant,
+            value: _amount(exp, code),
+            valueColor: scheme.onSurfaceVariant,
+          ));
+        }
+        if (inc != 0) {
+          lines.add(_miniLine(
+            icon: Icons.trending_up,
+            iconColor: _green,
+            label: '${l10n.cropBreakdownSummaryI} · $code',
+            labelColor: scheme.onSurfaceVariant,
+            value: _amount(inc, code),
+            valueColor: _green,
+          ));
+        }
+      }
+      return lines;
+    }
+    if (codes.isEmpty) return lines;
+    final code = codes.single;
+    final exp = band.expenses[code] ?? 0;
+    final inc = band.incomes[code] ?? 0;
+    if (exp != 0) {
+      lines.add(_miniLine(
+        icon: Icons.trending_down,
+        iconColor: scheme.onSurfaceVariant,
+        label: l10n.cropBreakdownSummaryG,
+        labelColor: scheme.onSurfaceVariant,
+        value: _amount(exp, code),
+        valueColor: scheme.onSurfaceVariant,
+      ));
+    }
+    if (inc != 0) {
+      lines.add(_miniLine(
+        icon: Icons.trending_up,
+        iconColor: _green,
+        label: l10n.cropBreakdownSummaryI,
+        labelColor: scheme.onSurfaceVariant,
+        value: _amount(inc, code),
+        valueColor: _green,
+      ));
+    }
+    return lines;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = _totals();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: iconColor),
-          const SizedBox(width: 5),
-          Expanded(
-            child: Text(label, style: w),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: bold ? FontWeight.bold : FontWeight.w600,
-              color: valueColor,
+      padding: EdgeInsets.only(top: first ? 0 : 14, bottom: 2),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withOpacity(0.55),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.landscape_outlined,
+                    size: 16, color: scheme.onSurfaceVariant),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    band.name,
+                    style: const TextStyle(
+                        fontSize: 13.5, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (band.areaHa != null)
+                  Text(
+                    '${formatAreaHa(band.areaHa!, locale)} ha',
+                    style: TextStyle(
+                        fontSize: 11.5, color: scheme.onSurfaceVariant),
+                  ),
+              ],
             ),
-          ),
-        ],
+            if (lines.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              ...lines,
+            ],
+          ],
+        ),
       ),
     );
   }

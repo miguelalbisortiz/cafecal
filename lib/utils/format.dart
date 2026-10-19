@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../models/currencies.dart';
 import '../providers/transaction_provider.dart';
+
+/// Área en hectáreas con el decimal del idioma, sin ceros de sobra:
+/// `2 ha`, `0,4 ha`, `1,25 ha`.
+///
+/// Una sola regla para Cultivos, Reportes, PDF y Excel. Devuelve solo el
+/// número: el sufijo ` ha` lo pone quien lo pinta, para poder decir también
+/// «0,4 ha por planta» si algún día hace falta.
+String formatAreaHa(double value, String locale) =>
+    NumberFormat('0.###', locale).format(value);
 
 String formatMoney(BuildContext context, double value, {int? decimals}) {
   final tx = context.read<TransactionProvider>();

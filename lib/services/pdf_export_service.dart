@@ -15,6 +15,7 @@ import '../models/tasks.dart';
 import '../models/terreno.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
+import '../utils/format.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
@@ -652,6 +653,11 @@ class PdfExportService {
       fontSize: 9,
     );
     const cellStyle = pw.TextStyle(fontSize: 9);
+    final bandStyle =
+        pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold);
+    // Mismo gris cálido que la banda del Excel: se lee como cabecera de lote,
+    // no como una fila de cultivo más.
+    const bandBg = PdfColor.fromInt(0xFFEFEBE9);
     final headers = [
       l10n.pdfColCrop, l10n.pdfColMov, l10n.pdfColExpenses,
       l10n.pdfColIncomes, l10n.pdfColResult, l10n.pdfColRoi,
@@ -680,13 +686,16 @@ class PdfExportService {
               .toList(),
         ),
         // Data rows with ROI-based coloring
-        ...data.map((cells) {
+        ...data.map((line) {
+          final cells = line.cells;
           final roiText = cells[5];
           final roiNum = roiText == '—'
               ? 0.0
               : (double.tryParse(roiText.replaceAll('%', '')) ?? 0);
           PdfColor? rowBg;
-          if (roiNum > 0) {
+          if (line.isBand) {
+            rowBg = bandBg;
+          } else if (roiNum > 0) {
             rowBg = const PdfColor.fromInt(0xFFF1F8E9); // verde suave
           } else if (roiNum < 0) {
             rowBg = const PdfColor.fromInt(0xFFFFF3E0); // naranja suave
@@ -698,7 +707,8 @@ class PdfExportService {
               return pw.Padding(
                 padding:
                     const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                child: pw.Text(cells[i], style: cellStyle),
+                child: pw.Text(cells[i],
+                    style: line.isBand ? bandStyle : cellStyle),
               );
             }),
           );
@@ -711,7 +721,11 @@ class PdfExportService {
   /// Excel ([cropBreakdownRows]): moneda única → la cifra de siempre; con
   /// dos o más monedas cada monto sale con su código y la fila no lleva
   /// neto ni ROI (serían sumas cruzando monedas).
-  List<List<String>> _cropRows(pw.Context context, Iterable<Transaction> source,
+  ///
+  /// W1-c · la agrupación también es la misma (`cropBreakdownLayout`): cada
+  /// terreno es una fila de banda con su total, y sus cultivos van debajo.
+  /// «Sin terreno» y «Costos comunes» cierran la tabla, en ese orden.
+  List<_PdfCropLine> _cropRows(pw.Context context, Iterable<Transaction> source,
       List<Crop> crops, List<Terreno> terrenos, String currency,
       AppLocalizations l10n) {
     final rows = cropBreakdownRows(
@@ -721,32 +735,65 @@ class PdfExportService {
       unspecifiedName: l10n.commonCosts,
       loteNoRepartidoName: l10n.loteNoRepartido,
     );
+    final layout = cropBreakdownLayout(
+      rows: rows,
+      crops: crops,
+      terrenos: terrenos,
+      sinTerrenoName: l10n.cropTerrenoNone,
+    );
 
-    return rows.where((r) => r.hasAnyAmount).map((r) {
+    _PdfCropLine fila(CropBreakdownRow r) {
       if (r.isMixed) {
-        return [
+        return _PdfCropLine([
           '${r.name}\n${l10n.cropMixedCurrencyNote(r.currencies.length)}',
           r.count.toString(),
           byCurrencyText(r.expenses, (v, c) => formatPdfMoney(v, c)),
           byCurrencyText(r.incomes, (v, c) => formatPdfMoney(v, c)),
           '—',
           '—',
-        ];
+        ]);
       }
       final exp = r.expensesTotal;
       final inc = r.incomesTotal;
       final roi = exp <= 0
           ? '—'
           : '${(((inc - exp) / exp) * 100).toStringAsFixed(0)}%';
-      return [
+      return _PdfCropLine([
         r.name,
         r.count.toString(),
         formatPdfMoney(exp, currency),
         formatPdfMoney(inc, currency),
         formatPdfMoney(inc - exp, currency),
         roi,
-      ];
-    }).toList();
+      ]);
+    }
+
+    if (!layout.hasBands) {
+      return rows.where((r) => r.hasAnyAmount).map(fila).toList();
+    }
+
+    return [
+      for (final band in layout.bands) ...[
+        _PdfCropLine(
+          [
+            '${band.name}'
+                '${band.areaHa == null ? '' : '\n${formatAreaHa(band.areaHa!, _locale)} ha'}',
+            '—',
+            band.isMixed
+                ? byCurrencyText(band.expenses, (v, c) => formatPdfMoney(v, c))
+                : formatPdfMoney(band.expensesTotal, currency),
+            band.isMixed
+                ? byCurrencyText(band.incomes, (v, c) => formatPdfMoney(v, c))
+                : formatPdfMoney(band.incomesTotal, currency),
+            '—',
+            '—',
+          ],
+          isBand: true,
+        ),
+        for (final r in band.rows) fila(r),
+      ],
+      if (layout.commonCosts != null) fila(layout.commonCosts!),
+    ];
   }
 
   // ---- Nivel 2: cosechas, rendimiento, conciliación y "Qué hacer" ----
@@ -1550,4 +1597,12 @@ class PdfExportService {
   String _numKg(double v) => v >= 100
       ? v.toStringAsFixed(0)
       : v.toStringAsFixed(v % 1 == 0 ? 0 : 2);
+}
+
+/// Una fila de la tabla «Por cultivo»: sus celdas y si es cabecera de banda.
+class _PdfCropLine {
+  final List<String> cells;
+  final bool isBand;
+
+  const _PdfCropLine(this.cells, {this.isBand = false});
 }

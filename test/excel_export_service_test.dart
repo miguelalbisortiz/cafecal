@@ -8,6 +8,7 @@ import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/settings.dart';
+import 'package:mi_cafetal/models/terreno.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/excel_export_service.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart' show ReportPeriod;
@@ -610,6 +611,98 @@ void main() {
       expect(lines['Venta café'], 700.0); // legada, separada de "Venta Café"
       expect(lines[_es.catSubvenciones], 300.0);
       expect(lines[_es.catVenta], 200.0);
+    });
+  });
+
+  // ---- W1-c · la hoja «Por cultivo» agrupada por terreno ------------------
+
+  group('W1-c · bandas por terreno', () {
+    const alto = Terreno(id: 'l1', name: 'Lote Alto', areaHa: 2);
+    const cafe = Crop(
+        id: 'cafe', name: 'Café', terrenoId: 'l1', areaHa: 1.2);
+    const platano = Crop(
+        id: 'plat', name: 'Plátano', terrenoId: 'l1', areaHa: 0.8);
+
+    List<List<Data?>> hoja() {
+      final txns = [
+        Transaction(
+          id: 'a',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 30000,
+          cropId: 'cafe',
+          date: DateTime(2026, 9, 3),
+          createdAt: DateTime(2026, 9, 3),
+        ),
+        Transaction(
+          id: 'b',
+          type: TransactionType.income,
+          category: 'venta_cafe',
+          amount: 50000,
+          cropId: 'plat',
+          date: DateTime(2026, 9, 5),
+          createdAt: DateTime(2026, 9, 5),
+        ),
+      ];
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: _settings,
+        transactions: txns,
+        crops: const [cafe, platano],
+        terrenos: const [alto],
+        year: 2026,
+        month: 9,
+        period: ReportPeriod.month,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      ));
+      return Excel.decodeBytes(bytes).tables['Por cultivo']!.rows;
+    }
+
+    test('la cabecera del lote va encima de sus cultivos, con sus totales', () {
+      final rows = hoja();
+      final header = rows.indexWhere(
+          (r) => (cv(r[0])?.toString() ?? '').contains('Lote Alto'));
+      expect(header, greaterThan(0), reason: 'debe existir la banda');
+      expect(cv(rows[header][2]), 30000.0);
+      expect(cv(rows[header][3]), 50000.0);
+
+      final cafeRow = rows.indexWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Café');
+      final platRow = rows.indexWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Plátano');
+      expect(cafeRow, greaterThan(header));
+      expect(platRow, greaterThan(header));
+      // Dentro de la banda manda el monto: Plátano (50.000) antes que Café.
+      expect(platRow, lessThan(cafeRow));
+    });
+
+    test('sin terrenos la hoja no estrena cabeceras', () {
+      final txns = [
+        Transaction(
+          id: 'a',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 30000,
+          cropId: 'cafe',
+          date: DateTime(2026, 9, 3),
+          createdAt: DateTime(2026, 9, 3),
+        ),
+      ];
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: _settings,
+        transactions: txns,
+        crops: const [Crop(id: 'cafe', name: 'Café')],
+        year: 2026,
+        month: 9,
+        period: ReportPeriod.month,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      ));
+      final rows = Excel.decodeBytes(bytes).tables['Por cultivo']!.rows;
+      expect(
+          rows.any((r) =>
+              (cv(r[0])?.toString() ?? '').contains(_es.cropTerrenoNone)),
+          isFalse);
     });
   });
 }

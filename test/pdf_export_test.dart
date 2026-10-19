@@ -5,6 +5,7 @@ import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/settings.dart';
+import 'package:mi_cafetal/models/terreno.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart';
 
@@ -148,6 +149,65 @@ void main() {
         ),
       ],
     );
+    expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+    expect(bytes.length, greaterThan(1000));
+  });
+
+  // ---- W1-c · el PDF con bandas por terreno ------------------------------
+
+  test('W1-c: un reporte con terrenos y lote sin repartir sigue siendo PDF',
+      () async {
+    final txns = [
+      Transaction(
+        id: '1',
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 30000,
+        cropId: 'cafe',
+        date: DateTime(2026, 6, 3),
+        createdAt: DateTime(2026, 6, 3),
+      ),
+      // Lote sin hectáreas: no se puede repartir y sale como fila propia.
+      Transaction(
+        id: '2',
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 70000,
+        terrenoId: 'l2',
+        date: DateTime(2026, 6, 4),
+        createdAt: DateTime(2026, 6, 4),
+      ),
+    ];
+
+    final bytes = await PdfExportService().buildReport(
+      settings: const FarmSettings(farmName: 'Finca La Esperanza'),
+      transactions: txns,
+      crops: const [
+        Crop(
+            id: 'cafe',
+            name: 'Café',
+            icon: 'X',
+            color: '#6D4C41',
+            areaHa: 1.2,
+            terrenoId: 'l1'),
+        Crop(
+            id: 'maiz',
+            name: 'Maíz',
+            icon: 'X',
+            color: '#FBC02D',
+            terrenoId: 'l2'),
+      ],
+      terrenos: const [
+        Terreno(id: 'l1', name: 'Lote Alto', areaHa: 2),
+        Terreno(id: 'l2', name: 'Lote Bajo'),
+      ],
+      year: 2026,
+      month: 6,
+      period: ReportPeriod.month,
+      periodName: 'Junio de 2026',
+      l10n: stringsFor('es'),
+    );
+
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     expect(bytes.length, greaterThan(1000));
   });

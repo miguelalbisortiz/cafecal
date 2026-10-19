@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
@@ -7,6 +6,7 @@ import '../models/crop.dart';
 import '../models/sowing.dart';
 import '../models/terreno.dart';
 import '../providers/transaction_provider.dart';
+import '../utils/format.dart';
 import '../widgets/crop_editor_dialog.dart';
 import '../widgets/terreno_editor_dialog.dart';
 
@@ -348,8 +348,10 @@ class CropsScreen extends StatelessWidget {
       .any((s) => s.cropId == crop.id && s.kind == SowingKind.siembra);
 
   /// Formato corto de hectáreas en lenguaje llano: `0,4 ha`, `2 ha`.
+  /// La regla vive en `formatAreaHa` para que Reportes y los exports digan
+  /// exactamente lo mismo.
   static String _ha(TransactionProvider tx, double v) =>
-      NumberFormat('0.###', tx.settings.numberLocale).format(v);
+      formatAreaHa(v, tx.settings.numberLocale);
 
   Widget _row(
       BuildContext context, TransactionProvider tx, Crop crop, AppLocalizations l10n) {

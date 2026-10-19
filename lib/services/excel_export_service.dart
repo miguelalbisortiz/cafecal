@@ -22,6 +22,7 @@ import 'pdf_export_service.dart' show ReportPeriod;
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
+import '../utils/format.dart';
 import 'week_utils.dart';
 
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
@@ -37,6 +38,8 @@ class ExcelExportService {
   static final _excelBrown = ExcelColor.fromHexString('FF6D4C41');
   static final _excelGreenSoft = ExcelColor.fromHexString('FFE8F5E9');
   static final _excelRedSoft = ExcelColor.fromHexString('FFFFF3E0');
+  // W1-c · banda de terreno: gris cálido, distinto del verde/naranja del ROI.
+  static final _excelBand = ExcelColor.fromHexString('FFEFEBE9');
   static const _excelWhite = ExcelColor.white;
   static final _excelGreen = ExcelColor.fromHexString('FF1F5E3F');
   static final _excelRed = ExcelColor.fromHexString('FFB3261E');
@@ -1023,10 +1026,19 @@ class ExcelExportService {
       unspecifiedName: l10n.commonCosts,
       loteNoRepartidoName: l10n.loteNoRepartido,
     );
+    // W1-c · misma agrupación que pantalla y PDF: aquí solo se intercala la
+    // cabecera de cada banda; los montos siguen saliendo de las mismas filas.
+    final layout = cropBreakdownLayout(
+      rows: breakdown,
+      crops: crops,
+      terrenos: terrenos,
+      sinTerrenoName: l10n.cropTerrenoNone,
+    );
     const startRow = 1;
     var r = startRow;
     final mixedCurrencies = <String>{};
-    for (final row in breakdown.where((row) => row.hasAnyAmount)) {
+
+    void escribirFila(CropBreakdownRow row) {
       if (row.isMixed) {
         mixedCurrencies.addAll(row.currencies);
         sheet.appendRow([
@@ -1040,7 +1052,7 @@ class ExcelExportService {
           TextCellValue('—'),
         ]);
         r++;
-        continue;
+        return;
       }
       final exp = row.expensesTotal;
       final inc = row.incomesTotal;
@@ -1065,6 +1077,50 @@ class ExcelExportService {
         }
       }
       r++;
+    }
+
+    void escribirBanda(CropBreakdownBand band) {
+      if (band.isMixed) mixedCurrencies.addAll(band.currencies);
+      final area = band.areaHa == null
+          ? ''
+          : '\n${formatAreaHa(band.areaHa!, _locale)} ha';
+      sheet.appendRow([
+        TextCellValue('${band.name}$area'),
+        null,
+        band.isMixed
+            ? TextCellValue(byCurrencyText(
+                band.expenses, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
+            : DoubleCellValue(band.expensesTotal),
+        band.isMixed
+            ? TextCellValue(byCurrencyText(
+                band.incomes, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
+            : DoubleCellValue(band.incomesTotal),
+        TextCellValue('—'),
+        TextCellValue('—'),
+      ]);
+      final style =
+          CellStyle(backgroundColorHex: _excelBand, bold: true);
+      for (var c = 0; c < 6; c++) {
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r))
+            .cellStyle = style;
+      }
+      r++;
+    }
+
+    if (layout.hasBands) {
+      for (final band in layout.bands) {
+        escribirBanda(band);
+        for (final row in band.rows) {
+          escribirFila(row);
+        }
+      }
+      // «Costos comunes» sigue al final, fuera de toda banda.
+      final comunes = layout.commonCosts;
+      if (comunes != null) escribirFila(comunes);
+    } else {
+      for (final row in breakdown.where((row) => row.hasAnyAmount)) {
+        escribirFila(row);
+      }
     }
     if (mixedCurrencies.isNotEmpty) {
       sheet.appendRow([
