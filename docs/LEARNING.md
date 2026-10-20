@@ -1,6 +1,6 @@
 # Project Learnings
 
-Last updated: 2026-10-17
+Last updated: 2026-10-20
 
 ## Code Patterns
 - Pattern: una sola función por regla, y separar la regla de LECTURA de la de GUARDADO | `lossOf(s)` decide qué es una pérdida (solo las resiembras) y lo leen el modelo (`recomputeCropState`), la lista y el informe; `Sowing.fromJson` es la puerta única de entrada (disco, nube y respaldo) y limpia el registro viejo al entrar | lib/models/sowing.dart | 2026-10-17
@@ -43,6 +43,11 @@ Last updated: 2026-10-17
 - Pattern: una promesa se puede escribir en la Ayuda si es una **regla del código**. «Nada se inventa: si un dato falta, lo deja en blanco en vez de poner un cero» es literalmente la regla `null → oculto, nunca 0` | lib/l10n/app_es.arb | 2026-10-17
 - Pattern (copy que cita una puerta): la puerta se cita con la clave que la pinta y la guarda exige que exista. El caso B dice «Crear nuevo cultivo» porque `sowingNewCropOption` es la opción real del desplegable de Siembras, y el test la busca en el ARB | test/help_coherencia_test.dart, lib/l10n/app_es.arb | 2026-10-17
 - Pattern (rojo sin tocar el árbol de trabajo): para ver caer una guarda contra lo viejo sin arriesgar el trabajo en curso, los archivos de `HEAD` se copian a `%TEMP%` con `cmd /c "git show HEAD:<ruta> > <destino>"` (la redirección de cmd escribe bytes crudos, a diferencia de `Out-File`) y el test temporal apunta ahí | test/help_coherencia_test.dart | 2026-10-17
+- Pattern: una medida nueva entra por el campo que **ya existe** (el jornal), no por una entidad paralela. `harvestedKg` colgada de `Transaction` con labor `cosechar` evitó una tabla `Harvest` enlazada y dejó la planilla intacta | lib/models/transaction.dart | 2026-10-20
+- Pattern: la fuente de una cifra tiene prioridad **declarada y por cultivo** (manual > jornal > venta). Basta una medición para que la venta no derive: rellenar a medias mezclaría dos medidas | lib/services/derived_harvests.dart | 2026-10-20
+- Pattern: el campo que se oculta se **limpia** y no se restaura. Si el valor sobrevive escondido, reaparece un número viejo al volver a mostrarlo (`_clearHarvestedKgIfHidden`) | lib/screens/register_screen.dart | 2026-10-20
+- Pattern (payload): una columna nueva viaja **siempre**, incluido `null`; si se omite, el pull deja el valor viejo. Y la migración se aplica **antes** del deploy | lib/providers/sync_provider.dart | 2026-10-20
+- Pattern (guardas de reportes): si los pintadores ya leen `provider.harvests`, la tanda no toca `lib/`. Se siembra un caso con dos números distintos (jornal 500, venta 480) y se comprueba tarjeta, Excel, PDF y métricas | test/derived_harvests_report_test.dart | 2026-10-20
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -76,6 +81,8 @@ Last updated: 2026-10-17
 - Bug (falso, y de mi parte): la consola de PowerShell se come los puntos suspensivos y las tildes, así que leí «Qué manejas (café, plátano.).» y reporté un «punto de más» que no existe (el archivo dice «plátano…»). Un «typo» no se declara desde la salida de la consola: se confirma con `read` y, si toca, se corrige con `edit` | leer siempre el archivo antes de acusarlo | lib/l10n/app_es.arb | 2026-10-17
 - Bug (test con ventana fija): `help_screen_test.dart` montaba la pantalla en 900x6000 y, al crecer el arranque, la sección del Glosario quedó fuera del viewport: `find.text` devolvía `Found 0 widgets` y el fallo parecía de contenido cuando era de ventana | la ventana sube a 900x12000 (lo que verifica no cambia) | test/help_screen_test.dart | 2026-10-17
 - Bug (seis tamaños en una pantalla): la Ayuda mezclaba 11, 12, 12.5, 13, 13.5 y 14 en el mismo documento — los bloques nuevos usaban un tamaño y los viejos otro, y eso se lee como dos documentos pegados | un tamaño por papel: 11 el número del paso, 12.5 celdas y chips, 13 prosa y etiquetas, 13.5 títulos de bloque, 14 solo el arranque; guarda que barre los `fontSize:` | lib/screens/help_screen.dart, test/help_coherencia_test.dart | 2026-10-17
+- Bug: `deploy.ps1` se caía en el paso 6 **después de pushear**. PowerShell 5.1, con `$ErrorActionPreference = 'Stop'`, convierte en `NativeCommandError` el progreso que git escribe por stderr (`To https://…`, el aviso de CRLF). `2>&1` no alcanza: el `ErrorRecord` entra igual en la tubería | bajar a `Continue` en el bloque de git, imprimir y decidir por `$LASTEXITCODE`; `core.autocrlf=false` en `_deploy` | deploy.ps1 | 2026-10-20
+- Bug (falso): `lib/l10n/generated/*` aparecía con 5.926 líneas cambiadas tras `flutter build`; era solo fin de línea. Se confirma con `git diff --ignore-cr-at-eol` (sale vacío) y se restaura con `git checkout --` | no hay contenido distinto | lib/l10n/generated/ | 2026-10-20
 
 ## Performance
 - Sin registros todavía.
@@ -103,3 +110,4 @@ Last updated: 2026-10-17
 - Preference: la Ayuda se lee como **un documento**: un tamaño de letra por papel y una sangría de lectura; sin justificar (ninguna pantalla de la app justifica y la Ayuda sería la única) | al tocar la Ayuda | 2026-10-17
 - Preference: el **arranque** de la Ayuda es lo más importante: tiene que representar la finalidad, la funcionalidad y el beneficio de la app, y darle al usuario confianza y control (tus datos, sin internet, nada se inventa) | al escribir la Ayuda | 2026-10-17
 - Preference: revisa la Ayuda contra el **flujo real** de la app y avisa cuando el texto nombra algo que no cuadra (cosecha que se registra, «cultivo» donde no hay nada) | al cerrar copy | 2026-10-17
+- Preference: la migración de Supabase la aplica **él** en el editor SQL. El agente no pide PAT ni contraseña de base por chat: da el SQL exacto y la consulta de verificación | al desplegar una columna nueva | 2026-10-20

@@ -1,58 +1,60 @@
-# Sesión — sábado 17 de octubre de 2026 (la Ayuda, revisada por el usuario)
+# Sesión — lunes 20 de octubre de 2026 (los kilos del jornal)
 
 > Estado al cierre. Detalle completo en
+> `docs/sessions/2026-10-20-kilos-recolectados-en-el-jornal.md`.
+> La vuelta anterior (la Ayuda revisada por el usuario) quedó en
 > `docs/sessions/2026-10-17-la-ayuda-revisada-por-el-usuario.md`.
-> La vuelta anterior de la misma jornada (la tanda «la Ayuda fiel a la app») quedó en
-> `docs/sessions/2026-10-17-la-ayuda-fiel-a-la-app.md`.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` con el commit de esta vuelta (mensaje: «la revisión del usuario: 4 pasos, caso B,
-  tipografía y arranque»); `gh-pages` en **`0b5a1de`** (antes `441db97`), huella
-  `D3E4CA3754E8079C30378F151D50DAA0C9F880FD9AB7EE2EFFBDEA0CDD3945C7`, 4.808.752 bytes.
-- Sitio: https://miguelalbisortiz.github.io/cafecal/ (la Ayuda nueva ya publicada y
-  verificada sirviendo en producción).
-- Gate: `flutter analyze` sin issues · **954/954** tests.
+- `main` = `origin/main` = **`d5ec913`** (tanda 2 completa). Encima, **local** y 1
+  adelante, **`ab841c1`** (arreglo de `deploy.ps1` + filas de W1-c).
+- `gh-pages` = **`a57f98f`**, huella
+  `F7A71D7A56F888C614469B7BF095A2BAE0CFCD096D521E6C90D12D1C1B36C13C`, 4.818.867
+  bytes. Publicado y verificado en producción.
+- Gate: `flutter analyze` limpio · **1046/1046** tests.
+- Supabase: `transactions.harvested_kg` (`numeric`, nullable) **aplicada**.
 
 ## 2. Qué se hizo
 
-El usuario leyó la Ayuda publicada y trajo **cuatro observaciones**. Las cuatro quedaron
-cerradas, publicadas y con guarda (G3–G6, en `test/help_coherencia_test.dart`):
+El jornal de «Cosechar» ya puede anotar **kilos recolectados** (opcional). La
+cosecha derivada usa la prioridad **manual > jornal > venta, por cultivo**: si hay
+una medición, la venta de ese cultivo no deriva. El pago no cambió (días × valor
+día) y la planilla tampoco.
 
-1. **«El orden de la app» son cuatro pasos** (antes cinco, con «La cosecha» como paso 4 *antes*
-   de la venta: se contradecía). Ahora el cuarto es la venta y de ahí sale la cosecha — como
-   lo deriva `next_step_service.dart`.
-2. **A la finca vacía no se la llama «cultivo»**: el caso B pasa a «No tengo nada todavía y voy
-   a empezar», habla de «qué vas a sembrar» y cita la puerta real («Crear nuevo cultivo»).
-3. **Un tamaño de letra por papel** (11 el número del paso · 12.5 celdas y chips · 13 prosa y
-   etiquetas · 13.5 títulos · 14 solo el arranque). Antes había seis mezclados.
-4. **El arranque representa la app** (lo prioritario para el usuario): «Mi Cafetal es el
-   cuaderno de cuentas de tu finca…» + **Para qué te sirve · Qué hace · Tus datos son tuyos**.
+El campo aparece solo con «Cosechar» + cultivo; con lote o sin cultivo se oculta,
+se explica por qué y se guarda `null`. Vacío = `null`; `0` no pasa; lo oculto se
+limpia y no se restaura.
 
-De paso: el arranque en inglés **decía otra cosa** que el español y ahora dice lo mismo;
-`helpIntroPromesa` quedó absorbida por «Tus datos son tuyos».
+La columna viaja en el payload **siempre** (incluido `null`) y el pull la conserva;
+el respaldo la guarda y no persiste nada derivado. Los reportes se encendieron
+solos porque ya leían `provider.harvests`; se agregaron guardas (500 cosechados vs
+480 vendidos, PDF y Excel incluidos).
 
-## 3. Corrección de un informe mío
+## 3. Lo que costó
 
-El «punto de más» que reporté en el paso 1 **no existía**: la consola se come los puntos
-suspensivos. Un «typo» se confirma leyendo el archivo, nunca la salida de PowerShell.
+- `deploy.ps1` cayó dos veces **después de pushear**: PowerShell 5.1 convierte en
+  `NativeCommandError` el progreso de git por stderr. Arreglado en `ab841c1`
+  (`Continue` + `$LASTEXITCODE`, `core.autocrlf=false` en `_deploy`).
+- `lib/l10n/generated/*` mostraba 5.926 líneas cambiadas: solo fin de línea
+  (confirmado con `git diff --ignore-cr-at-eol` y restaurado).
+- La migración la aplicó el usuario: no hay PAT ni contraseña de base en la máquina
+  y no se piden secretos por chat.
 
 ## 4. Pendientes (del lado del usuario)
 
-1. Verificación manual del ciclo: moneda con y sin internet, respaldo P1, banner L2.5b, PDF y
-   Excel de período mezclado, borrado real, `backup.html`, cosecha con precio → venta.
-2. Revocar el **PAT de Supabase** (`docs/audits/2026-10-17-secretos-y-bloqueador.md`, punto 1).
-3. **Tanda 2 de la cosecha derivada**: «kilos recolectados» en el jornal «Cosechar» (solo con
-   evidencia).
-4. **W1-c**: agrupar cultivos por terreno en Reportes.
-
-Nada abierto del lado de la Ayuda.
+1. Verificación manual en producción: jornal con kilos → la venta no deriva →
+   «Vendido vs cosechado»; PDF y Excel reales con lotes.
+2. Revocar el **PAT de Supabase** (`docs/audits/2026-10-17-secretos-y-bloqueador.md`,
+   punto 1).
+3. Decidir si se empuja `ab841c1`.
 
 ## 5. Cómo continuar
 
-- Papel al día: PRD (§A4–A7, SC19–SC23, G3–G6), plan (§T4) y `docs/LEARNING.md` (patrones,
-  bugs y preferencias de esta vuelta).
-- Antes de tocar la Ayuda: `test/help_coherencia_test.dart` (G3–G6), `test/help_menu_map_test.dart`
-  (G1), `test/help_no_orphan_keys_test.dart` (G2) y `test/help_screen_test.dart`.
-- Gate obligatorio: `flutter analyze` (proyecto entero, `tool/` incluido) + `flutter test`;
-  publicar con `.\deploy.ps1 -Message "…"`.
+- Evidencia: `docs/reports/2026-10-19_kilos-jornal-rojo.md`. Contrato:
+  `docs/prds/2026-10-19_0941-kilos-recolectados-jornal.prd.md`. Tareas:
+  `docs/plans/2026-10-19-kilos-recolectados-jornal.plan.md`.
+- Gate obligatorio: `flutter analyze` (proyecto entero) + `flutter test`; publicar
+  con `.\deploy.ps1 -Message "…"`.
+- **Antes de desplegar una columna nueva: aplicarla en Supabase.** Si no existe,
+  PostgREST rechaza el push completo y se cae el sync de todos.
