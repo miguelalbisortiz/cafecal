@@ -1,7 +1,7 @@
 import '../models/categories.dart';
 import '../models/tasks.dart';
 import '../models/transaction.dart';
-import 'pdf_export_service.dart' show ReportPeriod;
+import '../models/report_period.dart';
 import 'week_utils.dart';
 
 /// Fila de nómina: un trabajador (nombre snapshot en `provider`) con sus

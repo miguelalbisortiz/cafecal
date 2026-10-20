@@ -1,4 +1,4 @@
-﻿import 'dart:typed_data';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,13 +16,14 @@ import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
 import '../models/categories.dart';
+import '../models/report_period.dart';
 import '../services/alert_service.dart';
 import '../services/crop_totals.dart';
 import '../services/currency_conversion.dart';
 import '../services/currency_totals.dart';
 import '../services/derived_harvests.dart';
-import '../services/excel_export_service.dart';
-import '../services/pdf_export_service.dart';
+import '../services/excel_export_service.dart' deferred as excel;
+import '../services/pdf_export_service.dart' deferred as pdf;
 import '../services/metric_signal.dart';
 import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
@@ -52,6 +53,11 @@ class _ReportScreenState extends State<ReportScreen> {
   bool _exporting = false;
   bool _exportingExcel = false;
   bool _exportingBalance = false;
+
+  /// D3/D5: los motores de exportación viajan en trozos aparte (`deferred`).
+  /// Se calientan al abrir Reportes y, si eso falló, se reintenta al exportar.
+  bool _pdfReady = false;
+  bool _excelReady = false;
   String _effectiveCurrency = 'COP';
 
   @override
@@ -61,6 +67,54 @@ class _ReportScreenState extends State<ReportScreen> {
     _year = now.year;
     _month = now.month;
     _week = currentWeekNumber(now);
+    _warmExports();
+  }
+
+  /// D5: deja listos los trozos en segundo plano. Si no hay red, no molesta:
+  /// el aviso con reintento sale al tocar exportar.
+  Future<void> _warmExports() async {
+    try {
+      await pdf.loadLibrary();
+      _pdfReady = true;
+    } catch (_) {
+      // Silencio a propósito: se avisa al exportar, no al abrir.
+    }
+    try {
+      await excel.loadLibrary();
+      _excelReady = true;
+    } catch (_) {
+      // Igual que arriba.
+    }
+  }
+
+  Future<bool> _ensurePdf() async {
+    if (_pdfReady) return true;
+    try {
+      await pdf.loadLibrary();
+      _pdfReady = true;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _ensureExcel() async {
+    if (_excelReady) return true;
+    try {
+      await excel.loadLibrary();
+      _excelReady = true;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Q2 aprobada: se avisa y se reintenta; nunca se genera un archivo vacío.
+  void _needsNetworkOnce(AppLocalizations l10n, VoidCallback retry) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(l10n.exportNeedsNetworkOnce),
+      action: SnackBarAction(label: l10n.syncRetry, onPressed: retry),
+    ));
   }
 
   @override
@@ -1755,7 +1809,11 @@ class _ReportScreenState extends State<ReportScreen> {
   Future<void> _export(TransactionProvider tx, AppLocalizations l10n) async {
     setState(() => _exporting = true);
     try {
-      final svc = PdfExportService();
+      if (!await _ensurePdf()) {
+        if (mounted) _needsNetworkOnce(l10n, () => _export(tx, l10n));
+        return;
+      }
+      final svc = pdf.PdfExportService();
       final bytes = await svc.buildReport(
         settings: tx.settings,
         transactions: tx.transactions,
@@ -1806,7 +1864,11 @@ class _ReportScreenState extends State<ReportScreen> {
       TransactionProvider tx, AppLocalizations l10n) async {
     setState(() => _exportingExcel = true);
     try {
-      final svc = ExcelExportService();
+      if (!await _ensureExcel()) {
+        if (mounted) _needsNetworkOnce(l10n, () => _exportExcel(tx, l10n));
+        return;
+      }
+      final svc = excel.ExcelExportService();
       final bytes = svc.buildReport(
         settings: tx.settings,
         transactions: tx.transactions,
@@ -1858,7 +1920,11 @@ class _ReportScreenState extends State<ReportScreen> {
       TransactionProvider tx, AppLocalizations l10n) async {
     setState(() => _exportingBalance = true);
     try {
-      final svc = ExcelExportService();
+      if (!await _ensureExcel()) {
+        if (mounted) _needsNetworkOnce(l10n, () => _exportBalance(tx, l10n));
+        return;
+      }
+      final svc = excel.ExcelExportService();
       final bytes = svc.buildBalanceTemplate(
         settings: tx.settings,
         transactions: tx.transactions,

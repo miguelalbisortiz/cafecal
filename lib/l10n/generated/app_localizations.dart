@@ -3917,6 +3917,12 @@ abstract class AppLocalizations {
   /// **'No se pudo exportar: {error}'**
   String exportError(String error);
 
+  /// Primera exportación sin conexión: el trozo de PDF/Excel todavía no está en el dispositivo
+  ///
+  /// In es, this message translates to:
+  /// **'La primera vez hay que estar conectado para preparar la exportación. Revisá la conexión y reintentá.'**
+  String get exportNeedsNetworkOnce;
+
   /// No description provided for @pdfShareSubject.
   ///
   /// In es, this message translates to:

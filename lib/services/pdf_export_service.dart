@@ -15,6 +15,7 @@ import '../models/tasks.dart';
 import '../models/terreno.dart';
 import '../models/top_accounts.dart';
 import '../models/transaction.dart';
+import '../models/report_period.dart';
 import '../utils/format.dart';
 import 'alert_service.dart';
 import 'crop_totals.dart';
@@ -26,7 +27,7 @@ import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
 import 'week_utils.dart';
 
-enum ReportPeriod { week, month, year, yearToDate }
+export '../models/report_period.dart';
 
 const _pdfPositive = PdfColor.fromInt(0xFF1F5E3F);
 const _pdfPositiveSoft = PdfColor.fromInt(0xFFE7F0EA);

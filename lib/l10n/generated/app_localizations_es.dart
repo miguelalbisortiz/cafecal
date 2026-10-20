@@ -2056,6 +2056,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get exportNeedsNetworkOnce => 'La primera vez hay que estar conectado para preparar la exportación. Revisá la conexión y reintentá.';
+
+  @override
   String pdfShareSubject(int year) {
     return 'Mi Cafetal — Reporte $year';
   }

@@ -2056,6 +2056,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get exportNeedsNetworkOnce => 'The first time, you need a connection to prepare the export. Check your connection and try again.';
+
+  @override
   String pdfShareSubject(int year) {
     return 'Mi Cafetal — Report $year';
   }

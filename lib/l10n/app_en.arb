@@ -779,6 +779,10 @@
   "movementsCount": "{count, plural, one{{count} movement} other{{count} movements}}",
   "reportGeneratedSnack": "Report generated.",
   "exportError": "Could not export: {error}",
+  "@exportNeedsNetworkOnce": {
+    "description": "First export while offline: the PDF/Excel chunk is not on the device yet"
+  },
+  "exportNeedsNetworkOnce": "The first time, you need a connection to prepare the export. Check your connection and try again.",
   "pdfShareSubject": "Mi Cafetal — Report {year}",
 
   "farmNameLabel": "Farm name",

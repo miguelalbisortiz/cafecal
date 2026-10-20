@@ -836,6 +836,10 @@
     "placeholders": { "error": { "type": "String" } }
   },
   "exportError": "No se pudo exportar: {error}",
+  "@exportNeedsNetworkOnce": {
+    "description": "Primera exportación sin conexión: el trozo de PDF/Excel todavía no está en el dispositivo"
+  },
+  "exportNeedsNetworkOnce": "La primera vez hay que estar conectado para preparar la exportación. Revisá la conexión y reintentá.",
   "@pdfShareSubject": {
     "placeholders": { "year": { "type": "int" } }
   },
