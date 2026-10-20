@@ -175,28 +175,45 @@ if ($deployedHtml -notmatch '<base href="/cafecal/">') {
 
 # Excepcion acordada: en _deploy si se stagea todo, porque solo contiene
 # artefacto de build.
-git -C _deploy add .
-if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git add en _deploy fallo' }
+#
+# El clon hereda core.autocrlf=true y avisa por stderr al tocar archivos con
+# LF ("LF will be replaced by CRLF"). Publicar no normaliza nada: el artefacto
+# va byte por byte.
+#
+# git escribe SIEMPRE su progreso por stderr ("To https://…", los avisos de
+# CRLF). Con $ErrorActionPreference='Stop', PowerShell 5.1 convierte esa salida
+# en NativeCommandError aunque el comando haya funcionado y el deploy se cae
+# despues de pushear (paso el 2026-10-20, dos veces). En este bloque se baja a
+# 'Continue' y el resultado se decide por $LASTEXITCODE.
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 
-$staged = @(git -C _deploy diff --cached --name-only)
+git -C _deploy config core.autocrlf false 2>&1 | Out-Null
+$configCode = $LASTEXITCODE
+
+git -C _deploy add . 2>&1 | ForEach-Object { Write-Host "      $_" }
+$addCode = $LASTEXITCODE
+
+$staged = @(git -C _deploy diff --cached --name-only 2>&1)
 $pushNeeded = -not ($staged.Count -eq 0 -or
   [string]::IsNullOrWhiteSpace(($staged -join ' ')))
 
-if (-not $pushNeeded) {
-  # NO se sale de aca. "Sin cambios" compara contra _deploy, no contra
-  # Pages: si la construccion anterior fallo, la app esta rota y este
-  # mensaje celebraria igual. El paso 7 sigue corriendo para confirmar lo
-  # que de verdad sirve el navegador.
-  Write-Host 'Sin cambios que subir: se confirma igual que Pages sirve este build.' -ForegroundColor Yellow
-}
-
+$commitCode = 0
+$pushCode = 0
 if ($pushNeeded) {
-  git -C _deploy commit -m $Message
-  if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git commit en _deploy fallo' }
+  git -C _deploy commit -m $Message 2>&1 | ForEach-Object { Write-Host "      $_" }
+  $commitCode = $LASTEXITCODE
 
-  git -C _deploy push origin gh-pages
-  if ($LASTEXITCODE -ne 0) { Stop-Deploy 'git push de gh-pages fallo' }
+  git -C _deploy push origin gh-pages 2>&1 | ForEach-Object { Write-Host "      $_" }
+  $pushCode = $LASTEXITCODE
 }
+
+$ErrorActionPreference = $prevEap
+
+if ($configCode -ne 0) { Stop-Deploy 'no se pudo configurar _deploy' }
+if ($addCode -ne 0) { Stop-Deploy 'git add en _deploy fallo' }
+if ($commitCode -ne 0) { Stop-Deploy 'git commit en _deploy fallo' }
+if ($pushCode -ne 0) { Stop-Deploy 'git push de gh-pages fallo' }
 
 # --- 7/7 verificar publicacion -----------------------------------------------
 

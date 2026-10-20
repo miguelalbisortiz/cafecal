@@ -41,10 +41,10 @@ uses como lista de pendientes.
    2026-10-13** (`test/first_harvest_alert_test.dart`, 12 tests) —
    `AlertRule.firstHarvestOverdue`, severidad `warning`, **tope de 12 meses**,
    se apaga con la primera cosecha.
-3. **W1-c · el terreno en Reportes/PDF/Excel** 🟡 M — nunca diseñado. Ojo: **W1-b
-   se descartó** (2026-10-12), así que no hay gasto de terreno que repartir y solo
-   quedaría *agrupar cultivos por terreno*. **Solo avanza si se le encuentra un
-   uso concreto.**
+3. ~~**W1-c · el terreno en Reportes/PDF/Excel**~~ ✅ **implementado 2026-10-19**
+   (`5b06ed2`). Bandas por terreno en pantalla, PDF y Excel; dentro de la banda no
+   hay neto ni ROI porque el gasto es del cultivo, no del suelo. **W1-b sigue
+   descartado** (2026-10-12): no hay reparto de gastos, y no se inventa uno.
 
 > Los dos primeros están **escritos y verificados** (`analyze` limpio,
 > **698/698 tests**) pero **aún sin commitear ni desplegar**.
@@ -241,7 +241,7 @@ gasto → ganancia cuando ya está en venta**, para **todo** lo sembrado en ese 
 
 | | Frente | Aborda | Tamaño | Estado 2026-10-13 |
 |---|---|---|---|---|
-| **W1** | **El terreno** — noción de espacio compartido y **reparto de costos** entre cultivos del mismo suelo | C2, C3, P1 | 🔴 XL · requiere su propio Gate | 🟡 **W1-a hecho** `a360ad7` (tabla, CRUD, sección, selector). **W1-b/d descartados** (sin reparto). **W1-c sin diseñar.** |
+| **W1** | **El terreno** — noción de espacio compartido y **reparto de costos** entre cultivos del mismo suelo | C2, C3, P1 | 🔴 XL · requiere su propio Gate | ✅ **W1-a** `a360ad7` (tabla, CRUD, sección, selector) + **W1-c** `5b06ed2` (bandas por terreno en pantalla/PDF/Excel). **W1-b/d descartados** (sin reparto). |
 | **W2** | **Rendimiento y referencias** — producción ÷ ha / ÷ planta, con tablas **editables por región** (mismo patrón que A2) | C7, C13, C14, C15, P2 | 🔴 L | ✅ **E4** `b4241f8`. **Sin tabla de región (C14 rechazada)**; la referencia es su meta anual. C15 ya se pinta en el estado de resultados. |
 | **W3** | **La venta real** — deducciones, comisión, estado de pago | H8, C16, P3 | 🟡 M | ✅ **E1** `f911858`. Motivo de deducción libre (no lista cerrada); estado **Pagado / Por cobrar**. |
 | **W4** | **La vida del cultivo** — edad por especie, reposición/despojo, "debería estar rindiendo" | H1-H3, C5, C6, P4, P6 | 🔴 L | 🟡 **H1-H3** `3ec1a08` + **E5** `a9bb807` hechos. **"Debería estar rindiendo" existe como rótulo pero NO como alerta.** **C6 despojo/reinicio: ABIERTO.** C5 rechazada. |
@@ -500,12 +500,12 @@ costo/kg y costo/ha · barra de caja con alerta · alertas cosecha vs venta.
 |---|---|---|---|
 | 1 | 🟡 **P6 · C6 — despojo y reinicio de edad** | 🟡 M | ✅ **implementado.** El plan decía *"no existe despojo y replante"* y era **falso**: `edadDeCrop` ya reiniciaba la edad con una siembra nueva. Faltaban **la fase y la fecha**, y eso es lo que hace la casilla *"Esta siembra arrancó el cultivo de nuevo"*. |
 | 2 | 🟢 **Alerta "debería estar rindiendo" en Inicio** | 🟢 S | ✅ **implementado.** `AlertRule.firstHarvestOverdue`, severidad `warning`, **tope de 12 meses**, se apaga con la primera cosecha. |
-| 3 | 🟡 **W1-c · terreno en Reportes/PDF/Excel** | 🟡 M | ✅ **Descartado (2026-10-15).** **Sin W1-b no hay gasto de terreno**, así que solo agruparía sin mover ningún número — cae en la regla "si no se usa para algo concreto, no se pide". |
+| 3 | 🟡 **W1-c · terreno en Reportes/PDF/Excel** | 🟡 M | ✅ **Implementado (2026-10-19, `5b06ed2`).** Agrupa por terreno sin inventar neto ni ROI: el gasto sigue siendo del cultivo. Sin W1-b no hay reparto, y no se pidió. |
 
 > **Conclusión (ACTUALIZADA 2026-10-13):** el **esqueleto ya es el correcto y ya
 > tiene carne.** **No falta ninguna pieza grande** de las que este documento pedía.
-> Lo único sin resolver es **W1-c**, y solo debe avanzar si se le encuentra un
-> uso concreto.
+> W1-c cerró el 2026-10-19 (`5b06ed2`): el terreno agrupa en pantalla, PDF y Excel
+> sin inventar reparto. **W1-b sigue descartado**, y queda escrito por qué.
 > Los 3 casos (A, B, C) cierran con el mismo flujo: una sola forma de trabajar
 > que sirve **tanto si ya producís como si recién sembrás**.
 
