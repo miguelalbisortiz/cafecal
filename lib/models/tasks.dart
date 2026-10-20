@@ -10,6 +10,13 @@
 /// que está en la lista agrupa por tecla, lo que no agrupa con lo idéntico.
 const String kTaskOther = 'otra';
 
+/// La labor de recolección. Es la única que enciende el campo de «kilos
+/// recolectados» del jornal (Tanda 2) y la que `deriveHarvests` mira.
+///
+/// Vive en una constante para que la pantalla y la derivación no repitan el
+/// literal `'cosechar'` y se separen sin que nadie lo note.
+const String kTaskCosechar = 'cosechar';
+
 class FarmTask {
   final String key;
   final String name;
@@ -28,7 +35,7 @@ const List<FarmTask> farmTasks = [
   FarmTask(key: 'sembrar', name: 'Sembrar', icon: '🪴'),
   FarmTask(key: 'descolgar', name: 'Descolgar', icon: '🌿'),
   FarmTask(key: 'abonar', name: 'Abonar', icon: '⚗️'),
-  FarmTask(key: 'cosechar', name: 'Cosechar', icon: '🍒'),
+  FarmTask(key: kTaskCosechar, name: 'Cosechar', icon: '🍒'),
   FarmTask(key: 'deshierbar', name: 'Deshierbar', icon: '🪓'),
   FarmTask(key: 'aplicar', name: 'Aplicar', icon: '💊'),
   FarmTask(key: 'regar', name: 'Regar', icon: '💦'),

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/harvest.dart';
+import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/derived_harvests.dart';
 
@@ -68,6 +69,35 @@ Harvest _manual({String id = 'm1', String? cropId = 'c1'}) => Harvest(
       date: _now,
       amount: 40,
       unit: 'kg',
+    );
+
+/// Jornal de mano de obra con la misma forma que escribe `register_screen`:
+/// `quantity` son días, `unit = 'día'` y los kilos viven aparte.
+Transaction _jornal({
+  required String id,
+  String? cropId = 'c1',
+  String? task = kTaskCosechar,
+  double? harvestedKg = 500,
+  double days = 2,
+  double rate = 50000,
+  bool deleted = false,
+  DateTime? date,
+}) =>
+    Transaction(
+      id: id,
+      cropId: cropId,
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      amount: days * rate,
+      currency: 'COP',
+      date: date ?? _now,
+      createdAt: DateTime(2026, 1, 1),
+      deleted: deleted,
+      quantity: days,
+      unit: 'día',
+      pricePerUnit: rate,
+      task: task,
+      harvestedKg: harvestedKg,
     );
 
 List<Harvest> _derive({
@@ -293,18 +323,159 @@ void main() {
       );
     });
 
-    test('una derivada de OTRA fuente también cuenta como independiente', () {
-      // Simula lo que hará la Tanda 2: una cosecha derivada del jornal lleva
-      // su propio prefijo, y como no es de venta, la tarjeta se enciende.
-      final delJornal = Harvest(
-        id: 'der_jornal_v1',
-        cropId: 'c1',
-        date: _now,
-        amount: 50,
-      );
+    test('una derivada del jornal también cuenta como independiente', () {
+      final delJornal =
+          _derive(txns: [_jornal(id: 'j1', harvestedKg: 50)]).single;
+      expect(delJornal.id, 'der_jornal_j1');
       expect(isSaleDerivedHarvest(delJornal), isFalse);
       expect(hasIndependentHarvest([delJornal]), isTrue,
-          reason: 'D4 deja la puerta lista: es un prefijo, no un rediseño');
+          reason: 'la medida del jornal es independiente de la venta');
+      expect(delJornal.pendingSync, isFalse);
+    });
+  });
+
+  group('Jornal · lo que sí', () {
+    test('un jornal de Cosechar con kilos da exactamente una cosecha', () {
+      final out = _derive(txns: [_jornal(id: 'j1')]);
+      expect(out, hasLength(1));
+
+      final h = out.single;
+      expect(h.id, 'der_jornal_j1');
+      expect(h.cropId, 'c1');
+      expect(h.date, _now);
+      expect(h.amount, 500);
+      expect(h.unit, 'kg');
+      expect(h.destination, HarvestDestination.vendido);
+      expect(h.pendingSync, isFalse);
+    });
+
+    test('varios jornales medidos dan una cosecha por jornal', () {
+      final out = _derive(txns: [
+        _jornal(id: 'j1', harvestedKg: 500, date: DateTime(2026, 10, 1)),
+        _jornal(id: 'j2', harvestedKg: 120, date: DateTime(2026, 10, 8)),
+      ]);
+      expect(out, hasLength(2));
+      expect(out.map((h) => h.id), ['der_jornal_j1', 'der_jornal_j2']);
+      expect(out.map((h) => h.amount), [500, 120]);
+    });
+
+    test('el id lleva el prefijo der_jornal_ y no es de venta', () {
+      final h = _derive(txns: [_jornal(id: 'j1')]).single;
+      expect(h.id.startsWith(kJornalDerivedPrefix), isTrue);
+      expect(isJornalDerivedHarvest(h), isTrue);
+      expect(isSaleDerivedHarvest(h), isFalse);
+    });
+
+    test('la cosecha del jornal enciende la medida independiente', () {
+      final out = _derive(txns: [_jornal(id: 'j1')]);
+      expect(hasIndependentHarvest(out), isTrue);
+    });
+  });
+
+  group('Jornal · lo que no', () {
+    test('sin kilos no deriva', () {
+      expect(_derive(txns: [_jornal(id: 'j1', harvestedKg: null)]), isEmpty);
+    });
+
+    test('kilos 0 o negativos no derivan', () {
+      expect(_derive(txns: [_jornal(id: 'a', harvestedKg: 0)]), isEmpty);
+      expect(_derive(txns: [_jornal(id: 'b', harvestedKg: -5)]), isEmpty);
+    });
+
+    test('labor distinta de Cosechar no deriva', () {
+      expect(_derive(txns: [_jornal(id: 'j1', task: 'abonar')]), isEmpty);
+      expect(_derive(txns: [_jornal(id: 'j2', task: null)]), isEmpty);
+    });
+
+    test('sin cultivo no deriva', () {
+      expect(_derive(txns: [_jornal(id: 'j1', cropId: null)]), isEmpty);
+    });
+
+    test('un jornal borrado no deriva', () {
+      expect(_derive(txns: [_jornal(id: 'j1', deleted: true)]), isEmpty);
+    });
+
+    test('«Otra…» con texto «cosechar» no deriva', () {
+      expect(_derive(txns: [_jornal(id: 'j1', task: 'cosechar café')]), isEmpty,
+          reason: 'solo la tecla del catálogo, no texto libre');
+    });
+
+    test('un ingreso con categoría mano_obra no deriva', () {
+      final ingreso = Transaction(
+        id: 'i1',
+        cropId: 'c1',
+        type: TransactionType.income,
+        category: 'mano_obra',
+        amount: 1000,
+        date: _now,
+        createdAt: _now,
+        task: kTaskCosechar,
+        harvestedKg: 500,
+      );
+      expect(_derive(txns: [ingreso]), isEmpty);
+    });
+  });
+
+  group('Prioridad manual > jornal > venta', () {
+    test('la cosecha manual manda sobre el jornal', () {
+      final out = _derive(
+        txns: [_jornal(id: 'j1')],
+        manual: [_manual(cropId: 'c1')],
+      );
+      expect(out, isEmpty);
+    });
+
+    test('la cosecha manual de otro cultivo no frena el jornal', () {
+      final out = _derive(
+        txns: [_jornal(id: 'j1', cropId: 'c1')],
+        manual: [_manual(cropId: 'c2')],
+      );
+      expect(out.single.id, 'der_jornal_j1');
+    });
+
+    test('el jornal suprime la venta del mismo cultivo', () {
+      final out = _derive(txns: [
+        _jornal(id: 'j1', harvestedKg: 500),
+        _venta(id: 'v1', quantity: 480),
+      ]);
+      expect(out, hasLength(1));
+      expect(out.single.id, 'der_jornal_j1');
+      expect(out.single.amount, 500);
+    });
+
+    test('un jornal medido no suprime la venta de otro cultivo', () {
+      final out = _derive(txns: [
+        _jornal(id: 'j1', cropId: 'c1'),
+        _venta(id: 'v1', cropId: 'c2', quantity: 480),
+      ]);
+      expect(out.map((h) => h.id), ['der_jornal_j1', 'der_venta_v1']);
+    });
+
+    test('un jornal sin kilos no suprime la venta', () {
+      final out = _derive(txns: [
+        _jornal(id: 'j1', harvestedKg: null),
+        _venta(id: 'v1', quantity: 480),
+      ]);
+      expect(out.single.id, 'der_venta_v1');
+    });
+
+    test('con un jornal medido, la venta no rellena los jornales sin kilos', () {
+      final out = _derive(txns: [
+        _jornal(id: 'j1', harvestedKg: 500),
+        _jornal(id: 'j2', harvestedKg: null),
+        _venta(id: 'v1', quantity: 480),
+      ]);
+      expect(out, hasLength(1));
+      expect(out.single.amount, 500,
+          reason: 'trade-off D3: no se inventa el resto');
+    });
+
+    test('un jornal borrado no suprime la venta', () {
+      final out = _derive(txns: [
+        _jornal(id: 'j1', deleted: true),
+        _venta(id: 'v1', quantity: 480),
+      ]);
+      expect(out.single.id, 'der_venta_v1');
     });
   });
 }

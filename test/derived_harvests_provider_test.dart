@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/harvest.dart';
+import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/derived_harvests.dart';
@@ -216,6 +217,110 @@ void main() {
       expect(p.storedHarvests, isEmpty);
       expect(p.harvests.single.pendingSync, isFalse,
           reason: 'y sigue sin querer subirse');
+    });
+  });
+
+  group('Tanda 2 · el jornal medido', () {
+    Future<Transaction> jornal(
+      TransactionProvider p,
+      String cropId, {
+      double kg = 120,
+      String task = kTaskCosechar,
+      DateTime? date,
+    }) =>
+        p.addTransaction(
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          cropId: cropId,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: task,
+          harvestedKg: kg,
+          date: date ?? DateTime(2026, 10, 19),
+        );
+
+    test('addTransaction conserva los kilos y harvests deriva la cosecha',
+        () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, crop.id);
+
+      expect(j.harvestedKg, 120);
+      expect(p.harvests, hasLength(1));
+      final h = p.harvests.single;
+      expect(h.id, 'der_jornal_${j.id}');
+      expect(h.cropId, crop.id);
+      expect(h.amount, 120);
+      expect(h.unit, 'kg');
+      expect(h.destination, HarvestDestination.vendido);
+    });
+
+    test('storedHarvests sigue conteniendo solo lo guardado', () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      await jornal(p, crop.id);
+
+      expect(p.harvests, hasLength(1));
+      expect(p.storedHarvests, isEmpty,
+          reason: 'la del jornal se calcula al leer, no se persiste');
+    });
+
+    test('borrar el jornal apaga su cosecha', () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, crop.id);
+
+      await p.deleteTransaction(j.id);
+
+      expect(p.harvests, isEmpty);
+    });
+
+    test('editar los kilos corrige la cosecha', () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, crop.id);
+
+      await p.updateTransaction(j.copyWith(harvestedKg: 200));
+
+      expect(p.harvests.single.amount, 200);
+    });
+
+    test('cambiar la labor y limpiar los kilos apaga la cosecha', () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, crop.id);
+
+      await p.updateTransaction(j.copyWith(task: 'abonar', harvestedKg: null));
+
+      expect(p.harvests, isEmpty);
+    });
+
+    test('un jornal con kilos de un cultivo borrado no rompe la lectura',
+        () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      await jornal(p, crop.id);
+
+      await p.deleteCrop(crop.id);
+
+      expect(() => p.harvests, returnsNormally);
+      expect(p.harvests, isEmpty,
+          reason: 'sin cultivo no hay a quién atribuir la cosecha');
+      expect(p.transactions.single.harvestedKg, 120,
+          reason: 'el movimiento se queda; solo pierde el cultivo');
+    });
+
+    test('varios jornales del mismo cultivo dan una cosecha cada uno', () async {
+      final p = await build();
+      final crop = await p.addCrop('Café');
+      await jornal(p, crop.id, kg: 500);
+      await jornal(p, crop.id, kg: 120, date: DateTime(2026, 10, 20));
+
+      expect(p.harvests, hasLength(2));
+      expect(p.harvests.map((h) => h.amount), [500, 120]);
     });
   });
 }

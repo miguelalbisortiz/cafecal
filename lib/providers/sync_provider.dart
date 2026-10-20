@@ -349,6 +349,10 @@ class SyncProvider extends ChangeNotifier {
         // los demás nullable: si el productor le quitó la labor a un jornal,
         // hay que reflejarlo y no dejar pisado el valor anterior.
         'task': t.task,
+        // Tanda 2 · los kilos recolectados. Va completa, incluida null: si se
+        // omitiera, el pull dejaría el valor anterior y un jornal que dejó de
+        // medir seguiría midiendo. Nunca 0: null es «no medido».
+        'harvested_kg': t.harvestedKg,
       };
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -538,7 +542,7 @@ class SyncProvider extends ChangeNotifier {
 
     final localIds = _txProvider.transactions.map((t) => t.id).toSet();
     final remoteMapped = (remoteTx as List)
-        .map((e) => _remoteToTransaction(e as Map<String, dynamic>))
+        .map((e) => remoteToTransaction(e as Map<String, dynamic>))
         .where((t) => !localIds.contains(t.id))
         .toList();
 
@@ -624,7 +628,10 @@ class SyncProvider extends ChangeNotifier {
     });
   }
 
-  Transaction _remoteToTransaction(Map<String, dynamic> row) {
+  /// Fila de `transactions` → [Transaction]. Pública para poder probar que lo
+  /// que baja de Supabase conserva todo (mismo motivo que [remoteToCrop]).
+  @visibleForTesting
+  Transaction remoteToTransaction(Map<String, dynamic> row) {
     return Transaction.fromJson({
       'id': row['id'] as String,
       'crop_id': row['crop_id'] as String?,
@@ -651,6 +658,8 @@ class SyncProvider extends ChangeNotifier {
       'deduction_reason': row['deduction_reason'] as String?,
       'paid': (row['paid'] as bool?) ?? true,
       'task': row['task'] as String?,
+      // Tanda 2 · filas anteriores a la migración no traen la clave → null.
+      'harvested_kg': (row['harvested_kg'] as num?)?.toDouble(),
     });
   }
 

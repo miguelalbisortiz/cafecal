@@ -225,4 +225,49 @@ void main() {
       expect(merged.sacoKg, 60);
     });
   });
+
+  // Tanda 2 · el respaldo es la otra puerta de entrada del dato.
+  group('Kilos recolectados (Tanda 2)', () {
+    Transaction jornal({double? kg}) => Transaction(
+          id: 'j1',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: 'cosechar',
+          harvestedKg: kg,
+          date: DateTime(2026, 10, 19),
+          createdAt: DateTime(2026, 10, 19),
+        );
+
+    String archivo(Transaction t) => encodeBackup(
+          crops: const [],
+          sowings: const [],
+          harvests: const [],
+          employees: const [],
+          transactions: [t],
+          settings: settings,
+          uid: '',
+          now: DateTime(2026, 10, 3),
+        );
+
+    test('encodeBackup escribe harvested_kg en el JSON', () {
+      final map = jsonDecode(archivo(jornal(kg: 120.5))) as Map<String, dynamic>;
+      final fila = (map['movimientos'] as List).single as Map<String, dynamic>;
+
+      expect(fila['harvested_kg'], 120.5);
+    });
+
+    test('un respaldo sin la clave decodifica sin error', () {
+      final map = jsonDecode(archivo(jornal(kg: 120.5))) as Map<String, dynamic>;
+      ((map['movimientos'] as List).single as Map).remove('harvested_kg');
+
+      final vuelta = decodeBackup(jsonEncode(map));
+      expect(vuelta.transactions.single.harvestedKg, isNull);
+      expect(vuelta.transactions.single.amount, 100000);
+    });
+  });
 }

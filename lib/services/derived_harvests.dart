@@ -1,5 +1,6 @@
 import '../models/categories.dart';
 import '../models/harvest.dart';
+import '../models/tasks.dart';
 import '../models/transaction.dart';
 
 /// **Cosecha derivada de la venta** — sin un paso nuevo para el agricultor.
@@ -45,27 +46,43 @@ import '../models/transaction.dart';
 ///
 /// ## La puerta para la Tanda 2 (D4)
 ///
-/// Hoy la única fuente es la venta. Si se aprueba el campo «kilos
-/// recolectados» en un jornal de labor «Cosechar», esa fuente entra **por
-/// encima** de la venta — porque sí es independiente de ella, y es la única
-/// forma de saber lo que se quedó en el campo —, y es **un `if` más** en esta
-/// función, no un rediseño. Orden de prioridad:
+/// La venta no es la única fuente. Un jornal de labor «Cosechar» puede traer
+/// **kilos recolectados** (Tanda 2), y esa sí es una medida independiente de
+/// la venta: es la única forma de saber lo que se quedó en el campo. Entra
+/// **por encima** de la venta y es **un `if` más** en esta función, no un
+/// rediseño. Orden de prioridad, por cultivo:
 ///
 /// 1. `manual`  — lo anotó a mano. Manda siempre.
-/// 2. `jornal`  — [Tanda 2] kilos recolectados. Todavía no existe.
-/// 3. `venta`   — lo de la venta. Es lo único que hay hoy.
+/// 2. `jornal`  — kilos recolectados en un jornal de «Cosechar».
+/// 3. `venta`   — lo de la venta, cuando no hay medida mejor.
 ///
 /// Por eso la identidad de lo derivado lleva la **fuente** en el prefijo y no
-/// un «es derivado» genérico: [isSaleDerivedHarvest] seguirá respondiendo
-/// `false` a una cosecha derivada del jornal, que es justamente lo que la
-/// tarjeta «vendido vs cosechado» necesita para saber que sí hay una medida
-/// independiente (D5).
+/// un «es derivado» genérico: [isSaleDerivedHarvest] responde `false` a una
+/// cosecha derivada del jornal, que es justamente lo que la tarjeta «vendido
+/// vs cosechado» necesita para saber que sí hay una medida independiente (D5).
+///
+/// «Por encima» quiere decir que, si el cultivo tiene al menos un jornal
+/// medido, **la venta no deriva para ese cultivo**: sumar las dos fuentes
+/// contaría los mismos kilos dos veces. El costo es explícito: si solo se
+/// miden algunos jornales, la venta no rellena los que faltan. Se prefiere
+/// medir de menos antes que inflar la cosecha (la regla de oro).
 
 /// Prefijo de las cosechas derivadas **de la venta**.
 ///
 /// Los id sintéticos empiezan por esto; los guardados son uuid. El prefijo
 /// lleva la fuente a propósito — ver el bloque D4 arriba.
 const String kSaleDerivedPrefix = 'der_venta_';
+
+/// Prefijo de las cosechas derivadas **del jornal** (Tanda 2).
+///
+/// Igual que el de la venta: el prefijo dice de dónde salió. [isSaleDerivedHarvest]
+/// devuelve `false` para estas, que es lo que enciende la tarjeta «vendido vs
+/// cosechado»: el jornal sí es una medida independiente.
+const String kJornalDerivedPrefix = 'der_jornal_';
+
+/// ¿Esta cosecha salió de los kilos anotados en un jornal de «Cosechar»?
+bool isJornalDerivedHarvest(Harvest harvest) =>
+    harvest.id.startsWith(kJornalDerivedPrefix);
 
 /// ¿Esta cosecha salió de la venta?
 ///
@@ -109,7 +126,36 @@ List<Harvest> deriveHarvests({
   // existe: ese enlace roto hay que SANARLO, no dejar la venta sin contar.
   final manualIds = {for (final h in manualHarvests) h.id};
 
+  // Cultivos con al menos un jornal medido: para ellos la venta no deriva.
+  // Se calcula antes del bucle de ventas para que la regla viva en un solo
+  // lugar y ninguna de las dos fuentes se cuele por su cuenta.
+  final jornalCrops = <String>{
+    for (final t in transactions)
+      if (_isMeasuredHarvestJornal(t)) t.cropId!,
+  };
+
   final out = <Harvest>[];
+
+  // 1 · jornal — una cosecha por cada jornal medido (D11). La manual ya ganó:
+  // si el cultivo tiene una, ni siquiera se emite la del jornal.
+  for (final t in transactions) {
+    if (!_isMeasuredHarvestJornal(t)) continue;
+
+    final cropId = t.cropId!;
+    if (manualCrops.contains(cropId)) continue;
+
+    out.add(Harvest(
+      id: '$kJornalDerivedPrefix${t.id}',
+      cropId: cropId,
+      date: t.date,
+      amount: t.harvestedKg!,
+      unit: 'kg',
+      destination: HarvestDestination.vendido,
+      pendingSync: false,
+    ));
+  }
+
+  // 2 · venta — solo para los cultivos que no tienen una medida mejor.
   for (final t in transactions) {
     if (t.deleted) continue;
     if (t.type.isExpense) continue;
@@ -121,6 +167,9 @@ List<Harvest> deriveHarvests({
 
     // D2 · manda lo que él anotó a mano.
     if (manualCrops.contains(cropId)) continue;
+
+    // D3 · si hay un jornal medido, la venta no vuelve a contar esos kilos.
+    if (jornalCrops.contains(cropId)) continue;
 
     // `null` → oculto, nunca un 0: sin kilos no hay cosecha que derivar.
     final quantity = t.quantity;
@@ -152,4 +201,20 @@ List<Harvest> deriveHarvests({
     ));
   }
   return out;
+}
+
+/// ¿Este gasto es un jornal de «Cosechar» con kilos medidos?
+///
+/// Los filtros son la regla entera: gasto no borrado, categoría de mano de
+/// obra, la tecla del catálogo (no texto libre de «Otra…»), cultivo y kilos
+/// mayores que 0. `null`, 0 o negativo = no medido: no se deriva nada.
+bool _isMeasuredHarvestJornal(Transaction t) {
+  if (t.deleted) return false;
+  if (!t.type.isExpense) return false;
+  if (t.category != 'mano_obra') return false;
+  if (t.task != kTaskCosechar) return false;
+  if (t.cropId == null) return false;
+
+  final kg = t.harvestedKg;
+  return kg != null && kg > 0;
 }

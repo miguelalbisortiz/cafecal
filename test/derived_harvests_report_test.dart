@@ -9,10 +9,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/categories.dart';
+import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/report_screen.dart';
 import 'package:mi_cafetal/services/excel_export_service.dart';
+import 'package:mi_cafetal/services/derived_harvests.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart';
 import 'package:mi_cafetal/services/report_harvest_metrics.dart';
@@ -44,6 +46,39 @@ void main() {
       cropId: crop.id,
       quantity: 50,
       unit: 'kg',
+      date: DateTime.now(),
+    );
+    return p;
+  }
+
+  /// Tanda 2 · una venta de 480 kg **y** un jornal que midió 500: la única
+  /// forma de que «vendido vs cosechado» tenga dos números distintos y de que
+  /// el denominador del costo por kilo crezca.
+  Future<TransactionProvider> buildConJornal() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final p = TransactionProvider(LocalStore(prefs));
+    final crop = await p.addCrop('Café');
+    await p.addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      amount: 144000,
+      cropId: crop.id,
+      quantity: 480,
+      unit: 'kg',
+      date: DateTime.now(),
+    );
+    await p.addTransaction(
+      type: TransactionType.expense,
+      category: 'mano_obra',
+      amount: 100000,
+      cropId: crop.id,
+      quantity: 2,
+      unit: 'día',
+      pricePerUnit: 50000,
+      provider: 'Juan',
+      task: kTaskCosechar,
+      harvestedKg: 500,
       date: DateTime.now(),
     );
     return p;
@@ -242,6 +277,96 @@ void main() {
 
       expect(String.fromCharCodes(bytes.take(5).toList()), '%PDF-');
       expect(bytes.length, greaterThan(1000));
+    });
+  });
+
+  // Tanda 2 · el jornal medido entra por la misma puerta que lo anotado a mano.
+  group('Jornal medido · «vendido vs cosechado»', () {
+    testWidgets('la tarjeta se enciende con el jornal', (tester) async {
+      final p = await buildConJornal();
+      await pumpReport(tester, p);
+
+      expect(find.text(_es.reportSoldVsHarvested), findsOneWidget,
+          reason: '500 cosechados contra 480 vendidos sí dicen algo');
+    });
+
+    test('el Excel pinta 500 cosechados y 480 vendidos para el jornal',
+        () async {
+      final p = await buildConJornal();
+      final now = DateTime.now();
+      final bytes = Uint8List.fromList(ExcelExportService().buildReport(
+        settings: p.settings,
+        transactions: p.transactions,
+        crops: p.crops,
+        year: now.year,
+        month: now.month,
+        period: ReportPeriod.month,
+        periodName: 'Mes',
+        l10n: _es,
+        harvests: p.harvests,
+      ));
+      final rows = Excel.decodeBytes(bytes).tables[_es.excelSheetHarvests]!.rows;
+
+      dynamic valorDe(String etiqueta) {
+        for (final r in rows) {
+          if ((cv(r[0])?.toString() ?? '').contains(etiqueta)) return cv(r[1]);
+        }
+        return null;
+      }
+
+      expect(hayFila(rows, 'Café'), isTrue);
+      expect(valorDe(_es.reportSoldKg), 480);
+      expect(valorDe(_es.reportHarvestedKg), 500);
+    });
+
+    test('el PDF se construye con el jornal medido y sigue siendo válido',
+        () async {
+      final p = await buildConJornal();
+      final now = DateTime.now();
+      final bytes = await PdfExportService().buildReport(
+        settings: p.settings,
+        transactions: p.transactions,
+        crops: p.crops,
+        year: now.year,
+        month: now.month,
+        period: ReportPeriod.month,
+        periodName: 'Mes',
+        l10n: _es,
+        harvests: p.harvests,
+      );
+
+      expect(String.fromCharCodes(bytes.take(5).toList()), '%PDF-');
+      expect(bytes.length, greaterThan(1000));
+    });
+
+    test('pantalla y Excel usan el mismo harvestedKg', () async {
+      final p = await buildConJornal();
+      expect(p.harvests.single.amount, 500);
+      expect(hasIndependentHarvest(p.harvests), isTrue);
+
+      final now = DateTime.now();
+      final bytes = Uint8List.fromList(ExcelExportService().buildReport(
+        settings: p.settings,
+        transactions: p.transactions,
+        crops: p.crops,
+        year: now.year,
+        month: now.month,
+        period: ReportPeriod.month,
+        periodName: 'Mes',
+        l10n: _es,
+        harvests: p.harvests,
+      ));
+      final rows = Excel.decodeBytes(bytes).tables[_es.excelSheetHarvests]!.rows;
+
+      final esperado = const ReportHarvestMetrics()
+          .totalsByCrop(p.harvests, p.crops)
+          .single
+          .kg;
+      expect(esperado, 500);
+      expect(
+          cv(rows.firstWhere(
+              (r) => (cv(r[0])?.toString() ?? '').contains('Café'))[2]),
+          esperado);
     });
   });
 }

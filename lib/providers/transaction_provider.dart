@@ -252,6 +252,7 @@ class TransactionProvider extends ChangeNotifier {
     String? deductionReason,
     bool paid = true,
     String? task,
+    double? harvestedKg,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -278,6 +279,7 @@ class TransactionProvider extends ChangeNotifier {
       deductionReason: deductionReason,
       paid: paid,
       task: task,
+      harvestedKg: harvestedKg,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);

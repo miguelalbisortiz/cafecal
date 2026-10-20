@@ -49,6 +49,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _jornalDaysController = TextEditingController();
   final _jornalRateController = TextEditingController();
 
+  /// Tanda 2 · kilos recolectados. Es una **medida**, no una forma de pago:
+  /// el total sigue saliendo de días × valor día. Vacío = `null` = no medido.
+  final _jornalHarvestedKgController = TextEditingController();
+
   /// E3 · la labor del jornal. Tecla de `farmTasks`, o [_jornalTaskOtherOption]
   /// si eligió "Otra…" (y entonces el texto vive en
   /// [_jornalTaskOtherController]).
@@ -103,6 +107,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// valor día) y bloquea el campo Monto (se calcula solo).
   bool get _isJornal =>
       _type == TransactionType.expense && _category == 'mano_obra';
+
+  /// Tanda 2 · los kilos solo se piden cuando hay una cosecha que atribuir:
+  /// la labor es «Cosechar» y hay un **cultivo**. Con un lote no hay a quién
+  /// atribuirla (el lote no es un cultivo), y sin ninguno tampoco.
+  bool get _showsHarvestedKg =>
+      _isJornal &&
+      _jornalTaskValue == kTaskCosechar &&
+      _cropId != null &&
+      _terrenoId == null;
+
+  /// D12 · lo que se oculta no se guarda ni se restaura: al dejar de verse,
+  /// el controlador se limpia para que no reaparezca un número viejo.
+  void _clearHarvestedKgIfHidden() {
+    if (!_showsHarvestedKg) _jornalHarvestedKgController.clear();
+  }
 
   /// Ayuda que se muestra justo al elegir la categoría.
   ///
@@ -206,6 +225,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _jornalTaskOtherController.text = savedTask;
           }
         }
+        // Tanda 2 · se restaura solo si el campo va a verse: lo oculto no
+        // guarda un valor escondido que pueda reaparecer (D12).
+        if (_showsHarvestedKg && e.harvestedKg != null) {
+          final kg = e.harvestedKg!;
+          _jornalHarvestedKgController.text =
+              (kg % 1 == 0) ? kg.toInt().toString() : kg.toString();
+        }
       }
     } else {
       final provider = context.read<TransactionProvider>();
@@ -250,6 +276,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _jornalOtherNameController.dispose();
     _jornalDaysController.dispose();
     _jornalRateController.dispose();
+    _jornalHarvestedKgController.dispose();
     _jornalTaskOtherController.dispose();
     _deductionQtyController.dispose();
     _deductionReasonController.dispose();
@@ -380,6 +407,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // obra no tiene nada que anotar, y si el movimiento se edita para dejar
     // de ser jornal, la labor se limpia (no queda colgando).
     String? task;
+    // Tanda 2 · kilos recolectados. Solo existen si el campo se veía al
+    // guardar: lo oculto no viaja (null), nunca un 0 inventado.
+    double? harvestedKg;
     if (_isJornal) {
       // Bloque jornal: total = días × valor día (Monto es solo lectura).
       final days = double.parse(
@@ -408,6 +438,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         task = free.isEmpty ? null : free;
       } else {
         task = _jornalTaskValue;
+      }
+      if (_showsHarvestedKg) {
+        final kgText =
+            _jornalHarvestedKgController.text.trim().replaceAll(',', '.');
+        harvestedKg = kgText.isEmpty ? null : double.tryParse(kgText);
       }
     } else {
       amount = double.parse(_amountController.text.replaceAll(',', '.'));
@@ -480,6 +515,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         deductionReason: deductionReason,
         paid: paid,
         task: task,
+        harvestedKg: harvestedKg,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -511,6 +547,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       deductionReason: deductionReason,
       paid: paid,
       task: task,
+      harvestedKg: harvestedKg,
     );
 
     // Recuerda lo elegido para preseleccionarlo la próxima vez.
@@ -537,6 +574,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _jornalOtherNameController.clear();
     _jornalDaysController.clear();
     _jornalRateController.clear();
+    _jornalHarvestedKgController.clear();
     _jornalTaskValue = null;
     _jornalTaskOtherController.clear();
     _deductionQtyController.clear();
@@ -674,6 +712,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // hectáreas, es de un cultivo o de la finca entera. Si estaba
               // elegido y pasa a ingreso, se quita.
               if (s.first == TransactionType.income) _terrenoId = null;
+              _clearHarvestedKgIfHidden();
             }),
           ),
           const SizedBox(height: 16),
@@ -756,6 +795,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   }
                   _unit = null;
                   _harvestId = null;
+                  _clearHarvestedKgIfHidden();
                 });
               }
             },
@@ -790,7 +830,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Text('${c.icon} ${c.name}'),
                     ))
                 .toList(),
-            onChanged: (v) => setState(() => _category = v),
+            onChanged: (v) => setState(() {
+              _category = v;
+              _clearHarvestedKgIfHidden();
+            }),
           ),
 
           // Ayuda al elegir categoría. H4 · el camino corto ya existía y
@@ -1086,6 +1129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (v != _jornalTaskOtherOption) {
                     _jornalTaskOtherController.clear();
                   }
+                  _clearHarvestedKgIfHidden();
                 }),
               ),
               if (_jornalTaskValue == _jornalTaskOtherOption) ...[
@@ -1101,6 +1145,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ],
               const SizedBox(height: 12),
+
+              // Tanda 2 · kilos recolectados. Opcional: vacío = no medido.
+              // Solo con «Cosechar» y cultivo; si falta el cultivo se dice
+              // por qué no está, en vez de esconderlo sin explicación.
+              if (_showsHarvestedKg) ...[
+                TextFormField(
+                  controller: _jornalHarvestedKgController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: l10n.jornalHarvestedKgLabel,
+                    helperText: l10n.jornalHarvestedKgHelp,
+                    prefixIcon: const Icon(Icons.scale_outlined),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (v) {
+                    final txt = (v ?? '').trim();
+                    if (txt.isEmpty) return null; // opcional
+                    final n = double.tryParse(txt.replaceAll(',', '.'));
+                    if (n == null || n <= 0) {
+                      return l10n.jornalHarvestedKgInvalid;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+              ] else if (_jornalTaskValue == kTaskCosechar) ...[
+                Text(
+                  l10n.jornalHarvestedKgNoCrop,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // Días trabajados
               TextFormField(

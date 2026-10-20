@@ -81,6 +81,14 @@ class Transaction {
   /// "Sin labor" en vez de inventarle uno.
   final String? task;
 
+  /// Kilos recolectados en este jornal (Tanda 2).
+  ///
+  /// **Es una medida de cosecha, no una forma de pago.** El jornal se sigue
+  /// pagando `días × valor día`; este número solo alimenta la cosecha
+  /// derivada cuando la labor es «Cosechar». `null` = no se midió, y entonces
+  /// no se deriva nada (nunca un 0 inventado).
+  final double? harvestedKg;
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -105,6 +113,7 @@ class Transaction {
     this.deductionReason,
     this.paid = true,
     this.task,
+    this.harvestedKg,
   });
 
   /// Lo que realmente se pagó: lo entregado menos lo descontado.
@@ -155,6 +164,7 @@ class Transaction {
     Object? deductionReason = _keep,
     bool? paid,
     Object? task = _keep,
+    Object? harvestedKg = _keep,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -191,6 +201,11 @@ class Transaction {
       // QUITARLE la labor a un jornal, que es lo que pasa al cambiarlo de
       // categoría a algo que no es mano de obra.
       task: task == _keep ? this.task : task as String?,
+      // Misma sentinela: al dejar de ser «Cosechar» hay que poder limpiar
+      // los kilos, no conservarlos escondidos (D12).
+      harvestedKg: harvestedKg == _keep
+          ? this.harvestedKg
+          : (harvestedKg as num?)?.toDouble(),
     );
   }
 
@@ -218,6 +233,7 @@ class Transaction {
         'deduction_reason': deductionReason,
         'paid': paid,
         'task': task,
+        'harvested_kg': harvestedKg,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -248,6 +264,8 @@ class Transaction {
       paid: (json['paid'] as bool?) ?? true,
       // Respaldos anteriores a E3 no traen la clave → null → sin labor.
       task: json['task'] as String?,
+      // Tanda 2 · clave ausente en respaldos viejos → null → sin cosecha.
+      harvestedKg: (json['harvested_kg'] as num?)?.toDouble(),
     );
   }
 }

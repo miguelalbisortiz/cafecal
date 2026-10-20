@@ -4,6 +4,7 @@ import 'package:mi_cafetal/models/employee.dart';
 import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/settings.dart';
 import 'package:mi_cafetal/models/sowing.dart';
+import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/backup_service.dart';
@@ -274,6 +275,88 @@ void main() {
       expect(respaldo.conteo.siembras, 1);
       expect(respaldo.conteo.movimientos, 1);
       expect(respaldo.exportadoEn, DateTime(2026, 10, 3, 12));
+    });
+  });
+
+  // Tanda 2 · el respaldo tiene que llevar la medida y no inventar cosechas.
+  group('Kilos recolectados (Tanda 2)', () {
+    Transaction jornal({double? kg}) => Transaction(
+          id: 'j1',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: kTaskCosechar,
+          harvestedKg: kg,
+          date: DateTime(2026, 10, 19),
+          createdAt: DateTime(2026, 10, 19),
+        );
+
+    test('un respaldo viejo (sin kilos) importa igual y no deriva', () async {
+      final p = await newProvider();
+      await p.provider.importBackup(payload(transactions: [jornal(kg: null)]));
+
+      final t = p.provider.transactions.single;
+      expect(t.harvestedKg, isNull);
+      expect(t.amount, 100000);
+      expect(t.quantity, 2);
+      expect(t.unit, 'día');
+      expect(p.provider.harvests, isEmpty);
+    });
+
+    test('el respaldo conserva 120.5 en un jornal medido', () async {
+      final p = await newProvider();
+      final archivo = payload(transactions: [jornal(kg: 120.5)]);
+      expect(archivo.transactions.single.harvestedKg, 120.5);
+
+      await p.provider.importBackup(archivo);
+      expect(p.provider.transactions.single.harvestedKg, 120.5);
+    });
+
+    test('el respaldo de un jornal medido no contiene der_jornal_', () async {
+      final p = await newProvider();
+      final crop = await p.provider.addCrop('Café');
+      await p.provider.addTransaction(
+        type: TransactionType.expense,
+        category: 'mano_obra',
+        amount: 100000,
+        cropId: crop.id,
+        quantity: 2,
+        unit: 'día',
+        pricePerUnit: 50000,
+        provider: 'Juan',
+        task: kTaskCosechar,
+        harvestedKg: 120.5,
+      );
+      expect(p.provider.harvests, hasLength(1));
+      expect(p.provider.storedHarvests, isEmpty);
+
+      final archivo = encodeBackup(
+        crops: const [],
+        sowings: const [],
+        harvests: p.provider.storedHarvests,
+        employees: const [],
+        transactions: p.provider.transactions,
+        settings: const FarmSettings(),
+        uid: '',
+        now: DateTime(2026, 10, 3),
+      );
+
+      expect(archivo, isNot(contains('der_jornal_')),
+          reason: 'lo derivado se calcula al leer; nunca se respalda');
+      expect(decodeBackup(archivo).transactions.single.harvestedKg, 120.5);
+    });
+
+    test('importar un respaldo viejo no cambia amount, quantity ni unit',
+        () async {
+      final p = await newProvider();
+      await p.provider.importBackup(payload(transactions: [jornal(kg: null)]));
+
+      final t = p.provider.transactions.single;
+      expect([t.amount, t.quantity, t.unit], [100000, 2, 'día']);
     });
   });
 }

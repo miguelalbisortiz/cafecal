@@ -407,6 +407,55 @@ void main() {
       expect(vacio.total, 0);
     });
   });
+
+  // Tanda 2 · el jornal medido mueve el denominador y nada más. No cambia el
+  // pago (días × valor día) ni se suma dos veces: entra como una cosecha más.
+  group('Jornal medido · efecto esperado', () {
+    final cosechado = _h(
+        id: 'j1', cropId: 'cafe', date: DateTime(2026, 10, 19), amount: 500);
+
+    Transaction jornal() => Transaction(
+          id: 'j1',
+          cropId: 'cafe',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          currency: 'COP',
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: 'cosechar',
+          harvestedKg: 500,
+          date: DateTime(2026, 10, 19),
+          createdAt: DateTime(2026, 10, 19),
+        );
+
+    test('yieldPerArea incluye los kilos del jornal en el denominador', () {
+      expect(metrics.yieldPerArea([cosechado], 1), 500);
+      expect(metrics.yieldPerArea(const [], 1), isNull,
+          reason: 'sin cosechas no hay rendimiento, ni un 0');
+    });
+
+    test('totalCostPerKg baja porque el denominador crece', () {
+      const crop = Crop(
+        id: 'cafe',
+        name: 'Café',
+        phase: CropPhase.produccion,
+      );
+
+      final costo = metrics.totalCostPerKg(crop, [jornal()], [cosechado]);
+
+      expect(costo, 200, reason: '100.000 ÷ 500 kg medidos');
+      expect(costo, lessThan(100000 / 480),
+          reason: 'si el denominador fuera solo la venta, sería mayor');
+    });
+
+    test('pickupCostPerKg no cuenta el jornal como gasto de recogida', () {
+      expect(metrics.pickupCostPerKg([jornal()], [cosechado]), 0,
+          reason: 'el jornal no tiene harvestId: el numerador no cambia');
+    });
+  });
 }
 
 Transaction txn({required double amount, required String? harvestId}) {

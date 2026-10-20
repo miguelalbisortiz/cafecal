@@ -680,4 +680,72 @@ void main() {
       expect(tx.transactions.single.id, added.id);
     });
   });
+
+  // Tanda 2 · el dato tiene que viajar y volver. Si el payload no lo envía,
+  // el pull lo pisa con null; si la lectura lo ignora, se pierde al bajar.
+  group('Payload: kilos recolectados (Tanda 2)', () {
+    Transaction jornal({double? kg}) => Transaction(
+          id: 'j1',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          currency: 'COP',
+          date: DateTime(2026, 10, 19),
+          createdAt: DateTime(2026, 10, 19),
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: 'cosechar',
+          harvestedKg: kg,
+        );
+
+    test('harvested_kg sale siempre, incluido cuando es null', () async {
+      final sync = await newSync();
+      final p = sync.buildTransactionPayload(jornal(), uid);
+
+      expect(p.containsKey('harvested_kg'), isTrue,
+          reason: 'null también viaja: si se omite, el pull deja el valor viejo');
+      expect(p['harvested_kg'], isNull);
+    });
+
+    test('un valor decimal viaja sin redondear', () async {
+      final sync = await newSync();
+      final p = sync.buildTransactionPayload(jornal(kg: 120.5), uid);
+
+      expect(p['harvested_kg'], 120.5);
+    });
+
+    test('enviar null no inventa 0', () async {
+      final sync = await newSync();
+      final p = sync.buildTransactionPayload(jornal(), uid);
+
+      expect(p['harvested_kg'], isNot(0));
+      expect(p['harvested_kg'], isNull);
+    });
+
+    Map<String, dynamic> row({bool conKilos = true}) => {
+          'id': 'j1',
+          'type': 'expense',
+          'category': 'mano_obra',
+          'amount': 100000,
+          'currency': 'COP',
+          'description': '',
+          'txn_date': '2026-10-19',
+          'created_at': '2026-10-19T00:00:00.000Z',
+          if (conKilos) 'harvested_kg': 120.5,
+        };
+
+    test('lo que baja de Supabase conserva harvested_kg', () async {
+      final sync = await newSync();
+
+      expect(sync.remoteToTransaction(row()).harvestedKg, 120.5);
+    });
+
+    test('una fila vieja sin harvested_kg carga null', () async {
+      final sync = await newSync();
+
+      expect(sync.remoteToTransaction(row(conKilos: false)).harvestedKg, isNull);
+    });
+  });
 }

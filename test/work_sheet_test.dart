@@ -284,4 +284,29 @@ void main() {
       expect(t.copyWith(task: 'abonar').task, 'abonar');
     });
   });
+
+  group('Kilos no tocan la planilla (Tanda 2)', () {
+    test('workSheetRows suma los mismos días y montos con o sin kilos', () {
+      final sin = rowsOf([
+        _jornal(days: 2, rate: 50000, task: 'cosechar', cropId: 'cafe'),
+      ]);
+      final con = rowsOf([
+        _jornal(days: 2, rate: 50000, task: 'cosechar', cropId: 'cafe')
+            .copyWith(harvestedKg: 120),
+      ]);
+      expect(con.single.days, sin.single.days);
+      expect(con.single.workers, sin.single.workers);
+      expect(con.single.byCurrency, sin.single.byCurrency);
+    });
+
+    test('la serialización conserva quantity, unit y price_per_unit intactos', () {
+      final t = _jornal(days: 2, rate: 50000, task: 'cosechar', cropId: 'cafe')
+          .copyWith(harvestedKg: 120);
+      final round = Transaction.fromJson(t.toJson());
+      expect(round.quantity, 2);
+      expect(round.unit, 'día');
+      expect(round.pricePerUnit, 50000);
+      expect(round.harvestedKg, 120);
+    });
+  });
 }

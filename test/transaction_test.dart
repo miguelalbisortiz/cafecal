@@ -9,6 +9,7 @@ void main() {
     double? pricePerUnit,
     String? client,
     String? provider,
+    double? harvestedKg,
   }) {
     return Transaction(
       id: 't1',
@@ -22,6 +23,7 @@ void main() {
       pricePerUnit: pricePerUnit,
       client: client,
       provider: provider,
+      harvestedKg: harvestedKg,
     );
   }
 
@@ -87,6 +89,62 @@ void main() {
       expect(updated.category, 'venta_cafe');
       // el original no muta
       expect(t.quantity, isNull);
+    });
+  });
+
+  group('Kilos recolectados del jornal (Tanda 2)', () {
+    test('un JSON con harvested_kg sobrevive al round-trip', () {
+      final json = <String, dynamic>{
+        'id': 'j1',
+        'type': 'expense',
+        'category': 'mano_obra',
+        'amount': 100000,
+        'date': '2026-10-19T00:00:00.000',
+        'created_at': '2026-10-19T00:00:00.000Z',
+        'harvested_kg': 120.5,
+      };
+      final t = Transaction.fromJson(json);
+      expect(t.toJson()['harvested_kg'], 120.5);
+    });
+
+    test('toJson deja la clave en null, nunca en 0', () {
+      final json = base().toJson();
+      expect(json.containsKey('harvested_kg'), isTrue,
+          reason: 'la clave viaja siempre: null = no medido, distinto de 0');
+      expect(json['harvested_kg'], isNull);
+    });
+
+    test('fromJson sin la clave carga null (respaldo viejo)', () {
+      final t = Transaction.fromJson(<String, dynamic>{
+        'id': 'j_old',
+        'type': 'expense',
+        'category': 'mano_obra',
+        'amount': 100000,
+        'date': '2026-10-19T00:00:00.000',
+        'created_at': '2026-10-19T00:00:00.000Z',
+      });
+      expect(t.harvestedKg, isNull);
+    });
+
+    test('round-trip con kilos conserva 120.5', () {
+      final round = Transaction.fromJson(base(harvestedKg: 120.5).toJson());
+      expect(round.harvestedKg, 120.5);
+    });
+
+    test('round-trip sin kilos conserva null', () {
+      final round = Transaction.fromJson(base().toJson());
+      expect(round.harvestedKg, isNull);
+    });
+
+    test('copyWith permite limpiar los kilos con null', () {
+      final t = base(harvestedKg: 120.5);
+      expect(t.copyWith(harvestedKg: null).harvestedKg, isNull,
+          reason: 'un jornal que deja de ser Cosechar no conserva el dato');
+    });
+
+    test('copyWith sin argumento conserva los kilos', () {
+      final t = base(harvestedKg: 120.5);
+      expect(t.copyWith(quantity: 3).harvestedKg, 120.5);
     });
   });
 }

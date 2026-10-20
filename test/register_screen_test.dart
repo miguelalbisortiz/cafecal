@@ -497,4 +497,175 @@ void main() {
     // llegando solo.
     expect(tarifaEnPantalla(tester), '50000');
   });
+
+  // Tanda 2 · los kilos recolectados del jornal.
+  //
+  // El campo es la única puerta a una medida independiente de la venta: solo
+  // tiene sentido cuando hay un cultivo a quién atribuirla. Por eso aparece
+  // únicamente con la labor «Cosechar» y un cultivo; con lote o sin cultivo se
+  // oculta y se guarda `null` (nunca un 0 inventado).
+  group('Kilos recolectados en el jornal', () {
+    Future<Transaction> jornal(
+      TransactionProvider p, {
+      required String? cropId,
+      String? terrenoId,
+      String? task = kTaskCosechar,
+      double? harvestedKg,
+    }) =>
+        p.addTransaction(
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          cropId: cropId,
+          terrenoId: terrenoId,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan',
+          task: task,
+          harvestedKg: harvestedKg,
+          date: DateTime(2026, 10, 19),
+        );
+
+    Finder byLabel(String label) => find.ancestor(
+        of: find.text(label), matching: find.byType(TextFormField));
+
+    void tall(WidgetTester tester) {
+      tester.view.physicalSize = const Size(900, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
+
+    testWidgets('aparece con un jornal de Cosechar y cultivo', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id);
+      await pumpRegister(tester, p, editing: j);
+
+      expect(find.text(_es.jornalHarvestedKgLabel), findsOneWidget);
+      expect(find.text(_es.jornalHarvestedKgHelp), findsOneWidget);
+    });
+
+    testWidgets('no aparece con otra labor', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id, task: 'abonar');
+      await pumpRegister(tester, p, editing: j);
+
+      expect(find.text(_es.jornalHarvestedKgLabel), findsNothing);
+      expect(find.text(_es.jornalHarvestedKgNoCrop), findsNothing);
+    });
+
+    testWidgets('sin cultivo no aparece y pide elegir el cultivo',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final j = await jornal(p, cropId: null);
+      await pumpRegister(tester, p, editing: j);
+
+      expect(find.text(_es.jornalHarvestedKgLabel), findsNothing);
+      expect(find.text(_es.jornalHarvestedKgNoCrop), findsOneWidget);
+    });
+
+    testWidgets('con lote no aparece', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final lote = await p.addTerreno('Lote Alto');
+      final j = await jornal(p, cropId: null, terrenoId: lote.id,
+          harvestedKg: 120);
+      await pumpRegister(tester, p, editing: j);
+
+      expect(find.text(_es.jornalHarvestedKgLabel), findsNothing,
+          reason: 'un lote no es un cultivo: no hay a quién atribuir los kg');
+      expect(find.text(_es.jornalHarvestedKgNoCrop), findsOneWidget);
+    });
+
+    testWidgets('restaura los kilos guardados', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id, harvestedKg: 123.5);
+      await pumpRegister(tester, p, editing: j);
+
+      expect(find.text('123.5'), findsWidgets);
+    });
+
+    testWidgets('guardar escribe los kilos', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id, harvestedKg: 123.5);
+      await pumpRegister(tester, p, editing: j);
+
+      await tester.enterText(byLabel(_es.jornalHarvestedKgLabel), '120');
+      final guardar = find.text(_es.saveChanges);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(p.transactions.single.harvestedKg, 120);
+    });
+
+    testWidgets('vacío guarda null, nunca 0', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id, harvestedKg: 123.5);
+      await pumpRegister(tester, p, editing: j);
+
+      await tester.enterText(byLabel(_es.jornalHarvestedKgLabel), '');
+      final guardar = find.text(_es.saveChanges);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(p.transactions.single.harvestedKg, isNull);
+    });
+
+    testWidgets('cero no pasa la validación y no guarda', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id, harvestedKg: 123.5);
+      await pumpRegister(tester, p, editing: j);
+
+      await tester.enterText(byLabel(_es.jornalHarvestedKgLabel), '0');
+      final guardar = find.text(_es.saveChanges);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(find.text(_es.jornalHarvestedKgInvalid), findsOneWidget);
+      expect(p.transactions.single.harvestedKg, 123.5,
+          reason: 'no se guardó nada');
+    });
+
+    testWidgets('al cambiar de labor se limpia y no vuelve sola',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final crop = await p.addCrop('Café');
+      final j = await jornal(p, cropId: crop.id, harvestedKg: 123.5);
+      await pumpRegister(tester, p, editing: j);
+
+      final abonar = farmTasks.firstWhere((t) => t.key == 'abonar');
+      await tester.tap(dropdownWithValue('abonar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('${abonar.icon} ${abonar.name}').last);
+      await tester.pumpAndSettle();
+      expect(find.text(_es.jornalHarvestedKgLabel), findsNothing);
+
+      final cosechar = farmTasks.firstWhere((t) => t.key == kTaskCosechar);
+      await tester.tap(dropdownWithValue(kTaskCosechar));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('${cosechar.icon} ${cosechar.name}').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text(_es.jornalHarvestedKgLabel), findsOneWidget);
+      expect(find.text('123.5'), findsNothing,
+          reason: 'lo oculto no se guarda ni se restaura (D12)');
+    });
+  });
 }

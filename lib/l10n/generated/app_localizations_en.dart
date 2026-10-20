@@ -1741,6 +1741,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jornalTotalHint => 'Calculated: days × day rate.';
 
   @override
+  String get jornalHarvestedKgLabel => 'Harvested kilos (optional)';
+
+  @override
+  String get jornalHarvestedKgHelp => 'To compare what you harvested with what you sold.';
+
+  @override
+  String get jornalHarvestedKgNoCrop => 'Select the crop to record the kilos.';
+
+  @override
+  String get jornalHarvestedKgInvalid => 'Enter the harvested kilos (greater than 0).';
+
+  @override
   String get cashBoxLabel => 'Monthly cash contribution';
 
   @override

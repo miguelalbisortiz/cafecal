@@ -3371,6 +3371,30 @@ abstract class AppLocalizations {
   /// **'Se calcula: días × valor por día.'**
   String get jornalTotalHint;
 
+  /// No description provided for @jornalHarvestedKgLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Kilos recolectados (opcional)'**
+  String get jornalHarvestedKgLabel;
+
+  /// No description provided for @jornalHarvestedKgHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Para comparar lo cosechado con lo vendido.'**
+  String get jornalHarvestedKgHelp;
+
+  /// No description provided for @jornalHarvestedKgNoCrop.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegí el cultivo para anotar los kilos.'**
+  String get jornalHarvestedKgNoCrop;
+
+  /// No description provided for @jornalHarvestedKgInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa los kilos recolectados (mayor que 0).'**
+  String get jornalHarvestedKgInvalid;
+
   /// No description provided for @cashBoxLabel.
   ///
   /// In es, this message translates to:

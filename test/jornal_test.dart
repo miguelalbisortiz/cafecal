@@ -231,4 +231,32 @@ void main() {
       expect(s.distinctEmployees, 1);
     });
   });
+
+  group('Kilos no tocan el pago (Tanda 2)', () {
+    final fecha = DateTime(2026, 10, 19);
+
+    test('amount sigue siendo días × valor día', () {
+      final t = _jornal(provider: 'Juan', days: 2, rate: 50000, date: fecha)
+          .copyWith(harvestedKg: 120);
+      expect(t.amount, 100000);
+      expect(t.quantity, 2);
+      expect(t.unit, 'día');
+      expect(t.pricePerUnit, 50000);
+      expect(t.harvestedKg, 120, reason: 'la medida vive aparte del pago');
+    });
+
+    test('payroll suma los mismos días y montos con o sin kilos', () {
+      const m = ReportPayrollMetrics();
+      final sin = m.payroll([
+        _jornal(provider: 'Juan', days: 2, rate: 50000, date: fecha),
+      ]);
+      final con = m.payroll([
+        _jornal(provider: 'Juan', days: 2, rate: 50000, date: fecha)
+            .copyWith(harvestedKg: 120),
+      ]);
+      expect(con.rows.single.days, sin.rows.single.days);
+      expect(con.totalByCurrency, sin.totalByCurrency);
+      expect(con.distinctEmployees, sin.distinctEmployees);
+    });
+  });
 }
