@@ -1,59 +1,55 @@
-# Sesión — martes 20 de octubre de 2026 (el peso de la web)
+# Sesión — martes 20 de octubre de 2026 (datos sin mentira)
 
-> Estado al cierre. Detalle completo en
+> Estado al cierre: **sin cambios de código**. Se revisó la app con casos
+> reales, se dejaron los hallazgos y quedaron **PRD y plan** listos.
+> Detalle: `docs/sessions/2026-10-20-datos-sin-mentira.md`.
+> Análisis: `docs/analysis/2026-10-20_rendimiento-y-cultivos-asociados.md`.
+> La vuelta anterior (el peso de la web) quedó en
 > `docs/sessions/2026-10-20-peso-de-la-web.md`.
-> La vuelta anterior (los kilos del jornal) quedó en
-> `docs/sessions/2026-10-20-kilos-recolectados-en-el-jornal.md`.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` = `origin/main` = **`060fbde`** (tanda del peso, 16 archivos).
-- `gh-pages` = **`2ae35e0`**, huella
-  `6AE39C9095C37D64D36FB983C48364C27C47A16E451EF2847A2A27D69FD7740E`,
-  `main.dart.js` **3.671.623 B**. Publicado y verificado al primer intento.
+- `main` = `origin/main` = **`6ec6a23`**; `gh-pages` = **`2ae35e0`**.
 - Gate: `flutter analyze` limpio · **1049/1049** tests.
+- Sitio: https://miguelalbisortiz.github.io/cafecal/
 
 ## 2. Qué se hizo
 
-El arranque de la web dejó de cargar los motores de exportación:
+Nada de código: cuatro preguntas de funcionamiento contestadas con el código y
+una revisión que encontró **tres datos que hoy pueden mentir**:
 
-- `ReportPeriod` vive en `lib/models/report_period.dart` (el servicio de PDF lo
-  reexporta para no romper tests ni `tool/`).
-- Las alertas ya no pasan por `pdf_export_service.dart`; el Excel tampoco.
-- `ReportScreen` importa pdf y excel con `deferred as`; los calienta al abrir
-  Reportes y, si no hay red, avisa con **Reintentar**. Nunca un archivo vacío.
-- Copy nueva ES/EN `exportNeedsNetworkOnce`.
+- racimo y cajón cuentan como 1 kg (el peso se muestra pero no suma);
+- el arrastre de la caja se recalcula con el aporte de hoy;
+- las áreas de los cultivos no se comparan con el terreno.
 
-**`main.dart.js`: 4.818.867 → 3.671.623 B (−23,81%)**; gzip 1.400.383 →
-1.059.682 (en producción, 1.077.561). Tres trozos que no se piden al arrancar
-(911.664 + 31.269 + 217.985 B). A 200 KB/s: **37,8 s → 28,9 s** (−23,5%).
+Más cuatro cosas que confunden: kg/planta sin decir qué incluye, resiembra sin
+muertas, caja como un solo pote y renovación sin explicar.
 
-## 3. Lo que costó
+## 3. Lo que quedó listo
 
-- El enum solo ahorra **0 B** mientras `pdf` entre por otro import normal:
-  primero se corta la cadena y después se difiere.
-- `--dump-info` no produce nada en 3.24; el reparto se midió por diferencia de
-  builds.
-- El build con y sin `--dart-define` da binarios distintos (4,72 vs 4,82 MB).
-- `flutter build` reescribe `lib/l10n/generated/*` con CRLF: hubo que
-  normalizar a LF antes de commitear para no meter 10.000 líneas de ruido.
+- **PRD APPROVED**: `docs/prds/2026-10-20_1426-datos-sin-mentira.prd.md`
+  (puntos 1–5, 7, 8 y 9; el 6 queda fuera).
+- **Plan READY**: `docs/plans/2026-10-20-datos-sin-mentira.plan.md`
+  (T1–T14 en 4 fases, con tests, migraciones y verificación manual).
 
-## 4. Pendientes (del lado del usuario)
+## 4. Decisiones
 
-1. PDF y Excel reales en el sitio.
-2. Reportes sin señal en un equipo que nunca los abrió (aviso + Reintentar).
-3. Reportes con señal y después exportar sin señal.
-4. Revocar el **PAT de Supabase**.
-5. Opcional: `flutter build apk`.
+- Registros viejos sin peso: **excluir y listar**, sin inventar.
+- Historial del aporte: **desde que se configura**.
+- Ventas en racimo/cajón: **pedir los kg**.
+- Gasto compartido: **porcentaje con atajo por área**.
 
 ## 5. Cómo continuar
 
-- Medición: `docs/reports/2026-10-20_peso-web-base.md`. Contrato:
-  `docs/prds/2026-10-20_1016-peso-de-la-web.prd.md`. Tareas:
-  `docs/plans/2026-10-20-peso-de-la-web.plan.md`.
-- Guardas: `no_pdf_in_alert_chain_test.dart`, `deferred_exports_test.dart`,
-  `export_parity_test.dart`.
-- Gate: `flutter analyze` (proyecto entero) + `flutter test`; publicar con
-  `.\deploy.ps1 -Message "…"`.
-- Tras un build, revisar el fin de línea de `lib/l10n/generated/*` antes de
-  commitear.
+1. **T1**: gate y baseline (sin tocar código). **T2**: helper `kgFromUnit` con
+   rojo real.
+2. Antes del deploy, aplicar las dos migraciones:
+   `202610200001_add_transaction_equivalent_kg.sql` y
+   `202610200002_add_settings_cash_budget_history.sql`.
+3. Gate entero; stageo explícito; LF antes de commitear.
+
+## 6. Pendientes heredados
+
+- Verificación manual del peso de la web y de la tanda 2.
+- Revocar el **PAT de Supabase**.
+- Opcional: `flutter build apk`.
