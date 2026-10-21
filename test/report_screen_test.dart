@@ -1179,4 +1179,42 @@ void main() {
     expect(find.text(es.reportPendingWeightTitle), findsNothing,
         reason: 'ya no hay nada pendiente: 240 kg anotados');
   });
+
+  testWidgets('T6: una venta sin peso no se cuenta dos veces', (tester) async {
+    tester.view.physicalSize = const Size(900, 8000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final crop = await provider.addCrop('Plátano');
+    await provider.addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      cropId: crop.id,
+      amount: 200000,
+      quantity: 10,
+      unit: 'cajon',
+      date: DateTime.now(),
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final es = stringsFor('es');
+    // La venta genera una cosecha derivada sin peso; esa no tiene id propio
+    // que editar y su fila ya es la venta. Se cuenta una vez, como venta.
+    expect(find.text(es.reportPendingWeightSales(1)), findsOneWidget);
+    expect(find.textContaining(es.reportPendingWeightHarvests(1)), findsNothing,
+        reason: 'la derivada de la propia venta no es otra cosecha pendiente');
+  });
 }

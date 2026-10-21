@@ -702,22 +702,26 @@ class _ReportScreenState extends State<ReportScreen> {
 
   // ---- Nivel 2: secciÃ³n cosechas, vendido vs cosechado, y "QuÃ© hacer" ----
 
+  /// ¿La fecha cae en el período elegido? Un solo criterio para cosechas,
+  /// siembras y el contador de «sin peso».
+  bool _inPeriod(DateTime date) {
+    if (_mode == _PeriodMode.week) {
+      final range = weekRange(_year, _week);
+      return !date.isBefore(range.start) && !date.isAfter(range.end);
+    }
+    if (_mode == _PeriodMode.month) {
+      return date.year == _year && date.month == _month;
+    }
+    if (_mode == _PeriodMode.year) {
+      return date.year == _year;
+    }
+    final today = DateTime.now();
+    final end = _year < today.year ? DateTime(_year, 12, 31) : today;
+    return !date.isAfter(end);
+  }
+
   List<Harvest> _periodHarvests(TransactionProvider tx) {
-    return tx.harvests.where((h) {
-      if (_mode == _PeriodMode.week) {
-        final range = weekRange(_year, _week);
-        return !h.date.isBefore(range.start) && !h.date.isAfter(range.end);
-      }
-      if (_mode == _PeriodMode.month) {
-        return h.date.year == _year && h.date.month == _month;
-      }
-      if (_mode == _PeriodMode.year) {
-        return h.date.year == _year;
-      }
-      final today = DateTime.now();
-      final end = _year < today.year ? DateTime(_year, 12, 31) : today;
-      return !h.date.isAfter(end);
-    }).toList();
+    return tx.harvests.where((h) => _inPeriod(h.date)).toList();
   }
 
   /// Siembras que caen dentro del período seleccionado. Mismo criterio que
@@ -909,7 +913,11 @@ class _ReportScreenState extends State<ReportScreen> {
         .toList();
     // Tanda 4 · lo que no suma kilos porque le falta el peso. Se lista para
     // completarlo, no se rellena con un 1 por unidad.
-    final pendingHarvests = pendingWeightHarvests(harvests);
+    // Solo las cosechas **guardadas**: una venta en racimo/cajón sin peso ya
+    // aparece como venta, y su cosecha derivada tiene un id sintético que no
+    // se puede editar. Contarla acá la mostraba dos veces.
+    final pendingHarvests = pendingWeightHarvests(
+        tx.storedHarvests.where((h) => _inPeriod(h.date)));
     final pendingSales = pendingWeightSales(_recordsFor(tx));
     final nameById = {for (final c in tx.crops) c.id: c.name};
     final scheme = Theme.of(context).colorScheme;

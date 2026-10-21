@@ -16,7 +16,7 @@ created: 2026-10-20
 | **T2–T3** | `racimo` y `cajón` no tenían conversión: `unitToKg` los trataba como 1 kg. Una cosecha de **12 racimos con 240 kg** sumaba **12 kg** en todos los totales; una venta de **10 cajones con 200 kg** sumaba **10 kg** vendidos y el precio por kilo se calculaba sobre 10. | Los 12 racimos suman **240 kg** y los 10 cajones **200 kg**. El precio por kilo de la venta se calcula sobre 200. Un total que necesite kilos pasa por `kgFromUnit`; sin peso devuelve `null` (oculto), nunca un número inventado. |
 | **T4** | El peso de una cosecha en racimo/cajón era opcional. | Es obligatorio: el formulario no deja guardar sin kg. Copy ES/EN. |
 | **T5** | La venta no guardaba su peso, así que la cosecha derivada nacía sin kilos. | `transactions.equivalent_kg` guarda los kg de la venta, viaja en el JSON y en Supabase, y la cosecha derivada los hereda. El formulario de venta pide kg con el mismo texto que el de cosecha. |
-| **T6** | Un registro viejo sin peso desaparecía de los promedios sin explicación. | Tarjeta «sin peso» en el reporte: cuenta las cosechas y ventas que faltan, las lista con fecha/cultivo/cantidad y abre el editor al tocarlas. Al completarlas el contador baja. |
+| **T6** | Un registro viejo sin peso desaparecía de los promedios sin explicación. | Tarjeta «sin peso» en el reporte: cuenta las cosechas y ventas que faltan, las lista con fecha/cultivo/cantidad y abre el editor al tocarlas. Al completarlas el contador baja. Una venta sin peso se cuenta una sola vez (como venta): su cosecha derivada tiene un id sintético y no se puede editar. |
 | **T7** | PDF y Excel podían quedarse atrás de la pantalla. | Paridad congelada con Yuca: cosecha 12 racimos / 240 kg, venta 10 cajones / 200 kg (COP 200.000). PDF 2 páginas; Excel con 240 kg en la hoja de cosechas; precio/kg 1000. |
 | **T8** | No había historial: cambiar el aporte de caja reescribía el pasado. | `settings.cash_budget_history` (`YYYY-MM` → monto). Al guardar Ajustes se anota el mes en curso; al abrir por primera vez con aporte > 0 se siembra una vez. El aporte rige desde su mes, no hacia atrás. `0` explícito = ese mes sin aporte. |
 | **T9** | El arrastre y la tabla mensual usaban el aporte actual para todos los meses. | Cada mes usa el monto que regía. Los meses anteriores a la primera entrada no se listan ni suman/restan. Sin historial se cae al aporte único de siempre (datos viejos siguen igual). |
@@ -50,7 +50,7 @@ created: 2026-10-20
 | | Antes (T1) | Después |
 |---|---|---|
 | `flutter analyze` | limpio | limpio |
-| `flutter test` | 1049/1049 | **1119/1119** |
+| `flutter test` | 1049/1049 | **1120/1120** |
 
 Archivos normalizados a LF antes de commitear (el repo guarda LF).
 
