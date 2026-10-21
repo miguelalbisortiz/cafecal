@@ -293,12 +293,26 @@ Se hace **después** del deploy, con la migración aplicada.
 - [ ] 10. Sin señal: la siembra con reemplazo queda `pendingSync` y al volver
       la red sube con las mismas matas, área y puntero.
 
+## Deploy
+
+Publicado el 2026-10-21, con la migración ya aplicada.
+
+| Qué | Valor |
+| --- | --- |
+| `main` | `c76d293` (gate + informe) |
+| `gh-pages` | `72e0b45` |
+| `main.dart.js` | 3.776.845 bytes / 130.838 líneas |
+| sha256 | `7A05D63651AB3754C1AD80B63EF1A200B8AA366110504522DA7410390171C8E6` |
+
+`deploy.ps1` verificó el mismo sha256 en producción; el build de la web
+reescribe `lib/l10n/generated/*.dart` con CRLF y se devolvió a LF.
+
 ## Definition of done
 
 - [x] Gate verde: `analyze` limpio + 1230/1230.
 - [x] Informe T1–T20 con números, guardas y la corrección declarada.
-- [x] Commit de la etapa (`6e7a3a1`, sin push).
+- [x] Commit de la etapa (`6e7a3a1`).
 - [x] Migración aplicada por el usuario (2026-10-21).
+- [x] Push (`c76d293`), deploy (`72e0b45`) y Pages sirviendo el build nuevo.
 - [ ] Verificación manual de §12.
-- [ ] Push, deploy y Pages sirviendo el build nuevo.
 - [ ] Cierre de sesión y `LEARNING.md`.
