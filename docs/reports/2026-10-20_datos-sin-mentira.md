@@ -24,12 +24,16 @@ created: 2026-10-20
 | **T11** | El kg/planta se leía como si todo el cultivo produjera. | Nota al pie: «kg/planta es el promedio del cultivo; incluye plantas que aún no producen». Sin cambio de cálculo. |
 | **T12** | Una resiembra con plantas nuevas y sin muertas dejaba el contador a medias en silencio. | Aviso «Anotaste plantas nuevas sin muertas» con **Anotar muertas** (enfoca el campo) y **Guardar así**. `0` explícito no vuelve a preguntar. |
 | **T13** | La planilla podía leerse como un presupuesto por tarea; la ayuda no explicaba la renovación. | La planilla aclara «Esto es lo gastado por tarea; el presupuesto de caja es uno solo». La ayuda agrega la renovación completa (se anota como siembra nueva; reinicia edad, plantas y área; las cosechas viejas quedan) y el camino de «cultivo aparte» para lotes que conviven. |
+| **T15** | Un gasto que sirve a varios cultivos solo podía ir al lote entero (reparto automático por hectáreas) o a uno solo. | Botón «Repartir entre cultivos» en el gasto: porcentajes por cultivo con atajo «usar áreas», suma visible y validación de 100 %. Se guardan **N gastos independientes** (mismo día, categoría y descripción; el último absorbe el redondeo) y cada uno entra al costo por kilo de su cultivo. No hay gasto padre, así que nada se cuenta dos veces. |
 
 ## Código y datos
 
 - Helper único de kilos: `lib/models/units.dart` (`kgFromUnit`, `unitNeedsWeight`,
   `kUnitsNeedingWeight`). `unitToKg` queda prohibido fuera de ese archivo por la
   guarda `test/unit_weight_guard_test.dart`.
+- Reparto de gasto: `lib/services/expense_split.dart` (`splitAmounts`,
+  `areaShares`) y `lib/widgets/expense_split_dialog.dart`. N gastos
+  independientes, sin registro padre; el remanente de redondeo va al último.
 - `equivalent_kg` en `transactions` (modelo, JSON, payload de sync, cosecha
   derivada). `harvests.equivalent_kg` ya existía desde la tanda 2.
 - Historial de caja en `FarmSettings`, `report_payroll_metrics`, tarjeta de caja,
@@ -46,16 +50,11 @@ created: 2026-10-20
 | | Antes (T1) | Después |
 |---|---|---|
 | `flutter analyze` | limpio | limpio |
-| `flutter test` | 1049/1049 | **1106/1106** |
+| `flutter test` | 1049/1049 | **1119/1119** |
 
 Archivos normalizados a LF antes de commitear (el repo guarda LF).
 
 ## Pendiente
 
-- **SC-8 · reparto de un gasto por porcentaje (50/30/20).** Está en el PRD y en
-  la lista «Entra» del plan, pero el plan no le asignó tarea. Hoy solo existe el
-  reparto automático por hectáreas del gasto de un terreno; no hay reparto
-  manual por porcentaje con atajo por área. **No se implementó**: hay que
-  decidir si se hace ahora, en otra tanda, o se saca del PRD.
 - El usuario aplica las dos migraciones en Supabase.
 - Deploy (`.\deploy.ps1`) y verificación manual (8 puntos al final del plan).

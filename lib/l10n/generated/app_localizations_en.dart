@@ -1432,6 +1432,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCostsHint => 'It\'s a farm-wide expense (fence, road, electricity). It doesn\'t affect any crop\'s cost/kg, but it does affect the bottom line.';
 
   @override
+  String get expenseSplitTitle => 'Split between crops';
+
+  @override
+  String get expenseSplitBody => 'The expense serves several crops. Separate expenses are saved, one per crop, and they add up to the total.';
+
+  @override
+  String get expenseSplitHint => 'The expense is split between crops: separate expenses are saved and they add up to the total.';
+
+  @override
+  String get expenseSplitUseAreas => 'Use areas';
+
+  @override
+  String expenseSplitSum(String percent) {
+    return 'Total: $percent %';
+  }
+
+  @override
+  String get expenseSplitMustSum => 'The percentages must add up to 100 %.';
+
+  @override
+  String get expenseSplitZero => 'Every crop you choose needs a percentage above 0.';
+
+  @override
+  String get expenseSplitFew => 'Choose at least two crops.';
+
+  @override
+  String get expenseSplitNoAreas => 'To use areas, at least two crops need their area entered.';
+
+  @override
+  String expenseSplitChosen(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Split between $count crops',
+      one: 'Split between $count crop',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expenseSplitChange => 'Change';
+
+  @override
+  String get expenseSplitClear => 'Remove split';
+
+  @override
+  String get expenseSplitNeedAmount => 'Enter the expense amount first.';
+
+  @override
+  String expenseSplitPercent(String percent) {
+    return '$percent %';
+  }
+
+  @override
   String get noCropLabel => 'No crop';
 
   @override

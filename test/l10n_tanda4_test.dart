@@ -41,6 +41,21 @@ void main() {
       'helpCaseC2',
       'helpCaseC3',
       'helpCaseCEnd',
+      // T15 · reparto de un gasto entre cultivos.
+      'expenseSplitTitle',
+      'expenseSplitBody',
+      'expenseSplitHint',
+      'expenseSplitUseAreas',
+      'expenseSplitSum',
+      'expenseSplitMustSum',
+      'expenseSplitZero',
+      'expenseSplitFew',
+      'expenseSplitNoAreas',
+      'expenseSplitChosen',
+      'expenseSplitChange',
+      'expenseSplitClear',
+      'expenseSplitNeedAmount',
+      'expenseSplitPercent',
     ];
 
     for (final clave in claves) {

@@ -10,10 +10,12 @@ import '../models/tasks.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
 import '../providers/transaction_provider.dart';
+import '../services/expense_split.dart';
 import '../utils/format.dart';
 import '../widgets/new_crop_dialog.dart';
 import '../widgets/crop_setup_prompt.dart';
 import '../widgets/employee_editor_dialog.dart';
+import '../widgets/expense_split_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Transaction? editing;
@@ -87,6 +89,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// terreno. Mutuamente excluyente con [_cropId]: o es de un cultivo, o es
   /// del lote — los dos a la vez sería contar el mismo peso dos veces.
   String? _terrenoId;
+
+  /// T15 · reparto por porcentaje. `null` = gasto normal (de un cultivo, de un
+  /// lote o común). Con valor, se guardan N gastos independientes y el
+  /// desplegable de cultivo no manda.
+  List<ExpenseShare>? _split;
   String? _unit;
   String? _harvestId;
   String _currency = 'COP';
@@ -402,6 +409,101 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// «50» para 50,0 y «33,33» para 33,33: el porcentaje se lee como se
+  /// escribiría, sin ceros que sobren.
+  static String _percentText(double v) => v == v.roundToDouble()
+      ? v.toStringAsFixed(0)
+      : v.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '');
+
+  /// Resumen del reparto ya elegido, en lugar del desplegable de cultivo.
+  Widget _splitSummary(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final shares = _split!;
+    final scheme = Theme.of(context).colorScheme;
+    final parts = <String>[];
+    for (final s in shares) {
+      var name = s.cropId;
+      for (final c in tx.crops) {
+        if (c.id == s.cropId) {
+          name = c.name;
+          break;
+        }
+      }
+      parts.add('$name ${l10n.expenseSplitPercent(_percentText(s.percent))}');
+    }
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.call_split, size: 20, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.expenseSplitChosen(shares.length),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  parts.join(' · '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.expenseSplitChange,
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            onPressed: () => _openSplit(tx, l10n),
+          ),
+          IconButton(
+            tooltip: l10n.expenseSplitClear,
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: () => setState(() => _split = null),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// T15 · abre el reparto. El monto se lee aquí y no del build: el campo no
+  /// avisa cada tecla, y un total viejo repartiría otra plata.
+  Future<void> _openSplit(
+      TransactionProvider tx, AppLocalizations l10n) async {
+    final total =
+        double.tryParse(_amountController.text.trim().replaceAll(',', '.')) ??
+            0;
+    if (total <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.expenseSplitNeedAmount)),
+      );
+      return;
+    }
+    final shares = await showDialog<List<ExpenseShare>>(
+      context: context,
+      builder: (_) => ExpenseSplitDialog(
+        total: total,
+        currency: _currency,
+        crops: tx.crops,
+        initial: _split ?? const [],
+      ),
+    );
+    if (shares == null || !mounted) return;
+    setState(() {
+      _split = shares;
+      // El reparto sustituye la elección de un solo cultivo o lote: si no, el
+      // mismo gasto contaría dos veces.
+      _cropId = null;
+      _terrenoId = null;
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final tx = context.read<TransactionProvider>();
@@ -550,28 +652,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    await tx.addTransaction(
-      type: _type,
-      category: _category ?? 'otro',
-      cropId: _cropId,
-      terrenoId: _terrenoId,
-      amount: amount,
-      currency: _currency,
-      description: _descriptionController.text.trim(),
-      date: _date,
-      quantity: quantity,
-      unit: unit,
-      pricePerUnit: pricePerUnit,
-      client: client,
-      provider: provider,
-      harvestId: harvestId,
-      deductionQty: deductionQty,
-      deductionReason: deductionReason,
-      paid: paid,
-      task: task,
-      harvestedKg: harvestedKg,
-      equivalentKg: equivalentKg,
-    );
+    final split = _split;
+    if (split != null) {
+      final amounts =
+          splitAmounts(amount, [for (final s in split) s.percent]);
+      if (amounts == null) {
+        // El diálogo ya valida; si algo se colara, no se guarda a medias.
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.expenseSplitMustSum)),
+        );
+        return;
+      }
+      for (var i = 0; i < split.length; i++) {
+        await tx.addTransaction(
+          type: _type,
+          category: _category ?? 'otro',
+          cropId: split[i].cropId,
+          amount: amounts[i],
+          currency: _currency,
+          description: _descriptionController.text.trim(),
+          date: _date,
+          provider: provider,
+          paid: paid,
+        );
+      }
+    } else {
+      await tx.addTransaction(
+        type: _type,
+        category: _category ?? 'otro',
+        cropId: _cropId,
+        terrenoId: _terrenoId,
+        amount: amount,
+        currency: _currency,
+        description: _descriptionController.text.trim(),
+        date: _date,
+        quantity: quantity,
+        unit: unit,
+        pricePerUnit: pricePerUnit,
+        client: client,
+        provider: provider,
+        harvestId: harvestId,
+        deductionQty: deductionQty,
+        deductionReason: deductionReason,
+        paid: paid,
+        task: task,
+        harvestedKg: harvestedKg,
+        equivalentKg: equivalentKg,
+      );
+    }
 
     // Recuerda lo elegido para preseleccionarlo la próxima vez.
     //
@@ -580,8 +709,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // él se borraba el recordatorio del cultivo sin que el lote ocupara su
     // sitio: el siguiente gasto compartido arrancaba en "Costos comunes" y
     // dejaba de repartirse por hectáreas.
-    await tx.updateSettings(tx.settings
-        .copyWith(lastCropId: _cropId, lastTerrenoId: _terrenoId));
+    await tx.updateSettings(tx.settings.copyWith(
+      // Con reparto no hay un cultivo elegido: no se borra el recordatorio
+      // del anterior (el próximo gasto normal lo sigue usando).
+      lastCropId: split != null ? tx.settings.lastCropId : _cropId,
+      lastTerrenoId: _terrenoId,
+    ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -605,6 +738,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _unit = (isSale && quantity != null) ? _unit : null;
       _jornalWorkerValue = null;
+      // El reparto es de este gasto: el siguiente empieza sin reparto.
+      _split = null;
       // Una venta guardada no arrastra el descuento ni el estado de pago de
       // la anterior: cada registro empieza limpio.
       _hasDeduction = false;
@@ -731,6 +866,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onSelectionChanged: (s) => setState(() {
               _type = s.first;
               _category = null;
+              // El reparto es cosa de gastos: un ingreso no se reparte entre
+              // cultivos, es de uno o de la finca entera.
+              _split = null;
               // El lote es cosa de gastos: un ingreso no se reparte por
               // hectáreas, es de un cultivo o de la finca entera. Si estaba
               // elegido y pasa a ingreso, se quita.
@@ -809,6 +947,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // en otra moneda que la que se había escrito, sin avisar.
                 final esLote = tx.terrenos.any((t) => t.id == v);
                 setState(() {
+                  // Elegir un cultivo o un lote es la alternativa al reparto:
+                  // las dos formas de decir «para quién es» no conviven.
+                  _split = null;
                   if (esLote) {
                     _terrenoId = v;
                     _cropId = null;
@@ -829,14 +970,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Si sí lo es, se mantiene el de siempre.
           Text(
             // En ingresos el ítem nulo no son costos comunes, así que el
-            // aviso tampoco puede serlo.
-            _terrenoId != null
-                ? l10n.terrenoGroupHint
-                : (_cropId == null
-                    ? (isExpense ? l10n.commonCostsHint : l10n.noCropHint)
-                    : l10n.cropGroupHint),
+            // aviso tampoco puede serlo. Con reparto, el aviso es el reparto.
+            _split != null
+                ? l10n.expenseSplitHint
+                : (_terrenoId != null
+                    ? l10n.terrenoGroupHint
+                    : (_cropId == null
+                        ? (isExpense ? l10n.commonCostsHint : l10n.noCropHint)
+                        : l10n.cropGroupHint)),
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          const SizedBox(height: 4),
+          // T15 · repartir un gasto entre varios cultivos. Solo tiene sentido
+          // en un gasto normal (no jornal, no venta, no edición): un jornal
+          // repartido duplicaría trabajador y labor, y editar un reparto es
+          // otra cosa (cada gasto queda independiente).
+          if (isExpense &&
+              !_isJornal &&
+              widget.editing == null &&
+              _harvestId == null &&
+              crops.length >= 2)
+            (_split == null
+                ? Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => _openSplit(tx, l10n),
+                      icon: const Icon(Icons.call_split, size: 20),
+                      label: Text(l10n.expenseSplitTitle),
+                    ),
+                  )
+                : _splitSummary(context, tx, l10n)),
           const SizedBox(height: 16),
 
           // Categoría

@@ -296,6 +296,26 @@ ARB ES/EN, `gen-l10n`.
 
 ### Fase 4 — Cierre
 
+#### T15 — Reparto del gasto entre cultivos
+
+Se agregó al detectar que el PRD (SC-8) y la lista «Entra» lo pedían, pero el
+plan no le había asignado tarea.
+
+**Archivos:** `lib/services/expense_split.dart`,
+`lib/widgets/expense_split_dialog.dart`, `lib/screens/register_screen.dart`,
+ARB ES/EN, `gen-l10n`.
+
+- Reparto por porcentaje con atajo «usar áreas» (`areaHa`): solo entran los
+  cultivos con área y hacen falta al menos dos medidos.
+- Se guardan **N gastos independientes** con el mismo día, categoría y
+  descripción; el último absorbe el remanente del redondeo. No hay gasto padre.
+- Solo en gastos normales: no jornal (duplicaría trabajador y labor), no venta,
+  no edición y sin cosecha vinculada.
+- Validación: al menos dos cultivos, cada uno con porcentaje > 0, y suma 100 %.
+- Tests: `test/expense_split_test.dart` (suma exacta, redondeo, atajo por áreas)
+  y 3 widget en `test/register_screen_test.dart` (50/30/20 de 100.000, suma
+  inválida, cultivo en 0).
+
 #### T14 — Gate, deploy y verificación
 
 - `flutter analyze` + `flutter test`.

@@ -547,6 +547,33 @@
   "cropGroupHint": "Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.",
   "commonCosts": "Costos comunes",
   "commonCostsHint": "Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.",
+  "expenseSplitTitle": "Repartir entre cultivos",
+  "expenseSplitBody": "El gasto sirve a varios cultivos. Se guardan gastos separados, uno por cultivo, que suman el total.",
+  "expenseSplitHint": "El gasto se reparte entre cultivos: se guardan gastos separados que suman el total.",
+  "expenseSplitUseAreas": "Usar áreas",
+  "@expenseSplitSum": {
+    "description": "Suma de los porcentajes del reparto de un gasto",
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "expenseSplitSum": "Suma: {percent} %",
+  "expenseSplitMustSum": "Los porcentajes tienen que sumar 100 %.",
+  "expenseSplitZero": "Cada cultivo elegido necesita un porcentaje mayor que 0.",
+  "expenseSplitFew": "Elegí al menos dos cultivos.",
+  "expenseSplitNoAreas": "Para usar las áreas, al menos dos cultivos tienen que tener su hectáreaje anotado.",
+  "@expenseSplitChosen": {
+    "description": "Resumen del reparto ya elegido",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "expenseSplitChosen":
+      "{count, plural, one{Repartido entre {count} cultivo} other{Repartido entre {count} cultivos}}",
+  "expenseSplitChange": "Cambiar",
+  "expenseSplitClear": "Quitar reparto",
+  "expenseSplitNeedAmount": "Primero escribí el monto del gasto.",
+  "@expenseSplitPercent": {
+    "description": "Porcentaje de un cultivo en el reparto",
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "expenseSplitPercent": "{percent} %",
   "noCropLabel": "Sin cultivo",
   "noCropHint": "No pertenece a ningún cultivo. Se queda en el resultado general de la finca.",
   "loteNoRepartido": "{name} · sin repartir",

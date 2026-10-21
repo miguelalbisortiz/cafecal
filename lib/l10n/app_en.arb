@@ -541,6 +541,33 @@
   "cropGroupHint": "Tap “+ New crop…” to create a new crop; the ones you already have are in the list. Transactions for the same crop are added together in the report.",
   "commonCosts": "Common costs",
   "commonCostsHint": "It's a farm-wide expense (fence, road, electricity). It doesn't affect any crop's cost/kg, but it does affect the bottom line.",
+  "expenseSplitTitle": "Split between crops",
+  "expenseSplitBody": "The expense serves several crops. Separate expenses are saved, one per crop, and they add up to the total.",
+  "expenseSplitHint": "The expense is split between crops: separate expenses are saved and they add up to the total.",
+  "expenseSplitUseAreas": "Use areas",
+  "@expenseSplitSum": {
+    "description": "Sum of the percentages when splitting an expense",
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "expenseSplitSum": "Total: {percent} %",
+  "expenseSplitMustSum": "The percentages must add up to 100 %.",
+  "expenseSplitZero": "Every crop you choose needs a percentage above 0.",
+  "expenseSplitFew": "Choose at least two crops.",
+  "expenseSplitNoAreas": "To use areas, at least two crops need their area entered.",
+  "@expenseSplitChosen": {
+    "description": "Summary of the split already chosen",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "expenseSplitChosen":
+      "{count, plural, one{Split between {count} crop} other{Split between {count} crops}}",
+  "expenseSplitChange": "Change",
+  "expenseSplitClear": "Remove split",
+  "expenseSplitNeedAmount": "Enter the expense amount first.",
+  "@expenseSplitPercent": {
+    "description": "Percentage of one crop in the split",
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "expenseSplitPercent": "{percent} %",
   "noCropLabel": "No crop",
   "noCropHint": "It doesn't belong to any crop. It stays in the farm's overall result.",
   "loteNoRepartido": "{name} · not split",

@@ -1432,6 +1432,60 @@ class AppLocalizationsEs extends AppLocalizations {
   String get commonCostsHint => 'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.';
 
   @override
+  String get expenseSplitTitle => 'Repartir entre cultivos';
+
+  @override
+  String get expenseSplitBody => 'El gasto sirve a varios cultivos. Se guardan gastos separados, uno por cultivo, que suman el total.';
+
+  @override
+  String get expenseSplitHint => 'El gasto se reparte entre cultivos: se guardan gastos separados que suman el total.';
+
+  @override
+  String get expenseSplitUseAreas => 'Usar áreas';
+
+  @override
+  String expenseSplitSum(String percent) {
+    return 'Suma: $percent %';
+  }
+
+  @override
+  String get expenseSplitMustSum => 'Los porcentajes tienen que sumar 100 %.';
+
+  @override
+  String get expenseSplitZero => 'Cada cultivo elegido necesita un porcentaje mayor que 0.';
+
+  @override
+  String get expenseSplitFew => 'Elegí al menos dos cultivos.';
+
+  @override
+  String get expenseSplitNoAreas => 'Para usar las áreas, al menos dos cultivos tienen que tener su hectáreaje anotado.';
+
+  @override
+  String expenseSplitChosen(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Repartido entre $count cultivos',
+      one: 'Repartido entre $count cultivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expenseSplitChange => 'Cambiar';
+
+  @override
+  String get expenseSplitClear => 'Quitar reparto';
+
+  @override
+  String get expenseSplitNeedAmount => 'Primero escribí el monto del gasto.';
+
+  @override
+  String expenseSplitPercent(String percent) {
+    return '$percent %';
+  }
+
+  @override
   String get noCropLabel => 'Sin cultivo';
 
   @override

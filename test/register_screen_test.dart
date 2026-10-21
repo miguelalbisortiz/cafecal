@@ -760,4 +760,130 @@ void main() {
       expect(p.transactions.single.equivalentKg, isNull);
     });
   });
+
+  group('T15 · reparto de un gasto entre cultivos', () {
+    /// Deja tres cultivos medidos y abre el formulario de gasto.
+    Future<TransactionProvider> abrirFormulario(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final p = await makeProvider();
+      await p.addCrop('Café', areaHa: 3);
+      await p.addCrop('Plátano', areaHa: 5);
+      await p.addCrop('Yuca', areaHa: 2);
+      await pumpRegister(tester, p);
+
+      await tester.enterText(
+        find.ancestor(
+            of: find.text(_es.amountFieldLabel),
+            matching: find.byType(TextFormField)),
+        '100000',
+      );
+      await tester.pumpAndSettle();
+      return p;
+    }
+
+    Future<void> abrirReparto(WidgetTester tester) async {
+      final boton = find.text(_es.expenseSplitTitle);
+      await tester.ensureVisible(boton);
+      await tester.tap(boton);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('50/30/20 de 100.000 crea tres gastos que suman 100.000',
+        (tester) async {
+      final p = await abrirFormulario(tester);
+      await abrirReparto(tester);
+
+      // El diálogo propone el reparto por áreas (3/5/2 ha = 30/50/20 %);
+      // aquí se escribe el reparto a mano.
+      final porcentajes = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      expect(porcentajes, findsNWidgets(3));
+      await tester.enterText(porcentajes.at(0), '50');
+      await tester.pumpAndSettle();
+      await tester.enterText(porcentajes.at(1), '30');
+      await tester.pumpAndSettle();
+      await tester.enterText(porcentajes.at(2), '20');
+      await tester.pumpAndSettle();
+
+      expect(find.text(_es.expenseSplitSum('100')), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, _es.save));
+      await tester.pumpAndSettle();
+
+      // El formulario ya muestra el reparto y no un solo cultivo.
+      expect(find.text(_es.expenseSplitChosen(3)), findsOneWidget);
+
+      final guardar = find.text(_es.saveRecord);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(p.transactions, hasLength(3),
+          reason: 'no se guarda además el gasto original');
+      expect(
+        p.transactions.map((t) => t.amount).toList(),
+        [50000, 30000, 20000],
+      );
+      expect(
+        p.transactions.map((t) => t.amount).fold<double>(0, (a, b) => a + b),
+        100000,
+      );
+      expect(
+        p.transactions.map((t) => t.cropId).toList(),
+        p.crops.map((c) => c.id).toList(),
+        reason: 'cada gasto entra al costo por kilo de su cultivo',
+      );
+      expect(p.transactions.every((t) => t.terrenoId == null), isTrue);
+    });
+
+    testWidgets('si los porcentajes no suman 100 no deja guardar',
+        (tester) async {
+      final p = await abrirFormulario(tester);
+      await abrirReparto(tester);
+
+      final porcentajes = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(porcentajes.at(0), '50');
+      await tester.pumpAndSettle();
+      await tester.enterText(porcentajes.at(1), '30');
+      await tester.pumpAndSettle();
+      await tester.enterText(porcentajes.at(2), '10');
+      await tester.pumpAndSettle();
+
+      expect(find.text(_es.expenseSplitMustSum), findsOneWidget);
+      final guardar = find.widgetWithText(FilledButton, _es.save);
+      expect(tester.widget<FilledButton>(guardar).onPressed, isNull);
+
+      await tester.tap(find.text(_es.cancel));
+      await tester.pumpAndSettle();
+      expect(p.transactions, isEmpty);
+    });
+
+    testWidgets('un cultivo elegido sin porcentaje no crea un gasto de 0',
+        (tester) async {
+      await abrirFormulario(tester);
+      await abrirReparto(tester);
+
+      final porcentajes = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(porcentajes.at(0), '100');
+      await tester.pumpAndSettle();
+      await tester.enterText(porcentajes.at(1), '0');
+      await tester.pumpAndSettle();
+      await tester.enterText(porcentajes.at(2), '0');
+      await tester.pumpAndSettle();
+
+      expect(find.text(_es.expenseSplitZero), findsOneWidget);
+      final guardar = find.widgetWithText(FilledButton, _es.save);
+      expect(tester.widget<FilledButton>(guardar).onPressed, isNull);
+    });
+  });
 }

@@ -2741,6 +2741,90 @@ abstract class AppLocalizations {
   /// **'Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.'**
   String get commonCostsHint;
 
+  /// No description provided for @expenseSplitTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Repartir entre cultivos'**
+  String get expenseSplitTitle;
+
+  /// No description provided for @expenseSplitBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El gasto sirve a varios cultivos. Se guardan gastos separados, uno por cultivo, que suman el total.'**
+  String get expenseSplitBody;
+
+  /// No description provided for @expenseSplitHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El gasto se reparte entre cultivos: se guardan gastos separados que suman el total.'**
+  String get expenseSplitHint;
+
+  /// No description provided for @expenseSplitUseAreas.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar áreas'**
+  String get expenseSplitUseAreas;
+
+  /// Suma de los porcentajes del reparto de un gasto
+  ///
+  /// In es, this message translates to:
+  /// **'Suma: {percent} %'**
+  String expenseSplitSum(String percent);
+
+  /// No description provided for @expenseSplitMustSum.
+  ///
+  /// In es, this message translates to:
+  /// **'Los porcentajes tienen que sumar 100 %.'**
+  String get expenseSplitMustSum;
+
+  /// No description provided for @expenseSplitZero.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada cultivo elegido necesita un porcentaje mayor que 0.'**
+  String get expenseSplitZero;
+
+  /// No description provided for @expenseSplitFew.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegí al menos dos cultivos.'**
+  String get expenseSplitFew;
+
+  /// No description provided for @expenseSplitNoAreas.
+  ///
+  /// In es, this message translates to:
+  /// **'Para usar las áreas, al menos dos cultivos tienen que tener su hectáreaje anotado.'**
+  String get expenseSplitNoAreas;
+
+  /// Resumen del reparto ya elegido
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{Repartido entre {count} cultivo} other{Repartido entre {count} cultivos}}'**
+  String expenseSplitChosen(int count);
+
+  /// No description provided for @expenseSplitChange.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar'**
+  String get expenseSplitChange;
+
+  /// No description provided for @expenseSplitClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar reparto'**
+  String get expenseSplitClear;
+
+  /// No description provided for @expenseSplitNeedAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Primero escribí el monto del gasto.'**
+  String get expenseSplitNeedAmount;
+
+  /// Porcentaje de un cultivo en el reparto
+  ///
+  /// In es, this message translates to:
+  /// **'{percent} %'**
+  String expenseSplitPercent(String percent);
+
   /// No description provided for @noCropLabel.
   ///
   /// In es, this message translates to:
