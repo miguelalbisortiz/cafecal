@@ -1,84 +1,85 @@
-# Sesión — martes 20 de octubre de 2026 (tanda 4 cerrada y cohortes)
+# Sesión — miércoles 21 de octubre de 2026 (etapa A: cohortes por siembra)
 
-> Estado al cierre: **tanda 4 implementada, commiteada, pusheada y
-> desplegada**; falta la verificación manual del usuario. El análisis de
-> cohortes quedó terminado y recomienda **partir el lote en dos cultivos**.
-> Informe: `docs/reports/2026-10-20_datos-sin-mentira.md`.
-> Plan: `docs/plans/2026-10-20-datos-sin-mentira.plan.md`.
-> Análisis: `docs/analysis/2026-10-20_cohortes-dentro-de-un-cultivo.md`.
+> Estado al cierre: **etapa A implementada, commiteada, pusheada y
+> desplegada**; la verificación manual de §12 quedó sin hacer por decisión
+> del usuario (no es un fallo: no se probó). El lote ya puede tener varias
+> edades sin que una siembra nueva borre plantas, área ni edad de la vieja.
+> Informe: `docs/reports/2026-10-21_cohortes-estructura.md`.
+> Plan: `docs/plans/2026-10-21-cohortes-estructura.plan.md`.
+> PRD: `docs/prds/2026-10-21_1818-cohortes-estructura.prd.md`.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` = `origin/main` = **`84ff1e1`** (0 commits adelante).
-- `gh-pages` = **`62ace8d`** («deploy: tanda 4, datos sin mentira»).
-- Gate: `flutter analyze` limpio · **1120/1120** tests.
+- `main` = `origin/main` = **`4448a19`** (0 commits adelante).
+- `gh-pages` = **`72e0b45`** («deploy: etapa A, cohortes por siembra y
+  renovación parcial»).
+- Gate: `flutter analyze` limpio · **1230/1230** tests (110 nuevos sobre los
+  1120 del baseline `84ff1e1`).
 - Deploy verificado en producción: sha256
-  `0E1611367F9775F08EFD8FE7763260DFCF787FFB9B2637E689005CD465453D35`,
-  `main.dart.js` de 3.698.077 B.
-- Migraciones aplicadas por el usuario:
-  `202610200001_add_transaction_equivalent_kg.sql` y
-  `202610200002_add_settings_cash_budget_history.sql`.
+  `7A05D63651AB3754C1AD80B63EF1A200B8AA366110504522DA7410390171C8E6`,
+  `main.dart.js` de 3.776.845 B / 130.838 líneas.
+- Migración aplicada por el usuario:
+  `202610210001_add_sowings_cohorts.sql` (tres columnas aditivas en
+  `sowings`, checks ≥ 0, FK auto-referente, índice `idx_sowings_cohort`).
 
-## 2. Qué se hizo
+## 2. Qué se hizo (T1–T20)
 
-Tanda 4 completa: **T1–T13 + T15**, más el arreglo del duplicado de T6.
+**Motor** (`lib/models/sowing.dart`, `lib/models/crop.dart`): `Cohort`,
+`cropCohorts`, `openCohorts`, `nEdades`, `edadDeCohorte`, `edadesDeCohorte`,
+`edadDeCrop` (una sola edad o `null`), `recomputeCropState` que **suma**
+cohortes abiertas en vez de reemplazar, `normalizeLegacyCohorts`,
+`validateReplacement`/`replacementPrefill`/`maxReplacement`, y
+`lossEarliestDate(..., cohortSowingId)`.
 
-- **Racimo/cajón**: el peso viaja en la cosecha y en la venta
-  (`equivalent_kg`); un registro viejo sin peso se excluye y se lista.
-- **Caja**: el aporte rige desde que se configura; el arrastre no se
-  reconstruye hacia atrás.
-- **Áreas**: avisan sin bloquear contra el terreno.
-- **kg/planta**: se explica qué incluye; resiembra avisa sin bloquear.
-- **Reparto de gasto** (T15): por porcentaje, con atajo por área; N gastos
-  independientes, remanente al último.
-- **Planilla**: solo aclara gasto vs presupuesto. **Renovación**: solo copy.
-- **Arreglo T6**: `pendingHarvests` sale de `storedHarvests` filtrado con
-  `_inPeriod`; una venta sin peso no se cuenta dos veces. Rojo verificado
-  antes del arreglo.
+**Datos**: `Sowing` gana `replacesPlants`, `replacesAreaHa` (nullable) y
+`cohortSowingId` (uuid auto-referente, `on delete set null`). `fromJson` con
+flags de pérdidas y reemplazo separados; `pendingSync` cuando el registro
+llega sucio. Normalización idempotente al abrir, sin mover números.
 
-Commits en `origin/main`: `f4cb524` (tanda 4), `91a3d22` (reparto de gasto),
-`84ff1e1` (arreglo «sin peso»).
+**Provider**: `addSowing`/`deleteSowing` con cohortes y limpieza de punteros;
+normalización en constructor, `reloadFromCache` e `importBackup`;
+`mergeRemoteSowings` recalcula y conserva punteros aún no llegados.
 
-## 3. Análisis de cohortes (sin código)
+**Pantallas**: formulario «Amplío / Renuevo» (solo con cohortes vivas; matas
+obligatorias, precarga por área y «Todas (N)»; guarda `0` explícito), resiembra
+con lote y pérdidas por cohorte, tarjeta del cultivo con «N edades», fila por
+cohorte y «Lotes renovados», aviso antes de borrar un lote con el total que
+queda, tag «sin lote» para punteros rotos, bloque de Ayuda «Renovar una parte
+del lote» y rótulo «promedio de N edades» junto al kg/planta.
 
-Documento: `docs/analysis/2026-10-20_cohortes-dentro-de-un-cultivo.md`.
-También quedó el puntero desde el análisis anterior
-(`2026-10-20_rendimiento-y-cultivos-asociados.md`).
+**Copy**: 30 claves nuevas en ES/EN con placeholders en el orden en que se
+leen, `gen-l10n` corrido y generados normalizados a LF.
 
-Lo verificado:
+## 3. Decisiones que no se reabren sin verbo
 
-- `Harvest` solo tiene `cropId`; `transactions` sí tiene `sowing_id`.
-- Una **siembra reemplaza** plantas y área (`livePlants = s.plants`), así que
-  una expansión borra el estado del lote viejo; una resiembra conserva el total
-  pero mezcla edades.
-- `edadDeCrop` toma la última siembra; `lossEarliestDate` ancla las pérdidas a
-  esa misma siembra.
-- `yieldPerPlant` divide todos los kg por todas las plantas vivas del cultivo.
-
-Opciones A–E. **Recomendación: E, partir el lote en dos cultivos** (la práctica
-real: lote/tablón con edad propia), porque la app ya tiene terreno y varios
-cultivos; casi todo es copy y un flujo «dividir cultivo», sin migración.
-**C** (la siembra es la cohorte) queda solo si se quiere una sola fila «Café»
-con dos edades adentro.
-
-Reglas fijadas en el análisis: sin backfill ni inferencia retroactiva; las
-cosechas derivadas nunca llevan cohorte (se calculan al leer); `null` → oculto;
-la recepa/socola no se disfraza de siembra; no se suman áreas ni lotes.
+- **Cohortes: C** (la siembra ES la cohorte). **E** (partir el lote en dos
+  cultivos) quedó descartada: en la finca la cosecha de lotes de distinta edad
+  **casi siempre se mezcla**, y sin reparto de ingresos partir el lote obligaría
+  a elegir un cultivo o inventar kilos.
+- **Renovación parcial**: la siembra nueva declara cuánto reemplaza
+  (`replacesPlants` / `replacesAreaHa`); sin eso, el que reemplaza es un dato
+  viejo y se normaliza una sola vez.
+- **Sin `closed_at`**: cohorte cerrada = 0 matas vivas; no se revive.
+- **Área**: si falta el área de alguna cohorte abierta, `areaHa` = `null` y el
+  provider conserva la manual.
+- **Etapa B (atribución de kilos por cohorte) no se empezó**: solo si se
+  empieza a pesar por lote. Fuera por ahora: `harvests.sowing_id`, selector de
+  cohorte al vender, reportes por cohorte, recepa/socola, asocio.
 
 ## 4. Pendientes
 
-- **Verificación manual** de los 8 puntos de la tanda 4; corregir lo que falle.
-- Revocar el **PAT de Supabase**.
-- Opcional: `flutter build apk`.
-- Verificación manual de la tanda 2 si quedó a medias.
-- Decidir **E o C**; si es E, PRD del flujo de división (copy solo vs.
-  «dividir cultivo»).
-- Dos documentos sin commitear (no hubo verbo): el análisis nuevo y el puntero
-  en el análisis anterior.
+- **Verificación manual §12** del informe (10 puntos): no se hizo. El usuario
+  eligió cerrar la sesión sin probarla.
+- Etapa B, solo si se pesa por lote.
+- Recepa/socola y asocio: descartados por ahora.
 
 ## 5. Cómo continuar
 
-1. Probar la tanda 4 en producción; si algo falla, arreglo con test en rojo.
-2. Después, decidir E o C y escribir el PRD correspondiente.
-3. No re-abrir sin verbo: cohortes dentro del cultivo (si se elige E), asocio,
-   presupuesto por tarea, edición en grupo de un reparto.
+1. Probar en producción los 10 puntos de §12; si algo falla, test en rojo
+   primero.
+2. Revisar en la nube que los registros viejos queden sanos (consultas de §5.1
+   del informe).
+3. No re-abrir la decisión C/E ni la etapa B sin verbo.
+4. Después de un deploy, recordar que `flutter build web` reescribe
+   `lib/l10n/generated/*` con CRLF: se normaliza a LF y `git status` queda
+   limpio.
