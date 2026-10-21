@@ -73,6 +73,11 @@
   "helpCaseB2": "In Plantings, record how many plants you put in and on what area, and the cost if you want. If your crop is not in the list, pick \"Create new crop\" and you create it right there.",
   "helpCaseB3": "While the crop is not producing yet the app does not flag losses: it is investment, not production.",
   "helpCaseB4": "When it starts Producing, follow the Case A flow: the sales, and that is where your harvest comes from.",
+  "helpCaseCTitle": "Renewing the whole plantation",
+  "helpCaseC1": "A full renewal is recorded as a new sowing of the same crop.",
+  "helpCaseC2": "That resets age, plants and area; old harvests stay in the history.",
+  "helpCaseC3": "If crops share the same plot (coffee with plantain, for example), the clearest way is to create a separate crop for each.",
+  "helpCaseCEnd": "Nothing needs to be deleted: the history still counts what already happened.",
   "helpUnitsTitle": "Units",
   "helpUnitsBody": "Use kg, pounds (lb), arroba (12.5 kg), sacks or load (27.2 kg). The app converts everything to kg for comparison, using the sack weight you set in Settings.",
   "helpUnitsTableTitle": "Equivalences",
@@ -268,6 +273,10 @@
   "sowingPlantsLabel": "Number of plants",
   "helpSowingPlants": "How many plants are you putting in. Approximate if unsure.",
   "sowingLostPlantsLabel": "Lost plants (losses)",
+  "sowingMissingLossesTitle": "You entered new plants without losses",
+  "sowingMissingLossesBody": "In a replant, it helps to record how many plants were lost: that is what lowers the crop count. You can save as is and complete it later.",
+  "sowingMissingLossesEnter": "Enter losses",
+  "sowingMissingLossesSave": "Save as is",
   "helpSowingLostPlants": "How many plants died or were lost (pests, weather, etc.).",
   "sowingReasonLabel": "Reason (optional)",
   "sowingAreaLabel": "Area (hectares, optional)",
@@ -314,6 +323,18 @@
   "reportHarvestedTotal": "Total harvested per crop",
   "reportHarvestKg": "Kg (normalized)",
   "reportHarvestDestinations": "By destination",
+  "@reportPendingWeightHarvests": {
+    "description": "Harvests in bunches or boxes missing the total weight, so they do not add kilos.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reportPendingWeightHarvests": "{count, plural, one{{count} harvest without weight} other{{count} harvests without weight}}",
+  "@reportPendingWeightSales": {
+    "description": "Sales in bunches or boxes missing the total weight, so they do not add kilos.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reportPendingWeightSales": "{count, plural, one{{count} sale without weight} other{{count} sales without weight}}",
+  "reportPendingWeightTitle": "Missing weight (not counted in kilos)",
+  "reportPendingWeightHint": "Enter the total weight so they count toward kilos.",
   "reportPickupCostPerKg": "Picking cost per kg",
   "reportTotalCostPerKg": "Total cost per kg",
   "reportInvestmentEstablecimiento": "Accumulated investment (establishment)",
@@ -349,9 +370,10 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "harvestWorkersCount": "{count, plural, one{{count} worker} other{{count} workers}}",
-  "harvestEquivalentKgLabel": "How many kilos does that make?",
-  "harvestEquivalentKgHint": "Optional. Total weight of the collected bunches.",
+  "harvestEquivalentKgLabel": "Total weight (kg)",
+  "harvestEquivalentKgHint": "Required: what the bunches or boxes weighed together.",
   "harvestEquivalentKgInvalid": "Enter a number greater than 0.",
+  "harvestEquivalentKgRequired": "Enter the total weight so the kilos can be counted.",
   "@harvestPriceLabel": {
     "description": "Price per unit of the harvest; the unit goes at the end",
     "placeholders": { "unit": { "type": "String" } }
@@ -366,6 +388,7 @@
   "harvestSalePreview": "Sale recorded: {amount}",
 
   "reportPayrollSection": "Payroll of the period",
+  "reportPayrollBudgetNote": "This is what was spent per task; the cash budget is a single one.",
   "reportPayrollWorker": "Worker",
   "reportPayrollDays": "Days",
   "reportPayrollSubtotal": "Subtotal",
@@ -385,6 +408,7 @@
   "perHaNoAreaHint": "Set the area of your crops (edit the crop) to see their per-hectare performance: normalized yield, income and expenses.",
   "perHaYieldLabel": "Yield for the period",
   "perHaYieldPlantLabel": "Yield per plant for the period",
+  "perHaPerPlantNote": "kg/plant is the crop average; it includes plants that are not producing yet.",
   "@yieldAvgHaLabel": {
     "description": "The farmer's own annual average. Not an external table: it comes from their harvests in completed years",
     "placeholders": { "years": { "type": "int" } }
@@ -659,7 +683,7 @@
   "jornalHarvestedKgNoCrop": "Select the crop to record the kilos.",
   "jornalHarvestedKgInvalid": "Enter the harvested kilos (greater than 0).",
   "cashBoxLabel": "Monthly cash contribution",
-  "cashBoxHelp": "What you take out of the farm each month: it covers day labor and small expenses. Whatever you don't spend isn't lost — it rolls over to next month.",
+  "cashBoxHelp": "What you take out of the farm each month: it covers day labor and small expenses. Whatever you don't spend isn't lost — it rolls over to next month. The contribution starts this month: previous months are not recalculated.",
   "cashBoxCarry": "Carried over from previous months",
   "cashBoxMonthly": "This month's contribution",
   "cashBoxTitle": "Cash box",
@@ -1222,6 +1246,41 @@
   },
   "terrenoCropCount":
       "{count, plural, one{{count} crop} other{{count} crops}}",
+  "@terrenoAreaAssigned": {
+    "description":
+        "Area of the crops assigned to a plot, compared with the plot area",
+    "placeholders": {
+      "assigned": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "terrenoAreaAssigned": "{assigned} of {total} ha assigned",
+  "@terrenoAreaOver": {
+    "description":
+        "Amber warning: crop areas exceed the plot area. It does not block saving.",
+    "placeholders": {
+      "assigned": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "terrenoAreaOver":
+      "Areas add up to {assigned} ha and the plot has {total}",
+  "@terrenoAreaWithoutArea": {
+    "description": "Crops in the plot that still have no area entered",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "terrenoAreaWithoutArea":
+      "{count, plural, one{{count} crop without area} other{{count} crops without area}}",
+  "@cropAreaShareHelp": {
+    "description":
+        "Help in the crop editor: how much of the plot is already assigned among its crops",
+    "placeholders": {
+      "terreno": { "type": "String" },
+      "assigned": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "cropAreaShareHelp": "In {terreno}: {assigned} of {total} ha assigned",
   "@deleteTerrenoTitle": {
     "description": "Title of the warning before deleting a plot"
   },

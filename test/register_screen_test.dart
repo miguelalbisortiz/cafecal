@@ -668,4 +668,96 @@ void main() {
           reason: 'lo oculto no se guarda ni se restaura (D12)');
     });
   });
+
+  // Tanda 4 · una venta en racimo o cajón no tiene kilos por sí sola: sin el
+  // peso total, la cifra que salga sería inventada.
+  group('Peso total de una venta en racimo', () {
+    Finder byLabel(String label) => find.ancestor(
+        of: find.text(label), matching: find.byType(TextFormField));
+
+    void tall(WidgetTester tester) {
+      tester.view.physicalSize = const Size(900, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
+
+    Future<Transaction> venta(TransactionProvider p,
+        {double? equivalentKg}) async {
+      final crop = await p.addCrop('Plátano');
+      return p.addTransaction(
+        type: TransactionType.income,
+        category: kIncomeCategorySale,
+        amount: 1200000,
+        cropId: crop.id,
+        quantity: 12,
+        unit: 'racimo',
+        equivalentKg: equivalentKg,
+        date: DateTime(2026, 10, 20),
+      );
+    }
+
+    testWidgets('con racimo pide el peso y lo restaura al editar',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final v = await venta(p, equivalentKg: 240);
+      await pumpRegister(tester, p, editing: v);
+
+      expect(find.text(_es.harvestEquivalentKgLabel), findsOneWidget);
+      expect(find.text('240'), findsWidgets);
+    });
+
+    testWidgets('sin peso no guarda y avisa', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final v = await venta(p);
+      await pumpRegister(tester, p, editing: v);
+
+      final guardar = find.text(_es.saveChanges);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(find.text(_es.harvestEquivalentKgRequired), findsOneWidget);
+      expect(p.transactions.single.equivalentKg, isNull,
+          reason: 'doce racimos no son doce kilos');
+    });
+
+    testWidgets('con peso guarda los kilos', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final v = await venta(p);
+      await pumpRegister(tester, p, editing: v);
+
+      await tester.enterText(byLabel(_es.harvestEquivalentKgLabel), '240');
+      final guardar = find.text(_es.saveChanges);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(p.transactions.single.equivalentKg, 240);
+    });
+
+    testWidgets('al pasar a kg el peso se borra, no queda escondido',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final v = await venta(p, equivalentKg: 240);
+      await pumpRegister(tester, p, editing: v);
+
+      await tester.tap(dropdownWithValue('racimo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(_es.unitKg).last);
+      await tester.pumpAndSettle();
+      expect(find.text(_es.harvestEquivalentKgLabel), findsNothing);
+
+      final guardar = find.text(_es.saveChanges);
+      await tester.ensureVisible(guardar);
+      await tester.tap(guardar);
+      await tester.pumpAndSettle();
+
+      expect(p.transactions.single.unit, 'kg');
+      expect(p.transactions.single.equivalentKg, isNull);
+    });
+  });
 }

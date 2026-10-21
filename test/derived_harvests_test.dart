@@ -29,6 +29,7 @@ Transaction _venta({
   String? cropId = 'c1',
   double? quantity = 50,
   String? unit = 'kg',
+  double? equivalentKg,
   String category = kIncomeCategorySale,
   bool deleted = false,
   String? harvestId,
@@ -46,6 +47,7 @@ Transaction _venta({
       deleted: deleted,
       quantity: quantity,
       unit: unit,
+      equivalentKg: equivalentKg,
       harvestId: harvestId,
     );
 
@@ -151,6 +153,16 @@ void main() {
       ]);
       expect(out.single.unit, 'saco');
       expect(out.single.amount, 12);
+    });
+
+    test('el peso de un racimo viaja a la cosecha derivada', () {
+      final out = _derive(txns: [
+        _venta(id: 'v1', quantity: 12, unit: 'racimo', equivalentKg: 240),
+      ]);
+      expect(out.single.unit, 'racimo');
+      expect(out.single.amount, 12);
+      expect(out.single.equivalentKg, 240,
+          reason: '240 kg de racimos, no 12');
     });
   });
 

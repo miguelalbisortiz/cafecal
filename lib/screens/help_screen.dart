@@ -155,6 +155,23 @@ class HelpScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StepsCard(
+                      title: l10n.helpCaseCTitle,
+                      steps: [
+                        l10n.helpCaseC1,
+                        l10n.helpCaseC2,
+                        l10n.helpCaseC3,
+                      ],
+                      endNote: l10n.helpCaseCEnd,
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               _Section(title: l10n.helpUnitsTitle),
               _Card(

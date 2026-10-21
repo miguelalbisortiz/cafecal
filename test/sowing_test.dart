@@ -267,4 +267,27 @@ void main() {
       expect(dia, DateTime(2026, 1, 1));
     });
   });
+
+  group('T12 · resiembra sin muertas anotadas', () {
+    test('resiembra con plantas y sin muertas avisa', () {
+      expect(
+        resiembraMissingLosses(SowingKind.resiembra, 50, null),
+        isTrue,
+        reason: 'hay plantas nuevas pero no se sabe cuántas se perdieron',
+      );
+    });
+
+    test('una siembra inicial no pregunta por muertas', () {
+      expect(resiembraMissingLosses(SowingKind.siembra, 50, null), isFalse);
+    });
+
+    test('sin plantas nuevas no hay nada que reponer', () {
+      expect(resiembraMissingLosses(SowingKind.resiembra, 0, null), isFalse);
+    });
+
+    test('0 explícito es una respuesta: no vuelve a preguntar', () {
+      expect(resiembraMissingLosses(SowingKind.resiembra, 50, 0), isFalse);
+      expect(resiembraMissingLosses(SowingKind.resiembra, 50, 5), isFalse);
+    });
+  });
 }

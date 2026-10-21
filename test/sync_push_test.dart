@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/employee.dart';
 import 'package:mi_cafetal/models/harvest.dart';
@@ -580,7 +581,7 @@ void main() {
       expect(SyncProvider.shouldPushSettings(tx.settingsDirty), isTrue);
     });
 
-    test('el payload manda las 10 columnas, incluidas las nulas', () async {
+    test('el payload manda las 11 columnas, incluidas las nulas', () async {
       final tx = await newProvider();
       final p = SyncProvider(tx)
           .buildSettingsPayload(tx.settings, uid);
@@ -596,6 +597,8 @@ void main() {
         'caja_menor_mensual',
         // E3: si falta la columna, PGRST204 tumba el subido entero.
         'presupuesto_obra_mensual',
+        // Tanda 4: el historial por mes, por la misma razón.
+        'cash_budget_history',
         // A2: si falta la columna, PGRST204 tumba el subido entero.
         'saco_kg',
       });
@@ -605,6 +608,7 @@ void main() {
       // E3 · obra sin configurar viaja como null, no como 0: null es
       // "sin presupuesto" (la caja mide lo de siempre), 0 sería agotado.
       expect(p['presupuesto_obra_mensual'], isNull);
+      expect(p['cash_budget_history'], isEmpty);
       expect(p['saco_kg'], 70);
     });
 
@@ -722,6 +726,31 @@ void main() {
 
       expect(p['harvested_kg'], isNot(0));
       expect(p['harvested_kg'], isNull);
+    });
+
+    test('equivalent_kg de una venta sale siempre, incluido null', () async {
+      final sync = await newSync();
+      final sale = Transaction(
+        id: 'v1',
+        type: TransactionType.income,
+        category: kIncomeCategorySale,
+        amount: 200000,
+        quantity: 10,
+        unit: 'cajon',
+        equivalentKg: 200,
+        date: DateTime(2026, 10, 20),
+        createdAt: DateTime(2026, 10, 20),
+      );
+
+      expect(sync.buildTransactionPayload(sale, uid)['equivalent_kg'], 200,
+          reason: '10 cajones que pesaron 200 kg');
+
+      final sinPeso = sale.copyWith(equivalentKg: null);
+      expect(
+        sync.buildTransactionPayload(sinPeso, uid)['equivalent_kg'],
+        isNull,
+        reason: 'null también viaja: si se omite, el pull deja el peso viejo',
+      );
     });
 
     Map<String, dynamic> row({bool conKilos = true}) => {

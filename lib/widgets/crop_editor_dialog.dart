@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/terreno.dart';
+import '../services/terreno_area.dart';
 import 'crop_loss_dialog.dart';
 
 /// Editor de cultivo (crear y editar). Permite configurar fase/ciclo, unidad
@@ -42,6 +43,10 @@ class CropEditorDialog extends StatefulWidget {
   /// elija algo que todavía no existe.
   final List<Terreno> terrenos;
 
+  /// Tanda 4 · todos los cultivos, para mostrar cuánto del terreno elegido ya
+  /// está asignado. Vacío = no se muestra la ayuda (no hay con qué comparar).
+  final List<Crop> crops;
+
   /// Moneda de la cuenta para un cultivo **nuevo**.
   ///
   /// La moneda es única y no se puede cambiar, así que el editor no la
@@ -57,6 +62,7 @@ class CropEditorDialog extends StatefulWidget {
     this.sowingsLocked = false,
     this.recienCreado = false,
     this.terrenos = const [],
+    this.crops = const [],
     this.defaultCurrency = 'COP',
   });
 
@@ -303,10 +309,43 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
         _ => key,
       };
 
+  /// Tanda 4 · cuánto del terreno elegido ya está asignado entre sus cultivos.
+  ///
+  /// Es una ayuda, no un límite: si se pasa, se pinta en ámbar y el guardado
+  /// sigue igual. Un terreno sin área medida no muestra nada.
+  Widget? _terrenoAreaHelp(BuildContext context, AppLocalizations l10n) {
+    final id = _terrenoId;
+    if (id == null) return null;
+    Terreno? terreno;
+    for (final t in widget.terrenos) {
+      if (t.id == id) {
+        terreno = t;
+        break;
+      }
+    }
+    if (terreno == null) return null;
+    final total = terreno.areaHa;
+    if (total == null || total <= 0) return null;
+    final share = terrenoAreaShare(terreno, widget.crops);
+    return Text(
+      l10n.cropAreaShareHelp(
+        terreno.name,
+        share.assigned.toStringAsFixed(2),
+        total.toStringAsFixed(2),
+      ),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: share.over
+                ? Theme.of(context).colorScheme.tertiary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final editing = widget.crop != null;
+    final terrenoHelp = _terrenoAreaHelp(context, l10n);
     return AlertDialog(
       title: Text(switch ((editing, widget.recienCreado)) {
         // Recién creado desde la puerta: no lo está editando, lo está
@@ -504,6 +543,10 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            if (terrenoHelp != null) ...[
+              const SizedBox(height: 6),
+              terrenoHelp,
+            ],
             const SizedBox(height: 12),
             TextField(
               controller: _plantsController,

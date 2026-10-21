@@ -800,7 +800,8 @@ class ExcelExportService {
     final laborSeparate = (settings.presupuestoObraMensual ?? 0) > 0;
     final cashRows = const ReportPayrollMetrics().cashBoxByMonth(
       periodTx: periodTx,
-      budget: settings.cajaMenorMensual,
+      budget: settings.cajaMensualEfectiva,
+      budgetHistory: settings.cashBudgetHistory,
       period: period,
       year: year,
       month: month,

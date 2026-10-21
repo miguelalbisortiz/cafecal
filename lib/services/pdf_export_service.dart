@@ -431,13 +431,14 @@ class PdfExportService {
           // en el PDF: contarla también en la caja inflaría el gasto de caja.
           _cashBoxSection(
             periodTx,
-            settings.cajaMenorMensual,
+            settings.cajaMensualEfectiva,
             period,
             year,
             month,
             now,
             currency,
             l10n,
+            budgetHistory: settings.cashBudgetHistory,
             includeLabor: (settings.presupuestoObraMensual ?? 0) <= 0,
           ),
           pw.SizedBox(height: 20),
@@ -1323,11 +1324,13 @@ class PdfExportService {
     DateTime now,
     String currency,
     AppLocalizations l10n, {
+    Map<String, double> budgetHistory = const {},
     bool includeLabor = true,
   }) {
     final rows = const ReportPayrollMetrics().cashBoxByMonth(
       periodTx: source,
       budget: budget,
+      budgetHistory: budgetHistory,
       period: period,
       year: year,
       month: month,

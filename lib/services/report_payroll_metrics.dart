@@ -1,4 +1,5 @@
 import '../models/categories.dart';
+import '../models/settings.dart';
 import '../models/tasks.dart';
 import '../models/transaction.dart';
 import '../models/report_period.dart';
@@ -241,14 +242,17 @@ class ReportPayrollMetrics {
   List<CashBoxMonthRow> cashBoxByMonth({
     required Iterable<Transaction> periodTx,
     required double? budget,
+    Map<String, double> budgetHistory = const {},
     required ReportPeriod period,
     required int year,
     int? month,
     DateTime? now,
     bool includeLabor = true,
   }) {
-    final b = budget;
-    if (b == null || b <= 0) return const [];
+    // Sin historial, el aporte único de siempre (datos viejos). Con historial,
+    // manda el mes: un aporte rige desde que se configura.
+    final legacy = (budget != null && budget > 0) ? budget : null;
+    if (legacy == null && budgetHistory.isEmpty) return const [];
     final ref = now ?? DateTime.now();
 
     final labor = <String, Map<String, double>>{};
@@ -271,10 +275,17 @@ class ReportPayrollMetrics {
     final out = <CashBoxMonthRow>[];
     for (final key in _sortedMonthKeys(keys)) {
       final parts = key.split('-');
+      final y = int.parse(parts[0]);
+      final m = int.parse(parts[1]);
+      // El presupuesto de ESE mes. Sin historial, el único aporte de siempre.
+      final monthBudget = budgetForMonth(budgetHistory, y, m) ??
+          (budgetHistory.isEmpty ? legacy : null);
+      // Antes de la primera configuración no había caja: el mes no se lista.
+      if (monthBudget == null) continue;
       out.add(CashBoxMonthRow(
-        year: int.parse(parts[0]),
-        month: int.parse(parts[1]),
-        budget: b,
+        year: y,
+        month: m,
+        budget: monthBudget,
         laborByCurrency: Map.of(labor[key] ?? const {}),
         extrasByCurrency: Map.of(extras[key] ?? const {}),
       ));
@@ -297,12 +308,15 @@ class ReportPayrollMetrics {
   /// sumar monedas distintas. `null` es "no lo sé", **no** 0.
   double? cashCarryUpTo({
     required Iterable<Transaction> allTx,
-    required double budget,
+    required double? budget,
+    Map<String, double> budgetHistory = const {},
     required String budgetCurrency,
     required int year,
     required int month,
   }) {
-    if (budget <= 0 || budgetCurrency.isEmpty) return null;
+    final legacy = (budget != null && budget > 0) ? budget : null;
+    if (legacy == null && budgetHistory.isEmpty) return null;
+    if (budgetCurrency.isEmpty) return null;
 
     // Gastos de caja por mes, separados por moneda: así un mes mezclado se
     // detecta en vez de sumarse en silencio.
@@ -331,10 +345,17 @@ class ReportPayrollMetrics {
 
     var carry = 0.0;
     for (var ym = start; ym < target; ym++) {
-      final key = '${(ym - 1) ~/ 12}-${(ym - 1) % 12 + 1}';
+      final y = (ym - 1) ~/ 12;
+      final m = (ym - 1) % 12 + 1;
+      // Cada mes aporta lo que regía entonces; los meses sin aporte
+      // configurado (antes de la primera entrada) no suman ni restan.
+      final monthBudget = budgetForMonth(budgetHistory, y, m) ??
+          (budgetHistory.isEmpty ? legacy : null);
+      if (monthBudget == null) continue;
+      final key = '$y-$m';
       final spent = byMonth[key] ?? const <String, double>{};
       if (spent.keys.any((c) => c != budgetCurrency)) return null;
-      carry += budget - (spent[budgetCurrency] ?? 0);
+      carry += monthBudget - (spent[budgetCurrency] ?? 0);
     }
     return carry;
   }

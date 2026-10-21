@@ -10,6 +10,7 @@ void main() {
     String? client,
     String? provider,
     double? harvestedKg,
+    double? equivalentKg,
   }) {
     return Transaction(
       id: 't1',
@@ -24,6 +25,7 @@ void main() {
       client: client,
       provider: provider,
       harvestedKg: harvestedKg,
+      equivalentKg: equivalentKg,
     );
   }
 
@@ -145,6 +147,46 @@ void main() {
     test('copyWith sin argumento conserva los kilos', () {
       final t = base(harvestedKg: 120.5);
       expect(t.copyWith(quantity: 3).harvestedKg, 120.5);
+    });
+  });
+
+  group('Tanda 4 · peso de la venta en racimo o cajón', () {
+    test('toJson lleva el peso y fromJson lo devuelve', () {
+      final round = Transaction.fromJson(
+          base(quantity: 12, unit: 'racimo', equivalentKg: 240).toJson());
+      expect(round.equivalentKg, 240);
+      expect(round.unit, 'racimo');
+      expect(round.quantity, 12);
+    });
+
+    test('sin peso la clave viaja en null, nunca en 0', () {
+      final json = base(quantity: 12, unit: 'racimo').toJson();
+      expect(json.containsKey('equivalent_kg'), isTrue,
+          reason: 'null = sin peso, distinto de 0');
+      expect(json['equivalent_kg'], isNull);
+    });
+
+    test('un respaldo viejo sin la clave carga null', () {
+      final t = Transaction.fromJson(<String, dynamic>{
+        'id': 'j_old',
+        'type': 'income',
+        'category': 'venta_cafe',
+        'amount': 1000,
+        'date': '2026-10-20T00:00:00.000',
+        'created_at': '2026-10-20T00:00:00.000Z',
+      });
+      expect(t.equivalentKg, isNull);
+    });
+
+    test('copyWith permite limpiar el peso con null', () {
+      final t = base(quantity: 12, unit: 'racimo', equivalentKg: 240);
+      expect(t.copyWith(equivalentKg: null).equivalentKg, isNull,
+          reason: 'al cambiar la unidad, el peso viejo no queda escondido');
+    });
+
+    test('copyWith sin argumento conserva el peso', () {
+      final t = base(quantity: 12, unit: 'racimo', equivalentKg: 240);
+      expect(t.copyWith(quantity: 13).equivalentKg, 240);
     });
   });
 }

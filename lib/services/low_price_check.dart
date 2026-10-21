@@ -78,20 +78,30 @@ LowPriceCheck? lowPriceCheck({
   // Un precio por kilo cruzando monedas no es un precio: la regla se calla.
   if (isMixedCurrency(sales)) return null;
 
-  double pricePerKg(Transaction t) =>
-      t.amount / (t.quantity! * unitToKg(t.unit, sacoKg: sacoKg));
+  /// Precio por kilo, o `null` si la venta no tiene kilos (racimo/cajón sin
+  /// peso). Nunca se completa con 1 kg por unidad.
+  double? pricePerKg(Transaction t) {
+    final kg = kgFromUnit(t.quantity!, t.unit, t.equivalentKg, sacoKg: sacoKg);
+    return kg == null || kg <= 0 ? null : t.amount / kg;
+  }
 
-  if (sales.length < kMinSalesForLowPriceAlert) return null;
+  // Solo las ventas con kilos conocidos entran a los promedios.
+  final priced = <({Transaction t, double price})>[];
+  for (final t in sales) {
+    final p = pricePerKg(t);
+    if (p != null && p > 0) priced.add((t: t, price: p));
+  }
+  if (priced.length < kMinSalesForLowPriceAlert) return null;
   final histAvg =
-      sales.fold<double>(0, (a, t) => a + pricePerKg(t)) / sales.length;
+      priced.fold<double>(0, (a, e) => a + e.price) / priced.length;
   if (histAvg <= 0) return null;
 
   final limit = DateTime(now.year, now.month, now.day - 30);
-  final recent = sales.where((t) => t.date.isAfter(limit)).toList();
+  final recent = priced.where((e) => e.t.date.isAfter(limit)).toList();
   if (recent.length < 2) return null;
 
   final recentAvg =
-      recent.fold<double>(0, (a, t) => a + pricePerKg(t)) / recent.length;
+      recent.fold<double>(0, (a, e) => a + e.price) / recent.length;
 
   return LowPriceCheck(recentAvgPerKg: recentAvg, histAvgPerKg: histAvg);
 }

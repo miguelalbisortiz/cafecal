@@ -52,6 +52,7 @@ List<FarmAlert> evaluateAlerts({
       harvests: harvests,
       sowings: sowings,
       cajaMensual: settings.cajaMensualEfectiva,
+      cashBudgetHistory: settings.cashBudgetHistory,
       currency: settings.currency,
       sacoKg: settings.sacoKg,
     );
@@ -90,6 +91,7 @@ class AlertService {
     // FarmSettings.cajaMensualEfectiva). [currency] es la moneda de ese
     // aporte: sin ella no se puede calcular el sobrante arrastrado.
     double? cajaMensual,
+    Map<String, double> cashBudgetHistory = const {},
     String currency = '',
     // A2 · se recibe en cada llamada (igual que el umbral) porque las alertas
     // viven o mueren según el peso real del saco: 60 en vez de 70 sube el
@@ -111,7 +113,9 @@ class AlertService {
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
     _checkCashBox(active, now, l10n, alerts,
-        cajaMensual: cajaMensual, currency: currency);
+        cajaMensual: cajaMensual,
+        cashBudgetHistory: cashBudgetHistory,
+        currency: currency);
     _checkUnpaidSales(active, now, l10n, alerts);
     _checkFirstHarvestOverdue(crops, harvests, now, l10n, alerts);
 
@@ -318,13 +322,18 @@ class AlertService {
     if (monedas.length > 1) return;
     final currency = monedas.first;
 
-    double pricePerKg(Transaction t) =>
-        t.amount / (t.quantity! * unitToKg(t.unit, sacoKg: sacoKg));
+    /// Precio por kilo, o `null` si la venta no tiene kilos (D2: un racimo o
+    /// un cajón sin peso no se convierte en 1 kg).
+    double? pricePerKg(Transaction t) {
+      final kg = kgFromUnit(t.quantity!, t.unit, t.equivalentKg, sacoKg: sacoKg);
+      return kg == null ? null : t.amount / kg;
+    }
 
     if (manualThresholdPerKg != null && manualThresholdPerKg > 0) {
-      final below = sales
-          .where((t) => pricePerKg(t) < manualThresholdPerKg)
-          .toList();
+      final below = sales.where((t) {
+        final p = pricePerKg(t);
+        return p != null && p < manualThresholdPerKg;
+      }).toList();
       if (below.isNotEmpty) {
         final latest = below.reduce(
             (a, b) => a.date.isAfter(b.date) ? a : b);
@@ -335,7 +344,7 @@ class AlertService {
           title: l10n.alertLowPriceManualTitle,
           message: l10n.alertLowPriceManualMessage(
             DateFormat('dd/MM/yyyy').format(latest.date),
-            _money(pricePerKg(latest), currency),
+            _money(pricePerKg(latest)!, currency),
             _money(manualThresholdPerKg, currency),
           ),
           suggestion: l10n.alertLowPriceSuggestion,
@@ -514,7 +523,8 @@ class AlertService {
       if (t.date.isBefore(cutoff)) continue;
       final cid = t.cropId ?? '_none_';
       final qty = (t.quantity ?? 0);
-      salesByCrop[cid] = (salesByCrop[cid] ?? 0) + qty * unitToKg(t.unit, sacoKg: sacoKg);
+      final kg = kgFromUnit(qty, t.unit, t.equivalentKg, sacoKg: sacoKg);
+      if (kg != null) salesByCrop[cid] = (salesByCrop[cid] ?? 0) + kg;
     }
 
     final harvestedByCrop = <String, double>{};
@@ -524,8 +534,11 @@ class AlertService {
       // justifica vender más de lo cosechado.
       if (h.destination == HarvestDestination.perdida) continue;
       final cid = h.cropId ?? '_none_';
-      harvestedByCrop[cid] =
-          (harvestedByCrop[cid] ?? 0) + h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      final kg = kgFromUnit(h.amount, h.unit, h.equivalentKg,
+          sacoKg: sacoKg);
+      if (kg != null) {
+        harvestedByCrop[cid] = (harvestedByCrop[cid] ?? 0) + kg;
+      }
     }
 
     final allCropIds = {...salesByCrop.keys, ...harvestedByCrop.keys};
@@ -616,9 +629,15 @@ class AlertService {
   /// aporte, avisaría de un agotamiento que la tarjeta no ve.
   void _checkCashBox(List<Transaction> txns, DateTime now,
       AppLocalizations l10n, List<FarmAlert> out,
-      {double? cajaMensual, String currency = ''}) {
-    // Sin aporte configurado (o inválido) la regla no se evalúa.
-    if (cajaMensual == null || cajaMensual <= 0) return;
+      {double? cajaMensual,
+      Map<String, double> cashBudgetHistory = const {},
+      String currency = ''}) {
+    // Tanda 4 · el aporte que rige este mes es el del historial; sin
+    // historial, el único de siempre. Sin ninguno, la regla no se evalúa.
+    final budget = budgetForMonth(
+            cashBudgetHistory, now.year, now.month) ??
+        cajaMensual;
+    if (budget == null || budget <= 0) return;
 
     // Un solo pote: jornales y extras descuentan siempre.
     final usedTx = txns
@@ -639,12 +658,13 @@ class AlertService {
     // `null` (no calculable sin mentir) = nos quedamos con el aporte solo.
     final carry = const ReportPayrollMetrics().cashCarryUpTo(
       allTx: txns,
-      budget: cajaMensual,
+      budget: budget,
+      budgetHistory: cashBudgetHistory,
       budgetCurrency: currency,
       year: now.year,
       month: now.month,
     );
-    final limit = carry == null ? cajaMensual : cajaMensual + carry;
+    final limit = carry == null ? budget : budget + carry;
     final month = l10n.monthFull[now.month - 1];
 
     // Un arrastre negativo puede dejar el límite en cero o menos. El ratio

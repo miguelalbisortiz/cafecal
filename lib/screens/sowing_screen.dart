@@ -203,6 +203,9 @@ class _SowingFormState extends State<_SowingForm> {
   final _plantsController = TextEditingController();
   final _areaController = TextEditingController();
   final _lostController = TextEditingController();
+
+  /// T12 · para llevar el foco al campo de muertas desde el aviso.
+  final _lostFocus = FocusNode();
   final _reasonController = TextEditingController();
   final _costController = TextEditingController();
 
@@ -245,6 +248,7 @@ class _SowingFormState extends State<_SowingForm> {
     _plantsController.dispose();
     _areaController.dispose();
     _lostController.dispose();
+    _lostFocus.dispose();
     _reasonController.dispose();
     _costController.dispose();
     super.dispose();
@@ -319,6 +323,24 @@ class _SowingFormState extends State<_SowingForm> {
         s.id != widget.editing?.id);
   }
 
+  Future<bool?> _confirmMissingLosses(AppLocalizations l10n) => showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.sowingMissingLossesTitle),
+          content: Text(l10n.sowingMissingLossesBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.sowingMissingLossesEnter),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.sowingMissingLossesSave),
+            ),
+          ],
+        ),
+      );
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final tx = context.read<TransactionProvider>();
@@ -339,6 +361,17 @@ class _SowingFormState extends State<_SowingForm> {
     final reason = _kind == SowingKind.resiembra
         ? _reasonController.text.trim()
         : null;
+
+    // T12 · una resiembra con plantas nuevas y sin muertas deja el dato a
+    // medias. Se avisa una vez y se deja guardar: no bloquea.
+    if (resiembraMissingLosses(_kind, plants, lost)) {
+      final guardarAsi = await _confirmMissingLosses(l10n);
+      if (!mounted) return;
+      if (guardarAsi != true) {
+        _lostFocus.requestFocus();
+        return;
+      }
+    }
 
     final editing = widget.editing;
     final String sowingId;
@@ -549,6 +582,7 @@ class _SowingFormState extends State<_SowingForm> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _lostController,
+                  focusNode: _lostFocus,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.sowingLostPlantsLabel,

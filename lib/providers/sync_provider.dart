@@ -307,6 +307,9 @@ class SyncProvider extends ChangeNotifier {
         // productor vació el campo, hay que reflejarlo en la BD y no dejar
         // pisado el valor anterior.
         'presupuesto_obra_mensual': s.presupuestoObraMensual,
+        // Tanda 4 · el historial por mes. Va completo: un mapa vacío borra el
+        // historial en la BD, que es lo que corresponde si se reinició.
+        'cash_budget_history': s.cashBudgetHistory,
         // A2: nunca null, así que siempre sale el peso del saco.
         'saco_kg': s.sacoKg,
       };
@@ -353,6 +356,9 @@ class SyncProvider extends ChangeNotifier {
         // omitiera, el pull dejaría el valor anterior y un jornal que dejó de
         // medir seguiría midiendo. Nunca 0: null es «no medido».
         'harvested_kg': t.harvestedKg,
+        // Tanda 4 · el peso de una venta en racimo/cajón. Completo (incluida
+        // null): al cambiar la unidad hay que poder borrarlo.
+        'equivalent_kg': t.equivalentKg,
       };
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -660,6 +666,8 @@ class SyncProvider extends ChangeNotifier {
       'task': row['task'] as String?,
       // Tanda 2 · filas anteriores a la migración no traen la clave → null.
       'harvested_kg': (row['harvested_kg'] as num?)?.toDouble(),
+      // Tanda 4 · filas anteriores a la migración no traen la clave → null.
+      'equivalent_kg': (row['equivalent_kg'] as num?)?.toDouble(),
     });
   }
 

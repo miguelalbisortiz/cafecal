@@ -73,6 +73,11 @@
   "helpCaseB2": "En Siembras, registra cuántas plantas pusiste y en qué área, y si quieres el costo. Si tu cultivo no está en la lista, elige «Crear nuevo cultivo» y lo creas ahí mismo.",
   "helpCaseB3": "Mientras no dé fruto, la app no dice que estás perdiendo dinero: es una inversión, como construir un local antes de abrir.",
   "helpCaseB4": "Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: las ventas, y de ahí sale tu cosecha.",
+  "helpCaseCTitle": "Renovar el cafetal completo",
+  "helpCaseC1": "Una renovación completa se anota como una siembra nueva del mismo cultivo.",
+  "helpCaseC2": "Eso reinicia la edad, las plantas y el área; las cosechas viejas quedan en el historial.",
+  "helpCaseC3": "Si en el mismo lote conviven cultivos (café con plátano, por ejemplo), lo más claro es crear un cultivo aparte para cada uno.",
+  "helpCaseCEnd": "No hay que borrar nada: el historial sigue contando lo que ya pasó.",
   "helpUnitsTitle": "¿Qué unidad uso?",
   "helpUnitsBody": "Puedes usar kilogramos (kg), libras (lb), arrobas (1 arroba = 12.5 kg, común para café en Colombia), sacos o cargas (1 carga = 60 lbs = 27.2 kg). La app convierte todo a kg para comparar, con el peso del saco que defines en Ajustes. Usa la unidad con la que trabajes normalmente.",
   "helpUnitsTableTitle": "Equivalencias",
@@ -268,6 +273,10 @@
   "sowingPlantsLabel": "Número de plantas",
   "helpSowingPlants": "Cuántas plantás en esta siembra. Si no sabés exacto, aproximá.",
   "sowingLostPlantsLabel": "Plantas perdidas (bajas)",
+  "sowingMissingLossesTitle": "Anotaste plantas nuevas sin muertas",
+  "sowingMissingLossesBody": "En una resiembra conviene anotar cuántas matas se perdieron: es lo que baja el contador del cultivo. Podés guardar así y completarlo después.",
+  "sowingMissingLossesEnter": "Anotar muertas",
+  "sowingMissingLossesSave": "Guardar así",
   "helpSowingLostPlants": "Cuántas plantas se murieron o perdieron (plagas, clima, etc.).",
   "sowingReasonLabel": "Motivo (opcional)",
   "sowingAreaLabel": "Área (hectáreas, opcional)",
@@ -314,6 +323,18 @@
   "reportHarvestedTotal": "Total cosechado por cultivo",
   "reportHarvestKg": "Kg (normalizado)",
   "reportHarvestDestinations": "Por destino",
+  "@reportPendingWeightHarvests": {
+    "description": "Cosechas en racimo o cajón a las que les falta el peso total y por eso no suman kilos.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reportPendingWeightHarvests": "{count, plural, one{{count} cosecha sin peso} other{{count} cosechas sin peso}}",
+  "@reportPendingWeightSales": {
+    "description": "Ventas en racimo o cajón a las que les falta el peso total y por eso no suman kilos.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reportPendingWeightSales": "{count, plural, one{{count} venta sin peso} other{{count} ventas sin peso}}",
+  "reportPendingWeightTitle": "Sin peso (no entran en los kilos)",
+  "reportPendingWeightHint": "Anotá el peso total para que sumen kilos.",
   "reportPickupCostPerKg": "Costo de recogida por kg",
   "reportTotalCostPerKg": "Costo total por kg",
   "reportInvestmentEstablecimiento": "Inversión acumulada (establecimiento)",
@@ -349,9 +370,10 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "harvestWorkersCount": "{count, plural, one{{count} empleado} other{{count} empleados}}",
-  "harvestEquivalentKgLabel": "¿Cuántos kilos hacen?",
-  "harvestEquivalentKgHint": "Opcional. Peso total de los racimos recolectados.",
+  "harvestEquivalentKgLabel": "Peso total (kg)",
+  "harvestEquivalentKgHint": "Obligatorio: lo que pesaron los racimos o cajones juntos.",
   "harvestEquivalentKgInvalid": "Ingresa un número mayor que 0.",
+  "harvestEquivalentKgRequired": "Anota el peso total para poder contar los kilos.",
   "@harvestPriceLabel": {
     "description": "Precio por unidad de la cosecha; la unidad va al final",
     "placeholders": { "unit": { "type": "String" } }
@@ -366,6 +388,7 @@
   "harvestSalePreview": "Se registra la venta: {amount}",
 
   "reportPayrollSection": "Nómina del período",
+  "reportPayrollBudgetNote": "Esto es lo gastado por tarea; el presupuesto de caja es uno solo.",
   "reportPayrollWorker": "Trabajador",
   "reportPayrollDays": "Días",
   "reportPayrollSubtotal": "Subtotal",
@@ -385,6 +408,7 @@
   "perHaNoAreaHint": "Registra el área de tus cultivos (edita el cultivo) para ver su desempeño por hectárea: rendimiento, ingresos y gastos normalizados.",
   "perHaYieldLabel": "Rendimiento del período",
   "perHaYieldPlantLabel": "Rendimiento por planta del período",
+  "perHaPerPlantNote": "kg/planta es el promedio del cultivo; incluye plantas que aún no producen.",
   "@yieldAvgHaLabel": {
     "description": "Promedio anual del propio productor. No es una tabla externa: sale de sus cosechas de años cerrados",
     "placeholders": { "years": { "type": "int" } }
@@ -673,7 +697,7 @@
   "jornalHarvestedKgNoCrop": "Elegí el cultivo para anotar los kilos.",
   "jornalHarvestedKgInvalid": "Ingresa los kilos recolectados (mayor que 0).",
   "cashBoxLabel": "Aporte mensual de caja",
-  "cashBoxHelp": "Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.",
+  "cashBoxHelp": "Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente. El aporte rige desde este mes: los meses anteriores no se recalculan.",
   "cashBoxCarry": "Lo arrastrado de meses anteriores",
   "cashBoxMonthly": "Aporte del mes",
   "cashBoxTitle": "Caja menor",
@@ -1415,6 +1439,41 @@
   },
   "terrenoCropCount":
       "{count, plural, one{{count} cultivo} other{{count} cultivos}}",
+  "@terrenoAreaAssigned": {
+    "description":
+        "Área de los cultivos asignada a un terreno, comparada con la del terreno",
+    "placeholders": {
+      "assigned": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "terrenoAreaAssigned": "{assigned} de {total} ha asignadas",
+  "@terrenoAreaOver": {
+    "description":
+        "Aviso en ámbar: las áreas de los cultivos superan el área del terreno. No bloquea el guardado.",
+    "placeholders": {
+      "assigned": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "terrenoAreaOver":
+      "Las áreas suman {assigned} ha y el terreno tiene {total}",
+  "@terrenoAreaWithoutArea": {
+    "description": "Cultivos del terreno que todavía no tienen área anotada",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "terrenoAreaWithoutArea":
+      "{count, plural, one{{count} cultivo sin área} other{{count} cultivos sin área}}",
+  "@cropAreaShareHelp": {
+    "description":
+        "Ayuda en el editor de cultivo: cuánto del terreno ya está asignado entre sus cultivos",
+    "placeholders": {
+      "terreno": { "type": "String" },
+      "assigned": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "cropAreaShareHelp": "En {terreno}: {assigned} de {total} ha asignadas",
   "@deleteTerrenoTitle": {
     "description": "Título del aviso previo a borrar un terreno"
   },

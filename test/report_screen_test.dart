@@ -1139,4 +1139,44 @@ void main() {
     expect(find.text(stringsFor('es').cropTerrenoNone), findsNothing,
         reason: 'sin terrenos no hay nada que agrupar');
   });
+
+  testWidgets('T6: «sin peso» lista la cosecha y baja al anotar el peso',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 8000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final crop = await provider.addCrop('Plátano');
+    final h = await provider.addHarvest(
+      cropId: crop.id,
+      date: DateTime.now(),
+      amount: 12,
+      unit: 'racimo',
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final es = stringsFor('es');
+    expect(find.text(es.reportPendingWeightTitle), findsOneWidget);
+    expect(find.text(es.reportPendingWeightHarvests(1)), findsOneWidget);
+
+    // Al completar el peso, la tarjeta baja el contador sin recargar nada.
+    await provider.updateHarvest(h.copyWith(equivalentKg: 240.0));
+    await tester.pumpAndSettle();
+
+    expect(find.text(es.reportPendingWeightTitle), findsNothing,
+        reason: 'ya no hay nada pendiente: 240 kg anotados');
+  });
 }

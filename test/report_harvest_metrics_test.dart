@@ -11,6 +11,7 @@ Harvest _h({
   required DateTime date,
   required double amount,
   String unit = 'kg',
+  double? equivalentKg,
   HarvestDestination destination = HarvestDestination.vendido,
 }) {
   return Harvest(
@@ -19,6 +20,7 @@ Harvest _h({
     date: date,
     amount: amount,
     unit: unit,
+    equivalentKg: equivalentKg,
     destination: destination,
   );
 }
@@ -28,6 +30,7 @@ Transaction _sale({
   required double amount,
   double? quantity,
   String unit = 'kg',
+  double? equivalentKg,
   TransactionType type = TransactionType.income,
   bool deleted = false,
 }) {
@@ -38,6 +41,7 @@ Transaction _sale({
     amount: amount,
     quantity: quantity,
     unit: unit,
+    equivalentKg: equivalentKg,
     deleted: deleted,
     date: DateTime(2026, 5, 1),
     createdAt: DateTime(2026, 5, 1),
@@ -102,6 +106,29 @@ void main() {
       final rows = [_sale(id: 't1', amount: 10000)];
       expect(metrics.avgSalePricePerKg(rows), isNull);
       expect(metrics.avgSalePricePerKg(const []), isNull);
+    });
+
+    test('una venta en racimo usa el peso, no 1 kg por racimo', () {
+      final rows = [
+        _sale(
+          id: 't1',
+          amount: 1200000,
+          quantity: 12,
+          unit: 'racimo',
+          equivalentKg: 240,
+        ),
+      ];
+      expect(metrics.avgSalePricePerKg(rows), 5000,
+          reason: '1.200.000 / 240 kg, no / 12');
+    });
+
+    test('una venta en racimo sin peso no entra al promedio', () {
+      final rows = [
+        _sale(id: 't1', amount: 10000, quantity: 10),
+        _sale(id: 't2', amount: 900000, quantity: 12, unit: 'racimo'),
+      ];
+      expect(metrics.avgSalePricePerKg(rows), 1000,
+          reason: 'los kilos del racimo no se conocen: se calla esa venta');
     });
   });
 
@@ -454,6 +481,158 @@ void main() {
     test('pickupCostPerKg no cuenta el jornal como gasto de recogida', () {
       expect(metrics.pickupCostPerKg([jornal()], [cosechado]), 0,
           reason: 'el jornal no tiene harvestId: el numerador no cambia');
+    });
+  });
+
+  group('D1 · racimo y cajón usan el peso, no 1 kg por unidad', () {
+    final racimos = [
+      _h(
+        id: 'h1',
+        cropId: 'platano',
+        date: DateTime(2026, 5, 1),
+        amount: 12,
+        unit: 'racimo',
+        equivalentKg: 240,
+      ),
+    ];
+
+    test('12 racimos con 240 kg suman 240 kg, no 12', () {
+      final total = metrics.totalsByCrop(racimos, crops).single;
+      expect(total.amount, 12, reason: 'la cantidad sigue siendo 12 racimos');
+      expect(total.kg, 240, reason: 'los kilos son los del peso anotado');
+    });
+
+    test('10 cajones con 200 kg suman 200 kg', () {
+      final total = metrics
+          .totalsByCrop([
+            _h(
+              id: 'h2',
+              cropId: 'cafe',
+              date: DateTime(2026, 5, 1),
+              amount: 10,
+              unit: 'cajon',
+              equivalentKg: 200,
+            ),
+          ], crops)
+          .single;
+      expect(total.kg, 200);
+    });
+
+    test('sin peso no suma kilos ni inventa 1 por unidad', () {
+      final total = metrics
+          .totalsByCrop([
+            _h(
+              id: 'h3',
+              cropId: 'platano',
+              date: DateTime(2026, 5, 1),
+              amount: 12,
+              unit: 'racimo',
+            ),
+          ], crops)
+          .single;
+      expect(total.amount, 12);
+      expect(total.kg, 0, reason: 'sin peso no hay kilos que sumar');
+    });
+
+    test('kg/ha y kg/planta usan el peso real', () {
+      expect(metrics.yieldPerArea(racimos, 2), 120);
+      expect(metrics.yieldPerPlant(racimos, 100), 2.4);
+    });
+
+    test('el costo por kilo se calcula sobre los kilos reales', () {
+      expect(
+        metrics.periodCostPerKg(100000, racimos),
+        closeTo(100000 / 240, 0.01),
+      );
+    });
+  });
+
+  group('Tanda 4 · registros sin peso', () {
+    test('una cosecha en racimo sin peso se lista; con peso, no', () {
+      final rows = [
+        _h(
+          id: 'h1',
+          cropId: 'platano',
+          date: DateTime(2026, 5, 1),
+          amount: 12,
+          unit: 'racimo',
+        ),
+        _h(
+          id: 'h2',
+          cropId: 'platano',
+          date: DateTime(2026, 5, 2),
+          amount: 10,
+          unit: 'racimo',
+          equivalentKg: 200,
+        ),
+        _h(
+          id: 'h3',
+          cropId: 'cafe',
+          date: DateTime(2026, 5, 3),
+          amount: 5,
+          unit: 'kg',
+        ),
+      ];
+      expect(pendingWeightHarvests(rows).map((h) => h.id), ['h1'],
+          reason: 'solo la que no tiene peso: las demás ya suman kilos');
+    });
+
+    test('una venta en cajón sin peso se lista; con peso, gasto o borrada, no',
+        () {
+      final rows = [
+        _sale(id: 't1', amount: 1, quantity: 10, unit: 'cajon'),
+        _sale(
+          id: 't2',
+          amount: 1,
+          quantity: 10,
+          unit: 'cajon',
+          equivalentKg: 200,
+        ),
+        _sale(
+          id: 't3',
+          amount: 1,
+          quantity: 10,
+          unit: 'cajon',
+          type: TransactionType.expense,
+        ),
+        _sale(
+          id: 't4',
+          amount: 1,
+          quantity: 10,
+          unit: 'cajon',
+          deleted: true,
+        ),
+        _sale(id: 't5', amount: 1, quantity: 10),
+      ];
+      expect(pendingWeightSales(rows).map((t) => t.id), ['t1']);
+    });
+
+    test('con todo completo no queda nada pendiente', () {
+      expect(
+        pendingWeightHarvests([
+          _h(
+            id: 'h1',
+            cropId: 'platano',
+            date: DateTime(2026, 5, 1),
+            amount: 12,
+            unit: 'racimo',
+            equivalentKg: 240,
+          ),
+        ]),
+        isEmpty,
+      );
+      expect(
+        pendingWeightSales([
+          _sale(
+            id: 't1',
+            amount: 1,
+            quantity: 10,
+            unit: 'cajon',
+            equivalentKg: 200,
+          ),
+        ]),
+        isEmpty,
+      );
     });
   });
 }

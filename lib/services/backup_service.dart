@@ -320,6 +320,11 @@ FarmSettings mergeBackupSettings(FarmSettings local, FarmSettings backup) {
     // el presupuesto de obra que ya está configurado aquí.
     presupuestoObraMensual:
         backup.presupuestoObraMensual ?? local.presupuestoObraMensual,
+    // Tanda 4 · un respaldo sin historial no borra el que ya existe aquí; el
+    // que trae historial sí manda (es el estado real de esa cuenta).
+    cashBudgetHistory: backup.cashBudgetHistory.isEmpty
+        ? local.cashBudgetHistory
+        : backup.cashBudgetHistory,
     // Misma regla de arriba: un respaldo viejo (sin la clave, así que con el
     // 70 de la norma) **no** puede pisarle el 60 que ya configuró aquí.
     sacoKg: backup.sacoKg == defaults.sacoKg ? local.sacoKg : backup.sacoKg,

@@ -16,6 +16,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// T12 · una resiembra con plantas y sin muertas pregunta antes de guardar.
+  Future<void> confirmSave(WidgetTester tester) async {
+    final guardarAsi = find.text(es.sowingMissingLossesSave);
+    if (guardarAsi.evaluate().isNotEmpty) {
+      await tester.tap(guardarAsi);
+      await tester.pumpAndSettle();
+    }
+  }
+
   testWidgets('la casilla solo aparece en resiembra', (tester) async {
     bigScreen(tester);
     final provider = await makeTx();
@@ -58,6 +67,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first, '50');
     await tester.tap(find.text(es.add).last);
     await tester.pumpAndSettle();
+    await confirmSave(tester);
 
     expect(provider.sowings, hasLength(1));
     expect(provider.crops.single.phase, CropPhase.establecimiento);
@@ -84,6 +94,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first, '30');
     await tester.tap(find.text(es.add).last);
     await tester.pumpAndSettle();
+    await confirmSave(tester);
 
     expect(provider.sowings, hasLength(1));
     expect(provider.crops.single.phase, CropPhase.renovacion);

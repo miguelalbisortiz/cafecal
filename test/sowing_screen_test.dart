@@ -137,6 +137,9 @@ void main() {
 
     await tester.tap(find.widgetWithText(FilledButton, l10n.add));
     await tester.pumpAndSettle();
+    // T12 · sin muertas anotadas la app pregunta una vez; se guarda igual.
+    await tester.tap(find.text(l10n.sowingMissingLossesSave));
+    await tester.pumpAndSettle();
 
     expect(provider.sowings, hasLength(1));
     expect(

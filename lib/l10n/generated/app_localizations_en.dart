@@ -209,6 +209,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpCaseB4 => 'When it starts Producing, follow the Case A flow: the sales, and that is where your harvest comes from.';
 
   @override
+  String get helpCaseCTitle => 'Renewing the whole plantation';
+
+  @override
+  String get helpCaseC1 => 'A full renewal is recorded as a new sowing of the same crop.';
+
+  @override
+  String get helpCaseC2 => 'That resets age, plants and area; old harvests stay in the history.';
+
+  @override
+  String get helpCaseC3 => 'If crops share the same plot (coffee with plantain, for example), the clearest way is to create a separate crop for each.';
+
+  @override
+  String get helpCaseCEnd => 'Nothing needs to be deleted: the history still counts what already happened.';
+
+  @override
   String get helpUnitsTitle => 'Units';
 
   @override
@@ -748,6 +763,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingLostPlantsLabel => 'Lost plants (losses)';
 
   @override
+  String get sowingMissingLossesTitle => 'You entered new plants without losses';
+
+  @override
+  String get sowingMissingLossesBody => 'In a replant, it helps to record how many plants were lost: that is what lowers the crop count. You can save as is and complete it later.';
+
+  @override
+  String get sowingMissingLossesEnter => 'Enter losses';
+
+  @override
+  String get sowingMissingLossesSave => 'Save as is';
+
+  @override
   String get helpSowingLostPlants => 'How many plants died or were lost (pests, weather, etc.).';
 
   @override
@@ -886,6 +913,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportHarvestDestinations => 'By destination';
 
   @override
+  String reportPendingWeightHarvests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count harvests without weight',
+      one: '$count harvest without weight',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reportPendingWeightSales(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sales without weight',
+      one: '$count sale without weight',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reportPendingWeightTitle => 'Missing weight (not counted in kilos)';
+
+  @override
+  String get reportPendingWeightHint => 'Enter the total weight so they count toward kilos.';
+
+  @override
   String get reportPickupCostPerKg => 'Picking cost per kg';
 
   @override
@@ -992,13 +1047,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get harvestEquivalentKgLabel => 'How many kilos does that make?';
+  String get harvestEquivalentKgLabel => 'Total weight (kg)';
 
   @override
-  String get harvestEquivalentKgHint => 'Optional. Total weight of the collected bunches.';
+  String get harvestEquivalentKgHint => 'Required: what the bunches or boxes weighed together.';
 
   @override
   String get harvestEquivalentKgInvalid => 'Enter a number greater than 0.';
+
+  @override
+  String get harvestEquivalentKgRequired => 'Enter the total weight so the kilos can be counted.';
 
   @override
   String harvestPriceLabel(String unit) {
@@ -1018,6 +1076,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportPayrollSection => 'Payroll of the period';
+
+  @override
+  String get reportPayrollBudgetNote => 'This is what was spent per task; the cash budget is a single one.';
 
   @override
   String get reportPayrollWorker => 'Worker';
@@ -1062,6 +1123,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get perHaYieldPlantLabel => 'Yield per plant for the period';
+
+  @override
+  String get perHaPerPlantNote => 'kg/plant is the crop average; it includes plants that are not producing yet.';
 
   @override
   String yieldAvgHaLabel(int years) {
@@ -1756,7 +1820,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashBoxLabel => 'Monthly cash contribution';
 
   @override
-  String get cashBoxHelp => 'What you take out of the farm each month: it covers day labor and small expenses. Whatever you don\'t spend isn\'t lost — it rolls over to next month.';
+  String get cashBoxHelp => 'What you take out of the farm each month: it covers day labor and small expenses. Whatever you don\'t spend isn\'t lost — it rolls over to next month. The contribution starts this month: previous months are not recalculated.';
 
   @override
   String get cashBoxCarry => 'Carried over from previous months';
@@ -2939,6 +3003,32 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '$count crop',
     );
     return '$_temp0';
+  }
+
+  @override
+  String terrenoAreaAssigned(String assigned, String total) {
+    return '$assigned of $total ha assigned';
+  }
+
+  @override
+  String terrenoAreaOver(String assigned, String total) {
+    return 'Areas add up to $assigned ha and the plot has $total';
+  }
+
+  @override
+  String terrenoAreaWithoutArea(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count crops without area',
+      one: '$count crop without area',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cropAreaShareHelp(String terreno, String assigned, String total) {
+    return 'In $terreno: $assigned of $total ha assigned';
   }
 
   @override

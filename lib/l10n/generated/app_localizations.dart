@@ -491,6 +491,36 @@ abstract class AppLocalizations {
   /// **'Cuando empiece a dar fruto y pases a Dando, sigue el flujo del caso anterior: las ventas, y de ahí sale tu cosecha.'**
   String get helpCaseB4;
 
+  /// No description provided for @helpCaseCTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Renovar el cafetal completo'**
+  String get helpCaseCTitle;
+
+  /// No description provided for @helpCaseC1.
+  ///
+  /// In es, this message translates to:
+  /// **'Una renovación completa se anota como una siembra nueva del mismo cultivo.'**
+  String get helpCaseC1;
+
+  /// No description provided for @helpCaseC2.
+  ///
+  /// In es, this message translates to:
+  /// **'Eso reinicia la edad, las plantas y el área; las cosechas viejas quedan en el historial.'**
+  String get helpCaseC2;
+
+  /// No description provided for @helpCaseC3.
+  ///
+  /// In es, this message translates to:
+  /// **'Si en el mismo lote conviven cultivos (café con plátano, por ejemplo), lo más claro es crear un cultivo aparte para cada uno.'**
+  String get helpCaseC3;
+
+  /// No description provided for @helpCaseCEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay que borrar nada: el historial sigue contando lo que ya pasó.'**
+  String get helpCaseCEnd;
+
   /// No description provided for @helpUnitsTitle.
   ///
   /// In es, this message translates to:
@@ -1481,6 +1511,30 @@ abstract class AppLocalizations {
   /// **'Plantas perdidas (bajas)'**
   String get sowingLostPlantsLabel;
 
+  /// No description provided for @sowingMissingLossesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Anotaste plantas nuevas sin muertas'**
+  String get sowingMissingLossesTitle;
+
+  /// No description provided for @sowingMissingLossesBody.
+  ///
+  /// In es, this message translates to:
+  /// **'En una resiembra conviene anotar cuántas matas se perdieron: es lo que baja el contador del cultivo. Podés guardar así y completarlo después.'**
+  String get sowingMissingLossesBody;
+
+  /// No description provided for @sowingMissingLossesEnter.
+  ///
+  /// In es, this message translates to:
+  /// **'Anotar muertas'**
+  String get sowingMissingLossesEnter;
+
+  /// No description provided for @sowingMissingLossesSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar así'**
+  String get sowingMissingLossesSave;
+
   /// No description provided for @helpSowingLostPlants.
   ///
   /// In es, this message translates to:
@@ -1757,6 +1811,30 @@ abstract class AppLocalizations {
   /// **'Por destino'**
   String get reportHarvestDestinations;
 
+  /// Cosechas en racimo o cajón a las que les falta el peso total y por eso no suman kilos.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} cosecha sin peso} other{{count} cosechas sin peso}}'**
+  String reportPendingWeightHarvests(int count);
+
+  /// Ventas en racimo o cajón a las que les falta el peso total y por eso no suman kilos.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} venta sin peso} other{{count} ventas sin peso}}'**
+  String reportPendingWeightSales(int count);
+
+  /// No description provided for @reportPendingWeightTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin peso (no entran en los kilos)'**
+  String get reportPendingWeightTitle;
+
+  /// No description provided for @reportPendingWeightHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Anotá el peso total para que sumen kilos.'**
+  String get reportPendingWeightHint;
+
   /// No description provided for @reportPickupCostPerKg.
   ///
   /// In es, this message translates to:
@@ -1940,13 +2018,13 @@ abstract class AppLocalizations {
   /// No description provided for @harvestEquivalentKgLabel.
   ///
   /// In es, this message translates to:
-  /// **'¿Cuántos kilos hacen?'**
+  /// **'Peso total (kg)'**
   String get harvestEquivalentKgLabel;
 
   /// No description provided for @harvestEquivalentKgHint.
   ///
   /// In es, this message translates to:
-  /// **'Opcional. Peso total de los racimos recolectados.'**
+  /// **'Obligatorio: lo que pesaron los racimos o cajones juntos.'**
   String get harvestEquivalentKgHint;
 
   /// No description provided for @harvestEquivalentKgInvalid.
@@ -1954,6 +2032,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ingresa un número mayor que 0.'**
   String get harvestEquivalentKgInvalid;
+
+  /// No description provided for @harvestEquivalentKgRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Anota el peso total para poder contar los kilos.'**
+  String get harvestEquivalentKgRequired;
 
   /// Precio por unidad de la cosecha; la unidad va al final
   ///
@@ -1984,6 +2068,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Nómina del período'**
   String get reportPayrollSection;
+
+  /// No description provided for @reportPayrollBudgetNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Esto es lo gastado por tarea; el presupuesto de caja es uno solo.'**
+  String get reportPayrollBudgetNote;
 
   /// No description provided for @reportPayrollWorker.
   ///
@@ -2068,6 +2158,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Rendimiento por planta del período'**
   String get perHaYieldPlantLabel;
+
+  /// No description provided for @perHaPerPlantNote.
+  ///
+  /// In es, this message translates to:
+  /// **'kg/planta es el promedio del cultivo; incluye plantas que aún no producen.'**
+  String get perHaPerPlantNote;
 
   /// Promedio anual del propio productor. No es una tabla externa: sale de sus cosechas de años cerrados
   ///
@@ -3404,7 +3500,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashBoxHelp.
   ///
   /// In es, this message translates to:
-  /// **'Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente.'**
+  /// **'Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente. El aporte rige desde este mes: los meses anteriores no se recalculan.'**
   String get cashBoxHelp;
 
   /// No description provided for @cashBoxCarry.
@@ -5308,6 +5404,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, one{{count} cultivo} other{{count} cultivos}}'**
   String terrenoCropCount(int count);
+
+  /// Área de los cultivos asignada a un terreno, comparada con la del terreno
+  ///
+  /// In es, this message translates to:
+  /// **'{assigned} de {total} ha asignadas'**
+  String terrenoAreaAssigned(String assigned, String total);
+
+  /// Aviso en ámbar: las áreas de los cultivos superan el área del terreno. No bloquea el guardado.
+  ///
+  /// In es, this message translates to:
+  /// **'Las áreas suman {assigned} ha y el terreno tiene {total}'**
+  String terrenoAreaOver(String assigned, String total);
+
+  /// Cultivos del terreno que todavía no tienen área anotada
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, one{{count} cultivo sin área} other{{count} cultivos sin área}}'**
+  String terrenoAreaWithoutArea(int count);
+
+  /// Ayuda en el editor de cultivo: cuánto del terreno ya está asignado entre sus cultivos
+  ///
+  /// In es, this message translates to:
+  /// **'En {terreno}: {assigned} de {total} ha asignadas'**
+  String cropAreaShareHelp(String terreno, String assigned, String total);
 
   /// Título del aviso previo a borrar un terreno
   ///

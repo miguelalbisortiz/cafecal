@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -49,6 +50,10 @@ class TransactionProvider extends ChangeNotifier {
     _terrenos = _store.loadTerrenos();
     _settingsDirty = _store.loadSettingsDirty();
     _deletedCrops = _store.loadDeletedCrops();
+    // Tanda 4 · primera vez con un aporte configurado: el historial arranca
+    // este mes. Sin historial no hay forma de saber qué regía antes, y
+    // reconstruirlo sería inventar.
+    _seedCashHistory();
     // P3 · Cuentas que **ya vendían** antes de que la cosecha se dedujera de
     // la venta: en el disco su fase sigue congelada en `establecimiento`
     // porque nadie pasó por `addHarvest`. Se promueve aquí, al abrir, sin
@@ -72,6 +77,7 @@ class TransactionProvider extends ChangeNotifier {
     // Igual que la dirty: si no se recarga, un cultivo borrado en la cuenta
     // anterior reviviría aquí (o se borraría sin querer en otra).
     _deletedCrops = _store.loadDeletedCrops();
+    _seedCashHistory();
     await reconcilePhaseFromHarvests();
     notifyListeners();
   }
@@ -253,6 +259,7 @@ class TransactionProvider extends ChangeNotifier {
     bool paid = true,
     String? task,
     double? harvestedKg,
+    double? equivalentKg,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -280,6 +287,7 @@ class TransactionProvider extends ChangeNotifier {
       paid: paid,
       task: task,
       harvestedKg: harvestedKg,
+      equivalentKg: equivalentKg,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
@@ -898,6 +906,23 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   // ---- Settings ----
+
+  /// Siembra el historial del aporte cuando todavía está vacío.
+  ///
+  /// Solo el mes en curso y solo una vez: los meses anteriores a la
+  /// configuración no tienen presupuesto y no suman ni restan.
+  void _seedCashHistory() {
+    final aporte = _settings.cajaMensualEfectiva;
+    if (aporte == null) return;
+    if (_settings.cashBudgetHistory.isNotEmpty) return;
+    final history = <String, double>{
+      cashBudgetMonthKey(DateTime.now()): aporte,
+    };
+    _settings = _settings.copyWith(cashBudgetHistory: history);
+    _settingsDirty = true;
+    unawaited(_store.saveSettings(_settings));
+    unawaited(_store.saveSettingsDirty(true));
+  }
 
   Future<void> updateSettings(FarmSettings settings) async {
     _settings = settings;

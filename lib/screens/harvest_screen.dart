@@ -5,6 +5,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/transaction.dart';
+import '../models/units.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
 
@@ -44,24 +45,7 @@ class HarvestScreen extends StatelessWidget {
 
   Future<void> _openForm(
       BuildContext context, TransactionProvider tx, Harvest? editing) async {
-    final crops = tx.crops;
-    final cropById = {for (final c in crops) c.id: c};
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (_) => _HarvestForm(
-        crops: crops,
-        cropById: cropById,
-        editing: editing,
-        linkedSale: editing == null ? null : _linkedSale(tx, editing),
-      ),
-    );
-    if (result != true || !context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(editing == null
-          ? AppLocalizations.of(context)!.harvestRecordSaved
-          : AppLocalizations.of(context)!.harvestRecordUpdated),
-      duration: const Duration(seconds: 1),
-    ));
+    await showHarvestForm(context, tx, editing: editing);
   }
 
   /// F1 · Venta que la app creó a partir de esta cosecha, si existe. Sirve
@@ -155,6 +139,40 @@ class HarvestScreen extends StatelessWidget {
       duration: const Duration(seconds: 1),
     ));
   }
+}
+
+/// Abre el formulario de cosecha, nueva o en edición, y avisa si guardó.
+///
+/// Es público para que Reportes abra **el mismo** editor desde la lista de
+/// «sin peso»: un solo formulario y un solo comportamiento, en vez de una
+/// copia que se desincronice con el paso del tiempo.
+///
+/// Devuelve `true` si el productor guardó.
+Future<bool> showHarvestForm(
+  BuildContext context,
+  TransactionProvider tx, {
+  Harvest? editing,
+}) async {
+  final crops = tx.crops;
+  final cropById = {for (final c in crops) c.id: c};
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (_) => _HarvestForm(
+      crops: crops,
+      cropById: cropById,
+      editing: editing,
+      linkedSale:
+          editing == null ? null : HarvestScreen._linkedSale(tx, editing),
+    ),
+  );
+  if (result != true || !context.mounted) return false;
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    content: Text(editing == null
+        ? AppLocalizations.of(context)!.harvestRecordSaved
+        : AppLocalizations.of(context)!.harvestRecordUpdated),
+    duration: const Duration(seconds: 1),
+  ));
+  return true;
 }
 
 class _HarvestForm extends StatefulWidget {
@@ -273,7 +291,7 @@ class _HarvestFormState extends State<_HarvestForm> {
     final workersText = _workersController.text.trim();
     if (workersText.isNotEmpty) workers = int.tryParse(workersText);
     double? equivalentKg;
-    if (_unit == 'racimo') {
+    if (unitNeedsWeight(_unit)) {
       final eqText = _equivalentKgController.text.trim().replaceAll(',', '.');
       if (eqText.isNotEmpty) equivalentKg = double.tryParse(eqText);
     }
@@ -499,7 +517,7 @@ class _HarvestFormState extends State<_HarvestForm> {
                   return null;
                 },
               ),
-              if (_unit == 'racimo') ...[
+              if (unitNeedsWeight(_unit)) ...[
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _equivalentKgController,
@@ -513,7 +531,9 @@ class _HarvestFormState extends State<_HarvestForm> {
                   ),
                   validator: (v) {
                     final t = (v ?? '').trim().replaceAll(',', '.');
-                    if (t.isEmpty) return null;
+                    if (t.isEmpty) {
+                      return l10n.harvestEquivalentKgRequired;
+                    }
                     final n = double.tryParse(t);
                     if (n == null || n <= 0) {
                       return l10n.harvestEquivalentKgInvalid;

@@ -194,6 +194,9 @@ List<Harvest> deriveHarvests({
       // lados miden lo mismo.
       amount: quantity,
       unit: unit,
+      // Tanda 4 · el peso viaja con la venta: doce racimos que pesaron
+      // 240 kg derivan una cosecha de 240 kg, no de 12.
+      equivalentKg: t.equivalentKg,
       destination: HarvestDestination.vendido,
       // Jamás se sube. El sync usa `storedHarvests`, pero aquí no se deja
       // al azar.

@@ -13,6 +13,7 @@ import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/excel_export_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart';
+import 'package:mi_cafetal/services/report_harvest_metrics.dart';
 
 /// **Paridad del export (SC-5).** Congela el contenido del PDF y del Excel
 /// **antes** de diferir las librerías: si al mover `pdf`/`excel` detrás de un
@@ -92,6 +93,27 @@ Future<TransactionProvider> _fixture() async {
     date: now,
   );
 
+  // Tanda 4 · peso variable: 12 racimos que pesaron 240 kg y una venta de 10
+  // cajones que pesaron 200 kg. Antes el export contaba 12 y 10 kilos.
+  final yuca = await p.addCrop('Yuca');
+  await p.addHarvest(
+    cropId: yuca.id,
+    date: now,
+    amount: 12,
+    unit: 'racimo',
+    equivalentKg: 240,
+  );
+  await p.addTransaction(
+    type: TransactionType.income,
+    category: kIncomeCategorySale,
+    amount: 200000,
+    cropId: yuca.id,
+    quantity: 10,
+    unit: 'cajon',
+    equivalentKg: 200,
+    date: now,
+  );
+
   return p;
 }
 
@@ -116,6 +138,18 @@ String _summaryTotal(Sheet sheet, String header) {
   final objects = RegExp(r'/Type\s*/Page(?![s])').allMatches(text).length;
   final countMatch = RegExp(r'/Count\s+(\d+)').firstMatch(text);
   return (objects: objects, count: int.tryParse(countMatch?.group(1) ?? '') ?? -1);
+}
+
+/// Kilos de un cultivo en la tabla «Total cosechado por cultivo» del Excel.
+double? _harvestKgFor(Sheet sheet, String crop) {
+  for (final row in sheet.rows) {
+    if (row.isEmpty) continue;
+    if (row.first?.value?.toString() != crop) continue;
+    final kg = row.length > 2 ? row[2]?.value : null;
+    final n = double.tryParse(kg?.toString() ?? '');
+    if (n != null) return n;
+  }
+  return null;
 }
 
 void main() {
@@ -156,8 +190,8 @@ void main() {
 
     // Los cuatro números, congelados a mano el 2026-10-20 (T2, build
     // `e9c2761`). Si cambian, es una decisión: no se actualizan a ciegas.
-    const filasEsperadas = 5;
-    const ingresosEsperados = 'COP 150.000 · USD 30,00';
+    const filasEsperadas = 6;
+    const ingresosEsperados = 'COP 350.000 · USD 30,00';
     const gastosEsperados = '(COP 150.000) · (USD 20,00)';
     const paginasEsperadas = 2;
 
@@ -172,5 +206,27 @@ void main() {
     // Las dos vías tienen que decir lo mismo; si no, manda `/Count`.
     expect(pages.count, paginasEsperadas,
         reason: 'el PDF cambió de páginas (Count del nodo /Pages)');
+
+    // Tanda 4 · los kilos de racimos y cajones salen del peso anotado, y el
+    // export no puede quedarse atrás de la pantalla.
+    const metrics = ReportHarvestMetrics();
+    final yuca = p.crops.firstWhere((c) => c.name == 'Yuca');
+    final yucaHarvests = p.harvests.where((h) => h.cropId == yuca.id).toList();
+    final totalYuca = metrics.totalsByCrop(yucaHarvests, p.crops).single;
+    expect(totalYuca.kg, 240, reason: '12 racimos pesaron 240 kg, no 12');
+
+    final svh = metrics
+        .soldVsHarvested(p.transactions, p.harvests, p.crops, now)
+        .firstWhere((r) => r.cropId == yuca.id);
+    expect(svh.soldKg, 200, reason: '10 cajones pesaron 200 kg, no 10');
+
+    final ventaCajones = p.transactions.firstWhere(
+        (t) => t.cropId == yuca.id && t.amount == 200000);
+    expect(metrics.avgSalePricePerKg([ventaCajones]), 1000,
+        reason: '200.000 / 200 kg');
+
+    final cosechas = book.tables[_es.excelSheetHarvests]!;
+    expect(_harvestKgFor(cosechas, 'Yuca'), 240,
+        reason: 'la hoja de cosechas del Excel también usa el peso real');
   });
 }

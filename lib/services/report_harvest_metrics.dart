@@ -14,6 +14,13 @@ class ReportHarvestMetrics {
 
   final double sacoKg;
 
+  /// Kilos de una cosecha, o 0 si falta el peso.
+  ///
+  /// Un racimo o un cajón sin peso **no suma** (D2): la lista de «sin peso»
+  /// los cuenta aparte para completarlos. Nunca 1 kg por unidad.
+  double _kgOf(Harvest h) =>
+      kgFromUnit(h.amount, h.unit, h.equivalentKg, sacoKg: sacoKg) ?? 0;
+
   /// Total cosechado por cultivo, en su unidad original y normalizado a kg.
   /// [harvests] ya debe estar filtrado al rango de fechas del reporte.
   List<CropHarvestTotal> totalsByCrop(List<Harvest> harvests,
@@ -30,7 +37,7 @@ class ReportHarvestMetrics {
                   : (nameById[h.cropId] ?? h.cropId!),
               unit: h.unit));
       a.amount += h.amount;
-      a.kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      a.kg += _kgOf(h);
     }
     final out = acc.entries
         .map((e) => CropHarvestTotal(
@@ -64,7 +71,7 @@ class ReportHarvestMetrics {
     double kg = 0;
     double pickup = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      kg += _kgOf(h);
     }
     for (final t in transactions) {
       if (t.deleted || !t.type.isExpense || t.harvestId == null) continue;
@@ -108,7 +115,7 @@ class ReportHarvestMetrics {
         crop.phase == CropPhase.produccion) {
       double kg = 0;
       for (final h in cropHarvests) {
-        kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+        kg += _kgOf(h);
       }
       if (kg <= 0) return null;
       if (cropAmountCurrencies(cropExpenses).length > 1) return null;
@@ -168,7 +175,7 @@ class ReportHarvestMetrics {
   double? periodCostPerKg(double expenses, List<Harvest> harvests) {
     double kg = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      kg += _kgOf(h);
     }
     return kg > 0 ? expenses / kg : null;
   }
@@ -185,7 +192,10 @@ class ReportHarvestMetrics {
       if (t.deleted || t.type.isExpense) continue;
       final qty = t.quantity ?? 0;
       if (qty <= 0) continue;
-      kg += qty * unitToKg(t.unit, sacoKg: sacoKg);
+      final qtKg = kgFromUnit(qty, t.unit, t.equivalentKg, sacoKg: sacoKg);
+      // Un racimo o un cajón sin peso no entra al promedio: no hay kilos.
+      if (qtKg == null) continue;
+      kg += qtKg;
       money += t.amount;
     }
     return kg > 0 ? money / kg : null;
@@ -197,7 +207,7 @@ class ReportHarvestMetrics {
     if (areaHa == null || areaHa <= 0) return null;
     double kg = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      kg += _kgOf(h);
     }
     return kg > 0 ? kg / areaHa : null;
   }
@@ -206,7 +216,7 @@ class ReportHarvestMetrics {
     if (livePlants == null || livePlants <= 0) return null;
     double kg = 0;
     for (final h in harvests) {
-      kg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      kg += _kgOf(h);
     }
     return kg > 0 ? kg / livePlants : null;
   }
@@ -246,8 +256,7 @@ class ReportHarvestMetrics {
       // cerrados y bajaría el promedio solo por haber sido tarde.
       if (h.date.year >= anioEnCurso) continue;
       kgPorAnio[h.date.year] =
-          (kgPorAnio[h.date.year] ?? 0) +
-              h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+          (kgPorAnio[h.date.year] ?? 0) + _kgOf(h);
     }
 
     final cerrados = kgPorAnio.keys.where((y) => kgPorAnio[y]! > 0).toList();
@@ -349,7 +358,8 @@ class ReportHarvestMetrics {
                   ? 'Sin cultivo'
                   : (nameById[t.cropId] ?? t.cropId!),
               cropId: t.cropId));
-      a.soldKg += (t.quantity ?? 0) * unitToKg(t.unit, sacoKg: sacoKg);
+      final kg = kgFromUnit(t.quantity ?? 0, t.unit, t.equivalentKg, sacoKg: sacoKg);
+      if (kg != null) a.soldKg += kg;
     }
     for (final h in harvests) {
       if (!h.date.isAfter(cutoff)) continue;
@@ -360,7 +370,7 @@ class ReportHarvestMetrics {
                   ? 'Sin cultivo'
                   : (nameById[h.cropId] ?? h.cropId!),
               cropId: h.cropId));
-      a.harvestedKg += h.amount * unitToKg(h.unit, sacoKg: sacoKg);
+      a.harvestedKg += _kgOf(h);
     }
     return acc.entries
         .map((e) => SoldVsHarvested(
@@ -432,3 +442,29 @@ class SoldVsHarvested {
     required this.harvestedKg,
   });
 }
+
+/// Cosechas que no suman kilos porque su unidad necesita peso y no lo tiene.
+///
+/// No es un error del productor ni una cifra que se rellene: es una lista para
+/// completar. Mientras falte el peso, la cosecha cuenta su cantidad (12
+/// racimos) pero no sus kilos.
+List<Harvest> pendingWeightHarvests(Iterable<Harvest> harvests) => harvests
+    .where((h) =>
+        unitNeedsWeight(h.unit) &&
+        (h.equivalentKg == null || h.equivalentKg! <= 0))
+    .toList();
+
+/// Ventas que no suman kilos porque su unidad necesita peso y no lo tiene.
+///
+/// Solo ventas vivas con cantidad: un gasto o una fila borrada no entra a los
+/// totales, así que tampoco tiene nada que completar.
+List<Transaction> pendingWeightSales(Iterable<Transaction> transactions) =>
+    transactions
+        .where((t) =>
+            !t.deleted &&
+            !t.type.isExpense &&
+            isSaleCategory(t.category) &&
+            unitNeedsWeight(t.unit) &&
+            (t.quantity ?? 0) > 0 &&
+            (t.equivalentKg == null || t.equivalentKg! <= 0))
+        .toList();

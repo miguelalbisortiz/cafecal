@@ -55,8 +55,18 @@ class FarmSettings {
   /// con el calendario, igual que la caja.
   final double? presupuestoObraMensual;
 
-  /// A2 · peso real de un saco de café, en kg.
+  /// Tanda 4 · el aporte que regía en cada mes, con clave `YYYY-MM`.
   ///
+  /// `cajaMenorMensual` es el aporte de **hoy**: si cambia, todos los meses
+  /// viejos cambiarían con él y el arrastre de la caja mentiría. Aquí queda
+  /// escrito una vez por mes, y el pasado no se recalcula nunca.
+  ///
+  /// Vacío = todavía no se sembró (cuenta nueva o datos anteriores a la
+  /// tanda 4): los meses sin entrada no tienen presupuesto y no suman ni
+  /// restan en el arrastre. Un valor `0` es explícito: ese mes no hubo aporte.
+  final Map<String, double> cashBudgetHistory;
+
+  /// A2 · peso real de un saco de café, en kg.  ///
   /// La norma dice 70, pero en la finca el costal puede pesar 60. Este número
   /// manda para pasar **todo** a kilogramos (reportes, PDF, Excel y alertas).
   /// Nunca es `null`: si no lo tocó, vale 70.
@@ -78,6 +88,7 @@ class FarmSettings {
     this.lowPriceThresholdPerKg,
     this.cajaMenorMensual,
     this.presupuestoObraMensual,
+    this.cashBudgetHistory = const {},
     this.sacoKg = 70,
   });
 
@@ -90,6 +101,7 @@ class FarmSettings {
     Object? lowPriceThresholdPerKg = _sentinel,
     Object? cajaMenorMensual = _sentinel,
     Object? presupuestoObraMensual = _sentinel,
+    Map<String, double>? cashBudgetHistory,
     double? sacoKg,
   }) {
     return FarmSettings(
@@ -119,6 +131,9 @@ class FarmSettings {
       presupuestoObraMensual: presupuestoObraMensual == _sentinel
           ? this.presupuestoObraMensual
           : (presupuestoObraMensual as num?)?.toDouble(),
+      // Mapa completo, no por clave: el historial se reescribe entero al
+      // guardar un mes, y un mapa inmutable nuevo evita mutar el anterior.
+      cashBudgetHistory: cashBudgetHistory ?? this.cashBudgetHistory,
       // Como nunca es null no necesita sentinela: `??` basta, igual que
       // `farmName` más arriba — solo se cambia si se pasa un valor.
       sacoKg: sacoKg ?? this.sacoKg,
@@ -158,6 +173,9 @@ class FarmSettings {
         // presupuesto", y eso es null, no 0.
         if (presupuestoObraMensual != null)
           'presupuesto_obra_mensual': presupuestoObraMensual,
+        // Siempre, aunque esté vacío: el sync necesita poder borrar el
+        // historial si el usuario lo reinicia.
+        'cash_budget_history': cashBudgetHistory,
         'saco_kg': sacoKg,
       };
 
@@ -177,8 +195,45 @@ class FarmSettings {
       // presupuesto → la caja menor actúa como siempre.
       presupuestoObraMensual:
           (json['presupuesto_obra_mensual'] as num?)?.toDouble(),
+      // Respaldos viejos no traen la clave → {} → sin historial, y los meses
+      // sin entrada no suman ni restan (nunca se inventa el pasado).
+      cashBudgetHistory: _historyFromJson(json['cash_budget_history']),
       // Respaldos viejos no traen la clave → 70, el de la norma.
       sacoKg: (json['saco_kg'] as num?)?.toDouble() ?? 70,
     );
   }
+}
+
+/// Lee el historial de aportes de un JSON, tirando lo que no sea número.
+Map<String, double> _historyFromJson(Object? raw) {
+  if (raw is! Map) return const {};
+  final out = <String, double>{};
+  raw.forEach((key, value) {
+    if (value is num) out[key.toString()] = value.toDouble();
+  });
+  return out;
+}
+
+/// Clave `YYYY-MM` del historial de aportes.
+String cashBudgetMonthKey(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}';
+
+/// Aporte de caja que regía en [year]-[month].
+///
+/// Es el último monto anotado con clave menor o igual a ese mes: un aporte
+/// rige **desde que se configura**, no hacia atrás. Devuelve `null` cuando no
+/// hay ninguno o cuando el último es `0` (ese mes no hubo aporte, explícito).
+double? budgetForMonth(Map<String, double> history, int year, int month) {
+  final target = cashBudgetMonthKey(DateTime(year, month));
+  String? best;
+  for (final key in history.keys) {
+    // Basura de un respaldo viejo: no se usa ni se compara.
+    if (key.length != 7) continue;
+    if (key.compareTo(target) > 0) continue;
+    if (best == null || key.compareTo(best) > 0) best = key;
+  }
+  if (best == null) return null;
+  final value = history[best];
+  return (value != null && value > 0) ? value : null;
 }

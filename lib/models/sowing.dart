@@ -183,6 +183,12 @@ Map<String, ({int livePlants, double? areaHa})> recomputeCropState(
 
 /// El día calendario de una fecha, sin la hora.
 DateTime _dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
+/// T12 · ¿falta anotar la mortandad en una resiembra?
+///
+/// Solo cuando es resiembra, hay plantas nuevas y el campo quedó en blanco.
+/// `lostPlants == 0` es una respuesta explícita y no se vuelve a preguntar.
+bool resiembraMissingLosses(SowingKind kind, int plants, int? lostPlants) =>
+    kind == SowingKind.resiembra && plants > 0 && lostPlants == null;
 
 /// Dentro de un mismo día: primero la siembra (fija el contador), después la
 /// resiembra (lo ajusta).

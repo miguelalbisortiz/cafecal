@@ -31,6 +31,8 @@ import '../services/report_insights_service.dart';
 import '../services/report_payroll_metrics.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
+import 'harvest_screen.dart';
+import 'register_screen.dart';
 import '../widgets/currency_breakdown.dart';
 import '../widgets/per_hectare_panel.dart';
 import '../widgets/period_totals.dart';
@@ -905,6 +907,10 @@ class _ReportScreenState extends State<ReportScreen> {
     final staffHarvests = harvests
         .where((h) => h.workers != null || h.equivalentKg != null)
         .toList();
+    // Tanda 4 · lo que no suma kilos porque le falta el peso. Se lista para
+    // completarlo, no se rellena con un 1 por unidad.
+    final pendingHarvests = pendingWeightHarvests(harvests);
+    final pendingSales = pendingWeightSales(_recordsFor(tx));
     final nameById = {for (final c in tx.crops) c.id: c.name};
     final scheme = Theme.of(context).colorScheme;
 
@@ -1017,6 +1023,106 @@ class _ReportScreenState extends State<ReportScreen> {
                   );
                 }),
               ],
+              if (pendingHarvests.isNotEmpty || pendingSales.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: scheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.monitor_weight_outlined,
+                            size: 18,
+                            color: scheme.onTertiaryContainer,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.reportPendingWeightTitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: scheme.onTertiaryContainer,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        [
+                          if (pendingHarvests.isNotEmpty)
+                            l10n.reportPendingWeightHarvests(
+                                pendingHarvests.length),
+                          if (pendingSales.isNotEmpty)
+                            l10n.reportPendingWeightSales(
+                                pendingSales.length),
+                        ].join(' · '),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onTertiaryContainer),
+                      ),
+                      ...pendingHarvests.map((h) => ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.agriculture_outlined,
+                                size: 18),
+                            title: Text(
+                              '${_fmtDate(h.date)} · '
+                              '${h.cropId == null ? l10n.cropUnspecified : (nameById[h.cropId] ?? h.cropId!)}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            subtitle: Text(
+                                '${_num(h.amount)} ${_unitLabel(h.unit, l10n)}'),
+                            trailing:
+                                const Icon(Icons.chevron_right, size: 18),
+                            onTap: () =>
+                                showHarvestForm(context, tx, editing: h),
+                          )),
+                      ...pendingSales.map((t) => ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            leading:
+                                const Icon(Icons.sell_outlined, size: 18),
+                            title: Text(
+                              '${_fmtDate(t.date)} · '
+                              '${t.cropId == null ? l10n.cropUnspecified : (nameById[t.cropId] ?? t.cropId!)}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            subtitle: Text(
+                                '${_num(t.quantity!)} ${_unitLabel(t.unit, l10n)}'),
+                            trailing:
+                                const Icon(Icons.chevron_right, size: 18),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => RegisterScreen(editing: t),
+                              ),
+                            ),
+                          )),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.reportPendingWeightHint,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onTertiaryContainer),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ],
         ),
@@ -1077,6 +1183,15 @@ class _ReportScreenState extends State<ReportScreen> {
                   .titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 4),
+            // T13 · la planilla no es un presupuesto: la caja es un solo
+            // pote y esto solo muestra en qué se fue.
+            Text(
+              l10n.reportPayrollBudgetNote,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
             const SizedBox(height: 8),
             if (mixed) ...[
               Text(
@@ -1129,7 +1244,8 @@ class _ReportScreenState extends State<ReportScreen> {
     final laborSeparate = (tx.settings.presupuestoObraMensual ?? 0) > 0;
     final rows = const ReportPayrollMetrics().cashBoxByMonth(
       periodTx: _recordsFor(tx),
-      budget: tx.settings.cajaMenorMensual,
+      budget: tx.settings.cajaMensualEfectiva,
+      budgetHistory: tx.settings.cashBudgetHistory,
       period: _reportPeriod,
       year: _year,
       month: _reportPeriodArg,
@@ -1804,6 +1920,18 @@ class _ReportScreenState extends State<ReportScreen> {
         HarvestDestination.vendido => l10n.harvestDstVendido,
         HarvestDestination.almacenado => l10n.harvestDstAlmacenado,
         HarvestDestination.perdida => l10n.harvestDstPerdida,
+      };
+
+  /// Nombre visible de una unidad, para la lista de «sin peso».
+  String _unitLabel(String? unit, AppLocalizations l10n) => switch (unit) {
+        'kg' => l10n.unitKg,
+        'lb' => l10n.unitLb,
+        'arroba' => l10n.unitArroba,
+        'saco' => l10n.unitSaco,
+        'carga' => l10n.unitCarga,
+        'racimo' => l10n.unitRacimo,
+        'cajon' => l10n.unitCajon,
+        _ => unit ?? '',
       };
 
   Future<void> _export(TransactionProvider tx, AppLocalizations l10n) async {

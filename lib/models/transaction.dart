@@ -89,6 +89,15 @@ class Transaction {
   /// no se deriva nada (nunca un 0 inventado).
   final double? harvestedKg;
 
+  /// Peso total de la venta, en kilos (tanda 4).
+  ///
+  /// Una venta en `racimo` o `cajon` no tiene factor fijo: el productor anota
+  /// cuántos racimos entregó y cuánto pesaron juntos. Sin este número no hay
+  /// kilos, y el precio por kilo, los totales y las exportaciones se callan —
+  /// nunca 1 kg por unidad. `null` en todas las demás unidades y en los datos
+  /// viejos.
+  final double? equivalentKg;
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -114,6 +123,7 @@ class Transaction {
     this.paid = true,
     this.task,
     this.harvestedKg,
+    this.equivalentKg,
   });
 
   /// Lo que realmente se pagó: lo entregado menos lo descontado.
@@ -165,6 +175,7 @@ class Transaction {
     bool? paid,
     Object? task = _keep,
     Object? harvestedKg = _keep,
+    Object? equivalentKg = _keep,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -206,6 +217,11 @@ class Transaction {
       harvestedKg: harvestedKg == _keep
           ? this.harvestedKg
           : (harvestedKg as num?)?.toDouble(),
+      // Sentinela: al cambiar la unidad de la venta hay que poder borrar el
+      // peso, no dejarlo escondido en un racimo que ya no existe.
+      equivalentKg: equivalentKg == _keep
+          ? this.equivalentKg
+          : (equivalentKg as num?)?.toDouble(),
     );
   }
 
@@ -234,6 +250,7 @@ class Transaction {
         'paid': paid,
         'task': task,
         'harvested_kg': harvestedKg,
+        'equivalent_kg': equivalentKg,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -266,6 +283,8 @@ class Transaction {
       task: json['task'] as String?,
       // Tanda 2 · clave ausente en respaldos viejos → null → sin cosecha.
       harvestedKg: (json['harvested_kg'] as num?)?.toDouble(),
+      // Tanda 4 · clave ausente en respaldos viejos → null → sin peso.
+      equivalentKg: (json['equivalent_kg'] as num?)?.toDouble(),
     );
   }
 }

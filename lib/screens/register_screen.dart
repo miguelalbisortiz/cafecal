@@ -8,6 +8,7 @@ import '../models/currencies.dart';
 import '../models/harvest.dart';
 import '../models/tasks.dart';
 import '../models/transaction.dart';
+import '../models/units.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
 import '../widgets/new_crop_dialog.dart';
@@ -39,6 +40,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _quantityController = TextEditingController();
+
+  /// Tanda 4 · el peso total de una venta en racimo o cajón. Sin él no hay
+  /// kilos: la venta no entra a los totales y se lista como «sin peso».
+  final _equivalentKgController = TextEditingController();
   final _clientController = TextEditingController();
   final _providerController = TextEditingController();
 
@@ -170,6 +175,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
       if (e.client != null) _clientController.text = e.client!;
       if (e.provider != null) _providerController.text = e.provider!;
+      if (e.equivalentKg != null) {
+        _equivalentKgController.text = (e.equivalentKg! % 1 == 0)
+            ? e.equivalentKg!.toInt().toString()
+            : e.equivalentKg!.toString();
+      }
       // E1 · la venta real: descuento y estado de pago.
       _hasDeduction = e.deductionQty != null && e.deductionQty! > 0;
       _paid = e.paid;
@@ -271,6 +281,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _amountController.dispose();
     _descriptionController.dispose();
     _quantityController.dispose();
+    _equivalentKgController.dispose();
     _clientController.dispose();
     _providerController.dispose();
     _jornalOtherNameController.dispose();
@@ -400,6 +411,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     double amount;
     double? quantity;
     String? unit;
+    double? equivalentKg;
     double? pricePerUnit;
     String? client;
     String? provider;
@@ -454,12 +466,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // categoría, pero el texto se queda en el controlador. El agricultor
       // escribe 50 en una Venta, se da cuenta de que era una SUBVENCIÓN y
       // la cambia, y esa subvención se guardaba con quantity=50 y unit=null.
-      // Aguas abajo, report_harvest_metrics suma `quantity * unitToKg(unit)`
-      // a «kg vendidos» sin comprobar que sea venta, y `unitToKg(null)` es
-      // 1. Un millón de subvención inflando cincuenta kilos vendidos.
+      // Aguas abajo, report_harvest_metrics convierte `quantity` a kilos con
+      // `kgFromUnit`, así que una subvención con cantidad guardada inflaría
+      // los kilos vendidos. La cantidad y la unidad solo viajan con una venta.
       quantity =
           (isSale && qtyText.isNotEmpty) ? double.tryParse(qtyText) : null;
-      unit = (isSale && quantity != null) ? (_unit ?? 'kg') : null;
+      // La unidad se guarda tal como se vio en pantalla: si el cultivo trae
+      // una por defecto, el desplegable la muestra aunque `_unit` siga null.
+      unit = (isSale && quantity != null) ? _effectiveUnit(tx) : null;
+      // Un racimo o un cajón no tienen kilos por sí solos: sin el peso total
+      // no hay cifra, y el formulario ya no deja guardar sin él.
+      if (unit != null && unitNeedsWeight(unit)) {
+        equivalentKg = double.tryParse(
+            _equivalentKgController.text.trim().replaceAll(',', '.'));
+        if (equivalentKg != null && equivalentKg <= 0) equivalentKg = null;
+      }
       client = isSale ? _clientController.text.trim() : null;
       provider = _type == TransactionType.expense
           ? _providerController.text.trim()
@@ -516,6 +537,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         paid: paid,
         task: task,
         harvestedKg: harvestedKg,
+        equivalentKg: equivalentKg,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -548,6 +570,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       paid: paid,
       task: task,
       harvestedKg: harvestedKg,
+      equivalentKg: equivalentKg,
     );
 
     // Recuerda lo elegido para preseleccionarlo la próxima vez.
@@ -916,8 +939,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 DropdownMenuItem(value: 'racimo', child: Text(l10n.unitRacimo)),
                 DropdownMenuItem(value: 'cajon', child: Text(l10n.unitCajon)),
               ],
-              onChanged: (v) => setState(() => _unit = v),
+              onChanged: (v) => setState(() {
+                _unit = v;
+                // Lo que se oculta no se guarda: al volver a kilos, el peso de
+                // los racimos no puede quedar escondido como si fuera de esta
+                // venta.
+                if (!unitNeedsWeight(v)) _equivalentKgController.clear();
+              }),
             ),
+            if (unitNeedsWeight(_effectiveUnit(tx))) ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _equivalentKgController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.harvestEquivalentKgLabel,
+                  helperText: l10n.harvestEquivalentKgHint,
+                  prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  final t = (v ?? '').trim().replaceAll(',', '.');
+                  if (t.isEmpty) return l10n.harvestEquivalentKgRequired;
+                  final n = double.tryParse(t);
+                  if (n == null || n <= 0) {
+                    return l10n.harvestEquivalentKgInvalid;
+                  }
+                  return null;
+                },
+              ),
+            ],
             const SizedBox(height: 12),
 
             // Cliente / comprador

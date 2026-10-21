@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/currencies.dart';
+import '../models/settings.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
 
@@ -87,6 +88,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? double.parse(sacoText)
         : null;
 
+    // Tanda 4 · el aporte rige desde este mes. Se anota en el historial y los
+    // meses anteriores quedan como estaban: cambiar hoy no reescribe el
+    // pasado. Vaciar el campo deja `0` explícito para este mes.
+    final history = Map<String, double>.from(tx.settings.cashBudgetHistory);
+    history[cashBudgetMonthKey(DateTime.now())] =
+        (caja != null && caja > 0) ? caja : 0;
+
     await tx.updateSettings(tx.settings.copyWith(
       farmName: _farmName.text.trim().isEmpty
           ? tx.settings.farmName
@@ -99,6 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // venía con los dos montos seguiría con el viejo doble.
       cajaMenorMensual: caja,
       presupuestoObraMensual: null,
+      cashBudgetHistory: history,
       sacoKg: saco,
     ));
     if (!mounted) return;

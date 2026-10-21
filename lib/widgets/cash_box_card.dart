@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import '../models/categories.dart';
+import '../models/settings.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../services/crop_totals.dart';
@@ -35,11 +36,16 @@ class CashBoxCard extends StatelessWidget {
     // Un solo pote: la obra ya va dentro de la caja (ver
     // FarmSettings.cajaMensualEfectiva). Quien venía con los dos montos no
     // pierde presupuesto: los dos se suman.
-    final budget = tx.settings.cajaMensualEfectiva;
+    //
+    // Tanda 4 · manda el aporte que rige ESTE mes en el historial. Si el
+    // productor lo cambió en julio, los meses viejos conservan el suyo.
+    final now = DateTime.now();
+    final history = tx.settings.cashBudgetHistory;
+    final budget = budgetForMonth(history, now.year, now.month) ??
+        tx.settings.cajaMensualEfectiva;
     if (budget == null || budget <= 0) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context)!;
-    final now = DateTime.now();
     final locale = tx.settings.numberLocale;
     final budgetCurrency = tx.settings.currency;
 
@@ -146,6 +152,7 @@ class CashBoxCard extends StatelessWidget {
     final carry = const ReportPayrollMetrics().cashCarryUpTo(
       allTx: tx.transactions,
       budget: budget,
+      budgetHistory: history,
       budgetCurrency: budgetCurrency,
       year: now.year,
       month: now.month,

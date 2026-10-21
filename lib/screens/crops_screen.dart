@@ -5,6 +5,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/sowing.dart';
 import '../models/terreno.dart';
+import '../services/terreno_area.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/format.dart';
 import '../widgets/crop_editor_dialog.dart';
@@ -143,6 +144,9 @@ class CropsScreen extends StatelessWidget {
   /// La lista de terrenos, en una tarjeta por encima de los cultivos.
   Widget _terrenosSection(BuildContext context, TransactionProvider tx,
       AppLocalizations l10n) {
+    final shares = {
+      for (final t in tx.terrenos) t.id: terrenoAreaShare(t, tx.crops),
+    };
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -172,7 +176,7 @@ class CropsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            for (final t in tx.terrenos)
+            for (final t in tx.terrenos) ...[
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
@@ -182,9 +186,14 @@ class CropsScreen extends StatelessWidget {
                 // lleva "0,00 ha": lleva lo que sepa decirse (el recuento).
                 subtitle: Text([
                   if (t.areaHa != null)
-                    // Misma forma que en el resto de la app (reportes,
-                    // per_ha): `2.00 ha`. Si no la midió, no se pinta nada.
-                    '${t.areaHa!.toStringAsFixed(2)} ha',
+                    // Con cultivos medidos se compara; sin ellos, el área
+                    // sola. Nunca un "0 de 8": eso diría que no hay nada.
+                    shares[t.id]!.assigned > 0
+                        ? l10n.terrenoAreaAssigned(
+                            shares[t.id]!.assigned.toStringAsFixed(2),
+                            t.areaHa!.toStringAsFixed(2),
+                          )
+                        : '${t.areaHa!.toStringAsFixed(2)} ha',
                   l10n.terrenoCropCount(
                       tx.crops.where((c) => c.terrenoId == t.id).length),
                 ].join(' · ')),
@@ -204,6 +213,47 @@ class CropsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              // Tanda 4 · el exceso se avisa en ámbar y no bloquea: dos
+              // cultivos pueden compartir el lote y las áreas son una
+              // estimación, no una escritura.
+              if (shares[t.id]!.over || shares[t.id]!.withoutArea > 0)
+                Padding(
+                  padding: const EdgeInsets.only(left: 40, bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (shares[t.id]!.over)
+                        Text(
+                          l10n.terrenoAreaOver(
+                            shares[t.id]!.assigned.toStringAsFixed(2),
+                            t.areaHa!.toStringAsFixed(2),
+                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color:
+                                    Theme.of(context).colorScheme.tertiary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      if (shares[t.id]!.withoutArea > 0)
+                        Text(
+                          l10n.terrenoAreaWithoutArea(
+                              shares[t.id]!.withoutArea),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
           ],
         ),
       ),
@@ -223,6 +273,7 @@ class CropsScreen extends StatelessWidget {
           existingNames: tx.crops.map((c) => c.name).toList(),
           // W1: vacío → el campo del terreno ni se enseña.
           terrenos: tx.terrenos,
+          crops: tx.crops,
           // Moneda única: el cultivo nuevo la hereda de la cuenta; el
           // editor ya no la pregunta.
           defaultCurrency: tx.settings.currency,
@@ -281,6 +332,7 @@ class CropsScreen extends StatelessWidget {
         suggestedEstablishmentCost: tx.initialSowingCost(crop.id),
         sowingsLocked: _hasInitialSowing(tx, crop),
         terrenos: tx.terrenos,
+        crops: tx.crops,
       ),
     );
     if (form == null || !context.mounted) return;

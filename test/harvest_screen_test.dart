@@ -173,4 +173,40 @@ void main() {
     expect(ventas.first.harvestId, provider.harvests.first.id);
     expect(provider.totalIncomes(year: 2026), 2400000);
   });
+
+  testWidgets('T4: racimo y cajón exigen el peso total antes de guardar',
+      (tester) async {
+    final provider = await makeProvider();
+    // El formulario abre con la unidad del cultivo; con racimo, el peso ya
+    // tiene que estar a la vista.
+    await provider.updateCrop(
+      provider.crops.first.copyWith(defaultUnit: 'racimo'),
+    );
+    await pump(tester, provider);
+    final l10n = l10nOf(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.harvestEquivalentKgLabel), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).first, '12');
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.harvestEquivalentKgRequired), findsOneWidget);
+    expect(provider.harvests, isEmpty,
+        reason: 'sin peso no se guarda: los kilos serían inventados');
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, l10n.harvestEquivalentKgLabel),
+        '240');
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(provider.harvests, hasLength(1));
+    expect(provider.harvests.single.unit, 'racimo');
+    expect(provider.harvests.single.amount, 12);
+    expect(provider.harvests.single.equivalentKg, 240);
+  });
 }

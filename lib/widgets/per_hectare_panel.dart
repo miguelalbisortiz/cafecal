@@ -163,6 +163,19 @@ class PerHectarePanel extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ...rows.map((r) => _cropBlock(context, metrics, r, l10n)),
+            // T11 · un kg/planta bajo no siempre es un mal cultivo: puede
+            // haber matas nuevas que todavía no producen. Se explica, no se
+            // corrige el cálculo.
+            if (rows.any((r) =>
+                r.yieldPerPlant != null || r.historical.kgPerPlant != null)) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.perHaPerPlantNote,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
           ],
         ),
       ),

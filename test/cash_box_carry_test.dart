@@ -4,11 +4,14 @@ import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/farm_alert.dart';
 import 'package:mi_cafetal/models/settings.dart';
 import 'package:mi_cafetal/models/transaction.dart';
+import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/services/alert_service.dart';
 import 'package:mi_cafetal/services/backup_service.dart'
     show mergeBackupSettings;
+import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart' show ReportPeriod;
 import 'package:mi_cafetal/services/report_payroll_metrics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// La caja es **un solo pote**: el aporte mensual cubre los jornales y los
 /// gastos chicos, y lo que no se gasta se arrastra al mes siguiente.
@@ -333,6 +336,138 @@ void main() {
       );
       expect(rows.first.labor, 0);
       expect(rows.first.extras, 150);
+    });
+  });
+
+  group('Tanda 4 · el aporte rige desde que se configura', () {
+    double? carryWithHistory(
+      List<Transaction> txns, {
+      Map<String, double> history = const {},
+      double? budget = 600,
+      int year = 2026,
+      int month = 10,
+    }) =>
+        const ReportPayrollMetrics().cashCarryUpTo(
+          allTx: txns,
+          budget: budget,
+          budgetHistory: history,
+          budgetCurrency: 'COP',
+          year: year,
+          month: month,
+        );
+
+    test('cambiar el aporte hoy no reescribe los meses viejos', () {
+      final txns = [
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 9, 5)),
+      ];
+      // Septiembre: 600 → sobraron 500. Octubre: 900 (el nuevo).
+      const history = {'2026-09': 600.0, '2026-10': 900.0};
+      expect(carryWithHistory(txns, history: history, budget: 900), 500,
+          reason: 'septiembre aportó 600: el cambio de octubre no lo alcanza');
+    });
+
+    test('los meses anteriores a la primera entrada no suman ni restan', () {
+      final txns = [
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 7, 5)),
+      ];
+      // El historial arranca en septiembre: julio no tenía caja, así que sus
+      // 100 no se restan de un aporte que no existía.
+      const history = {'2026-09': 600.0};
+      expect(carryWithHistory(txns, history: history), 600,
+          reason: 'solo septiembre aporta, y completo: julio no resta');
+    });
+
+    test('un mes sin aporte explícito (0) no suma', () {
+      final txns = [
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 9, 5)),
+      ];
+      const history = {'2026-09': 600.0, '2026-10': 0.0};
+      expect(carryWithHistory(txns, history: history, budget: null), 500,
+          reason: 'octubre no aporta, pero septiembre sí dejó 500');
+    });
+
+    test('sin historial manda el aporte único de siempre', () {
+      final txns = [
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 9, 5)),
+      ];
+      expect(carryWithHistory(txns), 500);
+    });
+
+    test('cada mes de la tabla usa su propio aporte', () {
+      final txns = [
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 9, 5)),
+        _txn(category: 'energia', amount: 50, date: DateTime(2026, 10, 5)),
+      ];
+      final rows = const ReportPayrollMetrics().cashBoxByMonth(
+        periodTx: txns,
+        budget: 900,
+        budgetHistory: const {'2026-09': 600.0, '2026-10': 900.0},
+        period: ReportPeriod.yearToDate,
+        year: 2026,
+        month: 10,
+        now: _now,
+      );
+      expect(rows.map((r) => r.budget), [600, 900]);
+    });
+
+    test('los meses anteriores al historial no se listan', () {
+      final txns = [
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 7, 5)),
+        _txn(category: 'energia', amount: 100, date: DateTime(2026, 9, 5)),
+      ];
+      final rows = const ReportPayrollMetrics().cashBoxByMonth(
+        periodTx: txns,
+        budget: 600,
+        budgetHistory: const {'2026-09': 600.0},
+        period: ReportPeriod.yearToDate,
+        year: 2026,
+        month: 10,
+        now: _now,
+      );
+      expect(rows.map((r) => r.month), [9, 10],
+          reason: 'julio y agosto son anteriores a la primera entrada; '
+              'octubre es el mes en curso y ya tiene aporte');
+    });
+
+    test('el historial se siembra al abrir la app por primera vez', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final prefs = await SharedPreferences.getInstance();
+      final p = TransactionProvider(LocalStore(prefs));
+      await p.updateSettings(const FarmSettings(cajaMenorMensual: 1200000));
+
+      // Al volver a abrir, el historial arranca este mes con lo configurado.
+      final reabierto = TransactionProvider(LocalStore(prefs));
+      final now = DateTime.now();
+      expect(
+        reabierto.settings.cashBudgetHistory[cashBudgetMonthKey(now)],
+        1200000,
+      );
+      expect(reabierto.settings.cashBudgetHistory, hasLength(1));
+    });
+
+    test('un historial existente no se vuelve a sembrar', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final prefs = await SharedPreferences.getInstance();
+      final p = TransactionProvider(LocalStore(prefs));
+      await p.updateSettings(const FarmSettings(
+        cajaMenorMensual: 500,
+        cashBudgetHistory: {'2026-01': 700},
+      ));
+
+      final reabierto = TransactionProvider(LocalStore(prefs));
+      expect(reabierto.settings.cashBudgetHistory, {'2026-01': 700.0},
+          reason: 'el pasado no se reescribe al abrir');
+    });
+
+    test('un respaldo con historial manda; uno sin historial no lo borra', () {
+      const local = FarmSettings(cashBudgetHistory: {'2026-01': 600.0});
+      const conHistorial =
+          FarmSettings(cashBudgetHistory: {'2026-03': 900.0});
+      const sinHistorial = FarmSettings();
+      expect(mergeBackupSettings(local, conHistorial).cashBudgetHistory,
+          {'2026-03': 900.0});
+      expect(mergeBackupSettings(local, sinHistorial).cashBudgetHistory,
+          {'2026-01': 600.0});
     });
   });
 }
