@@ -1,0 +1,1286 @@
+00:00 +0: loading D:/proyecto/calcafe/test/alert_service_test.dart
+00:00 +0: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 1 ├óΓé¼ΓÇ¥ Gasto excesivo dispara cuando mes actual > 2├âΓÇö promedio hist├â┬│rico
+00:00 +1: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 1 ├óΓé¼ΓÇ¥ Gasto excesivo el monto del aviso lleva su c├│digo, no el s├¡mbolo
+00:00 +2: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 1 ├óΓé¼ΓÇ¥ Gasto excesivo una cuenta en d├│lares conserva los centavos
+00:00 +3: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 1 ├óΓé¼ΓÇ¥ Gasto excesivo NO dispara si el gasto mes actual est├â┬í dentro de 2├âΓÇö
+00:00 +4: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 1 ├óΓé¼ΓÇ¥ Gasto excesivo NO dispara si un solo mes tuvo muchos movimientos puntuales (promedio MENSUAL, no por transacci├â┬│n)
+00:00 +5: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 2 ├óΓé¼ΓÇ¥ Sin ingresos dispara si la ├â┬║ltima venta tiene >= 60 d├â┬¡as
+00:00 +6: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 2 ├óΓé¼ΓÇ¥ Sin ingresos NO dispara si hubo venta reciente
+00:00 +7: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 3 ├óΓé¼ΓÇ¥ Balance negativo 3+ meses dispara con 3 meses consecutivos de p├â┬⌐rdida
+00:00 +8: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 3 ├óΓé¼ΓÇ¥ Balance negativo 3+ meses NO dispara con solo 2 meses de p├â┬⌐rdida
+00:00 +9: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo dispara si la media de precio/kg de los ├â┬║ltimos 30 d├â┬¡as es menor a la hist├â┬│rica
+00:00 +10: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo NO dispara si la media reciente de precio/kg es mayor o igual
+00:00 +11: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo normaliza por unidad: arroba (12.5 kg) y saco (70 kg)
+00:00 +12: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo A2: el peso del saco decide si la alerta dispara
+00:00 +13: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo ignora subvenciones y ventas sin cantidad: solo compara ventas con volumen
+00:00 +14: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo dispara con umbral manual cuando se vende por debajo (precio/kg)
+00:00 +15: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 4 ├óΓé¼ΓÇ¥ Precio bajo NO dispara con umbral manual si todo se vende arriba
+00:00 +16: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 5 ├óΓé¼ΓÇ¥ Cultivo deficitario dispara ROI < -30% en un cultivo
+00:00 +17: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 5 ├óΓé¼ΓÇ¥ Cultivo deficitario aviso sin cultivo: cada dato en su casilla
+00:00 +18: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 5 ├óΓé¼ΓÇ¥ Cultivo deficitario NO dispara con ROI >= -30%
+00:00 +19: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 5 ├óΓé¼ΓÇ¥ Cultivo deficitario aviso sin cultivo cita cu├â┬íntos registros est├â┬ín sin asignar
+00:00 +20: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 5 ├óΓé¼ΓÇ¥ Cultivo deficitario aviso de p├â┬⌐rdidas cita el ROI y enuncia el problema con n├â┬║meros
+00:00 +21: D:/proyecto/calcafe/test/alert_service_test.dart: Lenguaje claro en todas las alertas toda alerta enuncia el problema con n├â┬║meros y sugerencia accionable
+00:00 +22: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) establecimiento/renovaci├â┬│n emite aviso info, NO deficit danger
+00:00 +23: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) producci├â┬│n mantiene deficit danger
+00:00 +24: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) cultivo anual (producci├â┬│n) mantiene deficit danger
+00:00 +25: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) conciliaci├â┬│n dispara si vendi├â┬│ >1.1x lo cosechado (12 meses)
+00:00 +26: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) conciliaci├â┬│n NO dispara dentro del margen
+00:00 +27: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) siembra reciente (dentro de 15 d├â┬¡as) emite aviso info
+00:00 +28: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 6-8 ├óΓé¼ΓÇ¥ Nivel 2 (fase, conciliaci├â┬│n, siembra reciente) siembra fuera de 15 d├â┬¡as NO emite aviso
+00:00 +29: D:/proyecto/calcafe/test/alert_service_test.dart: A1 ├óΓé¼ΓÇ¥ R6 excluye cosechas perdidas cosecha con destino p├â┬⌐rdida NO respalda ventas
+00:00 +30: D:/proyecto/calcafe/test/alert_service_test.dart: A1 ├óΓé¼ΓÇ¥ R6 excluye cosechas perdidas el aviso del vendido cita los kilos con el separador del idioma
+00:00 +31: D:/proyecto/calcafe/test/alert_service_test.dart: A1 ├óΓé¼ΓÇ¥ R6 excluye cosechas perdidas solo cosechas perdidas NO respaldan ventas (R6 no dispara)
+00:00 +32: D:/proyecto/calcafe/test/alert_service_test.dart: A1 ├óΓé¼ΓÇ¥ R6 excluye cosechas perdidas almacenado S├â┬ì respalda las ventas
+00:00 +33: D:/proyecto/calcafe/test/alert_service_test.dart: C ├óΓé¼ΓÇ¥ R1 compara contra el mismo mes calendario hist├â┬│rico estacionalidad recurrente NO dispara falsa alarma
+00:00 +34: D:/proyecto/calcafe/test/alert_service_test.dart: C ├óΓé¼ΓÇ¥ R1 compara contra el mismo mes calendario hist├â┬│rico detecta el exceso respecto al mismo mes, aunque el promedio global lo oculte
+00:00 +35: D:/proyecto/calcafe/test/alert_service_test.dart: C ├óΓé¼ΓÇ¥ R1 compara contra el mismo mes calendario hist├â┬│rico fallback al promedio global cuando hay < 2 meses-dato del mismo mes
+00:00 +36: D:/proyecto/calcafe/test/alert_service_test.dart: B ├óΓé¼ΓÇ¥ Ventas sin cantidad 3+ ventas sin cantidad en 90 d├â┬¡as dispara INFO
+00:00 +37: D:/proyecto/calcafe/test/alert_service_test.dart: B ├óΓé¼ΓÇ¥ Ventas sin cantidad menos de 3 ventas sin cantidad NO dispara
+00:00 +38: D:/proyecto/calcafe/test/alert_service_test.dart: B ├óΓé¼ΓÇ¥ Ventas sin cantidad ventas con cantidad NO dispara
+00:00 +39: D:/proyecto/calcafe/test/alert_service_test.dart: B ├óΓé¼ΓÇ¥ Ventas sin cantidad ventas sin cantidad fuera de 90 d├â┬¡as NO dispara
+00:00 +40: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor ΓëÑ80% dispara warning con cifras de usado/monto/%
+00:00 +41: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor >100% dispara danger con sugerencia de reducir trabajadores
+00:00 +42: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor sin monto configurado no eval├║a la regla
+00:00 +43: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor por debajo de 80% no dispara
+00:00 +44: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor insumos y fertilizantes NO descuentan; los extras s├¡
+00:00 +45: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor los gastos del mes anterior no agotan el de este mes
+00:00 +46: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor lo que se pas├│ el mes anterior baja el l├¡mite del actual
+00:00 +47: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 10 ΓÇö Caja menor arrastre en negativo dispara danger en vez de callarse
+00:00 +48: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 11 - Ventas por cobrar (E1) una venta por cobrar avisa, pero como informaci├│n
+00:00 +49: D:/proyecto/calcafe/test/alert_service_test.dart: Regla 11 - Ventas por cobrar (E1) con m├ís de 30 d├¡as sin cobrar sube a warning
+00:00 +50: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:00 +51: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:00 +52: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:00 +53: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:01 +54: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:01 +55: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:01 +56: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:01 +57: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +58: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +59: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +60: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +61: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +62: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +63: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +64: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +65: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:02 +66: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +67: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +68: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +69: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +70: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +71: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +72: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +73: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +74: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +75: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +76: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +77: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +78: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +79: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +80: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +81: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +82: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +83: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +84: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +85: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +86: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +87: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +88: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +89: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:03 +90: D:/proyecto/calcafe/test/assign_crops_screen_test.dart: un registro en otra moneda se pinta con su moneda, no con la de ajustes
+00:04 +91: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +92: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +93: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +94: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +95: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +96: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +97: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +98: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:04 +99: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +100: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +101: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +102: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +103: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +104: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +105: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +106: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +107: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +108: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +109: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +110: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +111: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +112: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +113: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +114: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +115: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +116: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +117: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +118: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +119: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +120: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +121: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +122: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +123: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +124: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +125: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +126: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Pantalla con cultivos asociados avisa de que el costo es aproximado
+00:05 +127: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +128: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +129: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +130: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +131: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +132: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +133: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +134: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +135: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +136: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +137: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +138: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +139: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:05 +140: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:06 +141: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:06 +142: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:06 +143: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +144: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +144: D:/proyecto/calcafe/test/associated_crops_cost_note_test.dart: Los tres pintadores dicen lo mismo el PDF crece cuando hay asociados que avisar
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+00:07 +145: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +146: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +147: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +148: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +149: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:07 +150: D:/proyecto/calcafe/test/c6_arranque_test.dart: en la primera siembra no hay casilla que marcar
+00:08 +151: D:/proyecto/calcafe/test/crops_screen_cohorts_test.dart: una sola edad: la tarjeta se ve como siempre
+00:08 +152: D:/proyecto/calcafe/test/crops_screen_cohorts_test.dart: una sola edad: la tarjeta se ve como siempre
+00:09 +153: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +154: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +155: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +156: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +157: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +158: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +159: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +160: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +161: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +162: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +163: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +164: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +165: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +166: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +167: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +168: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +169: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +170: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +171: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +172: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +173: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +174: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +175: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +176: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +177: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +178: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +179: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +180: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:09 +181: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:10 +182: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:10 +183: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:10 +184: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:10 +185: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:10 +186: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:11 +187: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +188: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +189: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +190: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +191: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +192: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +193: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +194: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +195: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +196: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +197: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +198: D:/proyecto/calcafe/test/crops_screen_test.dart: moneda ├║nica: editar conserva la moneda y no ofrece cambiarla
+00:12 +199: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: el campo de costo del establecimiento es opcional
+00:12 +200: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: anota la mortandad sin reponer plantas
+00:13 +201: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: anota la mortandad sin reponer plantas
+00:13 +202: D:/proyecto/calcafe/test/c6_arranque_test.dart: volver a siembra trae la de arrancar, desmarcada
+00:13 +203: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: ingresar costo del establecimiento lo devuelve en el formulario
+00:13 +204: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:13 +205: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:13 +206: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:13 +207: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:13 +208: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:14 +209: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:14 +210: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:14 +211: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:14 +212: D:/proyecto/calcafe/test/crops_screen_test.dart: C5: crear un cultivo guarda fase y ├írea desde el formulario
+00:14 +213: D:/proyecto/calcafe/test/currencies_test.dart: fetchRate falla sin tasa para la moneda destino
+00:14 +214: D:/proyecto/calcafe/test/currencies_test.dart: fetchRate falla sin tasa para la moneda destino
+00:14 +215: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:14 +216: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:14 +217: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:14 +218: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:14 +219: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:14 +220: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:14 +221: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:15 +222: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:15 +223: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:15 +224: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:15 +225: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: L2.0: el selector sigue ofreciendo las 3 fases y permite elegir producci├│n a mano
+00:15 +226: D:/proyecto/calcafe/test/currency_conversion_test.dart: cach├⌐ de tasas (fx_rates_v1, TTL 24 h) cach├⌐ vencida y sin red ΓåÆ no hay tasa (no se inventa)
+00:16 +227: D:/proyecto/calcafe/test/currency_conversion_test.dart: cach├⌐ de tasas (fx_rates_v1, TTL 24 h) cach├⌐ vencida y sin red ΓåÆ no hay tasa (no se inventa)
+00:16 +228: D:/proyecto/calcafe/test/currency_conversion_test.dart: cach├⌐ de tasas (fx_rates_v1, TTL 24 h) cach├⌐ vencida y sin red ΓåÆ no hay tasa (no se inventa)
+00:16 +229: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +230: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +231: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +232: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +233: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +234: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +235: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +236: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +237: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +238: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +239: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +240: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:16 +241: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:17 +242: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:17 +243: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:17 +244: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:17 +245: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: F4: la p├⌐rdida se fecha el d├¡a que ├⌐l elige
+00:17 +246: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F3: se auto-rellena con la suma de los gastos de siembra
+00:17 +247: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: con dos edades la p├⌐rdida va al lote m├ís viejo por defecto
+00:18 +248: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: con dos edades la p├⌐rdida va al lote m├ís viejo por defecto
+00:18 +249: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F3: sin sugerencia ni inversi├│n anotada el campo queda vac├¡o, nunca en 0
+00:18 +250: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:18 +251: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:18 +252: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:18 +253: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:18 +254: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:18 +255: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:18 +256: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: el lote elegido recibe la p├⌐rdida
+00:19 +257: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +258: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +259: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +260: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +261: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +262: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +263: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +264: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F4: sin siembras (ruta "ya est├í plantado") todo es editable
+00:19 +265: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +266: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +267: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +268: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +269: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +270: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +271: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +272: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +273: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +274: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +275: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +276: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +277: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +278: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +279: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +280: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +281: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +282: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +283: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +284: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:19 +285: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:20 +286: D:/proyecto/calcafe/test/crop_loss_dialog_test.dart: T15: la p├⌐rdida no se fecha antes de la siembra de su lote
+00:20 +287: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: F5: un cultivo anual no pregunta cu├índo est├í plantado
+00:20 +288: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +289: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +290: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +291: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +292: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +293: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +294: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +295: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +296: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:20 +297: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +298: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +299: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +300: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +301: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +302: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +303: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +304: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +305: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +306: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +307: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +308: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +309: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +310: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +311: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +312: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +313: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +314: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +315: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +316: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +317: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +318: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +319: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +320: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +321: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +322: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +323: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +324: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +325: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +326: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +327: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +328: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +329: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +330: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +331: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +332: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +333: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +334: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +335: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +336: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +337: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +338: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +339: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:21 +340: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:22 +341: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +342: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +343: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +344: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +345: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +346: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +347: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:23 +348: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +349: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +350: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +351: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +352: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +353: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +354: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +355: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +356: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +357: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Lo que se enciende la secci├│n Cosechas aparece con solo una venta
+00:24 +358: D:/proyecto/calcafe/test/excel_export_service_test.dart: buildReport produce 3 hojas
+00:24 +359: D:/proyecto/calcafe/test/excel_export_service_test.dart: buildReport produce 3 hojas
+00:24 +360: D:/proyecto/calcafe/test/excel_export_service_test.dart: buildReport produce 3 hojas
+00:24 +361: D:/proyecto/calcafe/test/excel_export_service_test.dart: buildReport produce 3 hojas
+00:25 +362: D:/proyecto/calcafe/test/excel_export_service_test.dart: buildReport produce 3 hojas
+00:25 +363: D:/proyecto/calcafe/test/excel_export_service_test.dart: buildReport produce 3 hojas
+00:25 +364: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: al editar la meta se lee y se guarda
+00:25 +365: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: al editar la meta se lee y se guarda
+00:25 +366: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: D5 ┬╖ vendido vs cosechado se enciende sola con una cosecha medida a mano
+00:25 +367: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: D5 ┬╖ vendido vs cosechado se enciende sola con una cosecha medida a mano
+00:25 +368: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: D5 ┬╖ vendido vs cosechado se enciende sola con una cosecha medida a mano
+00:25 +369: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +370: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +371: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +372: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +373: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +374: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +375: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +376: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +377: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +378: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:25 +379: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: vaciar el campo BORRA la meta
+00:26 +380: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: D5 ┬╖ vendido vs cosechado sin cosechas tampoco se muestra
+00:26 +381: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: D5 ┬╖ vendido vs cosechado sin cosechas tampoco se muestra
+00:26 +382: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: la meta se puede escribir y se entiende con coma decimal
+00:26 +383: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: la meta se puede escribir y se entiende con coma decimal
+00:26 +384: D:/proyecto/calcafe/test/crop_editor_dialog_test.dart: E4: la meta se puede escribir y se entiende con coma decimal
+00:26 +385: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +386: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +387: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +388: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +389: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +390: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +391: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +392: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +393: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +394: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:26 +395: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:27 +396: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:27 +397: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente los kilos que calcula la pantalla
+00:27 +398: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +399: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +400: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +401: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +402: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +403: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +404: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +405: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +406: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +407: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +408: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +409: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +410: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +411: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +412: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +413: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:27 +414: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +414: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Los tres pintadores dicen lo mismo el PDF se construye con cosechas derivadas
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+00:28 +415: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +416: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +417: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +418: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +419: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +420: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +421: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +422: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +423: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +424: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +425: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +426: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:28 +427: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:29 +427: D:/proyecto/calcafe/test/derived_harvests_report_test.dart: Jornal medido ┬╖ ┬½vendido vs cosechado┬╗ el PDF se construye con el jornal medido y sigue siendo v├ílido
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "≡ƒìÆ" (U+1f352) try to provide a TextStyle.fontFallback
+00:29 +428: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:29 +429: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:29 +430: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:29 +431: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+00:29 +432: D:/proyecto/calcafe/test/export_parity_test.dart: el Excel y el PDF de un per├¡odo mezclado no cambian de contenido
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "≡ƒìÆ" (U+1f352) try to provide a TextStyle.fontFallback
+00:29 +433: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +434: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +435: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +436: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +437: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +438: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +439: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +440: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +441: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +442: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +443: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +444: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +445: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +446: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:29 +447: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:30 +448: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:30 +449: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:30 +450: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:30 +451: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:30 +452: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:31 +453: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:31 +454: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:31 +455: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:31 +456: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:31 +457: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:31 +458: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:32 +459: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:32 +460: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:32 +461: D:/proyecto/calcafe/test/first_harvest_estimate_test.dart: E5 ┬╖ el editor al CREAR no se pide: si se puede pedir despu├⌐s, no se pide ahora
+00:32 +462: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:32 +463: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:32 +464: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:34 +465: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:34 +466: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:34 +467: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:34 +468: D:/proyecto/calcafe/test/harvest_screen_test.dart: P4: registrar una cosecha ya no ofrece "Almacenado"
+00:34 +469: D:/proyecto/calcafe/test/help_coherencia_test.dart: el arranque de la Ayuda dice la finalidad, lo que hace y de qui├⌐n son los datos
+00:35 +470: D:/proyecto/calcafe/test/help_menu_map_test.dart: la Ayuda nombra cada destino de datos del men├║
+00:35 +471: D:/proyecto/calcafe/test/help_menu_map_test.dart: la Ayuda nombra cada destino de datos del men├║
+00:36 +472: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:36 +473: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +474: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +475: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +476: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +477: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +478: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +479: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +480: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +481: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +482: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:37 +483: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:38 +484: D:/proyecto/calcafe/test/help_screen_test.dart: la secci├│n Ayuda muestra toda la gu├¡a
+00:38 +485: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +486: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +487: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +488: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +489: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +490: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +491: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +492: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +493: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:38 +494: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +495: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +496: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +497: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +498: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +499: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +500: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +501: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:39 +502: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:40 +503: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:40 +504: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:40 +505: D:/proyecto/calcafe/test/home_screen_test.dart: moneda ├║nica: las tres tarjetas del resumen, como siempre
+00:41 +506: D:/proyecto/calcafe/test/l10n_tanda4_test.dart: las copy de la tanda 4 est├ín en los dos ARB
+00:41 +507: D:/proyecto/calcafe/test/home_screen_test.dart: mezcla sin tasa: no hay tarjetas con cifras globales falsas, s├¡ los totales de cada moneda
+00:41 +508: D:/proyecto/calcafe/test/home_screen_test.dart: mezcla con tasa simulada: tarjetas convertidas y aviso
+00:42 +509: D:/proyecto/calcafe/test/home_screen_test.dart: A1: con datos, las cifras del mes van encima de las alertas
+00:42 +510: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:42 +511: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +512: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +513: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +514: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +515: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +516: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +517: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:44 +518: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +519: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +520: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +521: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +522: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +523: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +524: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +525: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +526: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +527: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +528: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +529: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +530: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +531: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +532: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +533: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:45 +534: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:46 +535: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: NewCropDialog nombre repetido ofrece las tres salidas
+00:46 +536: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:46 +537: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:46 +538: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:46 +539: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:46 +540: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:46 +541: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +542: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +543: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +544: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +545: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +546: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +547: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +548: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +549: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:47 +550: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: la casilla solo aparece en resiembra
+00:48 +551: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (a) la moneda de ajustes llega a las puertas cortas Siembras
+00:49 +552: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (a) la moneda de ajustes llega a las puertas cortas Siembras
+00:49 +553: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: usar el existente no crea otro cultivo
+00:50 +554: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: usar el existente no crea otro cultivo
+00:50 +555: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +556: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +557: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +558: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +559: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +560: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +561: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:50 +562: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:51 +563: D:/proyecto/calcafe/test/l2_4_resiembra_renovacion_test.dart: marcada, la fase pasa a renovaci├│n
+00:51 +564: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (a) la moneda de ajustes llega a las puertas cortas Asignar
+00:51 +565: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (a) la moneda de ajustes llega a las puertas cortas Asignar
+00:51 +566: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:51 +567: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:51 +568: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:51 +569: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:51 +570: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:51 +571: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:51 +572: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Siembras: "crear otro igual" s├¡ crea un cultivo nuevo
+00:52 +573: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:52 +573: D:/proyecto/calcafe/test/mixed_currency_export_test.dart: PDF con moneda mixta el reporte se genera sin errores
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+00:52 +574: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:52 +575: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:52 +576: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:53 +577: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:53 +578: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:53 +579: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:53 +580: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 6 ┬╖ category_breakdown mono vs mezcla moneda ├║nica: % por fila y barra proporcional
+00:53 +581: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:53 +582: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:53 +583: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:53 +584: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:53 +585: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:53 +586: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:54 +587: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:54 +588: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:54 +589: D:/proyecto/calcafe/test/l2_2_duplicate_names_test.dart: las pantallas resuelven por existingId Registro: usa el id existente sin duplicar
+00:54 +590: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +591: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +592: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +593: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +594: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +595: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +596: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +597: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos se descarta y no vuelve a preguntar
+00:54 +598: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 7 ┬╖ movements_screen mini-stats mono vs mezcla moneda ├║nica: ingresos, gastos y resultado de siempre
+00:54 +598: D:/proyecto/calcafe/test/mixed_currency_gap_test.dart: PDF ΓÇö cabeceras y cosechas moneda ├║nica: el PDF se genera ├¡ntegro
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+00:54 +599: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 7 ┬╖ movements_screen mini-stats mono vs mezcla moneda ├║nica: ingresos, gastos y resultado de siempre
+00:54 +599: D:/proyecto/calcafe/test/mixed_currency_gap_test.dart: PDF ΓÇö cabeceras y cosechas mezcla: el PDF se genera ├¡ntegro
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+00:54 +600: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 7 ┬╖ movements_screen mini-stats mono vs mezcla moneda ├║nica: ingresos, gastos y resultado de siempre
+00:55 +601: D:/proyecto/calcafe/test/mixed_currency_gap2_test.dart: 7 ┬╖ movements_screen mini-stats mono vs mezcla moneda ├║nica: ingresos, gastos y resultado de siempre
+00:55 +602: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos "Completar" abre el editor y guarda con updateCrop
+00:55 +603: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos "Completar" abre el editor y guarda con updateCrop
+00:55 +604: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos "Completar" abre el editor y guarda con updateCrop
+00:55 +605: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos "Completar" abre el editor y guarda con updateCrop
+00:55 +606: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos "Completar" abre el editor y guarda con updateCrop
+00:55 +607: D:/proyecto/calcafe/test/l2_5_quick_doors_test.dart: (b) aviso opcional para completar los datos "Completar" abre el editor y guarda con updateCrop
+00:56 +608: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:56 +609: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +610: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +611: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +612: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +613: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +614: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +615: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +616: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +617: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +618: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +619: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:57 +620: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:58 +621: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +622: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +623: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +624: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +625: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +626: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +627: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +628: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +629: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +630: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +631: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +632: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +633: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +634: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +635: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +636: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +637: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +638: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +639: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +640: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +641: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +642: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Desglose por cultivo cultivo con dos monedas: desglose por moneda y sin ROI ni resultado
+00:59 +643: D:/proyecto/calcafe/test/monthly_trend_chart_test.dart: moneda ├║nica: la curva se dibuja y dice en qu├⌐ va el a├▒o
+01:00 +644: D:/proyecto/calcafe/test/monthly_trend_chart_test.dart: moneda ├║nica: la curva se dibuja y dice en qu├⌐ va el a├▒o
+01:00 +645: D:/proyecto/calcafe/test/next_step_card_test.dart: cuenta nueva (sin cultivos) gu├¡a a crear el primer cultivo
+01:00 +646: D:/proyecto/calcafe/test/next_step_card_test.dart: cuenta nueva (sin cultivos) gu├¡a a crear el primer cultivo
+01:00 +647: D:/proyecto/calcafe/test/next_step_card_test.dart: cuenta nueva (sin cultivos) gu├¡a a crear el primer cultivo
+01:01 +648: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Tarjeta de Planilla moneda mixta: cada moneda con su c├│digo y sin total ├║nico
+01:01 +649: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Tarjeta de Planilla moneda mixta: cada moneda con su c├│digo y sin total ├║nico
+01:01 +650: D:/proyecto/calcafe/test/mixed_currency_report_test.dart: Tarjeta de Planilla moneda mixta: cada moneda con su c├│digo y sin total ├║nico
+01:01 +651: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:01 +652: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:01 +653: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:01 +654: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:01 +655: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:02 +656: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:02 +657: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:02 +658: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +659: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +660: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +661: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +662: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +663: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +664: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +665: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +666: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +667: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +668: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +669: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +669: D:/proyecto/calcafe/test/pdf_export_test.dart: buildReport genera un PDF v├ílido con resumen y cultivos
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+01:03 +670: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:03 +670: D:/proyecto/calcafe/test/pdf_export_test.dart: la secci├│n Caja menor crece el PDF (mismo dato, solo cambia el monto)
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+01:03 +671: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:04 +671: D:/proyecto/calcafe/test/pdf_export_test.dart: la secci├│n N├│mina crece el PDF (gasto con trabajador vs sin ├⌐l)
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+01:04 +672: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:04 +672: D:/proyecto/calcafe/test/pdf_export_test.dart: cosechas con personal y kilos generan un PDF v├ílido
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "≡ƒæ╖" (U+1f477) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+01:04 +673: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:04 +673: D:/proyecto/calcafe/test/pdf_export_test.dart: W1-c: un reporte con terrenos y lote sin repartir sigue siendo PDF
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γ£Å" (U+270f) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "∩╕Å" (U+fe0f) try to provide a TextStyle.fontFallback
+01:04 +674: D:/proyecto/calcafe/test/number_locale_follows_language_test.dart: con la app en espa├▒ol la plata se lee en espa├▒ol
+01:04 +675: D:/proyecto/calcafe/test/onboarding_flow_test.dart: cuenta nueva: primero la moneda, y no se puede saltar
+01:04 +676: D:/proyecto/calcafe/test/onboarding_flow_test.dart: cuenta nueva: primero la moneda, y no se puede saltar
+01:06 +677: D:/proyecto/calcafe/test/per_hectare_panel_ages_test.dart: con dos edades agrega ┬½promedio de 2 edades┬╗
+01:06 +678: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:06 +679: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:06 +680: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:06 +681: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:07 +682: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:07 +683: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:07 +684: D:/proyecto/calcafe/test/per_hectare_panel_note_test.dart: el panel explica el kg/planta cuando lo muestra
+01:07 +685: D:/proyecto/calcafe/test/per_hectare_panel_test.dart: oculta el panel si no hay datos ni ├írea
+01:07 +686: D:/proyecto/calcafe/test/per_hectare_panel_test.dart: oculta el panel si no hay datos ni ├írea
+01:08 +687: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:08 +688: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:08 +689: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:08 +690: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:08 +691: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +692: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +693: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +694: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +695: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +696: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +697: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +698: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +699: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +700: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +701: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +702: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +703: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +704: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +705: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +706: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +707: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +708: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +709: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +710: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +711: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +712: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +713: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +714: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +715: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +716: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +717: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +718: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +719: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +720: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +721: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +722: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +723: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +724: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +725: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +726: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +727: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +728: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +729: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +730: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +731: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +732: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +733: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +734: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +735: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +736: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +737: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:09 +738: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +739: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +740: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +741: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +742: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +743: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +744: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +745: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +746: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +747: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +748: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +749: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +750: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +751: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +752: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +753: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:10 +754: D:/proyecto/calcafe/test/recordatorio_lote_test.dart: un gasto de lote deja el lote puesto la pr├│xima vez
+01:11 +755: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:11 +756: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:11 +757: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:11 +758: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:11 +759: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +760: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +761: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +762: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +763: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +764: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +765: D:/proyecto/calcafe/test/register_screen_test.dart: ingreso: la opci├│n de venta toma el nombre del cultivo
+01:12 +766: D:/proyecto/calcafe/test/register_screen_test.dart: sin cultivo la opci├│n de venta es "Venta" a secas
+01:13 +767: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:14 +768: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:14 +769: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:14 +770: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +771: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +772: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +773: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +774: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +775: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +776: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +777: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +778: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +779: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +780: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +781: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +782: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +783: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +784: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +785: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +786: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +787: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +788: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +789: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +790: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +791: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +792: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +793: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +794: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +795: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:15 +796: D:/proyecto/calcafe/test/report_screen_test.dart: el mes por defecto del reporte coincide con el mes actual (sin off-by-one)
+01:16 +797: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +798: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +799: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +800: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +801: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +802: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +803: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +804: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +805: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +806: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +807: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +808: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +809: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +810: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +811: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +812: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +813: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +814: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +815: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +816: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +817: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +818: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +819: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +820: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +821: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +822: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +823: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +824: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +825: D:/proyecto/calcafe/test/settings_backup_test.dart: la secci├│n Respaldo muestra los dos botones
+01:17 +826: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:17 +827: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:18 +828: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:18 +829: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:18 +830: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:18 +831: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +832: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +833: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +834: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +835: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +836: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +837: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +838: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +839: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +840: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +841: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +842: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +843: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +844: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: el campo arranca en 70 y guarda el peso real
+01:19 +845: D:/proyecto/calcafe/test/single_currency_test.dart: el registro no ofrece moneda: solo dice en cu├íl queda
+01:20 +846: D:/proyecto/calcafe/test/register_screen_test.dart: elegir lote deja el cultivo vac├¡o, y a la inversa
+01:20 +847: D:/proyecto/calcafe/test/register_screen_test.dart: elegir lote deja el cultivo vac├¡o, y a la inversa
+01:20 +848: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +849: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +850: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +851: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +852: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +853: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +854: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +855: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +856: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +857: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +858: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +859: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +860: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: un campo ilegible no parte los kg a la mitad
+01:20 +861: D:/proyecto/calcafe/test/single_currency_test.dart: la moneda que ense├▒a es la de la cuenta
+01:20 +862: D:/proyecto/calcafe/test/report_screen_test.dart: P3: si todo esta cobrado no se ensena un cero de por cobrar
+01:20 +863: D:/proyecto/calcafe/test/register_screen_test.dart: un gasto sin cultivo sigue siendo ┬½Costos comunes┬╗
+01:20 +864: D:/proyecto/calcafe/test/settings_saco_test.dart: A2: en ingl├⌐s existe el mismo campo
+01:21 +865: D:/proyecto/calcafe/test/single_currency_test.dart: un registro nuevo nace en la moneda de la cuenta
+01:21 +866: D:/proyecto/calcafe/test/single_currency_test.dart: un registro nuevo nace en la moneda de la cuenta
+01:21 +867: D:/proyecto/calcafe/test/single_currency_test.dart: un registro nuevo nace en la moneda de la cuenta
+01:21 +868: D:/proyecto/calcafe/test/single_currency_test.dart: un registro nuevo nace en la moneda de la cuenta
+01:22 +869: D:/proyecto/calcafe/test/single_currency_test.dart: un registro nuevo nace en la moneda de la cuenta
+01:22 +870: D:/proyecto/calcafe/test/register_screen_test.dart: cambiar de venta a subvenci├│n no hereda la cantidad: cero kilos fantasma
+01:22 +871: D:/proyecto/calcafe/test/register_screen_test.dart: cambiar de venta a subvenci├│n no hereda la cantidad: cero kilos fantasma
+01:22 +872: D:/proyecto/calcafe/test/single_currency_test.dart: editar un registro viejo conserva su moneda
+01:23 +873: D:/proyecto/calcafe/test/single_currency_test.dart: editar un registro viejo conserva su moneda
+01:23 +874: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +875: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +876: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +877: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +878: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +879: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +880: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +881: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +882: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +883: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +884: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +885: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +886: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +887: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +888: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +889: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +890: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +891: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +892: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +893: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +894: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +895: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +896: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +897: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +898: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +899: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +900: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +901: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +902: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +903: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +904: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +905: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +906: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:23 +907: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:24 +908: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:24 +909: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:24 +910: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:25 +911: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:25 +912: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:25 +913: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:26 +914: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: un cultivo sin cohortes muestra el formulario de siempre
+01:26 +915: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +916: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +917: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +918: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +919: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +920: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +920: D:/proyecto/calcafe/test/sync_push_test.dart: Orden de subida (clave for├ínea) un cultivo con id legado no se convierte en etapa de subida
+[SyncProvider] cultivo con id no-uuid omitido: cafe
+01:26 +921: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +922: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +923: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +924: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +925: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +926: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +927: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +928: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +929: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +930: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +931: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +932: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:26 +933: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +934: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +935: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +936: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +937: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +938: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +939: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +940: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +941: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +942: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +943: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +944: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +945: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +946: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +947: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +948: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +949: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +950: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +951: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +952: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +953: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +954: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +955: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +956: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +957: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +958: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +959: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +960: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +961: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +962: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +963: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +964: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +965: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +966: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +967: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +968: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +969: D:/proyecto/calcafe/test/sowing_screen_test.dart: con cultivos vacios ofrece crear un cultivo nuevo desde el formulario
+01:27 +970: D:/proyecto/calcafe/test/report_screen_test.dart: W1-c: el desglose por cultivo se agrupa bajo la banda de su terreno
+01:27 +971: D:/proyecto/calcafe/test/register_screen_test.dart: Kilos recolectados en el jornal cero no pasa la validaci├│n y no guarda
+01:28 +972: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Ampl├¡o┬╗ guarda 0 expl├¡cito y la vieja no pierde matas
+01:28 +973: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Ampl├¡o┬╗ guarda 0 expl├¡cito y la vieja no pierde matas
+01:28 +974: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Ampl├¡o┬╗ guarda 0 expl├¡cito y la vieja no pierde matas
+01:28 +975: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Ampl├¡o┬╗ guarda 0 expl├¡cito y la vieja no pierde matas
+01:29 +976: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Ampl├¡o┬╗ guarda 0 expl├¡cito y la vieja no pierde matas
+01:29 +977: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Ampl├¡o┬╗ guarda 0 expl├¡cito y la vieja no pierde matas
+01:29 +978: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: guardar una resiembra con costo crea el gasto vinculado
+01:29 +979: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: guardar una resiembra con costo crea el gasto vinculado
+01:29 +980: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: guardar una resiembra con costo crea el gasto vinculado
+01:29 +981: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: guardar una resiembra con costo crea el gasto vinculado
+01:29 +982: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: guardar una resiembra con costo crea el gasto vinculado
+01:30 +983: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: guardar una resiembra con costo crea el gasto vinculado
+01:30 +984: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Renuevo┬╗ sin matas no guarda; con matas guarda el valor
+01:30 +985: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: ┬½Renuevo┬╗ sin matas no guarda; con matas guarda el valor
+01:30 +986: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +987: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +988: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +989: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +990: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +991: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +992: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +993: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +994: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +995: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:30 +996: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +997: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +998: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +999: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1000: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1001: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1002: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1003: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1004: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1005: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1006: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1007: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1008: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1009: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1010: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1011: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1012: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1013: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1014: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1015: D:/proyecto/calcafe/test/sowing_screen_test.dart: F2: una resiembra sin costo no inventa gasto
+01:31 +1016: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: m├ís matas de las que hay bloquea y ofrece ┬½Todas┬╗
+01:32 +1017: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: m├ís matas de las que hay bloquea y ofrece ┬½Todas┬╗
+01:32 +1018: D:/proyecto/calcafe/test/sowing_screen_cohorts_test.dart: m├ís matas de las que hay bloquea y ofrece ┬½Todas┬╗
+01:32 +1019: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1020: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1021: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1022: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1023: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1024: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1025: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1026: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1027: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1028: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1029: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:32 +1030: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:33 +1031: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:33 +1032: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:33 +1033: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:34 +1034: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:34 +1035: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:34 +1036: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:34 +1037: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:34 +1038: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:34 +1039: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:35 +1040: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno sin cultivos no hay casillas, solo el aviso
+01:35 +1041: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:35 +1042: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:35 +1043: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:35 +1044: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:36 +1045: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:36 +1046: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:36 +1047: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1048: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1049: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1050: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1051: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1052: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1053: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1054: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1055: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1056: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1057: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1058: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1059: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1060: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1061: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1062: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1063: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1064: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1065: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1066: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:37 +1067: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:38 +1068: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:38 +1069: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:38 +1070: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:38 +1071: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla pinta el t├¡tulo, la coordenada y el d├¡a en que se registr├│
+01:38 +1072: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1073: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1074: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1075: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1076: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1077: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1078: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1079: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1080: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1081: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1082: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1083: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1084: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1085: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1086: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ di├ílogo de terreno la hect├írea ilegible no se guarda a medias
+01:39 +1087: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Pantalla el terreno sin ubicar sale por su nombre, sin coordenada
+01:39 +1088: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos sin terrenos la pantalla es la de siempre: sin secci├│n
+01:39 +1089: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1090: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1091: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1092: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1093: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1094: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1095: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1096: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1097: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1098: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1099: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1100: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1101: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1102: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1103: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1104: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1105: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1106: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1107: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1108: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1109: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1110: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1111: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1112: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1113: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1114: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1115: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1116: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1117: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1118: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1119: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1120: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1121: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1122: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1123: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1124: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1125: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1126: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1127: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1128: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1129: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1130: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1131: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1132: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1133: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el Excel pinta exactamente la coordenada que pinta la pantalla
+01:40 +1134: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1135: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1136: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1137: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1138: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1139: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1140: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1141: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1142: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:40 +1143: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1144: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1145: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1146: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1147: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1148: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1149: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1150: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1151: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1152: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1153: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1154: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1155: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1156: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1157: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1158: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos crear un terreno desde la barra asigna los cultivos marcados
+01:41 +1159: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo el PDF crece cuando hay ubicaci├│n que anexar
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+01:41 +1160: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos BORRAR un terreno avisa que no se borra ning├║n cultivo y los deja vivos
+01:41 +1160: D:/proyecto/calcafe/test/terreno_location_report_test.dart: Los tres pintadores dicen lo mismo sin ninguna coordenada el PDF no lleva nada del anexo
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+Unable to find a font to draw "Γÿò" (U+2615) try to provide a TextStyle.fontFallback
+01:41 +1161: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos BORRAR un terreno avisa que no se borra ning├║n cultivo y los deja vivos
+01:41 +1162: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos BORRAR un terreno avisa que no se borra ning├║n cultivo y los deja vivos
+01:41 +1163: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ pantalla de Cultivos BORRAR un terreno avisa que no se borra ning├║n cultivo y los deja vivos
+01:41 +1164: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo si no hay ning├║n terreno, no se le pide uno
+01:42 +1165: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo si hay terreno, se ense├▒a y se puede elegir
+01:42 +1166: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo si hay terreno, se ense├▒a y se puede elegir
+01:42 +1167: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo si hay terreno, se ense├▒a y se puede elegir
+01:42 +1168: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo si hay terreno, se ense├▒a y se puede elegir
+01:42 +1169: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo si hay terreno, se ense├▒a y se puede elegir
+01:43 +1170: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1171: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1172: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1173: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1174: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1175: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1176: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1177: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1178: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1179: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1180: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1181: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1182: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1183: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1184: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1185: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1186: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1187: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1188: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:43 +1189: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1190: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1191: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1192: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1193: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1194: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1195: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1196: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1197: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1198: D:/proyecto/calcafe/test/terrenos_test.dart: Interfaz ┬╖ desplegable de terreno en el editor de cultivo se puede sacar el cultivo de su terreno
+01:44 +1199: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1200: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1201: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1202: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1203: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1204: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1205: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1206: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1207: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1208: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1209: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1210: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1211: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:44 +1212: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:45 +1213: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: finca vac├¡a: lista vac├¡a y ninguna especie inventada
+01:45 +1214: D:/proyecto/calcafe/test/terrenos_test.dart: Ubicaci├│n del lote ┬╖ di├ílogo fuera de rango no cierra y dice hasta d├│nde llega
+01:45 +1215: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: con cultivos: los lista y ofrece salir a la app
+01:45 +1216: D:/proyecto/calcafe/test/terrenos_test.dart: Ubicaci├│n del lote ┬╖ di├ílogo un texto que no es n├║mero tambi├⌐n es dato inv├ílido
+01:45 +1217: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Agregar el primero] abre la ficha corta y crea con lo m├¡nimo
+01:45 +1218: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Agregar el primero] abre la ficha corta y crea con lo m├¡nimo
+01:46 +1219: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Agregar el primero] abre la ficha corta y crea con lo m├¡nimo
+01:46 +1220: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Agregar el primero] abre la ficha corta y crea con lo m├¡nimo
+01:46 +1221: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Agregar el primero] abre la ficha corta y crea con lo m├¡nimo
+01:46 +1222: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Agregar el primero] abre la ficha corta y crea con lo m├¡nimo
+01:46 +1223: D:/proyecto/calcafe/test/terrenos_test.dart: Ubicaci├│n del lote ┬╖ di├ílogo si el equipo no da permiso se le avisa y no se inventa nada
+01:46 +1224: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: el nombre es obligatorio
+01:47 +1225: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: el nombre es obligatorio
+01:47 +1226: D:/proyecto/calcafe/test/terrenos_test.dart: Ubicaci├│n del lote ┬╖ di├ílogo abrir un terreno ya ubicado no vuelve a medir el GPS
+01:47 +1227: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Completar datosΓÇª] sale por onComplete, no por onAdd
+01:47 +1228: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: toca un cultivo de la lista y lo corrige en la ficha
+01:47 +1229: D:/proyecto/calcafe/test/welcome_onboarding_card_test.dart: [Entrar a la app] dispara onEnter
+01:47 +1230: All tests passed!

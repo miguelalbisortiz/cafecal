@@ -1738,6 +1738,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingRestartCheckbox => 'This planting restarted the crop — put it back to \"Not producing yet\" and clear the first-harvest date';
 
   @override
+  String get sowingWhatHappensOldPlants => 'What happens to the plants you already have?';
+
+  @override
+  String get sowingExpandOption => 'I\'m expanding: nothing is replaced';
+
+  @override
+  String get sowingRenewOption => 'I\'m renewing part of it';
+
+  @override
+  String get sowingRenewHint => 'The old lot\'s plants go down and the new ones add up. The total doesn\'t inflate.';
+
+  @override
+  String get sowingReplaceCohortLabel => 'Lot I\'m renewing';
+
+  @override
+  String get sowingReplacePlantsLabel => 'Plants being replaced';
+
+  @override
+  String get sowingReplacePlantsRequired => 'Enter how many plants you\'re replacing.';
+
+  @override
+  String sowingReplacePlantsPrefill(int plants, int live) {
+    return 'Estimated by area: $plants of $live';
+  }
+
+  @override
+  String get sowingReplaceNoArea => 'The old lot has no area: tell me how many plants you\'re replacing.';
+
+  @override
+  String sowingReplaceAll(int live) {
+    return 'All ($live)';
+  }
+
+  @override
+  String sowingReplaceTooMany(int live) {
+    return 'That lot has $live living plants: you can\'t replace more.';
+  }
+
+  @override
+  String get sowingReplaceAreaLabel => 'Area being replaced (ha)';
+
+  @override
+  String sowingCohortOption(String date, int plants) {
+    return '$date · $plants plants';
+  }
+
+  @override
+  String get sowingCohortLabel => 'Lot';
+
+  @override
+  String get sowingCohortNoneTitle => 'There\'s no living lot';
+
+  @override
+  String get sowingCohortNoneBody => 'This crop has no living plants to replant into. If you\'re starting over, record it as a sowing.';
+
+  @override
+  String get sowingCohortNoneSaveAs => 'Record as sowing';
+
+  @override
+  String get sowingNoCohortTag => 'No lot';
+
+  @override
+  String sowingDeleteCohortBody(int total) {
+    return 'Another sowing takes plants away from this lot. If you delete it, those replacements stop applying and the crop total becomes $total plants.';
+  }
+
+  @override
+  String cohortsCount(int count) {
+    return '$count ages';
+  }
+
+  @override
+  String get cohortOpen => 'Open';
+
+  @override
+  String get cohortRenewed => 'Renewed';
+
+  @override
+  String cohortRenewedOn(String date) {
+    return 'Renewed on $date';
+  }
+
+  @override
+  String get cohortsHistoryTitle => 'Renewed lots';
+
+  @override
+  String get cohortsAreaFallback => 'Not every lot has an area: the crop area is the one you entered.';
+
+  @override
+  String cohortsAreaMismatch(String sum, String manual) {
+    return 'The lots with an area add up to $sum ha; the crop says $manual ha.';
+  }
+
+  @override
+  String get cohortsNoLivingPlants => 'This crop has no living plants.';
+
+  @override
+  String get helpCohortsRenewTitle => 'Renewing part of a lot';
+
+  @override
+  String get helpCohortsRenew => 'Renewing part of a lot subtracts those plants from the old lot and opens a new one with its own age. The old history isn\'t erased.';
+
+  @override
+  String perHaAgesAverage(int count) {
+    return 'average of $count ages';
+  }
+
+  @override
   String get sowingAreaMissingWarning => 'Without an area you cannot see costs per hectare. You can still save.';
 
   @override

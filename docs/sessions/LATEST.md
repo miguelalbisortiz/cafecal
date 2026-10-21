@@ -1,55 +1,84 @@
-# Sesión — martes 20 de octubre de 2026 (datos sin mentira)
+# Sesión — martes 20 de octubre de 2026 (tanda 4 cerrada y cohortes)
 
-> Estado al cierre: **sin cambios de código**. Se revisó la app con casos
-> reales, se dejaron los hallazgos y quedaron **PRD y plan** listos.
-> Detalle: `docs/sessions/2026-10-20-datos-sin-mentira.md`.
-> Análisis: `docs/analysis/2026-10-20_rendimiento-y-cultivos-asociados.md`.
-> La vuelta anterior (el peso de la web) quedó en
-> `docs/sessions/2026-10-20-peso-de-la-web.md`.
+> Estado al cierre: **tanda 4 implementada, commiteada, pusheada y
+> desplegada**; falta la verificación manual del usuario. El análisis de
+> cohortes quedó terminado y recomienda **partir el lote en dos cultivos**.
+> Informe: `docs/reports/2026-10-20_datos-sin-mentira.md`.
+> Plan: `docs/plans/2026-10-20-datos-sin-mentira.plan.md`.
+> Análisis: `docs/analysis/2026-10-20_cohortes-dentro-de-un-cultivo.md`.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` = `origin/main` = **`6ec6a23`**; `gh-pages` = **`2ae35e0`**.
-- Gate: `flutter analyze` limpio · **1049/1049** tests.
-- Sitio: https://miguelalbisortiz.github.io/cafecal/
+- `main` = `origin/main` = **`84ff1e1`** (0 commits adelante).
+- `gh-pages` = **`62ace8d`** («deploy: tanda 4, datos sin mentira»).
+- Gate: `flutter analyze` limpio · **1120/1120** tests.
+- Deploy verificado en producción: sha256
+  `0E1611367F9775F08EFD8FE7763260DFCF787FFB9B2637E689005CD465453D35`,
+  `main.dart.js` de 3.698.077 B.
+- Migraciones aplicadas por el usuario:
+  `202610200001_add_transaction_equivalent_kg.sql` y
+  `202610200002_add_settings_cash_budget_history.sql`.
 
 ## 2. Qué se hizo
 
-Nada de código: cuatro preguntas de funcionamiento contestadas con el código y
-una revisión que encontró **tres datos que hoy pueden mentir**:
+Tanda 4 completa: **T1–T13 + T15**, más el arreglo del duplicado de T6.
 
-- racimo y cajón cuentan como 1 kg (el peso se muestra pero no suma);
-- el arrastre de la caja se recalcula con el aporte de hoy;
-- las áreas de los cultivos no se comparan con el terreno.
+- **Racimo/cajón**: el peso viaja en la cosecha y en la venta
+  (`equivalent_kg`); un registro viejo sin peso se excluye y se lista.
+- **Caja**: el aporte rige desde que se configura; el arrastre no se
+  reconstruye hacia atrás.
+- **Áreas**: avisan sin bloquear contra el terreno.
+- **kg/planta**: se explica qué incluye; resiembra avisa sin bloquear.
+- **Reparto de gasto** (T15): por porcentaje, con atajo por área; N gastos
+  independientes, remanente al último.
+- **Planilla**: solo aclara gasto vs presupuesto. **Renovación**: solo copy.
+- **Arreglo T6**: `pendingHarvests` sale de `storedHarvests` filtrado con
+  `_inPeriod`; una venta sin peso no se cuenta dos veces. Rojo verificado
+  antes del arreglo.
 
-Más cuatro cosas que confunden: kg/planta sin decir qué incluye, resiembra sin
-muertas, caja como un solo pote y renovación sin explicar.
+Commits en `origin/main`: `f4cb524` (tanda 4), `91a3d22` (reparto de gasto),
+`84ff1e1` (arreglo «sin peso»).
 
-## 3. Lo que quedó listo
+## 3. Análisis de cohortes (sin código)
 
-- **PRD APPROVED**: `docs/prds/2026-10-20_1426-datos-sin-mentira.prd.md`
-  (puntos 1–5, 7, 8 y 9; el 6 queda fuera).
-- **Plan READY**: `docs/plans/2026-10-20-datos-sin-mentira.plan.md`
-  (T1–T14 en 4 fases, con tests, migraciones y verificación manual).
+Documento: `docs/analysis/2026-10-20_cohortes-dentro-de-un-cultivo.md`.
+También quedó el puntero desde el análisis anterior
+(`2026-10-20_rendimiento-y-cultivos-asociados.md`).
 
-## 4. Decisiones
+Lo verificado:
 
-- Registros viejos sin peso: **excluir y listar**, sin inventar.
-- Historial del aporte: **desde que se configura**.
-- Ventas en racimo/cajón: **pedir los kg**.
-- Gasto compartido: **porcentaje con atajo por área**.
+- `Harvest` solo tiene `cropId`; `transactions` sí tiene `sowing_id`.
+- Una **siembra reemplaza** plantas y área (`livePlants = s.plants`), así que
+  una expansión borra el estado del lote viejo; una resiembra conserva el total
+  pero mezcla edades.
+- `edadDeCrop` toma la última siembra; `lossEarliestDate` ancla las pérdidas a
+  esa misma siembra.
+- `yieldPerPlant` divide todos los kg por todas las plantas vivas del cultivo.
+
+Opciones A–E. **Recomendación: E, partir el lote en dos cultivos** (la práctica
+real: lote/tablón con edad propia), porque la app ya tiene terreno y varios
+cultivos; casi todo es copy y un flujo «dividir cultivo», sin migración.
+**C** (la siembra es la cohorte) queda solo si se quiere una sola fila «Café»
+con dos edades adentro.
+
+Reglas fijadas en el análisis: sin backfill ni inferencia retroactiva; las
+cosechas derivadas nunca llevan cohorte (se calculan al leer); `null` → oculto;
+la recepa/socola no se disfraza de siembra; no se suman áreas ni lotes.
+
+## 4. Pendientes
+
+- **Verificación manual** de los 8 puntos de la tanda 4; corregir lo que falle.
+- Revocar el **PAT de Supabase**.
+- Opcional: `flutter build apk`.
+- Verificación manual de la tanda 2 si quedó a medias.
+- Decidir **E o C**; si es E, PRD del flujo de división (copy solo vs.
+  «dividir cultivo»).
+- Dos documentos sin commitear (no hubo verbo): el análisis nuevo y el puntero
+  en el análisis anterior.
 
 ## 5. Cómo continuar
 
-1. **T1**: gate y baseline (sin tocar código). **T2**: helper `kgFromUnit` con
-   rojo real.
-2. Antes del deploy, aplicar las dos migraciones:
-   `202610200001_add_transaction_equivalent_kg.sql` y
-   `202610200002_add_settings_cash_budget_history.sql`.
-3. Gate entero; stageo explícito; LF antes de commitear.
-
-## 6. Pendientes heredados
-
-- Verificación manual del peso de la web y de la tanda 2.
-- Revocar el **PAT de Supabase**.
-- Opcional: `flutter build apk`.
+1. Probar la tanda 4 en producción; si algo falla, arreglo con test en rojo.
+2. Después, decidir E o C y escribir el PRD correspondiente.
+3. No re-abrir sin verbo: cohortes dentro del cultivo (si se elige E), asocio,
+   presupuesto por tarea, edición en grupo de un reparto.

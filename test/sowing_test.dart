@@ -9,6 +9,9 @@ Sowing _s({
   double? areaHa,
   int? lostPlants,
   String? reason,
+  int? replacesPlants,
+  double? replacesAreaHa,
+  String? cohortSowingId,
   String? cropId = 'cafe',
 }) {
   return Sowing(
@@ -20,6 +23,9 @@ Sowing _s({
     areaHa: areaHa,
     lostPlants: lostPlants,
     reason: reason,
+    replacesPlants: replacesPlants,
+    replacesAreaHa: replacesAreaHa,
+    cohortSowingId: cohortSowingId,
   );
 }
 
@@ -56,6 +62,7 @@ void main() {
         areaHa: 0.4,
         lostPlants: 10,
         reason: 'plagas',
+        cohortSowingId: 's0',
       );
       final fromJson = Sowing.fromJson(s.toJson());
       expect(fromJson.id, 's1');
@@ -65,6 +72,25 @@ void main() {
       expect(fromJson.lostPlants, 10);
       expect(fromJson.reason, 'plagas');
       expect(fromJson.cropId, 'cafe');
+      expect(fromJson.cohortSowingId, 's0',
+          reason: 'la resiembra conserva a qué cohorte pertenece');
+    });
+
+    test('round-trip conserva el reemplazo de una siembra', () {
+      final s = _s(
+        id: 's2',
+        date: DateTime(2027, 3, 1),
+        plants: 300,
+        areaHa: 1,
+        replacesPlants: 300,
+        replacesAreaHa: 1,
+        cohortSowingId: 's1',
+      );
+      final fromJson = Sowing.fromJson(s.toJson());
+      expect(fromJson.replacesPlants, 300);
+      expect(fromJson.replacesAreaHa, 1);
+      expect(fromJson.cohortSowingId, 's1');
+      expect(fromJson.pendingSync, isFalse);
     });
 
     test('lostPlants por defecto 0 ante JSON sin el campo', () {
@@ -76,6 +102,108 @@ void main() {
         'plants': 50,
       });
       expect(s.lostPlants, isNull);
+    });
+  });
+
+  // Etapa A · cohortes: el reemplazo y el puntero entran por la misma puerta
+  // que las pérdidas. Un dato imposible no se guarda ni se inventa: se limpia
+  // y se marca para corregir en la nube.
+  group('Etapa A · reemplazo y puntero de cohorte', () {
+    Map<String, dynamic> base({
+      String kind = 'siembra',
+      Object? replacesPlants,
+      Object? replacesAreaHa,
+      Object? cohortSowingId,
+    }) =>
+        {
+          'id': 's1',
+          'crop_id': 'cafe',
+          'date': DateTime(2026, 3, 1).toIso8601String(),
+          'kind': kind,
+          'plants': 100,
+          if (replacesPlants != null) 'replaces_plants': replacesPlants,
+          if (replacesAreaHa != null) 'replaces_area_ha': replacesAreaHa,
+          if (cohortSowingId != null) 'cohort_sowing_id': cohortSowingId,
+        };
+
+    test('JSON sin las claves: los tres entran null y no marcan sucio', () {
+      final s = Sowing.fromJson(base());
+      expect(s.replacesPlants, isNull);
+      expect(s.replacesAreaHa, isNull);
+      expect(s.cohortSowingId, isNull);
+      expect(s.pendingSync, isFalse, reason: 'un cliente viejo no está sucio');
+    });
+
+    test('negativos se limpian y marcan pendingSync', () {
+      final s = Sowing.fromJson(
+          base(replacesPlants: -5, replacesAreaHa: -1.0));
+      expect(s.replacesPlants, isNull);
+      expect(s.replacesAreaHa, isNull);
+      expect(s.pendingSync, isTrue);
+    });
+
+    test('replaces_area_ha sin replaces_plants se limpia', () {
+      final s = Sowing.fromJson(base(replacesAreaHa: 1.0));
+      expect(s.replacesPlants, isNull);
+      expect(s.replacesAreaHa, isNull,
+          reason: 'un área sin matas no significa nada');
+      expect(s.pendingSync, isTrue);
+    });
+
+    test('una resiembra limpia replaces_* y conserva el puntero', () {
+      final s = Sowing.fromJson(base(
+        kind: 'resiembra',
+        replacesPlants: 5,
+        replacesAreaHa: 0.5,
+        cohortSowingId: 's0',
+      ));
+      expect(s.replacesPlants, isNull);
+      expect(s.replacesAreaHa, isNull);
+      expect(s.cohortSowingId, 's0',
+          reason: 'la resiembra sí usa el puntero: a qué cohorte pertenece');
+      expect(s.pendingSync, isTrue);
+    });
+
+    test('siembra con reemplazo y sin puntero se conserva sin pendiente', () {
+      final s = Sowing.fromJson(base(replacesPlants: 300));
+      expect(s.replacesPlants, 300,
+          reason: 'el puntero puede faltar por un borrado remoto');
+      expect(s.cohortSowingId, isNull);
+      expect(s.pendingSync, isFalse, reason: 'no hay nada que corregir');
+    });
+
+    test('copyWith puede volver a null los tres campos', () {
+      final s = _s(
+        id: 's2',
+        date: DateTime(2027, 3, 1),
+        plants: 300,
+        areaHa: 1,
+        replacesPlants: 300,
+        replacesAreaHa: 1,
+        cohortSowingId: 's1',
+      );
+      final expansion = s.copyWith(
+        replacesPlants: null,
+        replacesAreaHa: null,
+        cohortSowingId: null,
+      );
+      expect(expansion.replacesPlants, isNull);
+      expect(expansion.replacesAreaHa, isNull);
+      expect(expansion.cohortSowingId, isNull);
+    });
+
+    test('no pasarlos los conserva', () {
+      final s = _s(
+        id: 's2',
+        date: DateTime(2027, 3, 1),
+        plants: 300,
+        replacesPlants: 300,
+        cohortSowingId: 's1',
+      );
+      final copia = s.copyWith(plants: 10);
+      expect(copia.plants, 10);
+      expect(copia.replacesPlants, 300);
+      expect(copia.cohortSowingId, 's1');
     });
   });
 
@@ -114,14 +242,22 @@ void main() {
       expect(state.areaHa, 0.5);
     });
 
-    test('área usa la última siembra que la aportó', () {
+    test(
+        'sin normalizar, una siembra posterior suma; el provider normaliza '
+        'antes de calcular', () {
+      // Etapa A · cohortes: dos siembras sin `replaces_plants` abren dos lotes y
+      // el cálculo crudo los suma (100 + 120 matas, 0,5 + 0,8 ha). El dato viejo
+      // se interpreta como reemplazo recién al normalizar
+      // (`normalizeLegacyCohorts`), que es lo que hace el provider antes de
+      // recalcular. La paridad de antes/después está en
+      // `sowing_legacy_normalization_test.dart`.
       final result = recomputeCropState([
         _s(id: 's1', date: DateTime(2026, 1, 1), plants: 100, areaHa: 0.5),
         _s(id: 's2', date: DateTime(2026, 4, 1), plants: 120, areaHa: 0.8),
       ]);
       final state = result['cafe']!;
-      expect(state.livePlants, 120);
-      expect(state.areaHa, 0.8);
+      expect(state.livePlants, 220);
+      expect(state.areaHa, 1.3);
     });
 
     test('sin siembras no genera estado (no sobreescribe manual)', () {

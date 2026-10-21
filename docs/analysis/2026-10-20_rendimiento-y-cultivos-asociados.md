@@ -40,6 +40,10 @@ Huecos anotados para más adelante:
 - [ ] Renovación completa: hoy solo se representa como siembra nueva, y eso
       borra la historia de edad del lote viejo.
 
+> Análisis de estos ítems (2026-10-20):
+> `2026-10-20_cohortes-dentro-de-un-cultivo.md`. Recomienda partir el lote en
+> dos cultivos (E); cohortes dentro del cultivo queda como alternativa.
+
 ## 2. Cultivos asociados en el mismo terreno
 
 Caso: un terreno de 8 ha con café, plátano, palta y maíz.

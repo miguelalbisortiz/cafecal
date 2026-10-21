@@ -210,32 +210,52 @@ int aniosCumplidos(DateTime desde, DateTime hoy) {
   return anios < 0 ? 0 : anios;
 }
 
-/// E5 · edad de un cultivo en años, o `null` si **no hay datos**.
+/// Etapa A · edad de una cohorte: años cumplidos desde su siembra.
+///
+/// `null` si el cultivo es anual (no tiene edad de cafetal) o si la fecha es
+/// del futuro (todavía no cumple ningún año; tampoco es un 0 inventado).
+int? edadDeCohorte(Crop crop, Cohort cohort, {DateTime? hoy}) {
+  if (crop.cycle == CropCycle.anual) return null;
+  final ahora = hoy ?? DateTime.now();
+  if (cohort.date.isAfter(ahora)) return null;
+  return aniosCumplidos(cohort.date, ahora);
+}
+
+/// Etapa A · la edad de cada cohorte **viva**, en el mismo orden que [cohorts].
+/// Una cohorte ya en 0 no aporta una edad de hoy.
+List<int?> edadesDeCohorte(Crop crop, List<Cohort> cohorts, {DateTime? hoy}) =>
+    [for (final c in cohorts) if (c.open) edadDeCohorte(crop, c, hoy: hoy)];
+
+/// E5 + etapa A · edad de un cultivo en años, o `null` si **no hay una edad**
+/// que dar.
 ///
 /// Orden fijo, de lo que él anotó en el campo a lo que escribió en el editor:
 ///
-/// 1. la **última siembra** — es lo que de verdad arrancó el lote;
-/// 2. si no hay ninguna, `plantedAt`;
-/// 3. si no hay ninguna de las dos → `null` (se oculta, nunca un 0 inventado).
+/// 1. la **cohorte viva**, si hay exactamente una —es la siembra que arrancó el
+///    lote—;
+/// 2. con **dos o más cohortes vivas no hay «una» edad** → `null` (la tarjeta
+///    muestra «N edades», nunca un promedio);
+/// 3. sin siembras, `plantedAt`;
+/// 4. si no hay ninguna de las dos → `null` (se oculta, nunca un 0 inventado).
 ///
 /// **Una resiembra no reinicia la edad.** En la finca, la resiembra repone
 /// plantas muertas: la app misma lo dice con su aritmética, vivas − muertas +
 /// nuevas. Un cafetal de 7 años con 20 matas reponidas sigue teniendo 7 años.
-/// Lo que sí la reinicia es una **siembra nueva** (una renovación completa se
-/// anota como siembra).
+/// Lo que sí la reinicia es una **siembra nueva**.
 ///
 /// Un cultivo anual no tiene edad de cafetal → `null`.
 int? edadDeCrop(Crop crop, List<Sowing> sowings, {DateTime? hoy}) {
   if (crop.cycle == CropCycle.anual) return null;
   final ahora = hoy ?? DateTime.now();
 
-  DateTime? desde;
-  for (final s in sowings) {
-    if (s.cropId != crop.id) continue;
-    if (s.kind != SowingKind.siembra) continue;
-    if (desde == null || s.date.isAfter(desde)) desde = s.date;
-  }
-  desde ??= crop.plantedAt;
+  final vivas = openCohorts(crop.id, sowings);
+  if (vivas.length > 1) return null;
+  if (vivas.length == 1) return edadDeCohorte(crop, vivas.first, hoy: ahora);
+
+  // Sin cohortes vivas: si hay siembras, todas se agotaron (no hay edad que
+  // dar). Si no hay ninguna, manda lo que él escribió en el editor.
+  if (sowings.any((s) => s.cropId == crop.id)) return null;
+  final desde = crop.plantedAt;
   if (desde == null || desde.isAfter(ahora)) return null;
   return aniosCumplidos(desde, ahora);
 }

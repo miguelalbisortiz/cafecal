@@ -77,6 +77,13 @@ class SowingScreen extends StatelessWidget {
     // Pérdidas y motivo son de la resiembra: `lossOf` es la única regla de
     // lectura, así que una siembra con un -50 viejo pegado no lo pinta.
     final perdida = lossOf(s);
+    // Etapa A · un reemplazo cuyo lote ya no existe no resta y se dice: el
+    // total del cultivo no incluye esa resta y nadie tiene que adivinarlo.
+    final sinLote = (s.replacesPlants ?? 0) > 0 &&
+        !tx.sowings.any((o) =>
+            o.id == s.cohortSowingId &&
+            o.cropId == s.cropId &&
+            o.kind == SowingKind.siembra);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -110,6 +117,7 @@ class SowingScreen extends StatelessWidget {
                 if (perdida.lost > 0) '-${perdida.lost}',
                 if (perdida.reason != null && perdida.reason!.isNotEmpty)
                   perdida.reason!,
+                if (sinLote) l10n.sowingNoCohortTag,
               ].join(' · '),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -151,10 +159,23 @@ class SowingScreen extends StatelessWidget {
 
   Future<void> _confirmDelete(BuildContext context, TransactionProvider tx,
       Sowing s, AppLocalizations l10n) async {
+    // Etapa A · si otra siembra le resta matas a este lote, borrarlo cambia el
+    // total del cultivo. Se dice antes, con el número que va a quedar.
+    final restantes = tx.sowings.where((x) => x.id != s.id).toList();
+    final total = s.cropId == null
+        ? null
+        : recomputeCropState(restantes)[s.cropId]?.livePlants;
+    final apuntada = tx.sowings.any((x) =>
+        x.cohortSowingId == s.id && (x.replacesPlants ?? 0) > 0);
+    Widget? content;
+    if (apuntada && total != null) {
+      content = Text(l10n.sowingDeleteCohortBody(total));
+    }
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(l10n.sowingConfirmDelete),
+        content: content,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -221,10 +242,24 @@ class _SowingFormState extends State<_SowingForm> {
   /// C6 · una siembra nueva sobre un cultivo que ya existía puede ser un
   /// **arranque completo** (se arrancó todo y se volvió a plantar).
   ///
-  /// La edad ya se reinicia sola (`edadDeCrop` toma la siembra más reciente);
-  /// lo que NO se reinicia solo son la fase y la fecha de la primera cosecha.
-  /// Nunca se marca solo: él lo pide.
+  /// La edad ya se reinicia sola (la cohorte nueva es la única viva); lo que NO
+  /// se reinicia solo son la fase y la fecha de la primera cosecha. Nunca se
+  /// marca solo: él lo pide. Al marcarla se fuerza «Renuevo + Todas» sobre el
+  /// lote viejo, que es lo que significa arrancar de nuevo (etapa A).
   bool _restartCrop = false;
+
+  /// Etapa A · «Amplío / Renuevo». Solo aparece en una siembra sobre un cultivo
+  /// que ya tiene lotes vivos. Por defecto **amplía** y guarda `0` explícito:
+  /// `null` es dato viejo y la normalización no puede confundirlos (§5.7.2).
+  bool _renewPortion = false;
+  String? _renewCohortId;
+
+  /// Etapa A · el lote al que pertenece una resiembra (el que recibe las
+  /// pérdidas). Sin puntero el motor cae por fecha; con varias edades hay que
+  /// elegir.
+  String? _lossCohortId;
+  final _replacePlantsController = TextEditingController();
+  final _replaceAreaController = TextEditingController();
 
   @override
   void initState() {
@@ -238,6 +273,18 @@ class _SowingFormState extends State<_SowingForm> {
       if (s.areaHa != null) _areaController.text = s.areaHa.toString();
       if (s.lostPlants != null) _lostController.text = s.lostPlants.toString();
       if (s.reason != null) _reasonController.text = s.reason!;
+      // Etapa A · una siembra con reemplazo se abre en «Renuevo» con sus
+      // valores; una expansión (`0`) se abre en «Amplío».
+      final reemplaza = s.replacesPlants ?? 0;
+      if (reemplaza > 0) {
+        _renewPortion = true;
+        _replacePlantsController.text = reemplaza.toString();
+      }
+      _renewCohortId = s.cohortSowingId;
+      _lossCohortId = s.cohortSowingId;
+      if (s.replacesAreaHa != null) {
+        _replaceAreaController.text = s.replacesAreaHa!.toString();
+      }
     } else if (_cropNames.isNotEmpty) {
       _cropId = _cropNames.keys.first;
     }
@@ -251,6 +298,8 @@ class _SowingFormState extends State<_SowingForm> {
     _lostFocus.dispose();
     _reasonController.dispose();
     _costController.dispose();
+    _replacePlantsController.dispose();
+    _replaceAreaController.dispose();
     super.dispose();
   }
 
@@ -317,10 +366,69 @@ class _SowingFormState extends State<_SowingForm> {
   /// editar una siembra normal ofrecería "arrancar de nuevo".
   bool _canRestart(TransactionProvider tx) {
     if (_kind != SowingKind.siembra || _cropId == null) return false;
+    // Etapa A · con dos o más lotes vivos no hay un «arranque» que reiniciar:
+    // habría que elegir cuál y eso ya es una renovación, no un arranque.
+    if (_cohortsToRenew(tx).length > 1) return false;
     return tx.sowings.any((s) =>
         s.cropId == _cropId &&
         s.kind == SowingKind.siembra &&
         s.id != widget.editing?.id);
+  }
+
+  /// Etapa A · lotes vivos del cultivo elegido, sin contar la siembra que se
+  /// está editando (su propio reemplazo no se resta a sí mismo).
+  List<Cohort> _cohortsToRenew(TransactionProvider tx) {
+    final cropId = _cropId;
+    if (cropId == null || _kind != SowingKind.siembra) return const [];
+    final otras =
+        tx.sowings.where((s) => s.id != widget.editing?.id).toList();
+    return openCohorts(cropId, otras);
+  }
+
+  /// El lote elegido; por defecto el más antiguo vivo.
+  Cohort? _selectedCohort(List<Cohort> cohorts) {
+    if (cohorts.isEmpty) return null;
+    for (final c in cohorts) {
+      if (c.sowingId == _renewCohortId) return c;
+    }
+    return cohorts.first;
+  }
+
+  /// Precarga por área: `round(vivas × área nueva / área vieja)`. Solo si las
+  /// dos áreas se conocen; si no, el campo queda vacío y se pide a mano.
+  void _fillPrefill(List<Cohort> cohorts) {
+    final c = _selectedCohort(cohorts);
+    if (c == null) return;
+    final areaText = _areaController.text.trim();
+    final area = double.tryParse(areaText.replaceAll(',', '.'));
+    final p = replacementPrefill(c, area);
+    if (p != null) {
+      _replacePlantsController.text = p.toString();
+      if (_replaceAreaController.text.trim().isEmpty) {
+        _replaceAreaController.text = areaText;
+      }
+    }
+  }
+
+  String _shortDate(DateTime d) => '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  /// Etapa A · lotes vivos donde puede reponer una resiembra.
+  List<Cohort> _lossCohorts(TransactionProvider tx) {
+    final cropId = _cropId;
+    if (cropId == null || _kind != SowingKind.resiembra) return const [];
+    final otras =
+        tx.sowings.where((s) => s.id != widget.editing?.id).toList();
+    return openCohorts(cropId, otras);
+  }
+
+  /// El lote de la resiembra; por defecto el más antiguo vivo.
+  Cohort? _selectedLossCohort(List<Cohort> cohorts) {
+    if (cohorts.isEmpty) return null;
+    for (final c in cohorts) {
+      if (c.sowingId == _lossCohortId) return c;
+    }
+    return cohorts.first;
   }
 
   Future<bool?> _confirmMissingLosses(AppLocalizations l10n) => showDialog<bool>(
@@ -362,6 +470,33 @@ class _SowingFormState extends State<_SowingForm> {
         ? _reasonController.text.trim()
         : null;
 
+    // Etapa A · qué pasa con las matas viejas. Una siembra **siempre** guarda
+    // un valor explícito: `0` = amplío (`null` es dato viejo, §5.7.2).
+    final cohorts = _cohortsToRenew(tx);
+    final renewing =
+        _kind == SowingKind.siembra && cohorts.isNotEmpty && _renewPortion;
+    final selected = renewing ? _selectedCohort(cohorts) : null;
+    int? replacesPlants;
+    double? replacesAreaHa;
+    String? cohortSowingId;
+    if (_kind == SowingKind.siembra) {
+      if (renewing) {
+        replacesPlants =
+            int.tryParse(_replacePlantsController.text.trim()) ?? 0;
+        final replaceAreaText =
+            _replaceAreaController.text.trim().replaceAll(',', '.');
+        replacesAreaHa =
+            replaceAreaText.isEmpty ? null : double.tryParse(replaceAreaText);
+        cohortSowingId = selected?.sowingId;
+      } else {
+        replacesPlants = 0;
+      }
+    } else {
+      // Etapa A · el lote al que pertenece la resiembra. Sin lote vivo no se
+      // apunta a nada: el motor la ignora y las matas no cambian (D8).
+      cohortSowingId = _selectedLossCohort(_lossCohorts(tx))?.sowingId;
+    }
+
     // T12 · una resiembra con plantas nuevas y sin muertas deja el dato a
     // medias. Se avisa una vez y se deja guardar: no bloquea.
     if (resiembraMissingLosses(_kind, plants, lost)) {
@@ -384,6 +519,9 @@ class _SowingFormState extends State<_SowingForm> {
         areaHa: area,
         lostPlants: lost,
         reason: reason,
+        replacesPlants: replacesPlants,
+        replacesAreaHa: replacesAreaHa,
+        cohortSowingId: cohortSowingId,
       ));
       sowingId = editing.id;
     } else {
@@ -395,6 +533,9 @@ class _SowingFormState extends State<_SowingForm> {
         areaHa: area,
         lostPlants: lost,
         reason: reason,
+        replacesPlants: replacesPlants,
+        replacesAreaHa: replacesAreaHa,
+        cohortSowingId: cohortSowingId,
       );
       sowingId = sowing.id;
     }
@@ -473,6 +614,14 @@ class _SowingFormState extends State<_SowingForm> {
     final l10n = AppLocalizations.of(context)!;
     final tx = context.read<TransactionProvider>();
     final isResiembra = _kind == SowingKind.resiembra;
+    final cohorts = _cohortsToRenew(tx);
+    final selected = _selectedCohort(cohorts);
+    final nuevaArea =
+        double.tryParse(_areaController.text.trim().replaceAll(',', '.'));
+    final prefill =
+        selected == null ? null : replacementPrefill(selected, nuevaArea);
+    final lossCohorts = _lossCohorts(tx);
+    final lossSelected = _selectedLossCohort(lossCohorts);
     return AlertDialog(
       title: Text(widget.editing != null
           ? l10n.editCropTitle
@@ -579,6 +728,69 @@ class _SowingFormState extends State<_SowingForm> {
                 },
               ),
               if (isResiembra) ...[
+                // Etapa A · ¿a qué lote le entran las pérdidas? Con una edad
+                // se dice sola; con varias se elige. Sin lotes vivos se avisa
+                // y se ofrece anotarlo como siembra (las matas no cambian).
+                if (lossCohorts.isEmpty) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.sowingCohortNoneTitle,
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l10n.sowingCohortNoneBody,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => setState(() {
+                              _kind = SowingKind.siembra;
+                              _restartCrop = false;
+                            }),
+                            child: Text(l10n.sowingCohortNoneSaveAs),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (lossCohorts.length > 1)
+                  DropdownButtonFormField<String>(
+                    value: lossSelected?.sowingId,
+                    decoration: InputDecoration(
+                      labelText: l10n.sowingCohortLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      for (final c in lossCohorts)
+                        DropdownMenuItem(
+                          value: c.sowingId,
+                          child: Text(l10n.sowingCohortOption(
+                              _shortDate(c.date), c.livePlants)),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _lossCohortId = v),
+                  )
+                else if (lossSelected != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${l10n.sowingCohortLabel}: '
+                      '${l10n.sowingCohortOption(_shortDate(lossSelected.date), lossSelected.livePlants)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _lostController,
@@ -658,8 +870,20 @@ class _SowingFormState extends State<_SowingForm> {
                 if (_canRestart(tx)) ...[
                   CheckboxListTile(
                     value: _restartCrop,
-                    onChanged: (v) =>
-                        setState(() => _restartCrop = v ?? false),
+                    onChanged: (v) => setState(() {
+                      _restartCrop = v ?? false;
+                      // Etapa A · arrancar de nuevo es reemplazar **todas** las
+                      // matas del lote viejo: Renuevo + «Todas» forzados.
+                      if (_restartCrop) {
+                        _renewPortion = true;
+                        final cs = _cohortsToRenew(tx);
+                        if (cs.length == 1) {
+                          _renewCohortId = cs.first.sowingId;
+                          _replacePlantsController.text =
+                              '${cs.first.livePlants}';
+                        }
+                      }
+                    }),
                     title: Text(
                       l10n.sowingRestartCheckbox,
                       style: const TextStyle(fontSize: 13),
@@ -668,6 +892,138 @@ class _SowingFormState extends State<_SowingForm> {
                     contentPadding: EdgeInsets.zero,
                     dense: true,
                   ),
+                ],
+                // Etapa A · «¿Qué pasa con las matas que ya tenés?». Solo
+                // cuando el cultivo tiene lotes vivos; si no, la pantalla se ve
+                // exactamente como siempre.
+                if (cohorts.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.sowingWhatHappensOldPlants,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  RadioListTile<bool>(
+                    value: false,
+                    groupValue: _renewPortion,
+                    onChanged: (v) =>
+                        setState(() => _renewPortion = false),
+                    title: Text(l10n.sowingExpandOption,
+                        style: const TextStyle(fontSize: 13)),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                  RadioListTile<bool>(
+                    value: true,
+                    groupValue: _renewPortion,
+                    onChanged: (v) => setState(() {
+                      _renewPortion = true;
+                      _fillPrefill(cohorts);
+                    }),
+                    title: Text(l10n.sowingRenewOption,
+                        style: const TextStyle(fontSize: 13)),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                  if (_renewPortion) ...[
+                    if (cohorts.length > 1)
+                      DropdownButtonFormField<String>(
+                        value: selected?.sowingId,
+                        decoration: InputDecoration(
+                          labelText: l10n.sowingReplaceCohortLabel,
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: [
+                          for (final c in cohorts)
+                            DropdownMenuItem(
+                              value: c.sowingId,
+                              child: Text(l10n.sowingCohortOption(
+                                  _shortDate(c.date), c.livePlants)),
+                            ),
+                        ],
+                        onChanged: (v) => setState(() {
+                          _renewCohortId = v;
+                          _fillPrefill(cohorts);
+                        }),
+                      )
+                    else if (selected != null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${l10n.sowingReplaceCohortLabel}: '
+                          '${l10n.sowingCohortOption(_shortDate(selected.date), selected.livePlants)}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _replacePlantsController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: l10n.sowingReplacePlantsLabel,
+                        helperText: selected != null && selected.areaHa == null
+                            ? l10n.sowingReplaceNoArea
+                            : null,
+                        prefixIcon: const Icon(Icons.remove_circle_outline),
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (v) {
+                        if (!_renewPortion) return null;
+                        final n = int.tryParse((v ?? '').trim());
+                        if (n == null || n <= 0) {
+                          return l10n.sowingReplacePlantsRequired;
+                        }
+                        final live = selected?.livePlants ?? 0;
+                        if (n > live) {
+                          return l10n.sowingReplaceTooMany(live);
+                        }
+                        return null;
+                      },
+                    ),
+                    if (selected != null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () => setState(() {
+                            _replacePlantsController.text =
+                                '${selected.livePlants}';
+                          }),
+                          child: Text(
+                              l10n.sowingReplaceAll(selected.livePlants)),
+                        ),
+                      ),
+                    if (prefill != null)
+                      Text(
+                        l10n.sowingReplacePlantsPrefill(
+                            prefill, selected!.livePlants),
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    TextFormField(
+                      controller: _replaceAreaController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
+                      decoration: InputDecoration(
+                        labelText: l10n.sowingReplaceAreaLabel,
+                        prefixIcon:
+                            const Icon(Icons.square_foot_outlined),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        l10n.sowingRenewHint,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                                color:
+                                    Theme.of(context).colorScheme.outline),
+                      ),
+                    ),
+                  ],
                 ],
               ],
               // F2: el costo va en la siembra y también en la resiembra —

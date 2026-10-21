@@ -211,4 +211,116 @@ void main() {
         reason: 'anota el día de la pérdida, no el día en que la escribe');
     expect(provider.crops.single.livePlants, 450);
   });
+
+  // ── T15 · el lote de la pérdida ─────────────────────────────────────────
+
+  /// Dos edades vivas: 1.000 matas del 2020 y 300 del 2024.
+  Future<TransactionProvider> dosLotes({DateTime? segunda}) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final crop = await provider.addCrop('Café', areaHa: 5);
+    await provider.addSowing(
+        cropId: crop.id,
+        date: DateTime(2020, 3, 12),
+        plants: 1000,
+        areaHa: 5);
+    await provider.addSowing(
+        cropId: crop.id,
+        date: segunda ?? DateTime(2024, 5, 1),
+        plants: 300,
+        areaHa: 1,
+        replacesPlants: 0);
+    return provider;
+  }
+
+  String corta(DateTime d) => '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  testWidgets('T15: con dos edades la pérdida va al lote más viejo por defecto',
+      (tester) async {
+    final provider = await dosLotes();
+    final vieja = provider.sowings.first.id;
+    await pumpLoss(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+
+    expect(find.text(l10n.sowingCohortLabel), findsOneWidget);
+    expect(find.text(l10n.sowingCohortOption('12/03/2020', 1000)),
+        findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).at(0), '1250');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    final resiembra = provider.sowings.last;
+    expect(resiembra.cohortSowingId, vieja);
+    expect(resiembra.lostPlants, 50);
+    expect(provider.crops.single.livePlants, 1250,
+        reason: 'la pérdida bajó el total en 50');
+  });
+
+  testWidgets('T15: el lote elegido recibe la pérdida', (tester) async {
+    final provider = await dosLotes();
+    final nueva = provider.sowings.last.id;
+    await pumpLoss(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+
+    await tester.tap(find.text(l10n.sowingCohortOption('12/03/2020', 1000)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.sowingCohortOption('01/05/2024', 300)).last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).at(0), '1270');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, l10n.add));
+    await tester.pumpAndSettle();
+
+    expect(provider.sowings.last.cohortSowingId, nueva);
+    expect(provider.crops.single.livePlants, 1270);
+  });
+
+  testWidgets('T15: la pérdida no se fecha antes de la siembra de su lote',
+      (tester) async {
+    final ahora = DateTime.now();
+    final primeraDelMes = DateTime(ahora.year, ahora.month, 1);
+    final provider = await dosLotes(segunda: primeraDelMes);
+    await pumpLoss(tester, provider);
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(CropLossDialog)))!;
+    final material = MaterialLocalizations.of(
+        tester.element(find.byType(CropLossDialog)));
+
+    bool mesAnteriorHabilitado() {
+      final boton = tester.widget<IconButton>(find
+          .ancestor(
+            of: find.byIcon(Icons.chevron_left),
+            matching: find.byType(IconButton),
+          )
+          .first);
+      return boton.onPressed != null;
+    }
+
+    // Con el lote viejo (2020) se puede ir bien atrás.
+    await tester.tap(find.byIcon(Icons.calendar_today_outlined));
+    await tester.pumpAndSettle();
+    expect(mesAnteriorHabilitado(), isTrue);
+    await tester.tap(find.text(material.okButtonLabel));
+    await tester.pumpAndSettle();
+
+    // Con el lote que nació este mes, no hay mes anterior para elegir.
+    await tester.tap(find.text(l10n.sowingCohortOption('12/03/2020', 1000)));
+    await tester.pumpAndSettle();
+    await tester.tap(find
+        .text(l10n.sowingCohortOption(corta(primeraDelMes), 300))
+        .last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.calendar_today_outlined));
+    await tester.pumpAndSettle();
+    expect(mesAnteriorHabilitado(), isFalse,
+        reason: 'la pérdida no puede ser anterior a esa siembra');
+  });
 }

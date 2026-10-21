@@ -3317,6 +3317,186 @@ abstract class AppLocalizations {
   /// **'Esta siembra arrancó el cultivo de nuevo — volver a «Sin dar» y borrar la fecha de la primera cosecha'**
   String get sowingRestartCheckbox;
 
+  /// No description provided for @sowingWhatHappensOldPlants.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué pasa con las matas que ya tenés?'**
+  String get sowingWhatHappensOldPlants;
+
+  /// No description provided for @sowingExpandOption.
+  ///
+  /// In es, this message translates to:
+  /// **'Amplío el cultivo: no reemplazo nada'**
+  String get sowingExpandOption;
+
+  /// No description provided for @sowingRenewOption.
+  ///
+  /// In es, this message translates to:
+  /// **'Renuevo una parte'**
+  String get sowingRenewOption;
+
+  /// No description provided for @sowingRenewHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Las matas del lote viejo bajan y las nuevas suman. El total no se infla.'**
+  String get sowingRenewHint;
+
+  /// No description provided for @sowingReplaceCohortLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Lote que renuevo'**
+  String get sowingReplaceCohortLabel;
+
+  /// No description provided for @sowingReplacePlantsLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Matas que reemplaza'**
+  String get sowingReplacePlantsLabel;
+
+  /// No description provided for @sowingReplacePlantsRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribí cuántas matas reemplazás.'**
+  String get sowingReplacePlantsRequired;
+
+  /// No description provided for @sowingReplacePlantsPrefill.
+  ///
+  /// In es, this message translates to:
+  /// **'Calculado por área: {plants} de {live}'**
+  String sowingReplacePlantsPrefill(int plants, int live);
+
+  /// No description provided for @sowingReplaceNoArea.
+  ///
+  /// In es, this message translates to:
+  /// **'El lote viejo no tiene área: decime cuántas matas reemplazás.'**
+  String get sowingReplaceNoArea;
+
+  /// No description provided for @sowingReplaceAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas ({live})'**
+  String sowingReplaceAll(int live);
+
+  /// No description provided for @sowingReplaceTooMany.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese lote tiene {live} matas vivas: no podés reemplazar más.'**
+  String sowingReplaceTooMany(int live);
+
+  /// No description provided for @sowingReplaceAreaLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Área que reemplaza (ha)'**
+  String get sowingReplaceAreaLabel;
+
+  /// No description provided for @sowingCohortOption.
+  ///
+  /// In es, this message translates to:
+  /// **'{date} · {plants} matas'**
+  String sowingCohortOption(String date, int plants);
+
+  /// No description provided for @sowingCohortLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Lote'**
+  String get sowingCohortLabel;
+
+  /// No description provided for @sowingCohortNoneTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay un lote vivo'**
+  String get sowingCohortNoneTitle;
+
+  /// No description provided for @sowingCohortNoneBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Este cultivo no tiene matas vivas donde reponer. Si estás arrancando de nuevo, anotalo como siembra.'**
+  String get sowingCohortNoneBody;
+
+  /// No description provided for @sowingCohortNoneSaveAs.
+  ///
+  /// In es, this message translates to:
+  /// **'Anotar como siembra'**
+  String get sowingCohortNoneSaveAs;
+
+  /// No description provided for @sowingNoCohortTag.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin lote'**
+  String get sowingNoCohortTag;
+
+  /// No description provided for @sowingDeleteCohortBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Otra siembra le resta matas a este lote. Si lo borrás, esos reemplazos dejan de aplicar y el total del cultivo queda en {total} matas.'**
+  String sowingDeleteCohortBody(int total);
+
+  /// No description provided for @cohortsCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} edades'**
+  String cohortsCount(int count);
+
+  /// No description provided for @cohortOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abierta'**
+  String get cohortOpen;
+
+  /// No description provided for @cohortRenewed.
+  ///
+  /// In es, this message translates to:
+  /// **'Renovada'**
+  String get cohortRenewed;
+
+  /// No description provided for @cohortRenewedOn.
+  ///
+  /// In es, this message translates to:
+  /// **'Renovada en {date}'**
+  String cohortRenewedOn(String date);
+
+  /// No description provided for @cohortsHistoryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Lotes renovados'**
+  String get cohortsHistoryTitle;
+
+  /// No description provided for @cohortsAreaFallback.
+  ///
+  /// In es, this message translates to:
+  /// **'No todos los lotes tienen área: el área del cultivo es la que escribiste.'**
+  String get cohortsAreaFallback;
+
+  /// No description provided for @cohortsAreaMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Los lotes con área suman {sum} ha; el cultivo dice {manual} ha.'**
+  String cohortsAreaMismatch(String sum, String manual);
+
+  /// No description provided for @cohortsNoLivingPlants.
+  ///
+  /// In es, this message translates to:
+  /// **'Este cultivo no tiene matas vivas.'**
+  String get cohortsNoLivingPlants;
+
+  /// No description provided for @helpCohortsRenewTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Renovar una parte del lote'**
+  String get helpCohortsRenewTitle;
+
+  /// No description provided for @helpCohortsRenew.
+  ///
+  /// In es, this message translates to:
+  /// **'Renovar una parte resta esas matas del lote viejo y abre uno nuevo con su propia edad. La historia del viejo no se borra.'**
+  String get helpCohortsRenew;
+
+  /// No description provided for @perHaAgesAverage.
+  ///
+  /// In es, this message translates to:
+  /// **'promedio de {count} edades'**
+  String perHaAgesAverage(int count);
+
   /// No description provided for @sowingAreaMissingWarning.
   ///
   /// In es, this message translates to:

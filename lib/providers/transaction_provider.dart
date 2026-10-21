@@ -50,6 +50,11 @@ class TransactionProvider extends ChangeNotifier {
     _terrenos = _store.loadTerrenos();
     _settingsDirty = _store.loadSettingsDirty();
     _deletedCrops = _store.loadDeletedCrops();
+    // Etapa A · antes que nada: los datos viejos se leen como reemplazo para
+    // que las cohortes no muevan ningún número (D9).
+    if (_normalizeLegacyCohortsInMemory()) {
+      unawaited(_recomputeCropsFromSowings());
+    }
     // Tanda 4 · primera vez con un aporte configurado: el historial arranca
     // este mes. Sin historial no hay forma de saber qué regía antes, y
     // reconstruirlo sería inventar.
@@ -77,6 +82,11 @@ class TransactionProvider extends ChangeNotifier {
     // Igual que la dirty: si no se recarga, un cultivo borrado en la cuenta
     // anterior reviviría aquí (o se borraría sin querer en otra).
     _deletedCrops = _store.loadDeletedCrops();
+    // Etapa A · misma pasada que al construir; aquí sí se puede esperar el
+    // recálculo antes de seguir.
+    if (_normalizeLegacyCohortsInMemory()) {
+      await _recomputeCropsFromSowings();
+    }
     _seedCashHistory();
     await reconcilePhaseFromHarvests();
     notifyListeners();
@@ -702,6 +712,9 @@ class TransactionProvider extends ChangeNotifier {
     double? areaHa,
     int? lostPlants,
     String? reason,
+    int? replacesPlants,
+    double? replacesAreaHa,
+    String? cohortSowingId,
   }) async {
     final sowing = Sowing(
       id: _uuid.v4(),
@@ -712,6 +725,9 @@ class TransactionProvider extends ChangeNotifier {
       areaHa: areaHa,
       lostPlants: lostPlants,
       reason: reason,
+      replacesPlants: replacesPlants,
+      replacesAreaHa: replacesAreaHa,
+      cohortSowingId: cohortSowingId,
       pendingSync: true,
     );
     _sowings = [..._sowings, sowing];
@@ -734,6 +750,14 @@ class TransactionProvider extends ChangeNotifier {
 
   Future<void> deleteSowing(String id) async {
     _sowings = _sowings.where((s) => s.id != id).toList();
+    // Etapa A · las siembras que apuntaban a esta cohorte se quedan sin
+    // puntero: el reemplazo deja de restar y la resiembra cae por fecha. Se
+    // marcan pendientes para que la corrección suba.
+    _sowings = _sowings
+        .map((s) => s.cohortSowingId == id
+            ? s.copyWith(cohortSowingId: null, pendingSync: true)
+            : s)
+        .toList();
     await _store.saveSowings(_sowings);
     // B5: desvincular transacciones que referencian esta siembra
     _transactions = _transactions
@@ -768,6 +792,21 @@ class TransactionProvider extends ChangeNotifier {
       _crops = list;
       await _store.saveCrops(_crops);
     }
+  }
+
+  /// Etapa A · interpreta los datos viejos como reemplazo, en memoria y una
+  /// sola vez (D9).
+  ///
+  /// Sin esto, dos siembras viejas se leerían como dos cohortes y el total del
+  /// cultivo subiría. Idempotente: en cuanto una fila queda tocada deja de
+  /// estar en `null` y no se vuelve a procesar. Devuelve `true` si tocó algo
+  /// (quien llama decide si recalcula y espera).
+  bool _normalizeLegacyCohortsInMemory() {
+    final r = normalizeLegacyCohorts(_sowings);
+    if (!r.changed) return false;
+    _sowings = r.sowings;
+    unawaited(_store.saveSowings(_sowings));
+    return true;
   }
 
   // ---- Employees ----
@@ -1021,6 +1060,12 @@ class TransactionProvider extends ChangeNotifier {
     }
     agregados += BackupCounts(siembras: sowingAdd.added.length);
     omitidos += BackupCounts(siembras: sowingAdd.omitidos);
+
+    // Etapa A · lo importado también se normaliza: un respaldo viejo con dos
+    // siembras no puede mover los números al volver a entrar.
+    if (_normalizeLegacyCohortsInMemory()) {
+      await _recomputeCropsFromSowings();
+    }
 
     // 3) Cosechas.
     final harvestAdd = _fuse(_harvests, payload.harvests, (h) => h.id,
@@ -1286,6 +1331,10 @@ class TransactionProvider extends ChangeNotifier {
       ...remoteSowings.where((s) => !existing.contains(s.id)),
     ];
     _store.saveSowings(_sowings);
+    // Etapa A · el pull puede traer cohortes nuevas: los cultivos afectados
+    // tienen que quedar recalculados. Un puntero que todavía no llegó se
+    // conserva tal cual (no se anula).
+    unawaited(_recomputeCropsFromSowings());
     notifyListeners();
   }
 

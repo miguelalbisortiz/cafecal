@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/harvest.dart';
+import '../models/sowing.dart';
 import '../models/transaction.dart';
 import '../services/report_harvest_metrics.dart';
 import '../models/units.dart';
@@ -32,6 +33,10 @@ class PerHectarePanel extends StatelessWidget {
   /// probarlo con datos sueltos, así que el peso entra por aquí.
   final double sacoKg;
 
+  /// Etapa A · las siembras del cultivo, para saber si su kg/planta mezcla
+  /// edades. Por defecto vacío: las llamadas y tests viejos no cambian.
+  final List<Sowing> sowings;
+
   const PerHectarePanel({
     super.key,
     required this.crops,
@@ -40,6 +45,7 @@ class PerHectarePanel extends StatelessWidget {
     required this.allTransactions,
     this.allHarvests = const [],
     this.sacoKg = kSacoKgPorDefecto,
+    this.sowings = const [],
   });
 
   @override
@@ -109,6 +115,8 @@ class PerHectarePanel extends StatelessWidget {
         crop: c,
         yieldPerHa: yieldPerHa,
         yieldPerPlant: yieldPerPlant,
+        // Etapa A · cuántas edades vivas entran en ese kg/planta.
+        nEdades: openCohorts(c.id, sowings).length,
         historical: historical,
         revenuePerHa: revenue,
         costPerHa: cost,
@@ -219,6 +227,21 @@ class PerHectarePanel extends StatelessWidget {
               l10n.perHaYieldPlantLabel,
               '${r.yieldPerPlant!.toStringAsFixed(2)} kg/planta',
               color: scheme.primary,
+            ),
+          // Etapa A · el kg/planta es del cultivo entero: con varias edades
+          // mezcla lotes distintos. Se aclara en tono apagado; la fórmula no
+          // se toca y no se inventa un kg/planta por lote.
+          if (r.yieldPerPlant != null && r.nEdades >= 2)
+            Padding(
+              padding: const EdgeInsets.only(top: 1, bottom: 2),
+              child: Text(
+                l10n.perHaAgesAverage(r.nEdades),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
             ),
           // E4 · la referencia de este panel es SU tierra, no una tabla de
           // Cenicafé. Sale en tono apagado y sin aviso: es contexto, no un
@@ -416,6 +439,9 @@ class _CropMetrics {
   final Crop crop;
   final double? yieldPerHa;
 
+  /// Etapa A · edades vivas que entran en el kg/planta del cultivo (1 = una).
+  final int nEdades;
+
   /// E4 · kg cosechados por mata en el período.
   final double? yieldPerPlant;
 
@@ -452,6 +478,7 @@ class _CropMetrics {
     required this.marginPerHa,
     required this.cumulativeMargin,
     required this.yearsWithData,
+    this.nEdades = 0,
     this.periodCurrencies = const {},
     this.incomeCurrency,
     this.expenseCurrency,

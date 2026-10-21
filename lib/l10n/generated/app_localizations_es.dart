@@ -1738,6 +1738,114 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingRestartCheckbox => 'Esta siembra arrancó el cultivo de nuevo — volver a «Sin dar» y borrar la fecha de la primera cosecha';
 
   @override
+  String get sowingWhatHappensOldPlants => '¿Qué pasa con las matas que ya tenés?';
+
+  @override
+  String get sowingExpandOption => 'Amplío el cultivo: no reemplazo nada';
+
+  @override
+  String get sowingRenewOption => 'Renuevo una parte';
+
+  @override
+  String get sowingRenewHint => 'Las matas del lote viejo bajan y las nuevas suman. El total no se infla.';
+
+  @override
+  String get sowingReplaceCohortLabel => 'Lote que renuevo';
+
+  @override
+  String get sowingReplacePlantsLabel => 'Matas que reemplaza';
+
+  @override
+  String get sowingReplacePlantsRequired => 'Escribí cuántas matas reemplazás.';
+
+  @override
+  String sowingReplacePlantsPrefill(int plants, int live) {
+    return 'Calculado por área: $plants de $live';
+  }
+
+  @override
+  String get sowingReplaceNoArea => 'El lote viejo no tiene área: decime cuántas matas reemplazás.';
+
+  @override
+  String sowingReplaceAll(int live) {
+    return 'Todas ($live)';
+  }
+
+  @override
+  String sowingReplaceTooMany(int live) {
+    return 'Ese lote tiene $live matas vivas: no podés reemplazar más.';
+  }
+
+  @override
+  String get sowingReplaceAreaLabel => 'Área que reemplaza (ha)';
+
+  @override
+  String sowingCohortOption(String date, int plants) {
+    return '$date · $plants matas';
+  }
+
+  @override
+  String get sowingCohortLabel => 'Lote';
+
+  @override
+  String get sowingCohortNoneTitle => 'No hay un lote vivo';
+
+  @override
+  String get sowingCohortNoneBody => 'Este cultivo no tiene matas vivas donde reponer. Si estás arrancando de nuevo, anotalo como siembra.';
+
+  @override
+  String get sowingCohortNoneSaveAs => 'Anotar como siembra';
+
+  @override
+  String get sowingNoCohortTag => 'Sin lote';
+
+  @override
+  String sowingDeleteCohortBody(int total) {
+    return 'Otra siembra le resta matas a este lote. Si lo borrás, esos reemplazos dejan de aplicar y el total del cultivo queda en $total matas.';
+  }
+
+  @override
+  String cohortsCount(int count) {
+    return '$count edades';
+  }
+
+  @override
+  String get cohortOpen => 'Abierta';
+
+  @override
+  String get cohortRenewed => 'Renovada';
+
+  @override
+  String cohortRenewedOn(String date) {
+    return 'Renovada en $date';
+  }
+
+  @override
+  String get cohortsHistoryTitle => 'Lotes renovados';
+
+  @override
+  String get cohortsAreaFallback => 'No todos los lotes tienen área: el área del cultivo es la que escribiste.';
+
+  @override
+  String cohortsAreaMismatch(String sum, String manual) {
+    return 'Los lotes con área suman $sum ha; el cultivo dice $manual ha.';
+  }
+
+  @override
+  String get cohortsNoLivingPlants => 'Este cultivo no tiene matas vivas.';
+
+  @override
+  String get helpCohortsRenewTitle => 'Renovar una parte del lote';
+
+  @override
+  String get helpCohortsRenew => 'Renovar una parte resta esas matas del lote viejo y abre uno nuevo con su propia edad. La historia del viejo no se borra.';
+
+  @override
+  String perHaAgesAverage(int count) {
+    return 'promedio de $count edades';
+  }
+
+  @override
   String get sowingAreaMissingWarning => 'Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.';
 
   @override

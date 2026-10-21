@@ -482,6 +482,8 @@ class _ReportScreenState extends State<ReportScreen> {
               // período: un mes no puede promediar contra un año.
               allHarvests: tx.harvests,
               sacoKg: tx.settings.sacoKg,
+              // Etapa A · para decir si el kg/planta mezcla edades.
+              sowings: tx.sowings,
             ),
             const SizedBox(height: 20),
             _builtRecommendationsCard(context, tx, l10n),

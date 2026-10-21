@@ -172,6 +172,25 @@ class HelpScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              // Etapa A · renovar una parte del lote, sin la palabra «cohorte».
+              _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.helpCohortsRenewTitle,
+                      style: const TextStyle(
+                          fontSize: 13.5, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.helpCohortsRenew,
+                      style: const TextStyle(fontSize: 13, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               _Section(title: l10n.helpUnitsTitle),
               _Card(

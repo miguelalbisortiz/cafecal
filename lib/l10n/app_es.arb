@@ -672,6 +672,76 @@
   "cropPhaseNoYield": "aún no rinde · primera cosecha pendiente",
   "sowingRenovacionCheckbox": "Esta resiembra renovó el cultivo — cambiar su fase a renovación",
   "sowingRestartCheckbox": "Esta siembra arrancó el cultivo de nuevo — volver a «Sin dar» y borrar la fecha de la primera cosecha",
+  "sowingWhatHappensOldPlants": "¿Qué pasa con las matas que ya tenés?",
+  "sowingExpandOption": "Amplío el cultivo: no reemplazo nada",
+  "sowingRenewOption": "Renuevo una parte",
+  "sowingRenewHint": "Las matas del lote viejo bajan y las nuevas suman. El total no se infla.",
+  "sowingReplaceCohortLabel": "Lote que renuevo",
+  "sowingReplacePlantsLabel": "Matas que reemplaza",
+  "sowingReplacePlantsRequired": "Escribí cuántas matas reemplazás.",
+  "@sowingReplacePlantsPrefill": {
+    "placeholders": {
+      "plants": { "type": "int" },
+      "live": { "type": "int" }
+    }
+  },
+  "sowingReplacePlantsPrefill": "Calculado por área: {plants} de {live}",
+  "sowingReplaceNoArea": "El lote viejo no tiene área: decime cuántas matas reemplazás.",
+  "@sowingReplaceAll": {
+    "placeholders": {
+      "live": { "type": "int" }
+    }
+  },
+  "sowingReplaceAll": "Todas ({live})",
+  "@sowingReplaceTooMany": {
+    "placeholders": {
+      "live": { "type": "int" }
+    }
+  },
+  "sowingReplaceTooMany": "Ese lote tiene {live} matas vivas: no podés reemplazar más.",
+  "sowingReplaceAreaLabel": "Área que reemplaza (ha)",
+  "@sowingCohortOption": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "plants": { "type": "int" }
+    }
+  },
+  "sowingCohortOption": "{date} · {plants} matas",
+  "sowingCohortLabel": "Lote",
+  "sowingCohortNoneTitle": "No hay un lote vivo",
+  "sowingCohortNoneBody": "Este cultivo no tiene matas vivas donde reponer. Si estás arrancando de nuevo, anotalo como siembra.",
+  "sowingCohortNoneSaveAs": "Anotar como siembra",
+  "sowingNoCohortTag": "Sin lote",
+  "@sowingDeleteCohortBody": {
+    "placeholders": { "total": { "type": "int" } }
+  },
+  "sowingDeleteCohortBody": "Otra siembra le resta matas a este lote. Si lo borrás, esos reemplazos dejan de aplicar y el total del cultivo queda en {total} matas.",
+  "@cohortsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cohortsCount": "{count} edades",
+  "cohortOpen": "Abierta",
+  "cohortRenewed": "Renovada",
+  "@cohortRenewedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cohortRenewedOn": "Renovada en {date}",
+  "cohortsHistoryTitle": "Lotes renovados",
+  "cohortsAreaFallback": "No todos los lotes tienen área: el área del cultivo es la que escribiste.",
+  "@cohortsAreaMismatch": {
+    "placeholders": {
+      "sum": { "type": "String" },
+      "manual": { "type": "String" }
+    }
+  },
+  "cohortsAreaMismatch": "Los lotes con área suman {sum} ha; el cultivo dice {manual} ha.",
+  "cohortsNoLivingPlants": "Este cultivo no tiene matas vivas.",
+  "helpCohortsRenewTitle": "Renovar una parte del lote",
+  "helpCohortsRenew": "Renovar una parte resta esas matas del lote viejo y abre uno nuevo con su propia edad. La historia del viejo no se borra.",
+  "@perHaAgesAverage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "perHaAgesAverage": "promedio de {count} edades",
   "sowingAreaMissingWarning": "Sin área no se pueden ver los costos por hectárea. Puedes guardar igual.",
   "cropSetupPrompt": "Tu cultivo está listo para usar. ¿Quieres completar sus datos (fase, área, plantas, unidad)?",
   "cropSetupComplete": "Completar",

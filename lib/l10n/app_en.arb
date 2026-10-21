@@ -666,6 +666,76 @@
   "cropPhaseNoYield": "not yielding yet · first harvest pending",
   "sowingRenovacionCheckbox": "This replanting renewed the crop — change its phase to renewal",
   "sowingRestartCheckbox": "This planting restarted the crop — put it back to \"Not producing yet\" and clear the first-harvest date",
+  "sowingWhatHappensOldPlants": "What happens to the plants you already have?",
+  "sowingExpandOption": "I'm expanding: nothing is replaced",
+  "sowingRenewOption": "I'm renewing part of it",
+  "sowingRenewHint": "The old lot's plants go down and the new ones add up. The total doesn't inflate.",
+  "sowingReplaceCohortLabel": "Lot I'm renewing",
+  "sowingReplacePlantsLabel": "Plants being replaced",
+  "sowingReplacePlantsRequired": "Enter how many plants you're replacing.",
+  "@sowingReplacePlantsPrefill": {
+    "placeholders": {
+      "plants": { "type": "int" },
+      "live": { "type": "int" }
+    }
+  },
+  "sowingReplacePlantsPrefill": "Estimated by area: {plants} of {live}",
+  "sowingReplaceNoArea": "The old lot has no area: tell me how many plants you're replacing.",
+  "@sowingReplaceAll": {
+    "placeholders": {
+      "live": { "type": "int" }
+    }
+  },
+  "sowingReplaceAll": "All ({live})",
+  "@sowingReplaceTooMany": {
+    "placeholders": {
+      "live": { "type": "int" }
+    }
+  },
+  "sowingReplaceTooMany": "That lot has {live} living plants: you can't replace more.",
+  "sowingReplaceAreaLabel": "Area being replaced (ha)",
+  "@sowingCohortOption": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "plants": { "type": "int" }
+    }
+  },
+  "sowingCohortOption": "{date} · {plants} plants",
+  "sowingCohortLabel": "Lot",
+  "sowingCohortNoneTitle": "There's no living lot",
+  "sowingCohortNoneBody": "This crop has no living plants to replant into. If you're starting over, record it as a sowing.",
+  "sowingCohortNoneSaveAs": "Record as sowing",
+  "sowingNoCohortTag": "No lot",
+  "@sowingDeleteCohortBody": {
+    "placeholders": { "total": { "type": "int" } }
+  },
+  "sowingDeleteCohortBody": "Another sowing takes plants away from this lot. If you delete it, those replacements stop applying and the crop total becomes {total} plants.",
+  "@cohortsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cohortsCount": "{count} ages",
+  "cohortOpen": "Open",
+  "cohortRenewed": "Renewed",
+  "@cohortRenewedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cohortRenewedOn": "Renewed on {date}",
+  "cohortsHistoryTitle": "Renewed lots",
+  "cohortsAreaFallback": "Not every lot has an area: the crop area is the one you entered.",
+  "@cohortsAreaMismatch": {
+    "placeholders": {
+      "sum": { "type": "String" },
+      "manual": { "type": "String" }
+    }
+  },
+  "cohortsAreaMismatch": "The lots with an area add up to {sum} ha; the crop says {manual} ha.",
+  "cohortsNoLivingPlants": "This crop has no living plants.",
+  "helpCohortsRenewTitle": "Renewing part of a lot",
+  "helpCohortsRenew": "Renewing part of a lot subtracts those plants from the old lot and opens a new one with its own age. The old history isn't erased.",
+  "@perHaAgesAverage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "perHaAgesAverage": "average of {count} ages",
   "sowingAreaMissingWarning": "Without an area you cannot see costs per hectare. You can still save.",
   "cropSetupPrompt": "Your crop is ready to use. Do you want to complete its details (phase, area, plants, unit)?",
   "cropSetupComplete": "Complete",

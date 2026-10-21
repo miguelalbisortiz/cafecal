@@ -51,6 +51,22 @@ class _CropLossDialogState extends State<CropLossDialog> {
   /// El día en que ocurrió la pérdida. Arranca en hoy y se mueve hacia atrás.
   DateTime _date = DateTime.now();
 
+  /// Etapa A · el lote al que le entran las pérdidas. Sin puntero el motor cae
+  /// por fecha; con varias edades hay que decir cuál.
+  String? _cohortId;
+
+  /// Lotes vivos donde tiene sentido anotar una pérdida.
+  List<Cohort> _cohorts(TransactionProvider tx) =>
+      openCohorts(widget.crop.id, tx.sowings);
+
+  Cohort? _selected(List<Cohort> cohorts) {
+    if (cohorts.isEmpty) return null;
+    for (final c in cohorts) {
+      if (c.sowingId == _cohortId) return c;
+    }
+    return cohorts.first; // la más antigua viva
+  }
+
   int? get _remaining {
     final t = _remainingController.text.trim();
     if (t.isEmpty) return null;
@@ -74,8 +90,12 @@ class _CropLossDialogState extends State<CropLossDialog> {
   Future<void> _pickDate() async {
     final ahora = DateTime.now();
     final hoy = DateTime(ahora.year, ahora.month, ahora.day);
-    final minimo = lossEarliestDate(
-        context.read<TransactionProvider>().sowings, widget.crop.id);
+    final tx = context.read<TransactionProvider>();
+    // Etapa A · la pérdida no puede ser anterior a la siembra del lote al que
+    // se le anota: esa fecha es la que manda, no la de la cohorte más nueva.
+    final elegido = _selected(_cohorts(tx));
+    final minimo = lossEarliestDate(tx.sowings, widget.crop.id,
+        cohortSowingId: elegido?.sowingId);
     final primera = minimo.isAfter(hoy) ? hoy : minimo;
 
     var inicial = DateUtils.dateOnly(_date);
@@ -99,6 +119,7 @@ class _CropLossDialogState extends State<CropLossDialog> {
 
     final reason = _reasonController.text.trim();
     final tx = context.read<TransactionProvider>();
+    final elegido = _selected(_cohorts(tx));
     await tx.addSowing(
       cropId: widget.crop.id,
       date: _date,
@@ -107,6 +128,7 @@ class _CropLossDialogState extends State<CropLossDialog> {
       plants: delta > 0 ? delta : 0,
       lostPlants: delta < 0 ? -delta : null,
       reason: reason.isEmpty ? null : reason,
+      cohortSowingId: elegido?.sowingId,
     );
 
     // Se devuelve el contador **recalculado**, no el que él tecleó: si sus
@@ -128,6 +150,11 @@ class _CropLossDialogState extends State<CropLossDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final delta = _delta;
+    final tx = context.read<TransactionProvider>();
+    final cohorts = _cohorts(tx);
+    final elegido = _selected(cohorts);
+    String corta(DateTime d) => '${d.day.toString().padLeft(2, '0')}/'
+        '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
     return AlertDialog(
       title: Text(l10n.cropLossRegister),
@@ -141,6 +168,33 @@ class _CropLossDialogState extends State<CropLossDialog> {
               l10n.cropLossCurrent(widget.currentPlants),
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            // Etapa A · con una sola edad se dice sola; con varias se elige.
+            if (cohorts.length > 1) ...[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: elegido?.sowingId,
+                decoration: InputDecoration(
+                  labelText: l10n.sowingCohortLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  for (final c in cohorts)
+                    DropdownMenuItem(
+                      value: c.sowingId,
+                      child: Text(
+                          l10n.sowingCohortOption(corta(c.date), c.livePlants)),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _cohortId = v),
+              ),
+            ] else if (elegido != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${l10n.sowingCohortLabel}: '
+                '${l10n.sowingCohortOption(corta(elegido.date), elegido.livePlants)}',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 12),
             TextFormField(
               controller: _remainingController,

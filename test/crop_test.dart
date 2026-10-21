@@ -151,6 +151,94 @@ void main() {
       expect(aniosCumplidos(DateTime(2023, 10, 10), hoy), 3);
       expect(aniosCumplidos(DateTime(2023, 10, 9), hoy), 3);
     });
+
+    // Etapa A · cohortes: la edad es la del lote, no la de la última siembra.
+    test('una cohorte viva: la edad es la de siempre', () {
+      const crop = Crop(id: 'cafe', name: 'Café');
+      final ss = [
+        Sowing(
+            id: 's1',
+            cropId: 'cafe',
+            date: DateTime(2020, 3, 1),
+            plants: 1000,
+            areaHa: 5),
+      ];
+      expect(edadDeCrop(crop, ss, hoy: hoy), 6);
+      expect(edadDeCohorte(crop, cropCohorts('cafe', ss).single, hoy: hoy), 6);
+    });
+
+    test('dos cohortes vivas: no hay una edad, hay N edades', () {
+      const crop = Crop(id: 'cafe', name: 'Café');
+      final ss = [
+        Sowing(
+            id: 's1',
+            cropId: 'cafe',
+            date: DateTime(2020, 3, 1),
+            plants: 1000,
+            areaHa: 5),
+        Sowing(
+            id: 's2',
+            cropId: 'cafe',
+            date: DateTime(2024, 3, 1),
+            plants: 300,
+            areaHa: 1,
+            replacesPlants: 0),
+      ];
+      expect(edadDeCrop(crop, ss, hoy: hoy), isNull,
+          reason: 'no se inventa un promedio de edades');
+      expect(edadesDeCohorte(crop, cropCohorts('cafe', ss), hoy: hoy), [6, 2]);
+    });
+
+    test('la resiembra no reinicia la edad de su cohorte', () {
+      const crop = Crop(id: 'cafe', name: 'Café');
+      final ss = [
+        Sowing(
+            id: 's1',
+            cropId: 'cafe',
+            date: DateTime(2020, 3, 1),
+            plants: 1000,
+            areaHa: 5),
+        Sowing(
+            id: 'r1',
+            cropId: 'cafe',
+            date: DateTime(2025, 3, 1),
+            kind: SowingKind.resiembra,
+            plants: 50,
+            lostPlants: 50),
+      ];
+      final c = cropCohorts('cafe', ss).single;
+      expect(c.date, DateTime(2020, 3, 1));
+      expect(edadDeCohorte(crop, c, hoy: hoy), 6);
+    });
+
+    test('cohorte con fecha futura: edad null', () {
+      const crop = Crop(id: 'cafe', name: 'Café');
+      final ss = [
+        Sowing(id: 's1', cropId: 'cafe', date: DateTime(2027, 1, 1), plants: 100),
+      ];
+      expect(edadDeCrop(crop, ss, hoy: hoy), isNull);
+    });
+
+    test('todas las cohortes en 0 con siembras: edad null', () {
+      const crop = Crop(id: 'cafe', name: 'Café');
+      final ss = [
+        Sowing(
+            id: 's1',
+            cropId: 'cafe',
+            date: DateTime(2020, 3, 1),
+            plants: 1000,
+            areaHa: 5),
+        Sowing(
+            id: 'r1',
+            cropId: 'cafe',
+            date: DateTime(2023, 3, 1),
+            kind: SowingKind.resiembra,
+            plants: 0,
+            lostPlants: 1000),
+      ];
+      expect(edadDeCrop(crop, ss, hoy: hoy), isNull,
+          reason: 'no hay matas vivas: no hay edad que mostrar');
+    });
   });
 
   // H2 · la fase de un cultivo nuevo no la decide ningún umbral de años.

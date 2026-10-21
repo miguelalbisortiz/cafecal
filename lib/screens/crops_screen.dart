@@ -416,6 +416,39 @@ class CropsScreen extends StatelessWidget {
     // en el editor) no se pinta nada: mejor callar que inventar un 0.
     final edad = edadDeCrop(crop, tx.sowings);
 
+    // Etapa A · cohortes. Con **una** edad la tarjeta se ve exactamente igual
+    // que siempre; con dos o más no hay «una» edad: se dice cuántas y se
+    // despliegan, sin promedio.
+    final cohortes = cropCohorts(crop.id, tx.sowings);
+    final vivas = cohortes.where((c) => c.open).toList();
+    final renovadas = cohortes.where((c) => !c.open).toList();
+    final areaStatus = cohortAreaStatus(crop.areaHa, cohortes);
+
+    String mesAnio(DateTime d) =>
+        '${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+    Widget cohorteLinea(Cohort c, {required bool abierta}) {
+      final partes = <String>[
+        l10n.sowingCohortOption(
+            MaterialLocalizations.of(context).formatShortDate(c.date),
+            c.livePlants),
+        if (abierta && edadDeCohorte(crop, c) != null)
+          l10n.cropAge(edadDeCohorte(crop, c)!),
+        if (c.areaHa != null) '${_ha(tx, c.areaHa!)} ha',
+        if (abierta)
+          l10n.cohortOpen
+        else if (c.closedOn != null)
+          l10n.cohortRenewedOn(mesAnio(c.closedOn!))
+        else
+          l10n.cohortRenewed,
+      ];
+      return Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child:
+            Text(partes.join(' · '), style: const TextStyle(fontSize: 11)),
+      );
+    }
+
     // E5 · "¿cuándo esperás la primera cosecha?". Su fecha, no una tabla de
     // especies. Si ya cosechó de verdad, manda lo que cosechó y esto calla.
     final estimada = primerCosechaEstimada(
@@ -498,7 +531,7 @@ class CropsScreen extends StatelessWidget {
                         fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                 ),
-                if (edad != null) ...[
+                if (vivas.length < 2 && edad != null) ...[
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
@@ -511,12 +544,66 @@ class CropsScreen extends StatelessWidget {
                 ],
               ],
             ),
+            if (vivas.length >= 2)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(left: 12),
+                dense: true,
+                title: Text(
+                  l10n.cohortsCount(vivas.length),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                children: [
+                  for (final c in vivas) cohorteLinea(c, abierta: true),
+                ],
+              ),
             if (details.isNotEmpty)
               Text(
                 details.join(' · '),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
+              ),
+            // D6 · el área no se inventa. Si falta la de algún lote se usa la
+            // que él escribió y se dice; si los lotes ya suman más, se avisa.
+            // Nunca bloquea.
+            if (vivas.length >= 2 && areaStatus.incomplete)
+              Text(
+                l10n.cohortsAreaFallback,
+                style:
+                    const TextStyle(fontSize: 11, color: Color(0xFFED6C02)),
+              ),
+            if (vivas.length >= 2 && areaStatus.overManual)
+              Text(
+                l10n.cohortsAreaMismatch(
+                  _ha(tx, areaStatus.measuredSum!),
+                  _ha(tx, crop.areaHa!),
+                ),
+                style:
+                    const TextStyle(fontSize: 11, color: Color(0xFFED6C02)),
+              ),
+            if (vivas.isEmpty && cohortes.isNotEmpty)
+              Text(
+                l10n.cohortsNoLivingPlants,
+                style: const TextStyle(
+                    fontSize: 12, fontStyle: FontStyle.italic),
+              ),
+            if (renovadas.isNotEmpty)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(left: 12),
+                dense: true,
+                title: Text(
+                  l10n.cohortsHistoryTitle,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                children: [
+                  for (final c in renovadas) cohorteLinea(c, abierta: false),
+                ],
               ),
           ],
         ),
