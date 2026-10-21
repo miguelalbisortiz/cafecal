@@ -198,7 +198,107 @@ generados normalizados a LF):
 - `flutter analyze`: **sin issues** (`docs/reports/gate-t18-analyze.txt`).
 - `flutter test`: **1230/1230** (`docs/reports/gate-t18.txt`).
 
-## Pendiente
+## T20 · Gate final
 
-T20: migración aplicada por el usuario, verificación manual de §12, deploy y
-cierre documental.
+- `flutter analyze`: **sin issues** (`docs/reports/gate-t20-analyze.txt`).
+- `flutter test`: **1230/1230** (`docs/reports/gate-t20.txt`). Baseline de
+  `main`: 1120; la etapa sumó **110** tests.
+
+## Antes / después (SC-1, SC-2, SC-3)
+
+Cultivo base: 1.000 matas / 5 ha.
+
+| Caso | Antes (`main`) | Ahora |
+|---|---|---|
+| Expansión: 300 matas / 1 ha, «Amplío» | la siembra nueva **borraba** el lote: 300 matas / 1 ha | 1.300 matas / 6 ha; dos edades |
+| Renovación parcial: 300 matas / 1 ha, «Renuevo» 300 | no existía: o borraba (siembra) o sumaba y mezclaba edades (resiembra) | vieja **700 / 4 ha** + nueva **300 / 1 ha** = 1.000 / 5 ha; dos edades |
+| Renovación total: 300 matas / 1 ha, «Todas» | 300 / 1 ha y la edad se reiniciaba: el lote viejo desaparecía | nueva **300 / 1 ha**; la vieja en **«Lotes renovados»**, una sola edad |
+
+Los kilos no cambian en ninguno de los tres: las cosechas siguen siendo del
+cultivo entero (SC-14).
+
+## Datos viejos: la corrección declarada
+
+S1 1.000/5 + S2 300/1 + S3 400/2 (las tres viejas, sin puntero): al abrir, S3 se
+marca como reemplazo de S1 (la más antigua viva) con 1.300 matas. S1 queda en 0,
+**S2 sobrevive** y el total sube a **700**, no a 400. Un solo puntero no puede
+expresar «borrá todo» cuando hay varias cohortes vivas; quedó declarado en el
+PRD (§Riesgos) y fijado por test. Lo que sí se sostiene: los números de una sola
+pasada, la idempotencia y que una fila corregida no se vuelve a tocar.
+
+## Guardas que quedaron
+
+- **Una cohorte:** formulario, tarjeta, reportes y exportes como hoy
+  (`single_cohort_parity_test` y los widgets de T14/T16).
+- **Cosechas intactas:** sin campos ni columnas nuevas en `harvests`
+  (`harvests_intactos_test`).
+- **Lenguaje:** claves en los dos ARB, mismos placeholders, sin «cohorte» y sin
+  kilos por lote (`test/l10n_cohortes_test.dart`).
+- **Migración aditiva:** contrato estático en
+  `test/migration_sowings_cohorts_test.dart`.
+- **`null` → oculto:** sin área o sin dato no se pinta 0 (sin cambios).
+
+## Migración
+
+`supabase/migrations/202610210001_add_sowings_cohorts.sql` — **aplicada por el
+usuario** el 2026-10-21. Va **antes** del deploy: si falta una columna,
+PostgREST responde PGRST204 y el push falla.
+
+Consultas de control (§5.1). Esperado: 3 columnas, FK con `confdeltype = 'n'`,
+índice `idx_sowings_cohort`, `con_dato = 0`.
+
+```sql
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema = 'public' and table_name = 'sowings'
+  and column_name in ('replaces_plants','replaces_area_ha','cohort_sowing_id')
+order by column_name;
+
+select conname, confdeltype
+from pg_constraint
+where conrelid = 'public.sowings'::regclass and contype = 'f';
+
+select indexname from pg_indexes
+where schemaname = 'public' and tablename = 'sowings'
+  and indexname = 'idx_sowings_cohort';
+
+select count(*) as con_dato
+from public.sowings
+where replaces_plants is not null
+   or replaces_area_ha is not null
+   or cohort_sowing_id is not null;
+```
+
+## Verificación manual (§12)
+
+Se hace **después** del deploy, con la migración aplicada.
+
+- [ ] 1. Datos viejos quietos: los números de un cultivo con dos siembras no
+      cambian al abrir la versión nueva.
+- [ ] 2. La corrección manda: editar la segunda siembra a «Amplío» sube las
+      matas, dice «2 edades» y no se vuelve a normalizar al reabrir.
+- [ ] 3. Renovación parcial: 300/1 sobre 1.000/5 queda 700/4 + 300/1 = 1.000/5
+      con «2 edades».
+- [ ] 4. Renovación total: el lote viejo pasa a «Lotes renovados» y el cultivo
+      queda en 300/1 con una edad.
+- [ ] 5. Resiembra en el lote viejo: 100 muertas bajan la vieja a 900 (total
+      1.200) y la fecha de la pérdida arranca en esa siembra.
+- [ ] 6. No se puede reemplazar de más: bloquea y ofrece «Todas (1.000)».
+- [ ] 7. Área incompleta: conserva la manual, avisa sin bloquear; si la suma
+      supera la manual, muestra las dos cifras.
+- [ ] 8. Reportes: el kg/planta no cambia de fórmula, dice «promedio de 2
+      edades», sin filas por lote y con los mismos totales en PDF/Excel.
+- [ ] 9. Una sola cohorte: lista, reportes y exportes idénticos; el formulario
+      no muestra la pregunta de renovación.
+- [ ] 10. Sin señal: la siembra con reemplazo queda `pendingSync` y al volver
+      la red sube con las mismas matas, área y puntero.
+
+## Definition of done
+
+- [x] Gate verde: `analyze` limpio + 1230/1230.
+- [x] Informe T1–T20 con números, guardas y la corrección declarada.
+- [x] Commit de la etapa (`6e7a3a1`, sin push).
+- [x] Migración aplicada por el usuario (2026-10-21).
+- [ ] Verificación manual de §12.
+- [ ] Push, deploy y Pages sirviendo el build nuevo.
+- [ ] Cierre de sesión y `LEARNING.md`.
