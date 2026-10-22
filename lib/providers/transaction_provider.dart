@@ -270,6 +270,7 @@ class TransactionProvider extends ChangeNotifier {
     String? task,
     double? harvestedKg,
     double? equivalentKg,
+    String? cohortSowingId,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -298,6 +299,9 @@ class TransactionProvider extends ChangeNotifier {
       task: task,
       harvestedKg: harvestedKg,
       equivalentKg: equivalentKg,
+      // Etapa B · lote al que se atribuyen los kilos del jornal (null = sin
+      // lote). Es una medida, no un reparto de la venta.
+      cohortSowingId: cohortSowingId,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);
@@ -760,9 +764,17 @@ class TransactionProvider extends ChangeNotifier {
         .toList();
     await _store.saveSowings(_sowings);
     // B5: desvincular transacciones que referencian esta siembra
+    // Etapa B · los jornales que atribuían kilos a este lote se quedan «sin
+    // lote»: el dato no se reasigna a otro lote ni se borra. En la nube lo
+    // hace la FK (`on delete set null`); en el disco hay que dejarlo igual.
     _transactions = _transactions
-        .map((t) => t.sowingId == id
-            ? t.copyWith(sowingId: null, pendingSync: true)
+        .map((t) => t.sowingId == id || t.cohortSowingId == id
+            ? t.copyWith(
+                sowingId: t.sowingId == id ? null : t.sowingId,
+                cohortSowingId:
+                    t.cohortSowingId == id ? null : t.cohortSowingId,
+                pendingSync: true,
+              )
             : t)
         .toList();
     await _store.saveTransactions(_transactions);
@@ -1126,6 +1138,12 @@ class TransactionProvider extends ChangeNotifier {
       if (t.cropId != null && !cropIds.contains(t.cropId)) huerfanos++;
       if (t.sowingId != null && !sowingIds.contains(t.sowingId)) huerfanos++;
       if (t.harvestId != null && !harvestIds.contains(t.harvestId)) huerfanos++;
+      // Etapa B · un puntero a un lote que no está (ni aquí ni en el archivo)
+      // se importa igual y queda «sin lote»; se cuenta para avisar.
+      if (t.cohortSowingId != null &&
+          !sowingIds.contains(t.cohortSowingId)) {
+        huerfanos++;
+      }
     }
 
     // Un respaldo puede traer ventas que este equipo nunca vio: la fase se

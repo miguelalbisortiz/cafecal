@@ -793,6 +793,22 @@
   "jornalHarvestedKgHelp": "Para comparar lo cosechado con lo vendido.",
   "jornalHarvestedKgNoCrop": "Elegí el cultivo para anotar los kilos.",
   "jornalHarvestedKgInvalid": "Ingresa los kilos recolectados (mayor que 0).",
+  "jornalHarvestedKgLotLabel": "Lote de la cosecha (opcional)",
+  "jornalHarvestedKgLotNone": "Sin lote",
+  "@jornalHarvestedKgLotRenewed": {
+    "placeholders": { "date": { "type": "String" }, "plants": { "type": "int" } }
+  },
+  "jornalHarvestedKgLotRenewed": "{date} · {plants} matas · renovado",
+  "jornalHarvestedKgLotMissing": "No elegiste lote: estos kilos quedan del cultivo y no se ven por lote. Puedes guardar así.",
+  "@cohortKgLabel": {
+    "placeholders": { "kg": { "type": "String" } }
+  },
+  "cohortKgLabel": "{kg} kg",
+  "@cohortKgPerPlantLabel": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "cohortKgPerPlantLabel": "{value} kg/planta",
+  "helpCohortKg": "Los kilos del jornal pueden ir a un lote: es lo que pesaste de ese lote. La venta no se reparte; el total del cultivo no cambia.",
   "cashBoxLabel": "Aporte mensual de caja",
   "cashBoxHelp": "Lo que sacas cada mes para la finca: cubre los jornales y los gastos chicos. Lo que no se gasta no se pierde, se arrastra al mes siguiente. El aporte rige desde este mes: los meses anteriores no se recalculan.",
   "cashBoxCarry": "Lo arrastrado de meses anteriores",

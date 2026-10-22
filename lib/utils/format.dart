@@ -14,10 +14,24 @@ import '../providers/transaction_provider.dart';
 String formatAreaHa(double value, String locale) =>
     NumberFormat('0.###', locale).format(value);
 
+/// Kilos de un lote: enteros desde 100 (`250`, `1.240`) y hasta dos decimales
+/// por debajo (`12,25`, `0,8`). Misma regla en la tarjeta y en la Ayuda.
+///
+/// Devuelve solo el número: el sufijo ` kg` lo pone quien lo pinta.
+String formatKg(double value, String locale) =>
+    NumberFormat(value >= 100 ? '#,##0' : '#,##0.##', locale).format(value);
+
+/// Kg por planta: siempre dos decimales (`0,36`), porque es un rendimiento y
+/// el redondeo a entero borra justo la diferencia entre lotes.
+String formatKgPerPlant(double value, String locale) =>
+    NumberFormat('0.00', locale).format(value);
+
 String formatMoney(BuildContext context, double value, {int? decimals}) {
   final tx = context.read<TransactionProvider>();
   return formatAmount(value,
-      currency: tx.settings.currency, locale: tx.settings.numberLocale, decimals: decimals);
+      currency: tx.settings.currency,
+      locale: tx.settings.numberLocale,
+      decimals: decimals);
 }
 
 /// Formato de moneda con moneda explícita (para cuando la transacción
@@ -36,8 +50,8 @@ String formatMoneyFor(BuildContext context, double value,
 /// y juntar símbolo y código (`$2.400.000 COP`) era decirlo dos veces.
 String formatAmount(double value,
     {required String currency, required String locale, int? decimals}) {
-  final digits = groupedDigits(
-      value, currency: currency, locale: locale, decimals: decimals);
+  final digits = groupedDigits(value,
+      currency: currency, locale: locale, decimals: decimals);
   final sign = value < 0 ? '-' : '';
   return '$sign$currency $digits';
 }

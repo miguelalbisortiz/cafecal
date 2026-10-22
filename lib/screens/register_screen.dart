@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/currencies.dart';
 import '../models/harvest.dart';
+import '../models/sowing.dart';
 import '../models/tasks.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
@@ -65,6 +66,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// [_jornalTaskOtherController]).
   String? _jornalTaskValue;
   final _jornalTaskOtherController = TextEditingController();
+
+  /// Etapa B · lote al que se atribuyen los kilos de este jornal. `null` =
+  /// «Sin lote». [_jornalCohortTouched] distingue «todavía no eligió» de
+  /// «eligió Sin lote», para preseleccionar el lote único sin pisarlo.
+  String? _jornalCohortSowingId;
+  bool _jornalCohortTouched = false;
 
   /// Valor del dropdown que significa "estoy escribiendo la mía".
   static const _jornalTaskOtherOption = '__task_otra__';
@@ -133,6 +140,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// el controlador se limpia para que no reaparezca un número viejo.
   void _clearHarvestedKgIfHidden() {
     if (!_showsHarvestedKg) _jornalHarvestedKgController.clear();
+  }
+
+  /// ¿Ya hay kilos escritos? Es lo que enciende el aviso de «sin lote».
+  bool get _hasWrittenKg {
+    final txt = _jornalHarvestedKgController.text.trim().replaceAll(',', '.');
+    final n = double.tryParse(txt);
+    return n != null && n > 0;
+  }
+
+  /// Etapa B · todas las cohortes del cultivo elegido (vivas y renovadas).
+  List<Cohort> _cohortsOfCrop() {
+    final cropId = _cropId;
+    if (cropId == null) return const [];
+    return cropCohorts(cropId, context.read<TransactionProvider>().sowings);
+  }
+
+  /// El selector solo tiene sentido donde el campo de kilos ya vive y hay algo
+  /// que atribuir: un lote vivo, o el lote ya guardado en el jornal que se
+  /// edita aunque se haya renovado (D9-A).
+  bool get _showsCohortSelector {
+    if (!_showsHarvestedKg) return false;
+    final cohortes = _cohortsOfCrop();
+    if (cohortes.any((c) => c.open)) return true;
+    final sel = _jornalCohortSowingId;
+    return sel != null && cohortes.any((c) => c.sowingId == sel);
+  }
+
+  /// D7-A · con un solo lote vivo se preselecciona; con dos o más, «Sin lote».
+  ///
+  /// No pisa una elección del productor y no restaura la anterior: al ocultarse
+  /// el selector (otra labor, otro cultivo, un lote de terreno) la elección se
+  /// pierde, porque lo oculto no guarda un valor escondido.
+  void _applyCohortDefault() {
+    if (!_showsHarvestedKg) {
+      _jornalCohortSowingId = null;
+      _jornalCohortTouched = false;
+      return;
+    }
+    final cohortes = _cohortsOfCrop();
+    final sel = _jornalCohortSowingId;
+    if (sel != null && !cohortes.any((c) => c.sowingId == sel)) {
+      // El puntero guardado no es de este cultivo: no hay a quién atribuir.
+      _jornalCohortSowingId = null;
+      _jornalCohortTouched = false;
+    }
+    if (_jornalCohortTouched) return;
+    final vivas = cohortes.where((c) => c.open).toList();
+    _jornalCohortSowingId = vivas.length == 1 ? vivas.first.sowingId : null;
   }
 
   /// Ayuda que se muestra justo al elegir la categoría.
@@ -249,6 +304,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _jornalHarvestedKgController.text =
               (kg % 1 == 0) ? kg.toInt().toString() : kg.toString();
         }
+        // Etapa B · el lote guardado. Se conserva aunque el lote ya se haya
+        // renovado: la atribución fue un hecho y no se reasigna (D9-A).
+        if (_showsHarvestedKg && e.cohortSowingId != null) {
+          _jornalCohortSowingId = e.cohortSowingId;
+          _jornalCohortTouched = true;
+        }
       }
     } else {
       final provider = context.read<TransactionProvider>();
@@ -280,6 +341,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _cropId = last;
         }
       }
+      // Etapa B · el lote único del cultivo queda listo sin tocar nada.
+      _applyCohortDefault();
     }
   }
 
@@ -338,6 +401,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         _cropId = res.existingId;
         _terrenoId = null;
+        _applyCohortDefault();
       });
       return;
     }
@@ -346,6 +410,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _cropId = crop.id;
       _terrenoId = null;
+      _applyCohortDefault();
     });
     // L2.5b: aviso opcional y descartable para completar los datos.
     await CropSetupPrompt.show(context, tx, crop);
@@ -524,6 +589,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Tanda 2 · kilos recolectados. Solo existen si el campo se veía al
     // guardar: lo oculto no viaja (null), nunca un 0 inventado.
     double? harvestedKg;
+    // Etapa B · el lote solo viaja con kilos medidos y con el selector a la
+    // vista. Sin lote elegido queda null (y la pantalla ya avisó).
+    String? cohortSowingId;
     if (_isJornal) {
       // Bloque jornal: total = días × valor día (Monto es solo lectura).
       final days = double.parse(
@@ -557,6 +625,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final kgText =
             _jornalHarvestedKgController.text.trim().replaceAll(',', '.');
         harvestedKg = kgText.isEmpty ? null : double.tryParse(kgText);
+      }
+      if (harvestedKg != null &&
+          harvestedKg > 0 &&
+          _showsCohortSelector) {
+        cohortSowingId = _jornalCohortSowingId;
       }
     } else {
       amount = double.parse(_amountController.text.replaceAll(',', '.'));
@@ -640,6 +713,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         task: task,
         harvestedKg: harvestedKg,
         equivalentKg: equivalentKg,
+        cohortSowingId: cohortSowingId,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -699,6 +773,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         task: task,
         harvestedKg: harvestedKg,
         equivalentKg: equivalentKg,
+        cohortSowingId: cohortSowingId,
       );
     }
 
@@ -810,6 +885,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final categoryHint = _categoryHint(l10n);
     final crops = tx.crops;
     final isExpense = _type.isExpense;
+    // Etapa B · lotes que se pueden ofrecer en un jornal de «Cosechar».
+    final cohortesVivas = _showsCohortSelector
+        ? _cohortsOfCrop().where((c) => c.open).toList()
+        : const <Cohort>[];
+    final candidatos = _showsCohortSelector && _jornalCohortSowingId != null
+        ? tx.sowings.where((s) => s.id == _jornalCohortSowingId).toList()
+        : const <Sowing>[];
+    final loteGuardado = candidatos.isEmpty ? null : candidatos.first;
+    final loteGuardadoCerrado = loteGuardado != null &&
+        !cohortesVivas.any((c) => c.sowingId == loteGuardado.id);
     final categories = isExpense
         ? expenseCategories
             .map((c) => (key: c.key, icon: c.icon, name: l10n.expenseCategory(c.key)))
@@ -874,6 +959,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // elegido y pasa a ingreso, se quita.
               if (s.first == TransactionType.income) _terrenoId = null;
               _clearHarvestedKgIfHidden();
+              _applyCohortDefault();
             }),
           ),
           const SizedBox(height: 16),
@@ -960,6 +1046,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _unit = null;
                   _harvestId = null;
                   _clearHarvestedKgIfHidden();
+                  _applyCohortDefault();
                 });
               }
             },
@@ -1019,6 +1106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onChanged: (v) => setState(() {
               _category = v;
               _clearHarvestedKgIfHidden();
+              _applyCohortDefault();
             }),
           ),
 
@@ -1345,6 +1433,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _jornalTaskOtherController.clear();
                   }
                   _clearHarvestedKgIfHidden();
+                  _applyCohortDefault();
                 }),
               ),
               if (_jornalTaskValue == _jornalTaskOtherOption) ...[
@@ -1369,6 +1458,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _jornalHarvestedKgController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
+                  // El aviso de «sin lote» depende de lo que se escribe: se
+                  // repinta al teclear, sin tocar el valor.
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: l10n.jornalHarvestedKgLabel,
                     helperText: l10n.jornalHarvestedKgHelp,
@@ -1386,6 +1478,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
+                // Etapa B · a qué lote fueron estos kilos. Opcional: si no se
+                // elige, los kilos siguen siendo del cultivo y se avisa.
+                if (_showsCohortSelector) ...[
+                  DropdownButtonFormField<String>(
+                    value: _jornalCohortSowingId,
+                    decoration: InputDecoration(
+                      labelText: l10n.jornalHarvestedKgLotLabel,
+                      prefixIcon: const Icon(Icons.account_tree_outlined),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      DropdownMenuItem<String>(
+                        child: Text(l10n.jornalHarvestedKgLotNone),
+                      ),
+                      for (final c in cohortesVivas)
+                        DropdownMenuItem<String>(
+                          value: c.sowingId,
+                          child: Text(l10n.sowingCohortOption(
+                              MaterialLocalizations.of(context)
+                                  .formatShortDate(c.date),
+                              c.livePlants)),
+                        ),
+                      if (loteGuardadoCerrado)
+                        DropdownMenuItem<String>(
+                          value: loteGuardado.id,
+                          child: Text(l10n.jornalHarvestedKgLotRenewed(
+                              MaterialLocalizations.of(context)
+                                  .formatShortDate(loteGuardado.date),
+                              loteGuardado.plants)),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() {
+                      _jornalCohortSowingId = v;
+                      // Elegir «Sin lote» es una decisión, no un vacío: no se
+                      // vuelve a preseleccionar el lote único.
+                      _jornalCohortTouched = true;
+                    }),
+                  ),
+                  if (_hasWrittenKg && _jornalCohortSowingId == null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.jornalHarvestedKgLotMissing,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                ],
               ] else if (_jornalTaskValue == kTaskCosechar) ...[
                 Text(
                   l10n.jornalHarvestedKgNoCrop,

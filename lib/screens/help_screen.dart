@@ -191,6 +191,15 @@ class HelpScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              // Etapa B · los kilos del jornal pueden ir a un lote; la venta
+              // no se reparte. Sin la palabra «cohorte».
+              _Card(
+                child: Text(
+                  l10n.helpCohortKg,
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
+              ),
               const SizedBox(height: 20),
               _Section(title: l10n.helpUnitsTitle),
               _Card(

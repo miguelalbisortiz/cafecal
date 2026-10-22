@@ -1,3 +1,5 @@
+import 'tasks.dart';
+
 enum TransactionType {
   expense,
   income;
@@ -98,6 +100,14 @@ class Transaction {
   /// viejos.
   final double? equivalentKg;
 
+  /// Lote (siembra-cabeza) al que se atribuyen los kilos de un jornal.
+  ///
+  /// Solo tiene sentido en un jornal de «Cosechar» con kilos y cultivo: es una
+  /// MEDIDA de lo que se pesó en ese lote, no un reparto de la venta. `null` =
+  /// sin lote (dato viejo o no elegido) y esos kilos siguen contando para el
+  /// cultivo, pero no se muestran por lote.
+  final String? cohortSowingId;
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -124,6 +134,7 @@ class Transaction {
     this.task,
     this.harvestedKg,
     this.equivalentKg,
+    this.cohortSowingId,
   });
 
   /// Lo que realmente se pagó: lo entregado menos lo descontado.
@@ -176,6 +187,7 @@ class Transaction {
     Object? task = _keep,
     Object? harvestedKg = _keep,
     Object? equivalentKg = _keep,
+    Object? cohortSowingId = _keep,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -222,6 +234,11 @@ class Transaction {
       equivalentKg: equivalentKg == _keep
           ? this.equivalentKg
           : (equivalentKg as num?)?.toDouble(),
+      // Sentinela: al cambiar de labor o de cultivo hay que poder limpiar el
+      // lote sin dejar la atribución escondida.
+      cohortSowingId: cohortSowingId == _keep
+          ? this.cohortSowingId
+          : cohortSowingId as String?,
     );
   }
 
@@ -251,22 +268,48 @@ class Transaction {
         'task': task,
         'harvested_kg': harvestedKg,
         'equivalent_kg': equivalentKg,
+        'cohort_sowing_id': cohortSowingId,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
+    final type = TransactionType.parse(json['type'] as String);
+    final category = json['category'] as String;
+    final cropId = json['crop_id'] as String?;
+    final terrenoId = json['terreno_id'] as String?;
+    final task = json['task'] as String?;
+    final harvestedKg = (json['harvested_kg'] as num?)?.toDouble();
+    final cohortRaw = json['cohort_sowing_id'] as String?;
+
+    // Etapa B · el lote solo tiene sentido en un jornal de «Cosechar» con
+    // kilos, dentro de un cultivo y sin lote de terreno. Un registro que llegue
+    // al revés se limpia y se marca sucio para que la corrección suba.
+    //
+    // Un puntero a una siembra que no está NO se limpia aquí: `fromJson` no
+    // conoce las siembras y el pull puede llegar en desorden; la regla de
+    // lectura (`cohortKilos`) lo trata como «sin lote».
+    final puedeLlevarLote = cohortRaw != null &&
+        type == TransactionType.expense &&
+        category == 'mano_obra' &&
+        task == kTaskCosechar &&
+        harvestedKg != null &&
+        harvestedKg > 0 &&
+        cropId != null &&
+        terrenoId == null;
+    final sucioLote = cohortRaw != null && !puedeLlevarLote;
+
     return Transaction(
       id: json['id'] as String,
-      cropId: json['crop_id'] as String?,
+      cropId: cropId,
       // Clave ausente en respaldos viejos → null → se comporta como siempre.
-      terrenoId: json['terreno_id'] as String?,
-      type: TransactionType.parse(json['type'] as String),
-      category: json['category'] as String,
+      terrenoId: terrenoId,
+      type: type,
+      category: category,
       amount: (json['amount'] as num).toDouble(),
       currency: (json['currency'] as String?) ?? 'COP',
       description: (json['description'] as String?) ?? '',
       date: DateTime.parse(json['date'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
-      pendingSync: (json['pending_sync'] as bool?) ?? false,
+      pendingSync: ((json['pending_sync'] as bool?) ?? false) || sucioLote,
       deleted: (json['deleted'] as bool?) ?? false,
       quantity: (json['quantity'] as num?)?.toDouble(),
       unit: json['unit'] as String?,
@@ -280,11 +323,13 @@ class Transaction {
       // true por defecto: un dato viejo sin marca es plata que entró.
       paid: (json['paid'] as bool?) ?? true,
       // Respaldos anteriores a E3 no traen la clave → null → sin labor.
-      task: json['task'] as String?,
+      task: task,
       // Tanda 2 · clave ausente en respaldos viejos → null → sin cosecha.
-      harvestedKg: (json['harvested_kg'] as num?)?.toDouble(),
+      harvestedKg: harvestedKg,
       // Tanda 4 · clave ausente en respaldos viejos → null → sin peso.
       equivalentKg: (json['equivalent_kg'] as num?)?.toDouble(),
+      // Etapa B · ausente en respaldos viejos → null → sin lote.
+      cohortSowingId: puedeLlevarLote ? cohortRaw : null,
     );
   }
 }

@@ -1979,6 +1979,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jornalHarvestedKgInvalid => 'Enter the harvested kilos (greater than 0).';
 
   @override
+  String get jornalHarvestedKgLotLabel => 'Harvest lot (optional)';
+
+  @override
+  String get jornalHarvestedKgLotNone => 'No lot';
+
+  @override
+  String jornalHarvestedKgLotRenewed(String date, int plants) {
+    return '$date · $plants plants · renewed';
+  }
+
+  @override
+  String get jornalHarvestedKgLotMissing => 'You didn\'t choose a lot: these kilos stay with the crop and won\'t show per lot. You can save anyway.';
+
+  @override
+  String cohortKgLabel(String kg) {
+    return '$kg kg';
+  }
+
+  @override
+  String cohortKgPerPlantLabel(String value) {
+    return '$value kg/plant';
+  }
+
+  @override
+  String get helpCohortKg => 'The kilos in a work log can go to a lot: that\'s what you weighed from that lot. The sale isn\'t split; the crop total doesn\'t change.';
+
+  @override
   String get cashBoxLabel => 'Monthly cash contribution';
 
   @override

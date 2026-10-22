@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/crop.dart';
+import '../models/cohort_kilos.dart';
 import '../models/sowing.dart';
 import '../models/terreno.dart';
 import '../services/terreno_area.dart';
@@ -427,7 +428,19 @@ class CropsScreen extends StatelessWidget {
     String mesAnio(DateTime d) =>
         '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
+    // Etapa B · kilos medidos por lote. Salen de los jornales de «Cosechar»
+    // (no se reparte la venta) y solo existen si alguien los pesó: sin kilos
+    // el lote se ve como antes, nunca con un 0.
+    final kilosPorLote = cohortKilos(
+      cropId: crop.id,
+      transactions: tx.transactions,
+      storedHarvests: tx.storedHarvests,
+      sowings: tx.sowings,
+    );
+
     Widget cohorteLinea(Cohort c, {required bool abierta}) {
+      final kg = abierta ? kilosPorLote[c.sowingId] : null;
+      final kgPlanta = kg == null ? null : kgPerPlantCohort(kg, c.livePlants);
       final partes = <String>[
         l10n.sowingCohortOption(
             MaterialLocalizations.of(context).formatShortDate(c.date),
@@ -435,6 +448,11 @@ class CropsScreen extends StatelessWidget {
         if (abierta && edadDeCohorte(crop, c) != null)
           l10n.cropAge(edadDeCohorte(crop, c)!),
         if (c.areaHa != null) '${_ha(tx, c.areaHa!)} ha',
+        if (kg != null)
+          l10n.cohortKgLabel(formatKg(kg, tx.settings.numberLocale)),
+        if (kg != null && kgPlanta != null)
+          l10n.cohortKgPerPlantLabel(
+              formatKgPerPlant(kgPlanta, tx.settings.numberLocale)),
         if (abierta)
           l10n.cohortOpen
         else if (c.closedOn != null)

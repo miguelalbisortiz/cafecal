@@ -3755,6 +3755,48 @@ abstract class AppLocalizations {
   /// **'Ingresa los kilos recolectados (mayor que 0).'**
   String get jornalHarvestedKgInvalid;
 
+  /// No description provided for @jornalHarvestedKgLotLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Lote de la cosecha (opcional)'**
+  String get jornalHarvestedKgLotLabel;
+
+  /// No description provided for @jornalHarvestedKgLotNone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin lote'**
+  String get jornalHarvestedKgLotNone;
+
+  /// No description provided for @jornalHarvestedKgLotRenewed.
+  ///
+  /// In es, this message translates to:
+  /// **'{date} · {plants} matas · renovado'**
+  String jornalHarvestedKgLotRenewed(String date, int plants);
+
+  /// No description provided for @jornalHarvestedKgLotMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'No elegiste lote: estos kilos quedan del cultivo y no se ven por lote. Puedes guardar así.'**
+  String get jornalHarvestedKgLotMissing;
+
+  /// No description provided for @cohortKgLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'{kg} kg'**
+  String cohortKgLabel(String kg);
+
+  /// No description provided for @cohortKgPerPlantLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'{value} kg/planta'**
+  String cohortKgPerPlantLabel(String value);
+
+  /// No description provided for @helpCohortKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Los kilos del jornal pueden ir a un lote: es lo que pesaste de ese lote. La venta no se reparte; el total del cultivo no cambia.'**
+  String get helpCohortKg;
+
   /// No description provided for @cashBoxLabel.
   ///
   /// In es, this message translates to:

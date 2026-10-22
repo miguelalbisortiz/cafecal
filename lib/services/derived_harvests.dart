@@ -131,7 +131,7 @@ List<Harvest> deriveHarvests({
   // lugar y ninguna de las dos fuentes se cuele por su cuenta.
   final jornalCrops = <String>{
     for (final t in transactions)
-      if (_isMeasuredHarvestJornal(t)) t.cropId!,
+      if (isMeasuredHarvestJornal(t)) t.cropId!,
   };
 
   final out = <Harvest>[];
@@ -139,7 +139,7 @@ List<Harvest> deriveHarvests({
   // 1 · jornal — una cosecha por cada jornal medido (D11). La manual ya ganó:
   // si el cultivo tiene una, ni siquiera se emite la del jornal.
   for (final t in transactions) {
-    if (!_isMeasuredHarvestJornal(t)) continue;
+    if (!isMeasuredHarvestJornal(t)) continue;
 
     final cropId = t.cropId!;
     if (manualCrops.contains(cropId)) continue;
@@ -211,7 +211,7 @@ List<Harvest> deriveHarvests({
 /// Los filtros son la regla entera: gasto no borrado, categoría de mano de
 /// obra, la tecla del catálogo (no texto libre de «Otra…»), cultivo y kilos
 /// mayores que 0. `null`, 0 o negativo = no medido: no se deriva nada.
-bool _isMeasuredHarvestJornal(Transaction t) {
+bool isMeasuredHarvestJornal(Transaction t) {
   if (t.deleted) return false;
   if (!t.type.isExpense) return false;
   if (t.category != 'mano_obra') return false;

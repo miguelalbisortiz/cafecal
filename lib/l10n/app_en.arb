@@ -779,6 +779,22 @@
   "jornalHarvestedKgHelp": "To compare what you harvested with what you sold.",
   "jornalHarvestedKgNoCrop": "Select the crop to record the kilos.",
   "jornalHarvestedKgInvalid": "Enter the harvested kilos (greater than 0).",
+  "jornalHarvestedKgLotLabel": "Harvest lot (optional)",
+  "jornalHarvestedKgLotNone": "No lot",
+  "@jornalHarvestedKgLotRenewed": {
+    "placeholders": { "date": { "type": "String" }, "plants": { "type": "int" } }
+  },
+  "jornalHarvestedKgLotRenewed": "{date} · {plants} plants · renewed",
+  "jornalHarvestedKgLotMissing": "You didn't choose a lot: these kilos stay with the crop and won't show per lot. You can save anyway.",
+  "@cohortKgLabel": {
+    "placeholders": { "kg": { "type": "String" } }
+  },
+  "cohortKgLabel": "{kg} kg",
+  "@cohortKgPerPlantLabel": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "cohortKgPerPlantLabel": "{value} kg/plant",
+  "helpCohortKg": "The kilos in a work log can go to a lot: that's what you weighed from that lot. The sale isn't split; the crop total doesn't change.",
   "cashBoxLabel": "Monthly cash contribution",
   "cashBoxHelp": "What you take out of the farm each month: it covers day labor and small expenses. Whatever you don't spend isn't lost — it rolls over to next month. The contribution starts this month: previous months are not recalculated.",
   "cashBoxCarry": "Carried over from previous months",

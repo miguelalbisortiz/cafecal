@@ -1979,6 +1979,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get jornalHarvestedKgInvalid => 'Ingresa los kilos recolectados (mayor que 0).';
 
   @override
+  String get jornalHarvestedKgLotLabel => 'Lote de la cosecha (opcional)';
+
+  @override
+  String get jornalHarvestedKgLotNone => 'Sin lote';
+
+  @override
+  String jornalHarvestedKgLotRenewed(String date, int plants) {
+    return '$date · $plants matas · renovado';
+  }
+
+  @override
+  String get jornalHarvestedKgLotMissing => 'No elegiste lote: estos kilos quedan del cultivo y no se ven por lote. Puedes guardar así.';
+
+  @override
+  String cohortKgLabel(String kg) {
+    return '$kg kg';
+  }
+
+  @override
+  String cohortKgPerPlantLabel(String value) {
+    return '$value kg/planta';
+  }
+
+  @override
+  String get helpCohortKg => 'Los kilos del jornal pueden ir a un lote: es lo que pesaste de ese lote. La venta no se reparte; el total del cultivo no cambia.';
+
+  @override
   String get cashBoxLabel => 'Aporte mensual de caja';
 
   @override

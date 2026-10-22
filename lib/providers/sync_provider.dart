@@ -359,6 +359,10 @@ class SyncProvider extends ChangeNotifier {
         // Tanda 4 · el peso de una venta en racimo/cajón. Completo (incluida
         // null): al cambiar la unidad hay que poder borrarlo.
         'equivalent_kg': t.equivalentKg,
+        // Etapa B · el lote al que se atribuyen los kilos del jornal. Completo
+        // (incluida null): si se cambia de lote o se deja «sin lote», el pull
+        // tiene que reflejarlo.
+        'cohort_sowing_id': _uuidOrNull(t.cohortSowingId),
       };
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -668,6 +672,8 @@ class SyncProvider extends ChangeNotifier {
       'harvested_kg': (row['harvested_kg'] as num?)?.toDouble(),
       // Tanda 4 · filas anteriores a la migración no traen la clave → null.
       'equivalent_kg': (row['equivalent_kg'] as num?)?.toDouble(),
+      // Etapa B · filas anteriores a la migración → null → «sin lote».
+      'cohort_sowing_id': row['cohort_sowing_id'] as String?,
     });
   }
 
