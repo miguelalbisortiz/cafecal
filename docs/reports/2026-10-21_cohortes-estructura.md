@@ -207,8 +207,9 @@ generados normalizados a LF):
 ## Gate del 2026-10-22
 
 - `flutter analyze`: **sin issues**.
-- `flutter test`: **1232/1232** con los 2 tests de
-  `test/cohortes_puntos_1_2_test.dart` (verificación automática de §12.1–2).
+- `flutter test`: **1238/1238** con los 8 tests de
+  `test/cohortes_puntos_1_2_test.dart` y `test/cohortes_puntos_3_10_test.dart`
+  (verificación automática de §12).
 
 ## Antes / después (SC-1, SC-2, SC-3)
 
@@ -286,10 +287,13 @@ where replaces_plants is not null
 
 Se hace **después** del deploy, con la migración aplicada.
 
-> Los puntos 1 y 2 quedaron cubiertos por prueba automática, no por una
+> Los diez puntos quedaron cubiertos por **prueba automática**, no por una
 > prueba manual en producción: el navegador no puede manejar esta app (se
 > pinta en canvas y no expone referencias) y no se usó la cuenta del usuario.
-> El 3 al 10 siguen pendientes de la prueba manual.
+> Los archivos son `test/cohortes_puntos_1_2_test.dart` y
+> `test/cohortes_puntos_3_10_test.dart`. Límites declarados: el texto del PDF
+> no se inspecciona (va comprimido) y el envío real sin red no se ejerció; en
+> el punto 10 se prueba que el registro sobrevive entero y queda `pendingSync`.
 
 - [x] 1. Datos viejos quietos: los números de un cultivo con dos siembras no
       cambian al abrir la versión nueva.
@@ -303,21 +307,37 @@ Se hace **después** del deploy, con la migración aplicada.
       **Automático**: el formulario guarda `0` explícito, el cultivo pasa a
       1.300 matas / 6 ha y al reabrir sigue en 1.300. Rojo verificado guardando
       `null` en vez de `0`.
-- [ ] 3. Renovación parcial: 300/1 sobre 1.000/5 queda 700/4 + 300/1 = 1.000/5
+- [x] 3. Renovación parcial: 300/1 sobre 1.000/5 queda 700/4 + 300/1 = 1.000/5
       con «2 edades».
-- [ ] 4. Renovación total: el lote viejo pasa a «Lotes renovados» y el cultivo
+      **Automático**, desde el formulario: las cohortes quedan 700/4 y 300/1,
+      el cultivo en 1.000/5 y la tarjeta dice «2 edades».
+- [x] 4. Renovación total: el lote viejo pasa a «Lotes renovados» y el cultivo
       queda en 300/1 con una edad.
-- [ ] 5. Resiembra en el lote viejo: 100 muertas bajan la vieja a 900 (total
+      **Automático**: «Todas (1.000)» deja 300/1, una sola cohorte abierta y
+      el historial con el mes de la siembra que la reemplazó.
+- [x] 5. Resiembra en el lote viejo: 100 muertas bajan la vieja a 900 (total
       1.200) y la fecha de la pérdida arranca en esa siembra.
-- [ ] 6. No se puede reemplazar de más: bloquea y ofrece «Todas (1.000)».
-- [ ] 7. Área incompleta: conserva la manual, avisa sin bloquear; si la suma
+      **Automático**: la cohorte vieja baja a 900, el total queda en 1.200 y
+      `lossEarliestDate` devuelve el 12/03/2020, no la siembra nueva.
+- [x] 6. No se puede reemplazar de más: bloquea y ofrece «Todas (1.000)».
+      **Ya cubierto** en `sowing_screen_cohorts_test` («más matas de las que
+      hay bloquea y ofrece «Todas»»).
+- [x] 7. Área incompleta: conserva la manual, avisa sin bloquear; si la suma
       supera la manual, muestra las dos cifras.
-- [ ] 8. Reportes: el kg/planta no cambia de fórmula, dice «promedio de 2
+      **Ya cubierto** en `crops_screen_cohorts_test` (los dos avisos).
+- [x] 8. Reportes: el kg/planta no cambia de fórmula, dice «promedio de 2
       edades», sin filas por lote y con los mismos totales en PDF/Excel.
-- [ ] 9. Una sola cohorte: lista, reportes y exportes idénticos; el formulario
+      **Automático** en Reportes: rótulo presente, `0.05 kg/planta` con 50 kg
+      sobre 1.000 plantas y ninguna fila por lote. El PDF y el Excel leen el
+      mismo modelo; su texto no se inspecciona.
+- [x] 9. Una sola cohorte: lista, reportes y exportes idénticos; el formulario
       no muestra la pregunta de renovación.
-- [ ] 10. Sin señal: la siembra con reemplazo queda `pendingSync` y al volver
+      **Automático**: sin rótulo, mismo kg/planta; el formulario sin pregunta
+      ya estaba cubierto.
+- [x] 10. Sin señal: la siembra con reemplazo queda `pendingSync` y al volver
       la red sube con las mismas matas, área y puntero.
+      **Automático** a nivel proveedor: `pendingSync` y, al reabrir, matas,
+      área, reemplazo y puntero intactos. El envío real no se ejerció.
 
 ## Deploy
 
@@ -335,10 +355,11 @@ reescribe `lib/l10n/generated/*.dart` con CRLF y se devolvió a LF.
 
 ## Definition of done
 
-- [x] Gate verde: `analyze` limpio + 1232/1232.
+- [x] Gate verde: `analyze` limpio + 1238/1238.
 - [x] Informe T1–T20 con números, guardas y la corrección declarada.
 - [x] Commit de la etapa (`6e7a3a1`).
 - [x] Migración aplicada por el usuario (2026-10-21).
 - [x] Push (`c76d293`), deploy (`72e0b45`) y Pages sirviendo el build nuevo.
-- [ ] Verificación manual de §12.
+- [ ] Verificación manual de §12 (los 10 puntos quedaron cubiertos por prueba
+      automática; no se probó en producción).
 - [ ] Cierre de sesión y `LEARNING.md`.
