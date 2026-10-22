@@ -204,6 +204,12 @@ generados normalizados a LF):
 - `flutter test`: **1230/1230** (`docs/reports/gate-t20.txt`). Baseline de
   `main`: 1120; la etapa sumó **110** tests.
 
+## Gate del 2026-10-22
+
+- `flutter analyze`: **sin issues**.
+- `flutter test`: **1232/1232** con los 2 tests de
+  `test/cohortes_puntos_1_2_test.dart` (verificación automática de §12.1–2).
+
 ## Antes / después (SC-1, SC-2, SC-3)
 
 Cultivo base: 1.000 matas / 5 ha.
@@ -280,10 +286,23 @@ where replaces_plants is not null
 
 Se hace **después** del deploy, con la migración aplicada.
 
-- [ ] 1. Datos viejos quietos: los números de un cultivo con dos siembras no
+> Los puntos 1 y 2 quedaron cubiertos por prueba automática, no por una
+> prueba manual en producción: el navegador no puede manejar esta app (se
+> pinta en canvas y no expone referencias) y no se usó la cuenta del usuario.
+> El 3 al 10 siguen pendientes de la prueba manual.
+
+- [x] 1. Datos viejos quietos: los números de un cultivo con dos siembras no
       cambian al abrir la versión nueva.
-- [ ] 2. La corrección manda: editar la segunda siembra a «Amplío» sube las
+      **Automático** (`test/cohortes_puntos_1_2_test.dart`): se siembran dos
+      siembras sin las tres claves nuevas; abrir deja 300 matas en 1 ha —lo
+      mismo que veía la app vieja— con una sola cohorte abierta, y reabrir no
+      reescribe ni una fila. Rojo verificado apagando la normalización (daba
+      1.300).
+- [x] 2. La corrección manda: editar la segunda siembra a «Amplío» sube las
       matas, dice «2 edades» y no se vuelve a normalizar al reabrir.
+      **Automático**: el formulario guarda `0` explícito, el cultivo pasa a
+      1.300 matas / 6 ha y al reabrir sigue en 1.300. Rojo verificado guardando
+      `null` en vez de `0`.
 - [ ] 3. Renovación parcial: 300/1 sobre 1.000/5 queda 700/4 + 300/1 = 1.000/5
       con «2 edades».
 - [ ] 4. Renovación total: el lote viejo pasa a «Lotes renovados» y el cultivo
@@ -316,7 +335,7 @@ reescribe `lib/l10n/generated/*.dart` con CRLF y se devolvió a LF.
 
 ## Definition of done
 
-- [x] Gate verde: `analyze` limpio + 1230/1230.
+- [x] Gate verde: `analyze` limpio + 1232/1232.
 - [x] Informe T1–T20 con números, guardas y la corrección declarada.
 - [x] Commit de la etapa (`6e7a3a1`).
 - [x] Migración aplicada por el usuario (2026-10-21).
