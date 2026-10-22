@@ -244,6 +244,13 @@ pasada, la idempotencia y que una fila corregida no se vuelve a tocar.
 usuario** el 2026-10-21. Va **antes** del deploy: si falta una columna,
 PostgREST responde PGRST204 y el push falla.
 
+Consulta de control corrida el 2026-10-22 en el SQL Editor, sin
+observaciones: 3 columnas (`replaces_plants` integer, `replaces_area_ha`
+numeric, `cohort_sowing_id` uuid, las tres nullable),
+`sowings_cohort_sowing_id_fkey` con `confdeltype = 'n'`, índice
+`idx_sowings_cohort` presente y `con_dato = 0` (ninguna fila con los campos
+nuevos).
+
 Consultas de control (§5.1). Esperado: 3 columnas, FK con `confdeltype = 'n'`,
 índice `idx_sowings_cohort`, `con_dato = 0`.
 
