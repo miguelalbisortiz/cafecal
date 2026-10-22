@@ -1,6 +1,6 @@
 # Project Learnings
 
-Last updated: 2026-10-21
+Last updated: 2026-10-22
 
 ## Code Patterns
 - Pattern: una sola función por regla, y separar la regla de LECTURA de la de GUARDADO | `lossOf(s)` decide qué es una pérdida (solo las resiembras) y lo leen el modelo (`recomputeCropState`), la lista y el informe; `Sowing.fromJson` es la puerta única de entrada (disco, nube y respaldo) y limpia el registro viejo al entrar | lib/models/sowing.dart | 2026-10-17
@@ -61,6 +61,9 @@ Last updated: 2026-10-21
 - Pattern: el área de un cultivo con cohortes es `null` si a alguna abierta le falta la suya, y el provider conserva la manual (`u.areaHa ?? c.areaHa`). Un `0` de relleno sería una cifra inventada | `recomputeCropState` | lib/providers/transaction_provider.dart | 2026-10-21
 - Pattern (límite declarado): un solo puntero no puede expresar «borrá todo» cuando hay varias cohortes vivas. La divergencia se escribe en el PRD con un caso numérico fijado (S1 1.000 + S2 300 + S3 400 → sobrevive S2, total 700) en vez de callarla | `cohort_sowing_id` | docs/prds/2026-10-21_1818-cohortes-estructura.prd.md | 2026-10-21
 - Pattern (gate): los logs de PowerShell (`*>` / `>`) salen **UTF-16LE con BOM** y git los trata como binarios. Se releen con `[IO.File]::ReadAllText` y se reescriben UTF-8 sin BOM + LF | `docs/reports/gate-*.txt` | 2026-10-21
+- Pattern (verificación imposible): si la prueba manual no se puede hacer —Flutter web pinta en canvas y no expone semántica sin un gesto real, así que el navegador del agente no puede tocar la app— se convierte en prueba automática que **recorre las pantallas reales** y siembra el escenario como lo dejó el cliente viejo | test/cohortes_puntos_1_2_test.dart, test/cohortes_puntos_3_10_test.dart | 2026-10-22
+- Pattern: el escenario «viejo» se siembra **reescribiendo el JSON del disco** (quitar `replaces_plants`, `replaces_area_ha`, `cohort_sowing_id`), no con `addSowing`, porque esa puerta ya escribe los campos nuevos y el caso dejaría de ser viejo | test/cohortes_puntos_1_2_test.dart | 2026-10-22
+- Pattern: en datos viejos, «los números no cambian» son los de la **última siembra** (300/1), no la suma: la normalización cierra el lote viejo. La suma (1.300) aparece recién cuando él corrige a «Amplío» | `normalizeLegacyCohorts` | lib/models/sowing.dart | 2026-10-22
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -104,6 +107,8 @@ Last updated: 2026-10-21
 - Bug (test): `find.text('Resiembra')` es ambiguo cuando la lista de siembras ya tiene una fila de resiembra, y el `tap` cae en la barrera del diálogo y lo cierra en vez de elegir el segmento | acotar con `find.descendant(of: find.byType(SegmentedButton<SowingKind>), matching: …)` | test/sowing_screen_cohorts_test.dart | 2026-10-21
 - Bug (test): `MaterialLocalizations.formatShortDate` en español **no rellena con cero** (`12/3/2020`), mientras el formulario usa su propio `dd/MM/yyyy`; un test que compare ambos literales falla por el formato, no por la regla | formatear la fecha esperada con `MaterialLocalizations` | test/crops_screen_cohorts_test.dart | 2026-10-21
 - Bug: tras cada `enterText` en un diálogo hace falta `pumpAndSettle`; sin él el segundo texto se escribe en un campo que aún no existe y el test falla con un `null` que parece del modelo | `test/widget` | test/crop_loss_dialog_test.dart | 2026-10-21
+- Bug (test): el mes de `cohortRenewedOn` es el de la siembra **que reemplaza** (la nueva, por defecto hoy), no el de la vieja; un test con `'03/2020'` hardcodeado falla cualquier día | calcular el mes con `DateTime.now()` | test/cohortes_puntos_3_10_test.dart | 2026-10-22
+- Bug (test): `pumpEventQueue()` colgó un test de widgets hasta el timeout; el mismo caso con `pumpAndSettle` corre en segundos | usarlo solo en tests puros | test/cohortes_puntos_1_2_test.dart | 2026-10-22
 
 ## Performance
 - Pattern: para medir el **primer arranque** de Flutter web no sirve FCP (pinta en canvas y no emite entrada de paint). Se usa `PerformanceResourceTiming.responseEnd` del último recurso, con un servidor Node local a 200 KB/s, service worker desregistrado y caches borrados antes de cada corrida; 3 corridas, mediana | el servidor no comprime, así que el segundo es pesimista pero comparable | C:\Users\MKY\AppData\Local\Temp\opencode\w_throttle.js | 2026-10-20
@@ -144,3 +149,4 @@ Last updated: 2026-10-21
 - Preference: antes de modelar una entidad nueva, validar contra la **práctica del agricultor**. Si la práctica ya se resuelve con lo que existe (partir el lote en dos cultivos), prefiere copy/flujo antes que una migración | cohortes dentro de un cultivo | 2026-10-20
 - Preference: la práctica manda sobre la recomendación previa. Si en la finca **la cosecha de lotes de distinta edad se mezcla**, partir el lote obligaría a elegir un cultivo por venta o a inventar kilos: prefiere cohortes dentro del cultivo aunque el análisis anterior recomendara partir | decisión C sobre E | 2026-10-21
 - Preference: lo que no se probó **no se marca como hecho**. Prefiere cerrar con la verificación pendiente y declarada antes que con casillas marcadas de mentira | cierre de etapa A | 2026-10-21
+- Preference: si la prueba manual no se puede hacer, acepta la **prueba automática** con las pantallas reales, siempre que el informe diga qué quedó sin probar (PDF, envío real) | verificación §12 | 2026-10-22
