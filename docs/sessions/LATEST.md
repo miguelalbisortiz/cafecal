@@ -1,68 +1,84 @@
-# Sesión — jueves 22 de octubre de 2026 (verificación §12)
+# Sesión — jueves 22 de octubre de 2026 (etapa B: kilos por lote)
 
-> Estado al cierre: **§12 completo por prueba automática** (1–10), con dos
-> límites declarados. `main` = `origin/main` = `eed83dc`. No hubo cambios de
-> app: el bundle publicado sigue siendo el de `72e0b45`.
-> Informe: `docs/reports/2026-10-21_cohortes-estructura.md`.
+> Estado al cierre: **etapa B implementada, migrada, commiteada, pusheada y
+> desplegada**; falta la prueba manual del usuario en producción. Los kilos de
+> cada lote salen del jornal de «Cosechar», no de la venta.
+> Informe: `docs/reports/2026-10-22_cohortes-atribucion.md`.
+> PRD: `docs/prds/2026-10-22_1813-cohortes-atribucion.prd.md`.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` = `origin/main` = **`eed83dc`** (0 commits adelante).
-- `gh-pages` = **`72e0b45`** (deploy de la etapa A, sin cambios desde ayer).
-- Gate: `flutter analyze` limpio · **1238/1238** (8 tests nuevos hoy).
-- Migración `202610210001_add_sowings_cohorts.sql` verificada en la base:
-  3 columnas nullable, FK con `on delete set null`, índice `idx_sowings_cohort`,
-  `con_dato = 0`.
+- `main` = `origin/main` = **`98bd9b9`** («Etapa B: kilos por lote en el jornal»).
+- `gh-pages` = **`b133dab`** («deploy: etapa B kilos por lote»).
+- Gate: `flutter analyze` limpio · **1281/1281** (43 nuevos sobre los 1238 de
+  la verificación de §12).
+- Deploy verificado en producción: sha256
+  `789043E41489B289E151C0C63513ED10426477AA76D3770A5BA1B0091BFD4A8F`,
+  `main.dart.js` de 3.783.464 B / 131.010 líneas.
+- Migración `202610220001_add_transaction_cohort.sql` **aplicada por el
+  usuario** y verificada: `base=postgres · columna=true · fk=n · indice=true`.
 
 ## 2. Qué se hizo
 
-**Control de la migración (§5.1)** en el SQL Editor, sin observaciones.
+**Datos**: `transactions.cohort_sowing_id` (uuid nullable, FK a `sowings(id)`
+`on delete set null`, índice `idx_transactions_cohort`). `Transaction` gana
+`cohortSowingId` con `copyWith` de centinela y una puerta en `fromJson` que
+limpia y marca `pendingSync` cuando el puntero no existe (no borra un puntero
+huérfano que aún no llegó de la nube).
 
-**§12 por prueba automática**, porque el navegador no puede manejar la app
-(se pinta en canvas y no expone referencias de accesibilidad sin un gesto
-real) y no se usaron credenciales de nadie en la conversación.
+**Motor**: `cohortKilos` y `kgPerPlantCohort` en `lib/models/cohort_kilos.dart`,
+calculados sobre `storedHarvests` (no `harvests`, que incluye derivadas) para
+respetar D10-A.
 
-- `test/cohortes_puntos_1_2_test.dart`:
-  - punto 1: con dos siembras sin las claves nuevas, abrir deja **300/1**
-    (lo mismo que veía la app vieja) y una sola cohorte abierta; reabrir no
-    reescribe nada.
-  - punto 2: editar a «Amplío» guarda `0`, sube a **1.300/6** con «2 edades»
-    y al reabrir sigue en 1.300.
-- `test/cohortes_puntos_3_10_test.dart`:
-  - 3: parcial desde el formulario → 700/4 + 300/1 = 1.000/5.
-  - 4: «Todas (1.000)» → 300/1, una edad e historial con el mes.
-  - 5: 100 muertas en la vieja → 900 (total 1.200); fecha mínima 12/03/2020.
-  - 8: reporte con «promedio de 2 edades», 0,05 kg/planta y sin filas por lote.
-  - 9: una cohorte → sin rótulo, mismo número.
-  - 10: `pendingSync` y, al reabrir, matas/área/reemplazo/puntero intactos.
-  - 6 y 7 ya estaban cubiertos por tests de la etapa; no se duplicaron.
+**Pantallas**: selector de lote opcional en el jornal de «Cosechar», con «Sin
+lote», preselección cuando hay una sola cohorte, aviso que no bloquea y
+limpieza del puntero al cambiar de labor. La tarjeta del cultivo muestra
+`· 250 kg · 0,36 kg/planta` por cohorte al desplegar «N edades». Ayuda nueva.
+Reportes, PDF y Excel sin cambios.
 
-**Rojos verificados**: sin normalización el punto 1 daba 1.300; guardando
-`null` en vez de `0` caía el 2; desconectando `sowings` del reporte caía el 8.
+**Copy**: 7 claves ES/EN, `gen-l10n` corrido, generados normalizados a LF.
 
-## 3. Hallazgos
+**Sync y respaldo**: `cohort_sowing_id` en el payload y en el pull; los
+punteros huérfanos cuentan en el respaldo; `deleteSowing` limpia el puntero sin
+reasignar kilos.
 
-- En datos viejos, «los números no cambian» significa **los de la última
-  siembra** (300/1), no la suma: la normalización cierra el lote viejo. La
-  suma (1.300) aparece recién cuando él corrige a «Amplío».
-- `cohortRenewedOn` usa la fecha de la siembra **que reemplaza** (la nueva),
-  no la de la vieja: un test con el mes hardcodeado falla todos los días.
-- `pumpEventQueue()` colgó un test de widgets; con `pumpAndSettle` no pasa.
-- El texto del PDF va comprimido: no se puede afirmar su contenido en un test
-  sin extraerlo. El PDF y el Excel leen el mismo modelo que la pantalla.
-- El envío real sin red no se ejerció: se probó que el registro sobrevive
-  entero y queda `pendingSync`.
+## 3. Decisiones que no se reabren sin verbo
 
-## 4. Pendientes
+- Los kilos por lote salen del **jornal de cosecha**, no de la venta: en la
+  finca se pesa al recoger y la venta mezcla lotes.
+- El selector de lote es **opcional con aviso**; la venta no cambia ni se
+  reparte.
+- Los kg por lote se ven solo en la tarjeta del cultivo; Reportes/PDF/Excel
+  siguen con `_numKg`.
+- D7–D12 cerradas en A: preselección de lote único, lote renovado sin kilos,
+  puntero conservado al editar, ocultar kg por lote si hay cosecha manual,
+  notación con `formatKg` del idioma, huérfano contado en el respaldo.
+- Descartados sin verbo: asocio, presupuesto por tarea, repartir una venta
+  entre lotes, fila «sin lote», recepa/socola, `reports` por lote.
 
-- Ningún trabajo de cohortes. Etapa B (kilos por cohorte) sigue quieta hasta
-  que se pese por lote.
-- Si algún día se prueba en producción, vale la pena mirar el punto 10 con
-  red real (avión/avión) y el PDF con dos edades.
+## 4. Hallazgos
 
-## 5. Cómo continuar
+- `cohortKilos` tiene que leer `storedHarvests`; con `harvests` la cosecha
+  derivada de una venta se contaría dos veces y rompería D10-A.
+- La migración va **antes** del deploy: sin la columna, Supabase devuelve
+  PGRST204 al sincronizar.
+- `flutter build web` vuelve a dejar `lib/l10n/generated/*` en CRLF; se
+  normaliza a LF tras cada deploy y el árbol queda limpio.
+- Divergencias declaradas en el informe: los kg por lote no suman el total del
+  cultivo, una edad no muestra kg, lote renovado sin kilos, un pesaje por
+  jornal, Reportes/PDF con `_numKg`.
 
-1. Leer `docs/reports/2026-10-21_cohortes-estructura.md` (todo §12 está
-   cubierto y con los límites escritos).
-2. No re-abrir C/E ni la etapa B sin verbo.
-3. Recordar: la app no se puede manejar desde el navegador del agente.
+## 5. Pendientes
+
+- **Prueba manual en producción** (9 puntos del PRD): 250 kg al lote viejo →
+  `250 kg · 0,36 kg/planta`; jornal sin lote → aviso y total sube; cambiar
+  labor limpia; borrar siembra; renovado sin kilos; una edad igual; reportes
+  iguales; offline.
+- Agregar el resultado del deploy al informe, si lo pide.
+- No re-abrir D1–D12 ni la atribución por venta sin verbo.
+
+## 6. Cómo continuar
+
+1. Probar https://miguelalbisortiz.github.io/cafecal/ con los 9 puntos.
+2. Si algo falla: test en rojo primero, luego arreglo.
+3. Recordar: migración antes del deploy y generados a LF después del build.
