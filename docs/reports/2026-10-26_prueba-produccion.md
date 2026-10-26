@@ -130,6 +130,43 @@ usuario: **dejarlo** como dato de prueba, porque prueba la guarda.
 
 ## 5. Pendientes
 
-- Decidir si F1 y F2 se arreglan (con test en rojo primero) o se declaran como
-  criterio. F3 es presentación: decidir si el lote cerrado muestra sus kilos.
+- F1, F2 y F3: **arreglados y verificados en producción** (ver §6).
+- F5 (contraste en modo oscuro): **arreglado y verificado** (ver §6).
 - No re-abrir la atribución por venta ni el reparto de una venta entre lotes.
+- Limpiar los datos de prueba cuando ya no sirvan (`limpia_cuenta_prueba.sql`).
+
+## 6. Cierre · arreglos y verificación en producción
+
+Se volvió a probar el mismo 26/10 sobre el bundle publicado, esta vez en modo
+oscuro. Los cuatro puntos se confirmaron en la app.
+
+| # | Arreglo | Antes | Verificado |
+|---|---|---|---|
+| F1 | «Gastos por ha» con el reparto del lote | café 33.872/ha | **46.391 · 29.454 · 25.220** |
+| F2 | Recogida = jornales medidos + lazo a cosecha | COP 0 | **COP 21,96/kg** |
+| F3 | Kilos del lote cerrado en la tarjeta | ocultos | **3.000 kg** (maíz) |
+| F5 | Colores del reporte desde el tema | ilegible en oscuro | legible |
+
+Ninguna cifra de Reporte se movió: ingresos **4.835.000**, gastos
+**417.147,84**, balance **4.417.852,16**, desglose café 278.344 · plátano
+88.363 · maíz 50.441. Márgenes por ha tras F1: 49.442 · 90.546 · 1.924.780.
+
+Commits: `d033a30` (F1–F3) y `bdf27e9` (F5). Deploy `gh-pages` **`109e77b`**,
+sha256 `735175D6…41C7`, confirmado contra el bundle que sirve Pages.
+
+### F5 · Textos del reporte con colores fijos — media
+
+`_harvestLine` pintaba el valor con `Colors.black87` y la etiqueta con
+`Colors.grey.shade700`. En la tarjeta oscura el valor desaparecía y la etiqueta
+quedaba en ~2,2:1. Se vio en «Siembras» y «Nómina del período», y alcanzaba
+también a Cosechas, Caja, Estado de resultados y Por hectárea, que comparten
+las mismas funciones.
+
+Arreglo: `scheme.onSurface` / `scheme.onSurfaceVariant`. Test en rojo:
+`test/report_screen_contraste_test.dart`.
+
+### Límite conocido
+
+`flutter build web` reescribe `lib/l10n/generated/` en **CRLF**, igual que
+`gen-l10n`. Hay que reconvertir a LF después de cada build o el diff se infla a
+unas 12.000 líneas.
