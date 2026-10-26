@@ -909,7 +909,13 @@ class _ReportScreenState extends State<ReportScreen> {
     final harvests = _periodHarvests(tx);
     final byCrop = metrics.totalsByCrop(harvests, tx.crops);
     final byDestination = metrics.totalsByDestination(harvests);
-    final pickupKg = metrics.pickupCostPerKg(tx.transactions, harvests);
+    // R2 · la recogida mira el MISMO período que el PDF y el Excel: con todo
+    // el histórico, un gasto de otro mes cambiaba la cifra de la pantalla y no
+    // la de los archivos.
+    final pickupRecords = _recordsFor(tx);
+    final pickupKg = metrics.pickupCostPerKg(pickupRecords, harvests);
+    final pickupCurrencies = metrics.pickupCostCurrencies(pickupRecords);
+    final pickupMixed = pickupCurrencies.length > 1;
     final staffHarvests = harvests
         .where((h) => h.workers != null || h.equivalentKg != null)
         .toList();
@@ -995,15 +1001,28 @@ class _ReportScreenState extends State<ReportScreen> {
                     value: _num(e.value),
                     color: scheme.onSurfaceVariant,
                   )),
-              if (pickupKg != null) ...[
+              if (pickupKg != null || pickupMixed) ...[
                 const SizedBox(height: 8),
                 _harvestLine(
                   label: l10n.reportPickupCostPerKg,
                   help: 'costo',
-                  value: formatMoneyFor(context, pickupKg,
-                      currency: _effectiveCurrency),
+                  // Es un precio unitario: con los decimales naturales de COP
+                  // (0) un costo de 21,96 se leería 22.
+                  value: pickupMixed
+                      ? '—'
+                      : formatMoneyFor(context, pickupKg!,
+                          currency: _effectiveCurrency, decimals: 2),
                   bold: true,
                 ),
+                if (pickupMixed)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      l10n.currencyMixedHint(pickupCurrencies.length),
+                      style: TextStyle(
+                          fontSize: 11, color: scheme.onSurfaceVariant),
+                    ),
+                  ),
               ],
               // Personal y kilos por cosecha (si se registraron).
               if (staffHarvests.isNotEmpty) ...[

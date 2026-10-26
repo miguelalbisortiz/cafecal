@@ -45,6 +45,8 @@ Transaction txn({
   String? cropId,
   String? harvestId,
   DateTime? date,
+  String? task,
+  double? harvestedKg,
 }) =>
     Transaction(
       id: '${type.name}_${amount}_$currency'
@@ -55,6 +57,8 @@ Transaction txn({
       currency: currency,
       cropId: cropId,
       harvestId: harvestId,
+      task: task,
+      harvestedKg: harvestedKg,
       date: date ?? DateTime(2026, 9, 5),
       createdAt: DateTime(2026, 9, 5),
     );
@@ -273,6 +277,30 @@ void main() {
         rows.any((r) => t0(r[0]) == _es.currencyMixedByCurrencyNote(2)),
         isFalse,
       );
+    });
+
+    test('los jornales de Cosechar entran al costo de recogida', () {
+      final rows = sheet('Cosechas', txns: [
+        txn(
+            type: TransactionType.expense,
+            amount: 50000,
+            category: 'mano_obra',
+            cropId: 'cafe',
+            task: 'cosechar',
+            harvestedKg: 100),
+        txn(
+            type: TransactionType.expense,
+            amount: 10000,
+            category: 'mano_obra',
+            cropId: 'cafe',
+            task: 'cosechar',
+            harvestedKg: 20),
+      ], harvests: [harvest(amount: 120)]);
+
+      final pickup = rows
+          .firstWhere((r) => t0(r[0]) == _es.reportPickupCostPerKg);
+      expect(cv(pickup[1]), 500.0,
+          reason: '60.000 de jornales ÷ 120 kg cosechados');
     });
 
     test('mezcla: el costo por kg sale en guion y con aviso', () {

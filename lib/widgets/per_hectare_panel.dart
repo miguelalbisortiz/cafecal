@@ -5,6 +5,7 @@ import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/sowing.dart';
 import '../models/transaction.dart';
+import '../services/crop_totals.dart';
 import '../services/report_harvest_metrics.dart';
 import '../models/units.dart';
 import '../utils/format.dart';
@@ -56,11 +57,19 @@ class PerHectarePanel extends StatelessWidget {
     final withBase = crops.where((c) =>
         (c.areaHa != null && c.areaHa! > 0) ||
         (c.livePlants != null && c.livePlants! > 0));
+    // R1 · el gasto de cada cultivo se atribuye con la MISMA regla del
+    // desglose: lo cargado a él más su parte de los gastos del lote. Así el
+    // panel no puede decir un gasto por hectárea distinto del desglose.
+    final shares = cropExpenseShares(
+      records: periodTransactions,
+      crops: crops,
+    );
     final rows = <_CropMetrics>[];
     for (final c in withBase) {
       final periodTxs =
           periodTransactions.where((t) => t.cropId == c.id).toList();
       final periodHs = periodHarvests.where((h) => h.cropId == c.id).toList();
+      final expenseTxs = shares.of(c.id);
 
       // Monedas del período de este cultivo: si mezcla, el margen no se
       // calcula (sería restar pesos con dólares) y se avisa con el recuento.
@@ -69,10 +78,8 @@ class PerHectarePanel extends StatelessWidget {
           .where((t) => !t.deleted && !t.type.isExpense)
           .map((t) => t.currency)
           .toSet();
-      final expenseCurrencies = periodTxs
-          .where((t) => !t.deleted && t.type.isExpense)
-          .map((t) => t.currency)
-          .toSet();
+      final expenseCurrencies =
+          expenseTxs.map((t) => t.currency).toSet();
       final moneyCurrencies = {...incomeCurrencies, ...expenseCurrencies};
       final moneyMixed = moneyCurrencies.length > 1;
       // Si el período mezcla y un lado es de una sola moneda, su cifra es
@@ -97,7 +104,7 @@ class PerHectarePanel extends StatelessWidget {
         livePlants: c.livePlants,
       );
       final revenue = metrics.revenuePerHa(periodTxs, c.areaHa);
-      final cost = metrics.costPerHa(periodTxs, c.areaHa);
+      final cost = metrics.costPerHa(expenseTxs, c.areaHa);
       // El margen resta ingresos y gastos: solo es cierto si las dos cifras
       // están en la misma moneda (o no hay ninguna de las dos).
       final margin = moneyMixed ? null : metrics.marginPerHa(revenue, cost);
@@ -108,7 +115,8 @@ class PerHectarePanel extends StatelessWidget {
           cost != null ||
           moneyMixed;
       final hasInvestment = c.establishmentCost != null && c.establishmentCost! > 0;
-      if (!hasKpis && !hasInvestment) continue;
+      final lotNotSplit = shares.notSplit(c.terrenoId);
+      if (!hasKpis && !hasInvestment && !lotNotSplit) continue;
 
       final cumulative = _cumulativeMargin(c.id);
       rows.add(_CropMetrics._(
@@ -124,6 +132,7 @@ class PerHectarePanel extends StatelessWidget {
         periodCurrencies: moneyCurrencies,
         incomeCurrency: incomeCurrency,
         expenseCurrency: expenseCurrency,
+        lotNotSplit: lotNotSplit,
         cumulativeMargin: cumulative.margin,
         cumulativeCurrencies: cumulative.currencies,
         yearsWithData: _yearsWithData(c.id),
@@ -284,6 +293,9 @@ class PerHectarePanel extends StatelessWidget {
             ),
           if (r.periodMixed)
             _hint(l10n.currencyMixedHint(r.periodCurrencies.length)),
+          // R1 · el gasto por ha es solo el del cultivo porque el lote no se
+          // pudo repartir: se dice, no se reparte a ciegas ni se pone 0.
+          if (r.lotNotSplit) _hint(l10n.perHaLotNotSplit),
           if (r.crop.establishmentCost != null && r.crop.establishmentCost! > 0)
             _recoveryBlock(context, r, l10n),
         ],
@@ -465,6 +477,11 @@ class _CropMetrics {
   /// Igual que [incomeCurrency] para el lado de gastos.
   final String? expenseCurrency;
 
+  /// R1 · el lote de este cultivo tiene gastos que **no** se pudieron
+  /// repartir porque a algún cultivo le falta el área. El panel muestra solo
+  /// lo cargado a este cultivo y lo explica, en vez de repartir a ciegas.
+  final bool lotNotSplit;
+
   /// Monedas de los movimientos históricos (todos) de este cultivo.
   final Set<String> cumulativeCurrencies;
 
@@ -482,6 +499,7 @@ class _CropMetrics {
     this.periodCurrencies = const {},
     this.incomeCurrency,
     this.expenseCurrency,
+    this.lotNotSplit = false,
     this.cumulativeCurrencies = const {},
   });
 

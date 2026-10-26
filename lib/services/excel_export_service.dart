@@ -1316,6 +1316,14 @@ class ExcelExportService {
         TextCellValue(l10n.reportPickupCostPerKg),
         pickupMixed ? TextCellValue('—') : DoubleCellValue(pickupKg!),
       ]);
+      // Es un precio unitario: dos decimales, o 21,96 se leería 22.
+      if (!pickupMixed) {
+        sheet
+            .cell(CellIndex.indexByColumnRow(
+                columnIndex: 1, rowIndex: sheet.maxRows - 1))
+            .cellStyle = CellStyle(
+            numberFormat: NumFormat.custom(formatCode: '#,##0.00'));
+      }
     }
 
     // Costo total por kg / inversión acumulada y rendimiento por cultivo.

@@ -478,9 +478,34 @@ void main() {
           reason: 'si el denominador fuera solo la venta, sería mayor');
     });
 
-    test('pickupCostPerKg no cuenta el jornal como gasto de recogida', () {
-      expect(metrics.pickupCostPerKg([jornal()], [cosechado]), 0,
-          reason: 'el jornal no tiene harvestId: el numerador no cambia');
+    test('pickupCostPerKg cuenta el jornal de Cosechar como gasto de recogida',
+        () {
+      expect(metrics.pickupCostPerKg([jornal()], [cosechado]), 200,
+          reason: '100.000 ÷ 500 kg: cosechar con jornaleros cuesta, y ese '
+              'costo es de la recogida');
+    });
+
+    test('pickupCostPerKg sin gastos de recogida es null, nunca 0', () {
+      expect(metrics.pickupCostPerKg(const [], [cosechado]), isNull);
+    });
+
+    test('un jornal de Cosechar sin kilos no entra', () {
+      final sinKilos = jornal().copyWith(harvestedKg: null);
+      expect(metrics.pickupCostPerKg([sinKilos], [cosechado]), isNull);
+    });
+
+    test('un gasto que ya trae harvestId cuenta una sola vez', () {
+      final conLazo = jornal().copyWith(harvestId: 'j1');
+      expect(metrics.pickupCostPerKg([conLazo], [cosechado]), 200);
+    });
+
+    test('la moneda del jornal entra en el conjunto de la recogida', () {
+      final enDolares = jornal().copyWith(id: 'j2', currency: 'USD');
+      expect(metrics.pickupCostCurrencies([jornal(), enDolares]),
+          {'COP', 'USD'});
+      expect(metrics.pickupCostPerKg([jornal(), enDolares], [cosechado]),
+          isNull,
+          reason: 'no se dividen pesos con dólares');
     });
   });
 

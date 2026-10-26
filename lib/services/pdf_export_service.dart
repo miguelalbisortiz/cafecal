@@ -592,8 +592,8 @@ class PdfExportService {
   /// Se fija al empezar y no cambia durante él.
   String _locale = 'es';
 
-  String formatPdfMoney(double value, String currency) =>
-      formatMoneyLabel(value, currency, locale: _locale);
+  String formatPdfMoney(double value, String currency, {int? decimals}) =>
+      formatMoneyLabel(value, currency, locale: _locale, decimals: decimals);
 
   /// Sección "Principales compradores / proveedores" del período.
   /// Solo se muestra si hay ventas con cliente o gastos con proveedor.
@@ -858,7 +858,9 @@ class PdfExportService {
           pw.SizedBox(height: 2),
           _statementRow(
             l10n.reportPickupCostPerKg,
-            pickupMixed ? '—' : formatPdfMoney(pickupKg!, currency),
+            pickupMixed
+                ? '—'
+                : formatPdfMoney(pickupKg!, currency, decimals: 2),
             small: true,
             bold: true,
           ),

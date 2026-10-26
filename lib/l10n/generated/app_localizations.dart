@@ -938,7 +938,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPerHaCost.
   ///
   /// In es, this message translates to:
-  /// **'Cuánto cuesta producir en cada hectárea. Divide tus gastos entre las hectáreas.'**
+  /// **'Cuánto cuesta producir en cada hectárea. Suma los gastos del cultivo y su parte de los gastos del lote, y divide entre sus hectáreas.'**
   String get helpPerHaCost;
 
   /// No description provided for @helpPerHaTitleMargen.
@@ -2195,6 +2195,12 @@ abstract class AppLocalizations {
   /// **'Gastos por ha'**
   String get perHaCostLabel;
 
+  /// No description provided for @perHaLotNotSplit.
+  ///
+  /// In es, this message translates to:
+  /// **'El lote no se reparte: falta el área de un cultivo.'**
+  String get perHaLotNotSplit;
+
   /// No description provided for @perHaMarginLabel.
   ///
   /// In es, this message translates to:
@@ -3394,6 +3400,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{date} · {plants} matas'**
   String sowingCohortOption(String date, int plants);
+
+  /// Un lote cerrado: solo la fecha, sin matas vivas
+  ///
+  /// In es, this message translates to:
+  /// **'{date}'**
+  String sowingCohortDateOnly(String date);
 
   /// No description provided for @sowingCohortLabel.
   ///

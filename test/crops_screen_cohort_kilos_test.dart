@@ -114,7 +114,7 @@ void main() {
         reason: 'con una edad no se abre nada');
   });
 
-  testWidgets('el lote renovado no muestra kilos en el historial',
+  testWidgets('el lote renovado muestra sus kilos, sin kg/planta ni 0 matas',
       (tester) async {
     final p = await makeProvider();
     final crop = await p.addCrop('Café', areaHa: 5, livePlants: 1000);
@@ -135,7 +135,35 @@ void main() {
     await tester.tap(find.text(l10n.cohortsHistoryTitle));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining(l10n.cohortKgLabel('250')), findsNothing);
+    // R3 · los kilos del lote cerrado no se esconden: siguen en la tarjeta.
+    expect(find.textContaining(l10n.cohortKgLabel('250')), findsOneWidget);
+    // Con 0 matas vivas el kg/planta no existe: no se inventa.
+    expect(find.textContaining('kg/planta'), findsNothing);
+    // Tampoco se lee «0 matas» en un lote que ya se cerró.
+    expect(find.textContaining('0 matas'), findsNothing);
+  });
+
+  testWidgets('el lote renovado sin kilos no muestra 0 kg', (tester) async {
+    final p = await makeProvider();
+    final crop = await p.addCrop('Café', areaHa: 5, livePlants: 1000);
+    final viejo = await p.addSowing(
+        cropId: crop.id, date: DateTime(2020, 3, 12), plants: 1000, areaHa: 5);
+    await p.addSowing(
+      cropId: crop.id,
+      date: DateTime(2026, 3, 12),
+      plants: 300,
+      areaHa: 1,
+      replacesPlants: 1000,
+      cohortSowingId: viejo.id,
+    );
+    await pumpCrops(tester, p);
+    final l10n = await l10nDe(tester);
+
+    await tester.tap(find.text(l10n.cohortsHistoryTitle));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('0 kg'), findsNothing);
+    expect(find.textContaining('kg/planta'), findsNothing);
   });
 
   testWidgets('con cosecha manual no hay kg por lote', (tester) async {

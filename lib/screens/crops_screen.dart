@@ -439,12 +439,18 @@ class CropsScreen extends StatelessWidget {
     );
 
     Widget cohorteLinea(Cohort c, {required bool abierta}) {
-      final kg = abierta ? kilosPorLote[c.sowingId] : null;
-      final kgPlanta = kg == null ? null : kgPerPlantCohort(kg, c.livePlants);
+      // R3 · un lote cerrado conserva sus kilos medidos: siguen siendo su
+      // historia. Lo que no tiene es kg/planta (0 matas vivas) ni un «0 matas»
+      // que ya no dice nada.
+      final kg = kilosPorLote[c.sowingId];
+      final kgPlanta = (abierta && kg != null)
+          ? kgPerPlantCohort(kg, c.livePlants)
+          : null;
+      final fecha = MaterialLocalizations.of(context).formatShortDate(c.date);
       final partes = <String>[
-        l10n.sowingCohortOption(
-            MaterialLocalizations.of(context).formatShortDate(c.date),
-            c.livePlants),
+        abierta
+            ? l10n.sowingCohortOption(fecha, c.livePlants)
+            : l10n.sowingCohortDateOnly(fecha),
         if (abierta && edadDeCohorte(crop, c) != null)
           l10n.cropAge(edadDeCohorte(crop, c)!),
         if (c.areaHa != null) '${_ha(tx, c.areaHa!)} ha',

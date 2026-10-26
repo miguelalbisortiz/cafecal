@@ -431,7 +431,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPerHaTitleGastos => 'Expenses per ha';
 
   @override
-  String get helpPerHaCost => 'Expenses in the period ÷ area. How much each hectare costs to produce.';
+  String get helpPerHaCost => 'How much each hectare costs to produce. It adds the crop\'s expenses plus its share of the lot\'s expenses, and divides by its hectares.';
 
   @override
   String get helpPerHaTitleMargen => 'Margin per ha';
@@ -1147,6 +1147,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perHaCostLabel => 'Expenses per ha';
 
   @override
+  String get perHaLotNotSplit => 'The lot isn\'t split: a crop is missing its area.';
+
+  @override
   String get perHaMarginLabel => 'Margin per ha';
 
   @override
@@ -1782,6 +1785,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String sowingCohortOption(String date, int plants) {
     return '$date · $plants plants';
+  }
+
+  @override
+  String sowingCohortDateOnly(String date) {
+    return '$date';
   }
 
   @override

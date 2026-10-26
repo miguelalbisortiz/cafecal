@@ -85,9 +85,6 @@ class CropBreakdownRow {
 /// puede chocar con uno (los ids son UUIDs).
 const String _claveComunes = '__comunes__';
 
-/// Clave interna de la fila de un lote que no se pudo repartir.
-String _claveLote(String terrenoId) => '__lote__$terrenoId';
-
 /// La regla de (b): qué fracción del gasto de un lote le toca a cada uno de
 /// sus cultivos.
 ///
@@ -111,6 +108,122 @@ Map<String, double>? repartoPorHectareas({
   if (!cultivos.every((c) => (c.areaHa ?? 0) > 0)) return null;
   final total = cultivos.fold<double>(0, (a, c) => a + c.areaHa!);
   return {for (final c in cultivos) c.id: c.areaHa! / total};
+}
+
+/// Gastos de lote repartidos por área entre los cultivos del lote.
+///
+/// Es **la** regla del reparto: la usan el desglose por cultivo y el panel
+/// «Por hectárea». Cada trozo se calcula de una vez y el último cultivo se
+/// queda con el resto de la resta, para que la suma de los trozos dé
+/// EXACTAMENTE el gasto y no quede el residuo de coma flotante.
+class LotExpenseSplit {
+  /// cultivo → sus porciones (copias con el monto ya prorrateado).
+  final Map<String, List<Transaction>> byCrop;
+
+  /// Lotes que **no** se pudieron repartir: a algún cultivo les falta el área.
+  final List<String> notSplit;
+
+  const LotExpenseSplit(this.byCrop, this.notSplit);
+}
+
+LotExpenseSplit splitLotExpenses({
+  required Map<String, List<Transaction>> byTerreno,
+  required List<Crop> crops,
+}) {
+  final byCrop = <String, List<Transaction>>{};
+  final notSplit = <String>[];
+
+  for (final entry in byTerreno.entries) {
+    final txs = entry.value;
+    // La regla vive en [repartoPorHectareas], que es la misma que usan las
+    // alertas: así un cultivo no puede verse rentable acá y en pérdida en
+    // "Qué hacer".
+    final fracciones = repartoPorHectareas(crops: crops, terrenoId: entry.key);
+
+    if (fracciones == null) {
+      notSplit.add(entry.key);
+      continue;
+    }
+
+    final ids = fracciones.keys.toList();
+    final partes = [
+      for (var i = 0; i < ids.length; i++) <double>[],
+    ];
+    for (final t in txs) {
+      var asignado = 0.0;
+      for (var i = 0; i < ids.length - 1; i++) {
+        final p = t.amount * fracciones[ids[i]]!;
+        partes[i].add(p);
+        asignado += p;
+      }
+      partes[ids.length - 1].add(t.amount - asignado);
+    }
+
+    for (var i = 0; i < ids.length; i++) {
+      final lista = byCrop.putIfAbsent(ids[i], () => <Transaction>[]);
+      for (var j = 0; j < txs.length; j++) {
+        final p = partes[i][j];
+        final t = txs[j];
+        // La copia con su porción es lo que suma el gasto: así "inversión
+        // inicial + operación" da exactamente lo que se pinta y el mismo peso
+        // no aparece entero en dos cultivos a la vez.
+        lista.add(p == t.amount ? t : t.copyWith(amount: p));
+      }
+    }
+  }
+
+  return LotExpenseSplit(byCrop, notSplit);
+}
+
+/// Los gastos del período que le tocan a cada cultivo, con **la misma**
+/// atribución del desglose ([cropBreakdownRows]):
+///
+/// 1. Un gasto con cultivo es de ese cultivo, aunque traiga lote.
+/// 2. Un gasto de lote sin cultivo se reparte por área entre sus cultivos.
+/// 3. Si a algún cultivo del lote le falta el área, **no se reparte** y el
+///    lote sale en [CropExpenseShares.lotNotSplit].
+/// 4. Un gasto sin cultivo ni lote («Costos comunes») no entra.
+///
+/// El panel «Por hectárea» la usa para no mostrar un gasto por hectárea
+/// distinto del que enseña el desglose. Función pura: sin red ni estado.
+class CropExpenseShares {
+  final Map<String, List<Transaction>> byCrop;
+  final Set<String> lotNotSplit;
+
+  const CropExpenseShares({required this.byCrop, required this.lotNotSplit});
+
+  List<Transaction> of(String cropId) =>
+      byCrop[cropId] ?? const <Transaction>[];
+
+  bool notSplit(String? terrenoId) =>
+      terrenoId != null && lotNotSplit.contains(terrenoId);
+}
+
+CropExpenseShares cropExpenseShares({
+  required Iterable<Transaction> records,
+  required List<Crop> crops,
+}) {
+  final byCrop = <String, List<Transaction>>{};
+  final delLote = <String, List<Transaction>>{};
+
+  for (final t in records) {
+    if (t.deleted || !t.type.isExpense) continue;
+    if (t.cropId != null) {
+      byCrop.putIfAbsent(t.cropId!, () => <Transaction>[]).add(t);
+    } else if (t.terrenoId != null) {
+      delLote.putIfAbsent(t.terrenoId!, () => <Transaction>[]).add(t);
+    }
+  }
+
+  final repartido = splitLotExpenses(byTerreno: delLote, crops: crops);
+  for (final e in repartido.byCrop.entries) {
+    byCrop.putIfAbsent(e.key, () => <Transaction>[]).addAll(e.value);
+  }
+
+  return CropExpenseShares(
+    byCrop: byCrop,
+    lotNotSplit: repartido.notSplit.toSet(),
+  );
 }
 
 /// Agrupa los movimientos del período por cultivo y, dentro de cada cultivo,
@@ -194,62 +307,30 @@ List<CropBreakdownRow> cropBreakdownRows({
     apuntar(row, t);
   }
 
+  final repartido = splitLotExpenses(byTerreno: delLote, crops: crops);
+
   final filasDeLote = <String, CropBreakdownRow>{};
-  for (final entry in delLote.entries) {
-    final tid = entry.key;
-    final txs = entry.value;
-    // La regla vive en [repartoPorHectareas], que es la misma que usan las
-    // alertas: así un cultivo no puede verse rentable acá y en pérdida en
-    // "Qué hacer".
-    final fracciones = repartoPorHectareas(crops: crops, terrenoId: tid);
-
-    if (fracciones == null) {
-      final fila = filasDeLote.putIfAbsent(
-        _claveLote(tid),
-        () => CropBreakdownRow(
-          cropId: null,
-          terrenoId: tid,
-          name: loteNoRepartidoName(terrenoNameById[tid] ?? tid),
-        ),
-      );
-      for (final t in txs) {
-        fila.count++;
-        fila.expenses[t.currency] = (fila.expenses[t.currency] ?? 0) + t.amount;
-        fila.expenseTxs.add(t);
-      }
-      continue;
-    }
-
-    final ids = fracciones.keys.toList();
-    // Parte de cada movimiento en cada cultivo, calculada de una vez para
-    // que la suma de los trozos dé EXACTAMENTE el gasto: el último cultivo
-    // se queda con el resto de la resta y así no queda el residuo de coma
-    // flotante que dejaría la finca sumando unos centavos de menos.
-    final partes = [
-      for (var i = 0; i < ids.length; i++) <double>[],
-    ];
+  for (final tid in repartido.notSplit) {
+    final txs = delLote[tid]!;
+    final fila = CropBreakdownRow(
+      cropId: null,
+      terrenoId: tid,
+      name: loteNoRepartidoName(terrenoNameById[tid] ?? tid),
+    );
     for (final t in txs) {
-      var asignado = 0.0;
-      for (var i = 0; i < ids.length - 1; i++) {
-        final p = t.amount * fracciones[ids[i]]!;
-        partes[i].add(p);
-        asignado += p;
-      }
-      partes[ids.length - 1].add(t.amount - asignado);
+      fila.count++;
+      fila.expenses[t.currency] = (fila.expenses[t.currency] ?? 0) + t.amount;
+      fila.expenseTxs.add(t);
     }
+    filasDeLote[tid] = fila;
+  }
 
-    for (var i = 0; i < ids.length; i++) {
-      final fila = rows[ids[i]]!;
-      for (var j = 0; j < txs.length; j++) {
-        final p = partes[i][j];
-        final t = txs[j];
-        fila.count++;
-        fila.expenses[t.currency] = (fila.expenses[t.currency] ?? 0) + p;
-        // La copia con su porción es lo que suma `expenses`: así
-        // "inversión inicial + operación" da exactamente lo que se pinta y
-        // el mismo peso no aparece entero en dos cultivos a la vez.
-        fila.expenseTxs.add(p == t.amount ? t : t.copyWith(amount: p));
-      }
+  for (final entry in repartido.byCrop.entries) {
+    final fila = rows[entry.key]!;
+    for (final t in entry.value) {
+      fila.count++;
+      fila.expenses[t.currency] = (fila.expenses[t.currency] ?? 0) + t.amount;
+      fila.expenseTxs.add(t);
     }
   }
 

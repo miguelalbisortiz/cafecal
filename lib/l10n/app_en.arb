@@ -148,7 +148,7 @@
   "helpPerHaTitleVentas": "Sales per ha",
   "helpPerHaRevenue": "Income in the period ÷ area. How much money your land produces.",
   "helpPerHaTitleGastos": "Expenses per ha",
-  "helpPerHaCost": "Expenses in the period ÷ area. How much each hectare costs to produce.",
+  "helpPerHaCost": "How much each hectare costs to produce. It adds the crop's expenses plus its share of the lot's expenses, and divides by its hectares.",
   "helpPerHaTitleMargen": "Margin per ha",
   "helpPerHaMargin": "Sales − expenses, per hectare. Positive = the hectare leaves profit.",
   "helpPerHaWhy": "Why normalize? A 3 ha plot selling COP 9,000,000 does not compete with a 1 ha plot selling COP 5,000,000: per hectare, the second one wins. The panel divides by area so you compare by the same rule.",
@@ -422,6 +422,7 @@
   "yieldGoalLabel": "Annual goal",
   "perHaRevenueLabel": "Sales per ha",
   "perHaCostLabel": "Expenses per ha",
+  "perHaLotNotSplit": "The lot isn't split: a crop is missing its area.",
   "perHaMarginLabel": "Margin per ha",
   "perHaInvestmentLabel": "Establishment investment",
   "perHaRecoveredLabel": "Recovered",
@@ -701,6 +702,11 @@
     }
   },
   "sowingCohortOption": "{date} · {plants} plants",
+  "@sowingCohortDateOnly": {
+    "description": "A closed lot: the date only, no live plants",
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "sowingCohortDateOnly": "{date}",
   "sowingCohortLabel": "Lot",
   "sowingCohortNoneTitle": "There's no living lot",
   "sowingCohortNoneBody": "This crop has no living plants to replant into. If you're starting over, record it as a sowing.",

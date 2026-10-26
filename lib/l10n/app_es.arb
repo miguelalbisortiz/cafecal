@@ -148,7 +148,7 @@
   "helpPerHaTitleVentas": "Ventas por ha",
   "helpPerHaRevenue": "Cuánto dinero genera cada hectárea. Divide tus ingresos entre las hectáreas.",
   "helpPerHaTitleGastos": "Gastos por ha",
-  "helpPerHaCost": "Cuánto cuesta producir en cada hectárea. Divide tus gastos entre las hectáreas.",
+  "helpPerHaCost": "Cuánto cuesta producir en cada hectárea. Suma los gastos del cultivo y su parte de los gastos del lote, y divide entre sus hectáreas.",
   "helpPerHaTitleMargen": "Margen por ha",
   "helpPerHaMargin": "Si cada hectárea deja ganancia. Positivo = la hectárea produce más de lo que cuesta.",
   "helpPerHaWhy": "¿Para qué sirve? Imagina dos parcelas: una de 3 ha que vende COP 9.000.000 y otra de 1 ha que vende COP 5.000.000. Por hectárea, la segunda gana más (COP 5.000.000 vs COP 3.000.000). Este panel te muestra esa comparación justa.",
@@ -422,6 +422,7 @@
   "yieldGoalLabel": "Meta anual",
   "perHaRevenueLabel": "Ventas por ha",
   "perHaCostLabel": "Gastos por ha",
+  "perHaLotNotSplit": "El lote no se reparte: falta el área de un cultivo.",
   "perHaMarginLabel": "Margen por ha",
   "perHaInvestmentLabel": "Inversión del establecimiento",
   "perHaRecoveredLabel": "Recuperado",
@@ -707,6 +708,11 @@
     }
   },
   "sowingCohortOption": "{date} · {plants} matas",
+  "@sowingCohortDateOnly": {
+    "description": "Un lote cerrado: solo la fecha, sin matas vivas",
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "sowingCohortDateOnly": "{date}",
   "sowingCohortLabel": "Lote",
   "sowingCohortNoneTitle": "No hay un lote vivo",
   "sowingCohortNoneBody": "Este cultivo no tiene matas vivas donde reponer. Si estás arrancando de nuevo, anotalo como siembra.",

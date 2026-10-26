@@ -3,6 +3,7 @@ import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/transaction.dart';
 import '../models/units.dart';
+import 'derived_harvests.dart';
 
 /// Métricas de cosecha para la sección "Cosechas" del reporte.
 /// Funciones puras sobre datos locales (testables sin UI).
@@ -60,33 +61,55 @@ class ReportHarvestMetrics {
     return acc;
   }
 
-  /// Costo de recogida por kg: gastos vinculados a una cosecha ÷ kg cosechados.
+  /// Costo de recogida por kg: lo que costó recoger ÷ kg cosechados.
   ///
-  /// Devuelve **null** si los gastos que lo componen están en más de una
-  /// moneda: dividir pesos y dólares entre los mismos kilos daría un costo
-  /// por kilo falso. Llama a [pickupCostCurrencies] para saber si toca
-  /// mostrar un guion en vez de omitir la fila.
+  /// El numerador son los gastos con lazo a una cosecha (`harvestId`) **más**
+  /// la mano de obra de «Cosechar» con kilos medidos: en la finca se cosecha
+  /// con jornaleros, y ese jornal es costo de recogida aunque no traiga el
+  /// lazo. Cada movimiento cuenta una sola vez.
+  ///
+  /// Devuelve **null** si no hay ningún gasto de recogida (nunca un 0 que se
+  /// lea como «cosechar fue gratis») y si los gastos que lo componen están en
+  /// más de una moneda: dividir pesos y dólares entre los mismos kilos daría
+  /// un costo por kilo falso. Llama a [pickupCostCurrencies] para saber si
+  /// toca mostrar un guion en vez de omitir la fila.
   double? pickupCostPerKg(
       List<Transaction> transactions, List<Harvest> harvests) {
     double kg = 0;
-    double pickup = 0;
     for (final h in harvests) {
       kg += _kgOf(h);
     }
-    for (final t in transactions) {
-      if (t.deleted || !t.type.isExpense || t.harvestId == null) continue;
-      pickup += t.amount;
-    }
     if (kg <= 0) return null;
+
+    double pickup = 0;
+    var hay = false;
+    for (final t in _pickupCosts(transactions)) {
+      pickup += t.amount;
+      hay = true;
+    }
+    if (!hay) return null;
     if (pickupCostCurrencies(transactions).length > 1) return null;
     return pickup / kg;
+  }
+
+  /// Los gastos que forman el costo de recogida, sin repetir ninguno.
+  ///
+  /// Un gasto con `harvestId` y que además cumpla el predicado del jornal
+  /// medido entra una sola vez: el id es la clave.
+  Iterable<Transaction> _pickupCosts(List<Transaction> transactions) sync* {
+    final vistos = <String>{};
+    for (final t in transactions) {
+      if (t.deleted || !t.type.isExpense) continue;
+      if (t.harvestId == null && !isMeasuredHarvestJornal(t)) continue;
+      if (!vistos.add(t.id)) continue;
+      yield t;
+    }
   }
 
   /// Monedas de los gastos de recogida (los que forman el costo por kg).
   Set<String> pickupCostCurrencies(List<Transaction> transactions) {
     final out = <String>{};
-    for (final t in transactions) {
-      if (t.deleted || !t.type.isExpense || t.harvestId == null) continue;
+    for (final t in _pickupCosts(transactions)) {
       out.add(t.currency);
     }
     return out;

@@ -67,8 +67,9 @@ String groupedDigits(double value,
 /// [locale] es obligatorio a propósito: sin él no hay separador de miles
 /// posible y la cifra sale `5000` en vez de `5.000`.
 String formatMoneyLabel(double value, String currency,
-    {required String locale}) {
-  final digits = groupedDigits(value, currency: currency, locale: locale);
+    {required String locale, int? decimals}) {
+  final digits = groupedDigits(value,
+      currency: currency, locale: locale, decimals: decimals);
   final s = '$currency $digits';
   return value < 0 ? '($s)' : s;
 }
