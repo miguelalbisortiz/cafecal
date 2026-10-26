@@ -1,84 +1,111 @@
-# Sesión — jueves 22 de octubre de 2026 (etapa B: kilos por lote)
+# Sesión — lunes 26 de octubre de 2026 (prueba en producción)
 
-> Estado al cierre: **etapa B implementada, migrada, commiteada, pusheada y
-> desplegada**; falta la prueba manual del usuario en producción. Los kilos de
-> cada lote salen del jornal de «Cosechar», no de la venta.
-> Informe: `docs/reports/2026-10-22_cohortes-atribucion.md`.
-> PRD: `docs/prds/2026-10-22_1813-cohortes-atribucion.prd.md`.
+> Estado al cierre: **prueba manual en producción terminada y aprobada** con
+> datos de una finca de 10 ha. Etapa B (kilos por lote), siembras/resiembra,
+> modo sin señal y Reporte/PDF/Excel funcionaron. **No se tocó código**: solo
+> se cargaron datos de prueba y se verificó.
+> Informe: `docs/reports/2026-10-26_prueba-produccion.md`.
+> PRD de referencia: `docs/prds/2026-10-22_1813-cohortes-atribucion.prd.md`.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` = `origin/main` = **`98bd9b9`** («Etapa B: kilos por lote en el jornal»).
-- `gh-pages` = **`b133dab`** («deploy: etapa B kilos por lote»).
-- Gate: `flutter analyze` limpio · **1281/1281** (43 nuevos sobre los 1238 de
-  la verificación de §12).
-- Deploy verificado en producción: sha256
-  `789043E41489B289E151C0C63513ED10426477AA76D3770A5BA1B0091BFD4A8F`,
-  `main.dart.js` de 3.783.464 B / 131.010 líneas.
-- Migración `202610220001_add_transaction_cohort.sql` **aplicada por el
-  usuario** y verificada: `base=postgres · columna=true · fk=n · indice=true`.
+- `main` = `origin/main` = **`7a44157`** («Auditoría §1–§7»). Sin cambios en
+  esta sesión: el árbol solo tiene el informe nuevo y este snapshot.
+- `gh-pages` = **`f8fc34a`** sirviendo el bundle nuevo. Deploy verificado:
+  sha256 `8140E7383EA078181545B3C6B46DFFD96EE257B43492E81A94F9BB281F672BEE`.
+- Gate de la última entrega: `flutter analyze` limpio · **1306/1306**.
+- Migraciones **aplicadas por el usuario**: `202610250001_allow_zero_plants.sql`
+  y `202610260001_indexes_and_crop_terreno_check.sql`. La `202610220001`
+  (cohortes) quedó confirmada en la práctica: la resiembra subió a la nube
+  con sus columnas nuevas.
+- App: https://miguelalbisortiz.github.io/cafecal/ · Supabase
+  `ioyqlzhzlvkkebvenqnz` · cuenta `prueba@gmail.com`.
 
 ## 2. Qué se hizo
 
-**Datos**: `transactions.cohort_sowing_id` (uuid nullable, FK a `sowings(id)`
-`on delete set null`, índice `idx_transactions_cohort`). `Transaction` gana
-`cohortSowingId` con `copyWith` de centinela y una puerta en `fromJson` que
-limpia y marca `pendingSync` cuando el puntero no existe (no borra un puntero
-huérfano que aún no llegó de la nube).
+**Datos de prueba** (por SQL, ids fijos; scripts en
+`C:\Users\MKY\AppData\Local\Temp\opencode\`):
 
-**Motor**: `cohortKilos` y `kgPerPlantCohort` en `lib/models/cohort_kilos.dart`,
-calculados sobre `storedHarvests` (no `harvests`, que incluye derivadas) para
-respetar D10-A.
+- Terreno **La Loma** 10 ha. Café 5 ha / 25.000 matas (26/10/2025) +
+  expansión 1 ha / 5.000 (26/10/2026, `replaces_plants = 0`); plátano 3 ha /
+  3.300 (26/04/2026); maíz 2 ha / 40.000 (15/09/2026).
+- 4 trabajadores a **12.702,08/día** (1.587,76 × 8 h).
+- **19 jornales** (23 días) por **292.147,84**; reparación contra el terreno.
+- Fijos: luz 85.000 + agua 40.000 contra el terreno; se reparten 6 / 3 / 2
+  de 11 ha junto con la reparación.
+- Ventas: café 230 kg × 2.500 = 575.000 · plátano 240 × 1.500 = 360.000 ·
+  maíz 3.000 × 1.300 = 3.900.000.
 
-**Pantallas**: selector de lote opcional en el jornal de «Cosechar», con «Sin
-lote», preselección cuando hay una sola cohorte, aviso que no bloquea y
-limpieza del puntero al cambiar de labor. La tarjeta del cultivo muestra
-`· 250 kg · 0,36 kg/planta` por cohorte al desplegar «N edades». Ayuda nueva.
-Reportes, PDF y Excel sin cambios.
+**Pruebas hechas desde la app** (las hizo el usuario; el agente no puede
+escribir en el canvas de Flutter):
 
-**Copy**: 7 claves ES/EN, `gen-l10n` corrido, generados normalizados a LF.
+1. **Etapa B**: la tarjeta del café muestra «2 edades»; kilos por lote
+   **180 / 50**; el jornal de «Cosechar» ofrece el selector de lote; la venta
+   de 230 kg **no duplica** la cosecha (230 / 230).
+2. **Resiembra**: 200 nuevas y 200 bajas en el lote del 26/10/2025. Control en
+   Supabase **5 · 1 · 200 · 200**. El lote sigue en 25.000 y el café en 30.000
+   (no 30.200). Reporte: 73.300 matas y pérdidas 200.
+3. **Sin señal**: guardó, apareció en Historial, avisó con la ruta del problema
+   y la opción de reintentar; al reconectar subió.
+4. **Reporte, PDF y Excel**: ingresos **4.835.000**, gastos **417.147,84**
+   (mano de obra 292.147,84 · fijos 125.000), balance **4.417.852,16**,
+   cosechado = vendido **3.470 kg** (230 / 240 / 3.000), café sin 460 kg.
+5. **Corrección de un dato**: el jornal de la prueba sin señal quedó sin
+   cultivo («Costos comunes» 12.702,08); se editó en Historial y se asignó a
+   Café. Café pasa a **278.344 / 16 movimientos** y «Costos comunes»
+   desaparece. Totales sin cambios.
 
-**Sync y respaldo**: `cohort_sowing_id` en el payload y en el pull; los
-punteros huérfanos cuentan en el respaldo; `deleteSowing` limpia el puntero sin
-reasignar kilos.
+Números finales: **24 movimientos** · mano de obra 292.147,84 · fijos 125.000 ·
+gastos 417.147,84 · ingresos 4.835.000 · balance 4.417.852,16. Desglose: café
+278.344 (16), plátano 88.363 (8), maíz 50.441 (6); La Loma 417.148; sin «sin
+repartir». Por hectárea: café 38,3 kg/ha · 33.872 gastos/ha · margen 61.961;
+plátano 80 · 16.936 · 103.064; maíz 1.500 · 12.702 · 1.937.298. Nómina: T1 7 d
+88.915 · T2 6 d 76.212 · T3 5 d 63.510 · T4 5 d 63.510.
 
-## 3. Decisiones que no se reabren sin verbo
+## 3. Decisiones
 
-- Los kilos por lote salen del **jornal de cosecha**, no de la venta: en la
-  finca se pesa al recoger y la venta mezcla lotes.
-- El selector de lote es **opcional con aviso**; la venta no cambia ni se
-  reparte.
-- Los kg por lote se ven solo en la tarjeta del cultivo; Reportes/PDF/Excel
-  siguen con `_numKg`.
-- D7–D12 cerradas en A: preselección de lote único, lote renovado sin kilos,
-  puntero conservado al editar, ocultar kg por lote si hay cosecha manual,
-  notación con `formatKg` del idioma, huérfano contado en el respaldo.
-- Descartados sin verbo: asocio, presupuesto por tarea, repartir una venta
-  entre lotes, fila «sin lote», recepa/socola, `reports` por lote.
+- **Datos de prueba con una finca real de 10 ha**, no un caso mínimo: es la
+  única forma de que salgan los descuadres de reparto y de áreas.
+- El **descuadre de 11 ha de cultivos en un terreno de 10** se deja a
+  propósito: prueba que la guarda de áreas avisa sin bloquear (F4).
+- Los datos de prueba **se quedan** en la cuenta; se limpian con
+  `limpia_cuenta_prueba.sql`.
+- El reset de datos exige **cerrar sesión y volver a entrar**: `signOut()`
+  llama `_store.clearAll()`.
+- **No se arregla nada en caliente**: F1–F3 quedan como hallazgos del informe
+  para decidir después, con test en rojo primero.
 
 ## 4. Hallazgos
 
-- `cohortKilos` tiene que leer `storedHarvests`; con `harvests` la cosecha
-  derivada de una venta se contaría dos veces y rompería D10-A.
-- La migración va **antes** del deploy: sin la columna, Supabase devuelve
-  PGRST204 al sincronizar.
-- `flutter build web` vuelve a dejar `lib/l10n/generated/*` en CRLF; se
-  normaliza a LF tras cada deploy y el árbol queda limpio.
-- Divergencias declaradas en el informe: los kg por lote no suman el total del
-  cultivo, una edad no muestra kg, lote renovado sin kilos, un pesaje por
-  jornal, Reportes/PDF con `_numKg`.
+- **F1 (media)** — «Por hectárea» no aplica el reparto del terreno:
+  `lib/widgets/per_hectare_panel.dart:61-62` filtra `t.cropId == c.id`, mientras
+  el desglose usa `repartoPorHectareas`. Café: **33.872/ha** en el panel frente
+  a **278.344** (46.391/ha) en el desglose. Dos criterios en la misma pantalla.
+- **F2 (baja)** — «Costo de recogida por kg» da **0** aunque hay 6 jornales de
+  Cosechar: `lib/services/report_harvest_metrics.dart:69` solo suma gastos con
+  `harvestId != null`, y los jornales no llevan ese enlace.
+- **F3 (baja)** — Los kilos de un lote cerrado dejan de verse en la tarjeta del
+  cultivo: `lib/screens/crops_screen.dart:442` pasa `kg = null` si la cohorte
+  no está abierta. Siguen en Reporte.
+- **F4 (no es bug)** — 11 ha de cultivos en un terreno de 10: el aviso sale y
+  es correcto.
 
 ## 5. Pendientes
 
-- **Prueba manual en producción** (9 puntos del PRD): 250 kg al lote viejo →
-  `250 kg · 0,36 kg/planta`; jornal sin lote → aviso y total sube; cambiar
-  labor limpia; borrar siembra; renovado sin kilos; una edad igual; reportes
-  iguales; offline.
-- Agregar el resultado del deploy al informe, si lo pide.
-- No re-abrir D1–D12 ni la atribución por venta sin verbo.
+- Decidir **F1** y **F2**: arreglar (con test en rojo) o declararlos como
+  criterio documentado.
+- Decidir **F3**: si el lote cerrado muestra sus kilos en la tarjeta.
+- No re-abrir la atribución por venta ni el reparto de una venta entre lotes.
+- Limpiar los datos de prueba cuando ya no sirvan (`limpia_cuenta_prueba.sql`).
 
 ## 6. Cómo continuar
 
-1. Probar https://miguelalbisortiz.github.io/cafecal/ con los 9 puntos.
-2. Si algo falla: test en rojo primero, luego arreglo.
-3. Recordar: migración antes del deploy y generados a LF después del build.
+- Leer el informe `docs/reports/2026-10-26_prueba-produccion.md` para el detalle
+  por sección (método, datos, resultados, notas operativas).
+- Si se arregla F1 o F2: PRD corto → test en rojo → cambio → `flutter analyze` +
+  `flutter test` → commit explícito. F1 toca la definición de «gasto del
+  cultivo», así que la decisión es del usuario, no del agente.
+- Para repetir la prueba desde cero: cerrar sesión, correr
+  `limpia_cuenta_prueba.sql` y volver a cargar `datos_base_prueba.sql` +
+  `jornales_prueba.sql` + `segundo_lote_cafe.sql` + `venta_prueba.sql` +
+  `ventas_gastos_prueba.sql`.

@@ -1,6 +1,6 @@
 # Project Learnings
 
-Last updated: 2026-10-22
+Last updated: 2026-10-26
 
 ## Code Patterns
 - Pattern: una sola función por regla, y separar la regla de LECTURA de la de GUARDADO | `lossOf(s)` decide qué es una pérdida (solo las resiembras) y lo leen el modelo (`recomputeCropState`), la lista y el informe; `Sowing.fromJson` es la puerta única de entrada (disco, nube y respaldo) y limpia el registro viejo al entrar | lib/models/sowing.dart | 2026-10-17
@@ -67,6 +67,12 @@ Last updated: 2026-10-22
 - Pattern (atribución): los kg de un lote salen de la **cosecha manual del jornal**, no de la venta: en la finca se pesa al recoger y la venta mezcla lotes. El selector es opcional y avisa, y `cohortKilos` lee `storedHarvests` (no `harvests`) para no contar la cosecha derivada de una venta | `isMeasuredHarvestJornal`, `cohortKilos` | lib/models/cohort_kilos.dart | 2026-10-22
 - Pattern: un puntero a cohorte se limpia en `fromJson` **solo si** la cohorte ya existe en el disco; un id que aún no llegó de la nube se conserva, porque si no el pull parcial borraría la atribución | puerta de `Transaction.fromJson` | lib/models/transaction.dart | 2026-10-22
 - Pattern (límite declarado): los kg por lote **no suman** el total del cultivo (la cosecha manual sin lote y la derivada de una venta quedan fuera) y una cohorte renovada no muestra kilos. Se escribe en el PRD y en el informe en vez de inventar un reparto | `cohortKilos` | docs/prds/2026-10-22_1813-cohortes-atribucion.prd.md | 2026-10-22
+- Pattern: hay **dos criterios** para el gasto del cultivo y conviven en la misma pantalla. El panel «Por hectárea» filtra `t.cropId == c.id` (solo lo cargado al cultivo); el desglose reparte el terreno con `repartoPorHectareas`. Con terreno compartido dan cifras distintas: café 33.872/ha en el panel frente a 46.391/ha en el desglose | lib/widgets/per_hectare_panel.dart:61, lib/services/crop_totals.dart | 2026-10-26
+- Pattern: un gasto **sin cultivo** no se reparte por área: cae en «Costos comunes» del desglose. Es correcto, pero el costo queda suelto y el cultivo se ve más barato de lo que es | `repartoPorHectareas` | lib/services/crop_totals.dart | 2026-10-26
+- Pattern: la resiembra es `vivas − muertas + nuevas`, así que 200 nuevas con 200 bajas dejan el total **idéntico** y no reinician edad ni área. Control en la nube: `plants = 200` y `lost_plants = 200` | `_applyResiembra` | lib/models/sowing.dart | 2026-10-26
+- Pattern: el `select` de control **no ve lo pendiente de subir** (local-first). Un conteo corto puede ser «no se guardó» o «no subió»; se distingue mirando la fila en la app y el ícono de sincronización, no la base | 2026-10-26
+- Pattern: «costo de recogida por kg» suma solo gastos con `harvestId != null`, y los jornales de «Cosechar» no llevan ese enlace: el indicador da **0 calculado**, no un dato faltante | lib/services/report_harvest_metrics.dart:69 | 2026-10-26
+- Pattern: la tarjeta del cultivo pasa `kg = null` cuando la cohorte está cerrada, así que los kilos de un lote terminado desaparecen de la tarjeta (siguen en Reporte) | lib/screens/crops_screen.dart:442 | 2026-10-26
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -157,3 +163,7 @@ Last updated: 2026-10-22
 - Preference: la atribución de kilos va donde se pesa de verdad —el jornal de cosecha—, no en la venta; una venta **no se reparte** entre lotes aunque mezcle cosecha de varios | etapa B | 2026-10-22
 - Preference: elegir el lote al cosechar es **opcional y con aviso**: no bloquea el registro ni obliga a decidir en el campo | selector de lote | 2026-10-22
 - Preference: una migración de columna la aplica él antes del deploy; el agente entrega el SQL exacto, la consulta de verificación y no pide credenciales por chat | etapa B | 2026-10-22
+- Preference: la prueba de cierre se hace **en producción y con datos de una finca real** (10 ha, 3 cultivos, 4 trabajadores, jornales y ventas), no con un caso mínimo: así salen los descuadres de reparto y de áreas | prueba de etapa B | 2026-10-26
+- Preference: los datos de prueba se cargan por **SQL con ids fijos** y se corrigen **desde la app** cuando el flujo lo permite: el jornal mal asignado se arregló en Historial, no con un `update` | carga de datos | 2026-10-26
+- Preference: los hallazgos de una prueba **no se arreglan en caliente**: se anotan con severidad en el informe y se deciden después, con test en rojo | cierre de la prueba | 2026-10-26
+- Preference: los datos de prueba **se quedan** en la cuenta hasta que él diga; se limpian con un script, no a mano | cierre de la prueba | 2026-10-26
