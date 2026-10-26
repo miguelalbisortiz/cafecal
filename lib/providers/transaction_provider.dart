@@ -34,6 +34,13 @@ class TransactionProvider extends ChangeNotifier {
   /// borrar, porque `crops` solo se hace `upsert`).
   List<String> _deletedCrops = [];
 
+  /// Mismo criterio para las otras cuatro entidades: el pull solo inserta ids
+  /// nuevos, así que sin lápida el borrado volvería en la pasada siguiente.
+  List<String> _deletedSowings = [];
+  List<String> _deletedHarvests = [];
+  List<String> _deletedEmployees = [];
+  List<String> _deletedTerrenos = [];
+
   /// Se dispara tras un alta/edición/borrado local de un movimiento, para que
   /// [SyncProvider] lo suba en el momento en lugar de esperar a abrir la app
   /// o a tocar ⟳. Es una función y no una referencia directa al proveedor
@@ -50,6 +57,10 @@ class TransactionProvider extends ChangeNotifier {
     _terrenos = _store.loadTerrenos();
     _settingsDirty = _store.loadSettingsDirty();
     _deletedCrops = _store.loadDeletedCrops();
+    _deletedSowings = _store.loadDeletedSowings();
+    _deletedHarvests = _store.loadDeletedHarvests();
+    _deletedEmployees = _store.loadDeletedEmployees();
+    _deletedTerrenos = _store.loadDeletedTerrenos();
     // Etapa A · antes que nada: los datos viejos se leen como reemplazo para
     // que las cohortes no muevan ningún número (D9).
     if (_normalizeLegacyCohortsInMemory()) {
@@ -64,6 +75,38 @@ class TransactionProvider extends ChangeNotifier {
     // porque nadie pasó por `addHarvest`. Se promueve aquí, al abrir, sin
     // esperar a que toque algo.
     if (_promotePhasesInMemory()) _store.saveCrops(_crops);
+    // §1 de la auditoría: las siembras que ya subieron antes de que el payload
+    // llevara el reemplazo y el puntero quedaron `pendingSync: false` y no se
+    // reenviarían nunca. Se re-suben una sola vez por equipo.
+    unawaited(repairCohortUpload());
+  }
+
+  /// Solo para tests: el store que respalda este provider.
+  @visibleForTesting
+  LocalStore get store => _store;
+
+  /// Una vez por equipo: marca para subir las siembras que tienen datos de
+  /// cohorte y ya estaban sincronizadas. Sin esto, el arreglo del payload no
+  /// alcanza a los registros viejos.
+  @visibleForTesting
+  Future<void> repairCohortUpload() async {
+    if (_store.cohortSyncRepairDone()) return;
+    var changed = false;
+    final list = [..._sowings];
+    for (var i = 0; i < list.length; i++) {
+      final s = list[i];
+      final tieneCohorte = s.replacesPlants != null ||
+          s.replacesAreaHa != null ||
+          s.cohortSowingId != null;
+      if (!tieneCohorte || s.pendingSync) continue;
+      list[i] = s.copyWith(pendingSync: true);
+      changed = true;
+    }
+    if (changed) {
+      _sowings = list;
+      await _store.saveSowings(_sowings);
+    }
+    await _store.markCohortSyncRepairDone();
   }
 
   /// Recarga todo el estado desde el namespace activo del store. Se invoca
@@ -82,6 +125,10 @@ class TransactionProvider extends ChangeNotifier {
     // Igual que la dirty: si no se recarga, un cultivo borrado en la cuenta
     // anterior reviviría aquí (o se borraría sin querer en otra).
     _deletedCrops = _store.loadDeletedCrops();
+    _deletedSowings = _store.loadDeletedSowings();
+    _deletedHarvests = _store.loadDeletedHarvests();
+    _deletedEmployees = _store.loadDeletedEmployees();
+    _deletedTerrenos = _store.loadDeletedTerrenos();
     // Etapa A · misma pasada que al construir; aquí sí se puede esperar el
     // recálculo antes de seguir.
     if (_normalizeLegacyCohortsInMemory()) {
@@ -133,6 +180,10 @@ class TransactionProvider extends ChangeNotifier {
   /// Cultivos borrados localmente pendientes de borrar en la BD. Se expone
   /// para que [SyncProvider] pueda subir los borrados.
   List<String> get deletedCrops => _deletedCrops;
+  List<String> get deletedSowings => _deletedSowings;
+  List<String> get deletedHarvests => _deletedHarvests;
+  List<String> get deletedEmployees => _deletedEmployees;
+  List<String> get deletedTerrenos => _deletedTerrenos;
 
   /// Cosechas **guardadas** (no derivadas) de un cultivo o rango.
   ///
@@ -692,6 +743,10 @@ class TransactionProvider extends ChangeNotifier {
   /// gastos de recolección **no** se borran — esa plata ya salió y sigue
   /// siendo cierta; solo pierden el vínculo (B4).
   Future<void> deleteHarvest(String id) async {
+    if (!_deletedHarvests.contains(id)) {
+      _deletedHarvests = [..._deletedHarvests, id];
+      await _store.saveDeletedHarvests(_deletedHarvests);
+    }
     _harvests = _harvests.where((h) => h.id != id).toList();
     await _store.saveHarvests(_harvests);
     _transactions = _transactions.map((t) {
@@ -753,6 +808,10 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   Future<void> deleteSowing(String id) async {
+    if (!_deletedSowings.contains(id)) {
+      _deletedSowings = [..._deletedSowings, id];
+      await _store.saveDeletedSowings(_deletedSowings);
+    }
     _sowings = _sowings.where((s) => s.id != id).toList();
     // Etapa A · las siembras que apuntaban a esta cohorte se quedan sin
     // puntero: el reemplazo deja de restar y la resiembra cae por fecha. Se
@@ -793,9 +852,14 @@ class TransactionProvider extends ChangeNotifier {
       final c = list[i];
       final u = updates[c.id];
       if (u == null) continue;
+      // Solo se marca para subir si los números cambian de verdad. Antes se
+      // marcaba siempre: cada pull re-subía todos los cultivos y podía pisar
+      // una edición del otro equipo sin motivo.
+      final area = u.areaHa ?? c.areaHa;
+      if (c.livePlants == u.livePlants && c.areaHa == area) continue;
       list[i] = c.copyWith(
         livePlants: u.livePlants,
-        areaHa: u.areaHa ?? c.areaHa,
+        areaHa: area,
         pendingSync: true,
       );
       changed = true;
@@ -849,6 +913,10 @@ class TransactionProvider extends ChangeNotifier {
   /// Borra el trabajador de la lista. Los jornales históricos conservan el
   /// nombre como snapshot en `transactions.provider` → no se tocan.
   Future<void> deleteEmployee(String id) async {
+    if (!_deletedEmployees.contains(id)) {
+      _deletedEmployees = [..._deletedEmployees, id];
+      await _store.saveDeletedEmployees(_deletedEmployees);
+    }
     _employees = _employees.where((e) => e.id != id).toList();
     await _store.saveEmployees(_employees);
     notifyListeners();
@@ -915,6 +983,10 @@ class TransactionProvider extends ChangeNotifier {
   /// La finca del productor se queda igual, un nivel más arriba: él quitó una
   /// etiqueta, no arrancó café.
   Future<void> deleteTerreno(String id) async {
+    if (!_deletedTerrenos.contains(id)) {
+      _deletedTerrenos = [..._deletedTerrenos, id];
+      await _store.saveDeletedTerrenos(_deletedTerrenos);
+    }
     _terrenos = _terrenos.where((t) => t.id != id).toList();
     await _store.saveTerrenos(_terrenos);
 
@@ -1236,6 +1308,10 @@ class TransactionProvider extends ChangeNotifier {
     // cultivo que SÍ llegaron. Si se descartaran los fallidos, el pull los
     // resucitaría desde el remoto.
     _deletedCrops = _deletedCrops.where(failed).toList();
+    _deletedSowings = _deletedSowings.where(failed).toList();
+    _deletedHarvests = _deletedHarvests.where(failed).toList();
+    _deletedEmployees = _deletedEmployees.where(failed).toList();
+    _deletedTerrenos = _deletedTerrenos.where(failed).toList();
     await _store.saveTransactions(_transactions);
     await _store.saveCrops(_crops);
     await _store.saveHarvests(_harvests);
@@ -1243,15 +1319,22 @@ class TransactionProvider extends ChangeNotifier {
     await _store.saveEmployees(_employees);
     await _store.saveTerrenos(_terrenos);
     await _store.saveDeletedCrops(_deletedCrops);
+    await _store.saveDeletedSowings(_deletedSowings);
+    await _store.saveDeletedHarvests(_deletedHarvests);
+    await _store.saveDeletedEmployees(_deletedEmployees);
+    await _store.saveDeletedTerrenos(_deletedTerrenos);
     notifyListeners();
   }
 
   void mergeRemote(List<Transaction> remoteTransactions) {
-    final existing = _transactions.map((t) => t.id).toSet();
-    _transactions = [
-      ..._transactions,
-      ...remoteTransactions.where((t) => !existing.contains(t.id)),
-    ];
+    // El pull también trae ediciones de filas que ya existen. Reemplaza solo
+    // si lo local está sincronizado: una edición sin subir no se pisa.
+    final byId = {for (final t in _transactions) t.id: t};
+    for (final r in remoteTransactions) {
+      final local = byId[r.id];
+      if (local == null || !local.pendingSync) byId[r.id] = r;
+    }
+    _transactions = byId.values.toList();
     _store.saveTransactions(_transactions);
     notifyListeners();
   }
@@ -1266,16 +1349,16 @@ class TransactionProvider extends ChangeNotifier {
   void mergeRemoteCrops(List<Crop> remoteCrops) {
     _adoptLegacyCrops(remoteCrops);
 
-    final existingIds = _crops.map((c) => c.id).toSet();
-    // Los borrados pendientes no reviven: quizá todavía no hayan llegado a la
-    // BD, y sin esta marca el pull los devolvería tal cual.
+    // Mismo criterio que los movimientos: el remoto reemplaza si lo local ya
+    // está subido; los borrados pendientes no reviven.
     final pendingDeletes = _deletedCrops.toSet();
-    _crops = [
-      ..._crops,
-      ...remoteCrops.where(
-        (c) => !existingIds.contains(c.id) && !pendingDeletes.contains(c.id),
-      ),
-    ];
+    final byId = {for (final c in _crops) c.id: c};
+    for (final r in remoteCrops) {
+      if (pendingDeletes.contains(r.id)) continue;
+      final local = byId[r.id];
+      if (local == null || !local.pendingSync) byId[r.id] = r;
+    }
+    _crops = byId.values.toList();
     _store.saveCrops(_crops);
     notifyListeners();
   }
@@ -1333,21 +1416,27 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   void mergeRemoteHarvests(List<Harvest> remoteHarvests) {
-    final existing = _harvests.map((h) => h.id).toSet();
-    _harvests = [
-      ..._harvests,
-      ...remoteHarvests.where((h) => !existing.contains(h.id)),
-    ];
+    final pendingDeletes = _deletedHarvests.toSet();
+    final byId = {for (final h in _harvests) h.id: h};
+    for (final r in remoteHarvests) {
+      if (pendingDeletes.contains(r.id)) continue;
+      final local = byId[r.id];
+      if (local == null || !local.pendingSync) byId[r.id] = r;
+    }
+    _harvests = byId.values.toList();
     _store.saveHarvests(_harvests);
     notifyListeners();
   }
 
   void mergeRemoteSowings(List<Sowing> remoteSowings) {
-    final existing = _sowings.map((s) => s.id).toSet();
-    _sowings = [
-      ..._sowings,
-      ...remoteSowings.where((s) => !existing.contains(s.id)),
-    ];
+    final pendingDeletes = _deletedSowings.toSet();
+    final byId = {for (final s in _sowings) s.id: s};
+    for (final r in remoteSowings) {
+      if (pendingDeletes.contains(r.id)) continue;
+      final local = byId[r.id];
+      if (local == null || !local.pendingSync) byId[r.id] = r;
+    }
+    _sowings = byId.values.toList();
     _store.saveSowings(_sowings);
     // Etapa A · el pull puede traer cohortes nuevas: los cultivos afectados
     // tienen que quedar recalculados. Un puntero que todavía no llegó se
@@ -1357,18 +1446,23 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   void mergeRemoteEmployees(List<Employee> remoteEmployees) {
-    final existingIds = _employees.map((e) => e.id).toSet();
-    final existingNames = _employees
-        .map((e) => e.name.trim().toLowerCase())
-        .toSet();
-    _employees = [
-      ..._employees,
-      ...remoteEmployees.where(
-        (e) =>
-            !existingIds.contains(e.id) &&
-            !existingNames.contains(e.name.trim().toLowerCase()),
-      ),
-    ];
+    final pendingDeletes = _deletedEmployees.toSet();
+    final byId = {for (final e in _employees) e.id: e};
+    final names = _employees.map((e) => e.name.trim().toLowerCase()).toSet();
+    for (final r in remoteEmployees) {
+      if (pendingDeletes.contains(r.id)) continue;
+      final local = byId[r.id];
+      final key = r.name.trim().toLowerCase();
+      if (local == null) {
+        if (names.contains(key)) continue;
+        byId[r.id] = r;
+        names.add(key);
+      } else if (!local.pendingSync) {
+        byId[r.id] = r;
+        names.add(key);
+      }
+    }
+    _employees = byId.values.toList();
     _store.saveEmployees(_employees);
     notifyListeners();
   }
@@ -1380,18 +1474,23 @@ class TransactionProvider extends ChangeNotifier {
   /// dos terrenos con el mismo nombre son el mismo pedazo de tierra visto desde
   /// otro equipo, y dejarlos separados partiría la finca en dos.
   void mergeRemoteTerrenos(List<Terreno> remoteTerrenos) {
-    final existingIds = _terrenos.map((t) => t.id).toSet();
-    final existingNames = _terrenos
-        .map((t) => t.name.trim().toLowerCase())
-        .toSet();
-    _terrenos = [
-      ..._terrenos,
-      ...remoteTerrenos.where(
-        (t) =>
-            !existingIds.contains(t.id) &&
-            !existingNames.contains(t.name.trim().toLowerCase()),
-      ),
-    ];
+    final pendingDeletes = _deletedTerrenos.toSet();
+    final byId = {for (final t in _terrenos) t.id: t};
+    final names = _terrenos.map((t) => t.name.trim().toLowerCase()).toSet();
+    for (final r in remoteTerrenos) {
+      if (pendingDeletes.contains(r.id)) continue;
+      final local = byId[r.id];
+      final key = r.name.trim().toLowerCase();
+      if (local == null) {
+        if (names.contains(key)) continue;
+        byId[r.id] = r;
+        names.add(key);
+      } else if (!local.pendingSync) {
+        byId[r.id] = r;
+        names.add(key);
+      }
+    }
+    _terrenos = byId.values.toList();
     _store.saveTerrenos(_terrenos);
     notifyListeners();
   }

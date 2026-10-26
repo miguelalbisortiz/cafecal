@@ -10,6 +10,27 @@ import '../models/transaction.dart';
 import '../services/supabase_service.dart';
 import 'transaction_provider.dart';
 
+/// Mensaje legible de un error de Supabase.
+///
+/// Público para poder probarlo: el usuario final lee esto en el aviso de sync,
+/// no el texto crudo de Postgrest.
+@visibleForTesting
+String describeSyncError(Object e) {
+  final s = e.toString();
+  if (s.contains('PGRST204') || s.contains('42703')) {
+    return 'falta una columna en la base de datos (aplica las migraciones)';
+  }
+  if (s.contains('23503')) return 'falta un registro relacionado';
+  if (s.contains('23514')) {
+    return 'una cifra no es válida para la base de datos (revisa plantas y kilos)';
+  }
+  if (s.contains('22P02')) return 'identificador con formato inválido';
+  if (s.contains('JWT') || s.contains('401') || s.contains('403')) {
+    return 'sesión expirada, vuelve a entrar';
+  }
+  return s;
+}
+
 /// Resultado de una pasada de push: qué falló y por qué.
 ///
 /// Cada entidad se sube de forma aislada (`try/catch` propio): una fila
@@ -22,22 +43,11 @@ class _PushOutcome {
 
   void fail(String label, Object e, {String? id}) {
     if (id != null) failedIds.add(id);
-    errors.add('$label: ${_describe(e)}');
+    errors.add('$label: ${describeSyncError(e)}');
     debugPrint('[SyncProvider] $label: $e');
   }
 
-  static String _describe(Object e) {
-    final s = e.toString();
-    if (s.contains('PGRST204') || s.contains('42703')) {
-      return 'falta una columna en la base de datos (aplica las migraciones)';
-    }
-    if (s.contains('23503')) return 'falta un registro relacionado';
-    if (s.contains('22P02')) return 'identificador con formato inválido';
-    if (s.contains('JWT') || s.contains('401') || s.contains('403')) {
-      return 'sesión expirada, vuelve a entrar';
-    }
-    return s;
-  }
+  static String _describe(Object e) => describeSyncError(e);
 }
 
 /// Una unidad de subida aislable. Si [run] falla, solo se reporta esta
@@ -218,6 +228,15 @@ class SyncProvider extends ChangeNotifier {
           id: s.id,
           run: () => _upsertRemoteSowing(supabase, s),
         ),
+      // El pull solo inserta ids nuevos: sin subir el borrado, la siembra
+      // volvería en la siguiente pasada.
+      for (final id in _txProvider.deletedSowings.where(_isUuid))
+        PushStage(
+          table: 'sowings',
+          label: 'Borrado de siembra',
+          id: id,
+          run: () => _deleteRemoteRow(supabase, 'sowings', id),
+        ),
       // Solo las GUARDADAS: una derivada no es dato que subir, es un cálculo
       // que se vuelve a hacer en cada lectura. Ver `storedHarvests`.
       for (final h in _txProvider.storedHarvests.where((h) => h.pendingSync))
@@ -227,12 +246,26 @@ class SyncProvider extends ChangeNotifier {
           id: h.id,
           run: () => _upsertRemoteHarvest(supabase, h),
         ),
+      for (final id in _txProvider.deletedHarvests.where(_isUuid))
+        PushStage(
+          table: 'harvests',
+          label: 'Borrado de cosecha',
+          id: id,
+          run: () => _deleteRemoteRow(supabase, 'harvests', id),
+        ),
       for (final e in _txProvider.employees.where((e) => e.pendingSync))
         PushStage(
           table: 'employees',
           label: 'Trabajador "${e.name}"',
           id: e.id,
           run: () => _upsertRemoteEmployee(supabase, e),
+        ),
+      for (final id in _txProvider.deletedEmployees.where(_isUuid))
+        PushStage(
+          table: 'employees',
+          label: 'Borrado de trabajador',
+          id: id,
+          run: () => _deleteRemoteRow(supabase, 'employees', id),
         ),
       for (final t in _txProvider.transactions.where((t) => t.pendingSync))
         PushStage(
@@ -242,6 +275,15 @@ class SyncProvider extends ChangeNotifier {
           run: t.deleted
               ? () => _deleteRemote(supabase, t.id)
               : () => _upsertRemote(supabase, t),
+        ),
+      // Al final: los cultivos ya subieron sin `terreno_id`, así que borrar el
+      // terreno no arrastra nada por la FK.
+      for (final id in _txProvider.deletedTerrenos.where(_isUuid))
+        PushStage(
+          table: 'terrenos',
+          label: 'Borrado de terreno',
+          id: id,
+          run: () => _deleteRemoteRow(supabase, 'terrenos', id),
         ),
     ];
     return stages;
@@ -377,6 +419,13 @@ class SyncProvider extends ChangeNotifier {
     await supabase.client.from('transactions').delete().eq('id', id);
   }
 
+  /// Borra una fila suelta por id. Tabla e id vienen de listas internas, no
+  /// del usuario; aun así los ids se filtran a uuid antes de llegar aquí.
+  Future<void> _deleteRemoteRow(
+      SupabaseService supabase, String table, String id) async {
+    await supabase.client.from(table).delete().eq('id', id);
+  }
+
   /// Borra un cultivo en la BD junto con las siembras y cosechas que lo usan.
   ///
   /// El orden es el contrario al del resto: primero los hijos, después el
@@ -462,6 +511,13 @@ class SyncProvider extends ChangeNotifier {
         'lost_plants': s.lostPlants,
         'reason': s.reason,
         'sowing_date': s.date.toIso8601String().substring(0, 10),
+        // Etapa A · sin estas tres, la cohorte vivía solo en el equipo que la
+        // creó: el otro recibía siembras «vírgenes» y el cultivo quedaba con
+        // matas y área de más. Van siempre, aunque sean null, para que un
+        // upsert pueda limpiarlas.
+        'replaces_plants': s.replacesPlants,
+        'replaces_area_ha': s.replacesAreaHa,
+        'cohort_sowing_id': _uuidOrNull(s.cohortSowingId),
       };
 
   Future<void> _upsertRemoteSowing(SupabaseService supabase, Sowing s) async {
@@ -550,10 +606,10 @@ class SyncProvider extends ChangeNotifier {
         .select()
         .eq('user_id', user.id);
 
-    final localIds = _txProvider.transactions.map((t) => t.id).toSet();
+    // El merge decide qué hacer con cada fila: si es nueva la agrega y, si ya
+    // existe, la reemplaza solo cuando lo local no tiene cambios sin subir.
     final remoteMapped = (remoteTx as List)
         .map((e) => remoteToTransaction(e as Map<String, dynamic>))
-        .where((t) => !localIds.contains(t.id))
         .toList();
 
     if (remoteMapped.isNotEmpty) {
@@ -563,19 +619,15 @@ class SyncProvider extends ChangeNotifier {
     // Los terrenos entran antes que los cultivos: un cultivo remoto puede
     // traer un `terreno_id` que esta cuenta aún no tiene local, y la lista
     // de terrenos tiene que estar completa para poder mostrarlo.
-    final terrenoLocalIds = _txProvider.terrenos.map((t) => t.id).toSet();
     final remoteTerrenoMapped = (remoteTerrenos as List)
         .map((e) => remoteToTerreno(e as Map<String, dynamic>))
-        .where((t) => !terrenoLocalIds.contains(t.id))
         .toList();
     if (remoteTerrenoMapped.isNotEmpty) {
       _txProvider.mergeRemoteTerrenos(remoteTerrenoMapped);
     }
 
-    final cropLocalIds = _txProvider.crops.map((c) => c.id).toSet();
     final remoteCropMapped = (remoteCrops as List)
         .map((e) => remoteToCrop(e as Map<String, dynamic>))
-        .where((c) => !cropLocalIds.contains(c.id))
         .toList();
     if (remoteCropMapped.isNotEmpty) {
       _txProvider.mergeRemoteCrops(remoteCropMapped);
@@ -584,29 +636,22 @@ class SyncProvider extends ChangeNotifier {
     // Ids **guardados**: las derivadas viven en memoria y su id sintético
     // (der_venta_…) jamás va a coincidir con uno remoto, así que meterlas
     // aquí solo ensuciaría el conjunto.
-    final harvestLocalIds =
-        _txProvider.storedHarvests.map((h) => h.id).toSet();
     final remoteHarvestMapped = (remoteHarvests as List)
         .map((e) => _remoteToHarvest(e as Map<String, dynamic>))
-        .where((h) => !harvestLocalIds.contains(h.id))
         .toList();
     if (remoteHarvestMapped.isNotEmpty) {
       _txProvider.mergeRemoteHarvests(remoteHarvestMapped);
     }
 
-    final sowingLocalIds = _txProvider.sowings.map((s) => s.id).toSet();
     final remoteSowingMapped = (remoteSowings as List)
-        .map((e) => _remoteToSowing(e as Map<String, dynamic>))
-        .where((s) => !sowingLocalIds.contains(s.id))
+        .map((e) => remoteToSowing(e as Map<String, dynamic>))
         .toList();
     if (remoteSowingMapped.isNotEmpty) {
       _txProvider.mergeRemoteSowings(remoteSowingMapped);
     }
 
-    final employeeLocalIds = _txProvider.employees.map((e) => e.id).toSet();
     final remoteEmployeeMapped = (remoteEmployees as List)
         .map((e) => _remoteToEmployee(e as Map<String, dynamic>))
-        .where((e) => !employeeLocalIds.contains(e.id))
         .toList();
     if (remoteEmployeeMapped.isNotEmpty) {
       _txProvider.mergeRemoteEmployees(remoteEmployeeMapped);
@@ -728,7 +773,8 @@ class SyncProvider extends ChangeNotifier {
     });
   }
 
-  Sowing _remoteToSowing(Map<String, dynamic> row) {
+  @visibleForTesting
+  Sowing remoteToSowing(Map<String, dynamic> row) {
     return Sowing.fromJson({
       'id': row['id'] as String,
       'crop_id': row['crop_id'] as String?,
@@ -738,6 +784,11 @@ class SyncProvider extends ChangeNotifier {
       'area_ha': (row['area_ha'] as num?)?.toDouble(),
       'lost_plants': (row['lost_plants'] as num?)?.toInt(),
       'reason': row['reason'] as String?,
+      // Claves ausentes (filas viejas) entran null sin marcar sucio; la
+      // puerta de `Sowing.fromJson` hace el resto.
+      'replaces_plants': (row['replaces_plants'] as num?)?.toInt(),
+      'replaces_area_ha': (row['replaces_area_ha'] as num?)?.toDouble(),
+      'cohort_sowing_id': row['cohort_sowing_id'] as String?,
       'pending_sync': false,
     });
   }

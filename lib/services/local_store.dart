@@ -21,6 +21,11 @@ class LocalStore {
   static const _kTerrenos = 'terrenos_v1';
   static const _kSettingsDirty = 'settings_dirty_v1';
   static const _kDeletedCrops = 'deleted_crops_v1';
+  static const _kDeletedSowings = 'deleted_sowings_v1';
+  static const _kDeletedHarvests = 'deleted_harvests_v1';
+  static const _kDeletedEmployees = 'deleted_employees_v1';
+  static const _kDeletedTerrenos = 'deleted_terrenos_v1';
+  static const _kCohortSyncRepair = 'cohort_sync_repair_v1';
 
   static const _allKeys = [
     _kTransactions,
@@ -33,7 +38,19 @@ class LocalStore {
     _kTerrenos,
     _kSettingsDirty,
     _kDeletedCrops,
+    _kDeletedSowings,
+    _kDeletedHarvests,
+    _kDeletedEmployees,
+    _kDeletedTerrenos,
   ];
+
+  /// ¿Ya se re-subieron las siembras creadas antes de que el payload llevara
+  /// el reemplazo y el puntero de cohorte? Es por equipo, no por cuenta.
+  bool cohortSyncRepairDone() =>
+      _prefs.getBool(_key(_kCohortSyncRepair)) ?? false;
+
+  Future<void> markCohortSyncRepairDone() =>
+      _prefs.setBool(_key(_kCohortSyncRepair), true);
 
   final SharedPreferences _prefs;
   String? _uid;
@@ -144,6 +161,41 @@ class LocalStore {
 
   Future<void> saveDeletedCrops(List<String> ids) async {
     await _prefs.setString(_key(_kDeletedCrops), jsonEncode(ids));
+  }
+
+  // ---- Lápidas de siembras, cosechas, trabajadores y terrenos ----
+  //
+  // Mismo motivo que las de cultivo: el pull solo inserta ids nuevos, así que
+  // sin subir el borrado lo borrado volvería en la siguiente pasada.
+
+  List<String> loadDeletedSowings() => _loadIds(_kDeletedSowings);
+  Future<void> saveDeletedSowings(List<String> ids) =>
+      _saveIds(_kDeletedSowings, ids);
+
+  List<String> loadDeletedHarvests() => _loadIds(_kDeletedHarvests);
+  Future<void> saveDeletedHarvests(List<String> ids) =>
+      _saveIds(_kDeletedHarvests, ids);
+
+  List<String> loadDeletedEmployees() => _loadIds(_kDeletedEmployees);
+  Future<void> saveDeletedEmployees(List<String> ids) =>
+      _saveIds(_kDeletedEmployees, ids);
+
+  List<String> loadDeletedTerrenos() => _loadIds(_kDeletedTerrenos);
+  Future<void> saveDeletedTerrenos(List<String> ids) =>
+      _saveIds(_kDeletedTerrenos, ids);
+
+  List<String> _loadIds(String key) {
+    final raw = _prefs.getString(_key(key));
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      return (jsonDecode(raw) as List<dynamic>).cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _saveIds(String key, List<String> ids) async {
+    await _prefs.setString(_key(key), jsonEncode(ids));
   }
 
   // ---- Harvests ----
