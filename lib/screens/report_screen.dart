@@ -1885,6 +1885,10 @@ class _ReportScreenState extends State<ReportScreen> {
       bool bold = false,
       String? help}) {
     final l10n = AppLocalizations.of(context)!;
+    // Los colores salen del tema, no de una constante: en modo oscuro la
+    // tarjeta es casi negra y `black87` desaparecía, y `grey.shade700` no
+    // llegaba al contraste mínimo. En claro el tema da esos mismos tonos.
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 3),
       child: Row(
@@ -1901,7 +1905,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: bold ? FontWeight.bold : FontWeight.w500,
-                      color: color ?? Colors.grey.shade700,
+                      color: color ?? scheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -1927,7 +1931,7 @@ class _ReportScreenState extends State<ReportScreen> {
           if (extra != null) ...[
             Text(
               extra,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
             ),
             const SizedBox(width: 8),
           ],
@@ -1936,7 +1940,7 @@ class _ReportScreenState extends State<ReportScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: bold ? FontWeight.bold : FontWeight.w600,
-              color: color ?? Colors.black87,
+              color: color ?? scheme.onSurface,
             ),
           ),
         ],
@@ -2329,7 +2333,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
-                color: Colors.grey.shade700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -2369,7 +2373,9 @@ class _ReportScreenState extends State<ReportScreen> {
           if (!mixed) ...[
             Text(
               '${_pct(pct)}%',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(width: 12),
           ],
@@ -2496,7 +2502,9 @@ class _ReportScreenState extends State<ReportScreen> {
           if (!mixed) ...[
             Text(
               '${_pct(pct)}%',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(width: 12),
           ],
@@ -2595,7 +2603,9 @@ class _ReportScreenState extends State<ReportScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
               if (icon != null) ...[
@@ -2664,10 +2674,10 @@ class _ReportScreenState extends State<ReportScreen> {
       padding: const EdgeInsets.only(left: 16, bottom: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontStyle: FontStyle.italic,
-          color: Colors.grey,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
@@ -2728,10 +2738,10 @@ class _ReportScreenState extends State<ReportScreen> {
           padding: const EdgeInsets.only(left: 20, top: 2),
           child: Text(
             l10n.metricReceivablesNote,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontStyle: FontStyle.italic,
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.3,
             ),
           ),
