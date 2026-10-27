@@ -26,6 +26,16 @@ String formatKg(double value, String locale) =>
 String formatKgPerPlant(double value, String locale) =>
     NumberFormat('0.00', locale).format(value);
 
+/// Porcentaje **ya calculado** (no una fracción), sin el signo `%`:
+/// `91.37` → `91`, `7.44` → `7.4`.
+///
+/// Una sola regla para PDF y Excel (la pantalla ya formateaba bien). Los
+/// exportadores recibían el porcentaje ya multiplicado por 100 y lo volvían a
+/// multiplicar: el margen de 91% salía `9137`. Y en el Excel salía sin `%`,
+/// así que se leía como una cifra suelta.
+String formatPct(double value) =>
+    value >= 10 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
+
 String formatMoney(BuildContext context, double value, {int? decimals}) {
   final tx = context.read<TransactionProvider>();
   return formatAmount(value,

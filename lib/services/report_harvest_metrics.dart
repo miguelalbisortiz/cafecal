@@ -466,6 +466,19 @@ class SoldVsHarvested {
   });
 }
 
+/// Gastos de un cultivo dentro de [records]: **solo egresos vivos**.
+///
+/// El costo por kilo y la inversión acumulada se calculan sobre gastos. Si se
+/// les pasa la lista completa del período, la venta del mismo cultivo entra
+/// como si fuera un costo: un cultivo que se vende a 2.500/kg salía costando
+/// 3.383/kg y el reporte lo daba por pérdida. Lo usan el PDF y el Excel para
+/// que los dos pintadores no vuelvan a divergir.
+List<Transaction> cropExpensesOf(
+        Iterable<Transaction> records, String cropId) =>
+    records
+        .where((t) => !t.deleted && t.cropId == cropId && t.type.isExpense)
+        .toList();
+
 /// Cosechas que no suman kilos porque su unidad necesita peso y no lo tiene.
 ///
 /// No es un error del productor ni una cifra que se rellene: es una lista para

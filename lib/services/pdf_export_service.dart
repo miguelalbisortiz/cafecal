@@ -339,12 +339,14 @@ class PdfExportService {
                   : (balance < 0 ? _pdfNegativeSoft : _pdfPositiveSoft)),
           _statementRow(
               l10n.marginLabel,
-              (mixedHeader || margen == null) ? '—' : '${_pctOf(margen, 1)}%',
+              (mixedHeader || margen == null)
+                  ? '—'
+                  : '${formatPct(margen)}%',
               small: true,
               valueColor: resultColor),
           _statementRow(
               l10n.ratioLabel,
-              (mixedHeader || ratio == null) ? '—' : '${_pctOf(ratio, 1)}%',
+              (mixedHeader || ratio == null) ? '—' : '${formatPct(ratio)}%',
               small: true,
               valueColor: PdfColors.grey700),
           // El veredicto por kilo: la cifra primero y la frase del veredicto
@@ -480,11 +482,8 @@ class PdfExportService {
     return doc.save();
   }
 
-  String _pctOf(double part, double total) {
-    if (total <= 0) return '—';
-    final v = part / total * 100;
-    return v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
-  }
+  String _pctOf(double part, double total) =>
+      total <= 0 ? '—' : formatPct(part / total * 100);
 
   /// Card de resumen con fondo coloreado — Ingresos / Gastos / Resultado.
   ///
@@ -898,8 +897,7 @@ class PdfExportService {
       if (crop == null) continue;
       final cropHarvests =
           harvests.where((h) => h.cropId == crop.id).toList();
-      final cropExpenses =
-          transactions.where((t) => t.cropId == crop.id).toList();
+      final cropExpenses = cropExpensesOf(transactions, crop.id);
       final hasResiembra =
           sowings.any((s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
       // Monedas de los montos del cultivo: con dos o más no hay ni costo
@@ -1102,7 +1100,7 @@ class PdfExportService {
         if (laborShare != null) ...[
           _statementRow(
             l10n.metricLaborShareLabel,
-            '${_pctOf(laborShare, 1)}%',
+            '${formatPct(laborShare)}%',
             small: true,
             valueColor: PdfColors.grey700,
           ),

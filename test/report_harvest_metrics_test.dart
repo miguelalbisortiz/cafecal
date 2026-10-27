@@ -217,6 +217,39 @@ void main() {
     });
   });
 
+  group('cropExpensesOf — la venta no es costo', () {
+    Transaction mov(TransactionType type, double amount,
+            {String? cropId, bool deleted = false}) =>
+        Transaction(
+          id: '${type.name}_$amount',
+          type: type,
+          category: type.isExpense ? 'mano_obra' : 'venta_cafe',
+          amount: amount,
+          cropId: cropId,
+          deleted: deleted,
+          date: DateTime(2026, 5, 1),
+          createdAt: DateTime(2026, 5, 1),
+        );
+
+    test('deja fuera los ingresos del mismo cultivo', () {
+      final out = cropExpensesOf([
+        mov(TransactionType.income, 1000, cropId: 'cafe'),
+        mov(TransactionType.expense, 200, cropId: 'cafe'),
+        mov(TransactionType.expense, 300, cropId: 'maiz'),
+      ], 'cafe');
+      expect(out.map((t) => t.amount), [200],
+          reason: 'la venta de café no es un costo del café');
+    });
+
+    test('deja fuera los movimientos borrados', () {
+      final out = cropExpensesOf([
+        mov(TransactionType.expense, 200, cropId: 'cafe'),
+        mov(TransactionType.expense, 500, cropId: 'cafe', deleted: true),
+      ], 'cafe');
+      expect(out.map((t) => t.amount), [200]);
+    });
+  });
+
   group('rendimiento', () {
     test('yieldPerArea y yieldPerPlant usan kg cosechados', () {
       final harvests = [

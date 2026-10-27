@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/crop.dart';
+import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/settings.dart';
 import 'package:mi_cafetal/models/terreno.dart';
 import 'package:mi_cafetal/models/transaction.dart';
@@ -101,6 +102,18 @@ void main() {
           (r) => (cv(r[0])?.toString() ?? '').contains('RESULTADO'));
       // Balance is now a DoubleCellValue in column[2]
       expect(cv(resultRow[2]), 3000.0);
+    });
+
+    // 3000 de resultado sobre 5000 de ingresos = 60%. El Excel lo escribía
+    // con el porcentaje ya multiplicado y lo volvía a multiplicar: "6000",
+    // y sin el signo `%`, así que se leía como una cifra suelta.
+    test('margen y ratio salen en porcentaje, una sola vez y con su signo',
+        () {
+      final rows = excel.tables['Resumen']!.rows;
+      final margin = rows.firstWhere((r) => cv(r[0]) == _es.marginLabel);
+      expect(cv(margin[1]), '60%');
+      final ratio = rows.firstWhere((r) => cv(r[0]) == _es.ratioLabel);
+      expect(cv(ratio[1]), '40%');
     });
 
     test('crops sheet tiene ROI correcto y excluye borrados', () {
@@ -218,6 +231,16 @@ void main() {
       final total = rows.firstWhere(
           (r) => (cv(r[0])?.toString() ?? '') == 'Total nómina');
       expect(cv(total[2]), 700000.0);
+    });
+
+    // 700.000 de jornales sobre 1.300.000 de gasto = 53,85% → "54%".
+    // Salía "5385%": el porcentaje ya venía multiplicado y se multiplicaba
+    // otra vez.
+    test('mano de obra sobre el gasto sale en porcentaje, no por 100', () {
+      final rows = rowsWith(caja: 800000);
+      final share = rows.firstWhere(
+          (r) => cv(r[0]) == _es.metricLaborShareLabel);
+      expect(cv(share[2]), '54%');
     });
 
     test('caja: fila del mes con presupuesto, jornales, extras y saldo', () {
@@ -703,6 +726,85 @@ void main() {
           rows.any((r) =>
               (cv(r[0])?.toString() ?? '').contains(_es.cropTerrenoNone)),
           isFalse);
+    });
+  });
+
+  // El costo por kilo es un costo: la venta del mismo cultivo no entra.
+  // Antes la lista de "gastos" del cultivo se armaba con todos los
+  // movimientos, así que Café vendido a 2.500/kg salía costando 3.383/kg y
+  // el reporte lo daba por pérdida. La fórmula estaba bien; la lista no.
+  group('Cosechas — el costo por kilo no suma las ventas', () {
+    List<List<Data?>> cosechasCon({
+      required List<Transaction> txns,
+      List<Harvest> harvests = const [],
+    }) =>
+        Excel.decodeBytes(Uint8List.fromList(service.buildReport(
+          settings: _settings,
+          transactions: txns,
+          crops: _crops,
+          year: 2026,
+          month: 9,
+          period: ReportPeriod.month,
+          periodName: 'Septiembre 2026',
+          l10n: _es,
+          harvests: harvests,
+        ))).tables['Cosechas']!.rows;
+
+    test('costo por kilo = gastos ÷ kg, sin la plata de la venta', () {
+      final rows = cosechasCon(
+        txns: [
+          _txn(
+              type: TransactionType.income,
+              amount: 100000,
+              date: DateTime(2026, 9, 5),
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.expense,
+              amount: 20000,
+              date: DateTime(2026, 9, 6),
+              category: 'mano_obra',
+              cropId: 'cafe'),
+        ],
+        harvests: [
+          Harvest(
+              id: 'h1',
+              cropId: 'cafe',
+              date: DateTime(2026, 9, 5),
+              amount: 100,
+              unit: 'kg'),
+        ],
+      );
+      final cost = rows.firstWhere(
+          (r) => cv(r[0]) == 'Café — ${_es.reportTotalCostPerKg}');
+      expect(cv(cost[1]), 200.0,
+          reason: '20.000 de gasto ÷ 100 kg; los 100.000 de la venta no son '
+              'costo');
+    });
+
+    test('sin gasto de recogida la fila no sale (nunca un 0)', () {
+      final rows = cosechasCon(
+        txns: [
+          _txn(
+              type: TransactionType.expense,
+              amount: 20000,
+              date: DateTime(2026, 9, 6),
+              category: 'mano_obra',
+              cropId: 'cafe'),
+        ],
+        harvests: [
+          Harvest(
+              id: 'h1',
+              cropId: 'cafe',
+              date: DateTime(2026, 9, 5),
+              amount: 100,
+              unit: 'kg'),
+        ],
+      );
+      expect(
+        rows.any((r) => cv(r[0]) == _es.reportPickupCostPerKg),
+        isFalse,
+        reason: 'un 0 se lee "cosechar fue gratis"',
+      );
     });
   });
 }

@@ -438,7 +438,9 @@ class ExcelExportService {
     for (final e in incomeGroups.entries) {
       row([
         TextCellValue('    ${l10n.incomeGroupLabel(e.key, crops)}'),
-        mixedHeader ? null : TextCellValue(_pctOf(single(e.value), incomes)),
+        mixedHeader
+            ? null
+            : TextCellValue('${_pctOf(single(e.value), incomes)}%'),
         mixedHeader
             ? TextCellValue(byCurrency(e.value))
             : DoubleCellValue(single(e.value)),
@@ -457,7 +459,9 @@ class ExcelExportService {
     for (final e in expenseGroups.entries) {
       row([
         TextCellValue('    ${l10n.expenseCategory(e.key)}'),
-        mixedHeader ? null : TextCellValue(_pctOf(single(e.value), expenses)),
+        mixedHeader
+            ? null
+            : TextCellValue('${_pctOf(single(e.value), expenses)}%'),
         mixedHeader
             ? TextCellValue(byCurrency(e.value, negative: true))
             : DoubleCellValue(-single(e.value)),
@@ -482,12 +486,13 @@ class ExcelExportService {
     row([
       TextCellValue(l10n.marginLabel),
       TextCellValue(
-          !mixedHeader && margen != null ? _pctOf(margen, 1) : '—'),
+          !mixedHeader && margen != null ? '${formatPct(margen)}%' : '—'),
       null,
     ]);
     row([
       TextCellValue(l10n.ratioLabel),
-      TextCellValue(!mixedHeader && ratio != null ? _pctOf(ratio, 1) : '—'),
+      TextCellValue(
+          !mixedHeader && ratio != null ? '${formatPct(ratio)}%' : '—'),
       null,
     ]);
     // El veredicto por kilo: la cifra y la frase del veredicto, igual que en
@@ -776,7 +781,7 @@ class ExcelExportService {
         row([
           TextCellValue(l10n.metricLaborShareLabel),
           null,
-          TextCellValue('${_pctOf(laborShare, 1)}%'),
+          TextCellValue('${formatPct(laborShare)}%'),
         ]);
         row([
           TextCellValue(l10n.metricLaborShareNote),
@@ -1333,8 +1338,7 @@ class ExcelExportService {
       if (crop == null) continue;
       final cropHarvests =
           periodHarvests.where((h) => h.cropId == crop.id).toList();
-      final cropExpenses =
-          periodTx.where((t) => t.cropId == crop.id).toList();
+      final cropExpenses = cropExpensesOf(periodTx, crop.id);
       final hasResiembra = sowings.any(
           (s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
       // Monedas de los montos del cultivo: con dos o más no hay ni costo
@@ -1541,11 +1545,8 @@ class ExcelExportService {
         HarvestDestination.perdida => l10n.harvestDstPerdida,
       };
 
-  String _pctOf(double part, double total) {
-    if (total <= 0) return '—';
-    final v = part / total * 100;
-    return v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
-  }
+  String _pctOf(double part, double total) =>
+      total <= 0 ? '—' : formatPct(part / total * 100);
 }
 
 /// Antepone una comilla simple cuando la celda arranca con un disparador de
