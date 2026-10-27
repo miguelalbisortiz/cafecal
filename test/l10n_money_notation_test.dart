@@ -20,9 +20,6 @@ import 'package:mi_cafetal/l10n/strings.dart';
 void main() {
   // Razones, no montos: el símbolo aquí es una unidad de proporción.
   const razones = <String>{
-    'glossaryRoiDef',
-    'glossaryMarginDef',
-    'glossaryRatioDef',
     'metricMarginGood',
     'metricMarginFair',
     'metricMarginLow',
@@ -54,27 +51,29 @@ void main() {
             '${intrusas.join('\n')}');
   });
 
-  test('los ejemplos de la Ayuda citan sus cifras con el código', () {
+  test('los ejemplos de la Ayuda citan sus cifras sin moneda ni país', () {
     // Se leen del material generado —lo que de verdad pinta la pantalla—, no
     // del ARB: así el test también exige que se haya corrido gen-l10n.
     for (final idioma in ['es', 'en']) {
       final l10n = stringsFor(idioma);
       final ejemplos = <String, String>{
-        'helpCaseAEx2': l10n.helpCaseAEx2,
-        'helpCaseAEx4': l10n.helpCaseAEx4,
-        'helpCaseAEx5': l10n.helpCaseAEx5,
-        'helpCaseBEx2': l10n.helpCaseBEx2,
-        'helpCaseBEx3': l10n.helpCaseBEx3,
-        'helpCaseBEx4': l10n.helpCaseBEx4,
-        'helpPerHaWhy': l10n.helpPerHaWhy,
-        'helpPaybackNotLoss': l10n.helpPaybackNotLoss,
+        'helpSellingExample1': l10n.helpSellingExample1,
+        'helpSellingExample2': l10n.helpSellingExample2,
+        'helpSellingExample3': l10n.helpSellingExample3,
+        'helpStartingExample2': l10n.helpStartingExample2,
+        'helpWorkersExample3': l10n.helpWorkersExample3,
       };
       ejemplos.forEach((clave, texto) {
-        expect(texto, contains('COP'),
-            reason: '$idioma · $clave: la cifra se lee con su código');
         expect(texto, isNot(contains(r'$')),
-            reason: '$idioma · $clave: y sin el símbolo');
+            reason: '$idioma · $clave: el ejemplo no cita el símbolo');
+        for (final codigo in ['COP', 'USD', 'EUR']) {
+          expect(texto.contains(codigo), isFalse,
+              reason: '$idioma · $clave: el ejemplo no nombra una moneda');
+        }
       });
+      expect(l10n.helpExampleNote.toLowerCase(),
+          contains(idioma == 'es' ? 'moneda' : 'currency'),
+          reason: '$idioma · helpExampleNote: el ejemplo dice en qué moneda va');
     }
   });
 }

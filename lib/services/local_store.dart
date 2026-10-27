@@ -26,6 +26,7 @@ class LocalStore {
   static const _kDeletedEmployees = 'deleted_employees_v1';
   static const _kDeletedTerrenos = 'deleted_terrenos_v1';
   static const _kCohortSyncRepair = 'cohort_sync_repair_v1';
+  static const _kHelpCase = 'help_case_v1';
 
   static const _allKeys = [
     _kTransactions,
@@ -42,6 +43,7 @@ class LocalStore {
     _kDeletedHarvests,
     _kDeletedEmployees,
     _kDeletedTerrenos,
+    _kHelpCase,
   ];
 
   /// ¿Ya se re-subieron las siembras creadas antes de que el payload llevara
@@ -317,6 +319,21 @@ class LocalStore {
 
   Future<void> saveSyncedAt(DateTime time) async {
     await _prefs.setString(_key(_kSyncedAt), time.toIso8601String());
+  }
+
+  // ---- Ayuda: caso elegido ----
+
+  /// Caso de la Ayuda que el usuario eligió la última vez (`selling`,
+  /// `starting`, `renew` o `workers`). Es solo una preferencia de pantalla:
+  /// no se sincroniza ni se exporta.
+  String? loadHelpCase() {
+    final raw = _prefs.getString(_key(_kHelpCase));
+    if (raw == null || raw.isEmpty) return null;
+    return raw;
+  }
+
+  Future<void> saveHelpCase(String value) async {
+    await _prefs.setString(_key(_kHelpCase), value);
   }
 
   // ---- Clear (logout) ----

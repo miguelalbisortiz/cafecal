@@ -45,9 +45,7 @@ void main() {
     'cohortsAreaFallback',
     'cohortsAreaMismatch',
     'cohortsNoLivingPlants',
-    // T17 · ayuda.
-    'helpCohortsRenewTitle',
-    'helpCohortsRenew',
+    // T17 · ayuda: el caso de renovar vive en la Ayuda nueva.
     // T19 · reportes.
     'perHaAgesAverage',
   ];

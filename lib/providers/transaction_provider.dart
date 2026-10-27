@@ -85,6 +85,12 @@ class TransactionProvider extends ChangeNotifier {
   @visibleForTesting
   LocalStore get store => _store;
 
+  /// Caso de la Ayuda elegido la última vez (`selling`, `starting`, `renew` o
+  /// `workers`). Es una preferencia de pantalla: no se sincroniza ni se exporta.
+  String? get helpCase => _store.loadHelpCase();
+
+  Future<void> setHelpCase(String value) => _store.saveHelpCase(value);
+
   /// Una vez por equipo: marca para subir las siembras que tienen datos de
   /// cohorte y ya estaban sincronizadas. Sin esto, el arreglo del payload no
   /// alcanza a los registros viejos.

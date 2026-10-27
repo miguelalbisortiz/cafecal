@@ -1,21 +1,15 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
-import 'package:mi_cafetal/l10n/strings.dart';
-import 'package:mi_cafetal/screens/help_screen.dart';
-
 /// La Ayuda tiene que nombrar cada puerta que el menú abre: si el menú gana una
-/// entrada y el mapa «¿Dónde entro cada dato?» se queda corto, el agricultor no
-/// la encuentra — que es justo lo que pasó cuando la app creció y la Ayuda no.
+/// entrada y la Ayuda se queda corta, el agricultor no la encuentra — que es
+/// justo lo que pasó cuando la app creció y la Ayuda no.
 ///
 /// Es una guarda de **contrato**, no de verdad semántica: vigila que el destino
 /// esté **nombrado**, no que esté bien explicado. Eso último es revisión humana.
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   /// Las entradas del menú que son **destinos de datos**: cada una tiene que
   /// aparecer en la Ayuda con el nombre real de la pantalla.
   const destinos = <String, String>{
@@ -44,6 +38,18 @@ void main() {
     return valores;
   }
 
+  /// Todo el copy de la Ayuda en un solo texto: los pasos nombran la pantalla
+  /// dentro de la frase («Anota el pago: Registrar › Gasto › Mano de obra»).
+  String copyDeLaAyuda(String ruta) {
+    final arb =
+        jsonDecode(File(ruta).readAsStringSync()) as Map<String, dynamic>;
+    return arb.entries
+        .where((e) => e.key.startsWith('help') && !e.key.startsWith('@'))
+        .where((e) => e.value is String)
+        .map((e) => e.value as String)
+        .join('\n');
+  }
+
   test('el menú y la Ayuda hablan de las mismas puertas', () {
     final valores = valoresDelMenu();
     expect(valores, isNotEmpty,
@@ -53,37 +59,35 @@ void main() {
         valores,
         {...destinos.keys, ...permiso},
         reason: 'una entrada nueva del menú (o una que se fue) obliga a tocar la '
-            'Ayuda: si es un destino de datos se le pone su fila en el mapa de '
-            '«¿Dónde entro cada dato?»; si no lo es, se declara en `permiso` con '
-            'su razón');
+            'Ayuda: si es un destino de datos se le nombra en los pasos; si no '
+            'lo es, se declara en `permiso` con su razón');
   });
 
-  testWidgets('la Ayuda nombra cada destino de datos del menú', (tester) async {
-    tester.view.physicalSize = const Size(900, 12000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    await tester.pumpWidget(const MaterialApp(
-      locale: Locale('es'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: HelpScreen(),
-    ));
-    await tester.pump();
-
-    final l10n = stringsFor('es');
-    final etiquetas = <String, String>{
-      'menuReport': l10n.menuReport,
-      'menuCrops': l10n.menuCrops,
-      'menuSowings': l10n.menuSowings,
-      'menuWorkers': l10n.menuWorkers,
-      'menuSettings': l10n.menuSettings,
+  test('la Ayuda nombra cada destino de datos del menú', () {
+    const etiquetasEs = <String, String>{
+      'menuReport': 'Reporte',
+      'menuCrops': 'Cultivos',
+      'menuSowings': 'Siembras',
+      'menuWorkers': 'Trabajadores',
+      'menuSettings': 'Configuración',
+    };
+    const etiquetasEn = <String, String>{
+      'menuReport': 'Report',
+      'menuCrops': 'Crops',
+      'menuSowings': 'Plantings',
+      'menuWorkers': 'Workers',
+      'menuSettings': 'Settings',
     };
 
-    for (final entrada in destinos.entries) {
-      expect(find.text(etiquetas[entrada.value]!), findsWidgets,
-          reason: '${entrada.key}: ese destino del menú no aparece nombrado en '
-              'la Ayuda');
+    for (final ruta in ['lib/l10n/app_es.arb', 'lib/l10n/app_en.arb']) {
+      final copy = copyDeLaAyuda(ruta);
+      final etiquetas = ruta.endsWith('_en.arb') ? etiquetasEn : etiquetasEs;
+      for (final entrada in destinos.entries) {
+        final esperada = etiquetas[entrada.value]!;
+        expect(copy.contains(esperada), isTrue,
+            reason: '$ruta: «$esperada» no aparece nombrado en la Ayuda, y es '
+                'una puerta del menú (${entrada.key})');
+      }
     }
   });
 }

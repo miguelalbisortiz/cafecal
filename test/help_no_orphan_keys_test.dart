@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:mi_cafetal/l10n/strings.dart';
+import 'package:mi_cafetal/widgets/terminology_guide.dart';
+
 /// Dos reglas de la casa, aplicadas a la Ayuda:
 ///
 /// 1. **Nada de copy huérfano.** Si una clave `help*` está escrita en el ARB y
@@ -46,22 +49,25 @@ void main() {
 
   test('el glosario no promete un destino que no se puede registrar', () {
     const terminoPorIdioma = {
-      'lib/l10n/app_es.arb': 'Vendido vs cosechado',
-      'lib/l10n/app_en.arb': 'Sold vs harvested',
+      'es': 'Vendido vs cosechado',
+      'en': 'Sold vs harvested',
     };
 
-    terminoPorIdioma.forEach((ruta, termino) {
-      final arb =
-          jsonDecode(File(ruta).readAsStringSync()) as Map<String, dynamic>;
-      final glosario = arb['helpGlossaryBody'] as String;
+    terminoPorIdioma.forEach((idioma, termino) {
+      final glosario = buildGlossary(stringsFor(idioma));
+      final terminos = glosario.map((e) => e.term).toList();
 
-      expect(glosario, isNot(contains('vendido o pérdida')),
-          reason: '$ruta: el agricultor no elige un destino; la cosecha se '
+      expect(terminos, contains(termino),
+          reason: '$idioma: el término que sí se ve en Reporte tiene que estar '
+              'en el glosario');
+      expect(terminos, isNot(contains('Destino')),
+          reason: '$idioma: el agricultor no elige un destino; la cosecha se '
               'deriva de la venta');
-      expect(glosario, isNot(contains('sold or loss')),
-          reason: '$ruta: el mismo error en inglés');
-      expect(glosario, contains(termino),
-          reason: '$ruta: el término que sí se ve en Reporte tiene que estar');
+      final texto = glosario.map((e) => e.definition).join(' ').toLowerCase();
+      expect(texto, isNot(contains('vendido o pérdida')),
+          reason: '$idioma: el glosario no puede ofrecer un destino inventado');
+      expect(texto, isNot(contains('sold or loss')),
+          reason: '$idioma: el mismo error en inglés');
     });
   });
 }

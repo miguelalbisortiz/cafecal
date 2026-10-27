@@ -110,427 +110,301 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingNewCropTitle => 'New crop';
 
   @override
+  String get helpStartTitle => 'Learn to run Mi Cafetal';
+
+  @override
+  String get helpTabStart => 'Start';
+
+  @override
+  String get helpTabRoutine => 'Routine';
+
+  @override
+  String get helpTabUnderstand => 'Understand';
+
+  @override
+  String get helpStartSubtitle => 'Choose how your farm is today. In five minutes you\'ll make your first entry.';
+
+  @override
+  String get helpStartQuestion => 'How is your farm today?';
+
+  @override
+  String get helpStartNote => 'Examples use round numbers and “your currency.” They work the same for any country and any crop.';
+
+  @override
+  String get helpCaseSellingTitle => 'I already sell what I harvest';
+
+  @override
+  String get helpCaseSellingDesc => 'You have crops producing fruit and want to know if you\'re making money.';
+
+  @override
+  String get helpCaseStartingTitle => 'I\'m about to start';
+
+  @override
+  String get helpCaseStartingDesc => 'You\'re going to plant and want to see how much you invest before harvesting.';
+
+  @override
+  String get helpCaseRenewTitle => 'I\'m going to renew or expand';
+
+  @override
+  String get helpCaseRenewDesc => 'You\'re going to replace plants or add area to a crop.';
+
+  @override
+  String get helpCaseWorkersTitle => 'I have workers';
+
+  @override
+  String get helpCaseWorkersDesc => 'You pay daily wages and want the cost to land on the right crop.';
+
+  @override
+  String get helpSellingIntro => 'Don\'t record what already happened. Start today: what you spend and what you sell.';
+
+  @override
+  String get helpSellingStep1 => 'Check your crops: Crops › your crop. Set the phase to “Producing” and, if you know them, the area and plants. If you don\'t, leave them empty: the app doesn\'t invent.';
+
+  @override
+  String get helpSellingStep2 => 'Record your first expense: Record › Expense. Choose the crop and category: fertilizer, labor, transport. If the expense is for several crops, split it by area or percentage.';
+
+  @override
+  String get helpSellingStep3 => 'Record your first sale: Record › Income. Enter the kilos and what you were paid. With those kilos, that crop\'s harvest is recorded automatically. Don\'t record it twice.';
+
+  @override
+  String get helpSellingStep4 => 'Check the month: Overview or Report. There you see income, expenses, balance and cost per kilo. The report exports to PDF or Excel.';
+
+  @override
+  String get helpSellingExampleTitle => 'Example with coffee, 2 ha and 3,000 plants';
+
+  @override
+  String get helpSellingExample1 => 'Expense: 500 in fertilizer, assigned to coffee.';
+
+  @override
+  String get helpSellingExample2 => 'Sale: 50 kg for 750.';
+
+  @override
+  String get helpSellingExample3 => 'Result: income 750 · expenses 500 · balance 250 · cost per kilo 10.';
+
+  @override
+  String get helpSellingClosing => 'What you sold before using the app isn\'t needed: the report starts with what you record.';
+
+  @override
+  String get helpSellingMulti => 'If you have several crops on the same land, assign them when you record the expense; the app splits it by area or percentage.';
+
+  @override
+  String get helpStartingIntro => 'While the crop isn\'t producing, the app doesn\'t tell you that you\'re losing money: it shows how much you\'ve invested. It\'s an investment, not a bad month.';
+
+  @override
+  String get helpStartingStep1 => 'Create the crop: Crops › New crop. Name, phase “Not producing yet” and whether it\'s perennial or annual. Area and plants can stay empty.';
+
+  @override
+  String get helpStartingStep2 => 'Record the planting: Plantings › New planting. How many plants, in what area and the date. If you enter the cost, the app creates the linked expense for you: don\'t repeat it in Record.';
+
+  @override
+  String get helpStartingStep3 => 'Record what you invest: Record › Expense, with the crop. Fertilizer, labor, tools. Everything before the first harvest shows as investment.';
+
+  @override
+  String get helpStartingStep4 => 'When you harvest, change the phase: Crops › your crop › phase “Producing.” From then on, the sale records the harvest.';
+
+  @override
+  String get helpStartingExampleTitle => 'Example with corn, 1 ha and 20,000 plants';
+
+  @override
+  String get helpStartingExample1 => 'Planting: 20,000 plants on 1 ha.';
+
+  @override
+  String get helpStartingExample2 => 'Investment: 300 in seed + 200 in preparation = 500.';
+
+  @override
+  String get helpStartingExample3 => 'Before harvesting: 500 invested, no loss.';
+
+  @override
+  String get helpStartingExample4 => 'First sale: 1,000 kg for 800. The harvest is recorded.';
+
+  @override
+  String get helpRenewIntro => 'Don\'t delete the old crop. The app keeps its history and adds the new part.';
+
+  @override
+  String get helpRenewStep1 => 'Choose what happens to the old plants: Plantings › New planting. If you replace part of them, choose “Renew a part” and the lot you\'re renewing. Old plants go down and new ones add up: the total doesn\'t inflate.';
+
+  @override
+  String get helpRenewStep2 => 'If you\'re expanding, don\'t replace: choose “Expand the crop.” You add area and plants without touching what was already there.';
+
+  @override
+  String get helpRenewStep3 => 'Check the new age: the renewed lot starts its own age. Old harvests stay in the history and in the report.';
+
+  @override
+  String get helpRenewExampleTitle => 'Example with 3,000 coffee plants; you renew 1,000';
+
+  @override
+  String get helpRenewExample1 => 'Planting: 1,000 new plants, “Renew a part,” old lot.';
+
+  @override
+  String get helpRenewExample2 => 'Total: still 3,000, not 4,000.';
+
+  @override
+  String get helpRenewExample3 => 'The new lot has its date; the old one keeps its own.';
+
+  @override
+  String get helpWorkersCaseIntro => 'A wage isn\'t a loose expense: it goes to the crop where they worked. That\'s how cost per kilo tells the truth.';
+
+  @override
+  String get helpWorkersStep1 => 'Save the worker: Workers › New worker. Name and daily pay. If the wage changes, update it there.';
+
+  @override
+  String get helpWorkersStep2 => 'Record the payment: Record › Expense › Labor. Choose the worker, the days and the crop. The app calculates the amount; if you paid something else, adjust it.';
+
+  @override
+  String get helpWorkersStep3 => 'If it was harvest work, mark it: in the task choose “Harvest,” enter the kilos and the lot. That gives you the pickup cost per kilo.';
+
+  @override
+  String get helpWorkersStep4 => 'Check payroll: Report › Payroll of the period. There you see how many days and how much you paid each person.';
+
+  @override
+  String get helpWorkersExampleTitle => 'Example with two workers at 20 per day';
+
+  @override
+  String get helpWorkersExample1 => 'Juan: 3 days on coffee = 60.';
+
+  @override
+  String get helpWorkersExample2 => 'Pedro: 2 days on coffee = 40.';
+
+  @override
+  String get helpWorkersExample3 => 'Payroll: 5 days and 100. If it was harvest work, the kilos go to the lot.';
+
+  @override
+  String get helpExampleNote => 'Example numbers, in your currency.';
+
+  @override
+  String get helpRoutineTitle => 'The routine that makes the app work';
+
+  @override
+  String get helpRoutineIntro => 'You don\'t need to fill everything in. With these four moments, the report builds itself.';
+
+  @override
+  String get helpRoutineWhen => 'When';
+
+  @override
+  String get helpRoutineWhat => 'What you record';
+
+  @override
+  String get helpRoutineWhere => 'Where';
+
+  @override
+  String get helpRoutineRow1When => 'Every expense';
+
+  @override
+  String get helpRoutineRow1What => 'What you paid, with its crop';
+
+  @override
+  String get helpRoutineRow1Where => 'Record › Expense';
+
+  @override
+  String get helpRoutineRow2When => 'Every sale';
+
+  @override
+  String get helpRoutineRow2What => 'Kilos and what you were paid';
+
+  @override
+  String get helpRoutineRow2Where => 'Record › Income';
+
+  @override
+  String get helpRoutineRow3When => 'Every payment';
+
+  @override
+  String get helpRoutineRow3What => 'Worker, days and task';
+
+  @override
+  String get helpRoutineRow3Where => 'Record › Expense › Labor';
+
+  @override
+  String get helpRoutineRow4When => 'End of month';
+
+  @override
+  String get helpRoutineRow4What => 'Check the balance and save a backup';
+
+  @override
+  String get helpRoutineRow4Where => 'Report · Settings › Backup';
+
+  @override
+  String get helpRoutineGoldenTitle => 'The golden rule:';
+
+  @override
+  String get helpRoutineGolden => 'if you don\'t record it, the app doesn\'t know it. It doesn\'t invent numbers: it says what\'s missing.';
+
+  @override
+  String get helpRoutineTwiceTitle => 'Three things you don\'t record twice';
+
+  @override
+  String get helpRoutineTwice1 => 'The harvest: it\'s recorded with the sale (kilos) or with the harvest wage, not both.';
+
+  @override
+  String get helpRoutineTwice2 => 'The worker\'s payment: it goes in Labor, not in the task category.';
+
+  @override
+  String get helpRoutineTwice3 => 'The planting cost: it goes in the planting and creates its linked expense; it isn\'t repeated in Record.';
+
+  @override
+  String get helpDictTitle => 'What your numbers mean';
+
+  @override
+  String get helpDictIntro => 'The terms you\'ll see most. Tap “See all terms” for the full glossary.';
+
+  @override
+  String get helpDictSeeAll => 'See all terms';
+
+  @override
+  String get helpDictCurrencyTitle => 'Currency';
+
+  @override
+  String get helpDictCurrencyBody => 'The app always shows the currency code, never a symbol. It doesn\'t add different currencies: each one appears separately, with its code. The account currency is chosen at the start and can\'t be changed.';
+
+  @override
+  String get helpTroubleTitle => 'If something doesn\'t add up';
+
+  @override
+  String get helpTrouble1Title => 'The expense doesn\'t show up in the crop';
+
+  @override
+  String get helpTrouble1Body => 'Check that you assigned it. If it stayed “Not specified,” it falls under “Common costs.”';
+
+  @override
+  String get helpTrouble2Title => 'The sale doesn\'t match the harvest';
+
+  @override
+  String get helpTrouble2Body => 'The sale records the harvest with the kilos you enter. If you already recorded it in the wage, don\'t repeat it.';
+
+  @override
+  String get helpTrouble3Title => 'There are two currencies and I don\'t see a total';
+
+  @override
+  String get helpTrouble3Body => 'That\'s on purpose: different currencies aren\'t added. Each one appears with its code.';
+
+  @override
+  String get helpTrouble4Title => 'The area doesn\'t add up';
+
+  @override
+  String get helpTrouble4Body => 'The sum of crops can exceed the land area. The app warns you, it doesn\'t block you. Fix the area or the split.';
+
+  @override
+  String get helpTrouble5Title => 'It didn\'t upload to the cloud';
+
+  @override
+  String get helpTrouble5Body => 'The app saves to your device first. Without a signal it stays pending and uploads when you reconnect. You can retry.';
+
+  @override
+  String get helpTrouble6Title => 'I deleted something by mistake';
+
+  @override
+  String get helpTrouble6Body => 'Check History. If it isn\'t there, restore the backup: what you already had is kept and the file\'s data is added.';
+
+  @override
+  String get helpTroubleFooter => 'Can\'t find your case? Record what happened and the report adjusts. The app doesn\'t invent numbers: if a piece of data is missing, it says so.';
+
+  @override
   String get helpTitle => 'Help';
-
-  @override
-  String get helpSectionGuide => 'Getting started guide';
-
-  @override
-  String get helpIntro => 'Mi Cafetal is the account book for your farm: you write down what you spend and what you sell, and the app does the math. In the end you know what really matters: whether your farm is making or losing money, and why.';
-
-  @override
-  String get helpWhyTitle => 'What it is for';
-
-  @override
-  String get helpWhyBody => 'To know whether you are making or losing money, how much each kilo you produce costs you, and how each crop and each month is doing. With those numbers you decide: what to plant, when to sell, where to cut costs.';
-
-  @override
-  String get helpDoesTitle => 'What it does';
-
-  @override
-  String get helpDoesBody => 'It adds up what you record —expenses, plantings, sales and your workers\' daily pay— and shows you the month, the year, the cash box, the cost per kilo and the kilos per hectare or per plant. It warns you when something is off and lets you export reports to PDF or Excel.';
-
-  @override
-  String get helpDataTitle => 'Your data is yours';
-
-  @override
-  String get helpDataBody => 'It is stored on your phone and the app works without internet. Nothing is made up: if a figure is missing, it is left blank instead of being filled with a zero. You can back it up to a file or sync it to see it from another device.';
-
-  @override
-  String get helpWhereTitle => 'Where do I enter each piece of data?';
-
-  @override
-  String get helpRowOverview => 'Your farm overview (income, expenses and balance)';
-
-  @override
-  String get helpRowCrops => 'Set up your farm\'s crops';
-
-  @override
-  String get helpRowSowings => 'Plant or replant';
-
-  @override
-  String get helpRowExpenses => 'Expenses (supplies, labor…)';
-
-  @override
-  String get helpRowIncome => 'Sales of your harvest';
-
-  @override
-  String get helpRowReport => 'See whether you made or lost money and get the report as PDF or Excel';
-
-  @override
-  String get helpRowWorkers => 'Save your workers and their pay per day';
-
-  @override
-  String get helpRowJornal => 'Log a day wage';
-
-  @override
-  String get helpRowLote => 'Create a plot (terreno) and say which crops go inside';
-
-  @override
-  String get helpRowSettings => 'Pick the language, the month\'s cash box, and get your backup';
-
-  @override
-  String get helpRowHistory => 'Look up what you logged and fix it';
-
-  @override
-  String get helpCaseTitle => 'Where do I start? Depends on your case';
-
-  @override
-  String get helpCaseATitle => 'Case A — I already have crops planted';
-
-  @override
-  String get helpCaseA1 => 'Crops: review Coffee and Plantain and set their stage to Producing (and, if you know it, area and live plants).';
-
-  @override
-  String get helpCaseA2 => 'Record: enter the month\'s expenses (supplies, labor).';
-
-  @override
-  String get helpCaseA3 => 'Record: when you sell, add an income with the kilos and the money you received; that crop\'s harvest is logged on its own from those kilos.';
-
-  @override
-  String get helpCaseA4 => 'Open Overview and check your numbers: harvested, cost per kilo and margin.';
-
-  @override
-  String get helpCaseAEnd => 'Check the Overview: balance and indicators start making sense.';
-
-  @override
-  String get helpCaseBTitle => 'I have nothing yet and I am starting';
-
-  @override
-  String get helpCaseB1 => 'Tell the app what you are going to plant: in Crops create your crop (coffee or plantain, for example) and set the stage to Not producing yet. Add the area if you know it.';
-
-  @override
-  String get helpCaseB2 => 'In Plantings, record how many plants you put in and on what area, and the cost if you want. If your crop is not in the list, pick \"Create new crop\" and you create it right there.';
-
-  @override
-  String get helpCaseB3 => 'While the crop is not producing yet the app does not flag losses: it is investment, not production.';
-
-  @override
-  String get helpCaseB4 => 'When it starts Producing, follow the Case A flow: the sales, and that is where your harvest comes from.';
-
-  @override
-  String get helpCaseCTitle => 'Renewing the whole plantation';
-
-  @override
-  String get helpCaseC1 => 'A full renewal is recorded as a new sowing of the same crop.';
-
-  @override
-  String get helpCaseC2 => 'That resets age, plants and area; old harvests stay in the history.';
-
-  @override
-  String get helpCaseC3 => 'If crops share the same plot (coffee with plantain, for example), the clearest way is to create a separate crop for each.';
-
-  @override
-  String get helpCaseCEnd => 'Nothing needs to be deleted: the history still counts what already happened.';
 
   @override
   String get helpUnitsTitle => 'Units';
 
   @override
-  String get helpUnitsBody => 'Use kg, pounds (lb), arroba (12.5 kg), sacks or load (27.2 kg). The app converts everything to kg for comparison, using the sack weight you set in Settings.';
-
-  @override
-  String get helpUnitsTableTitle => 'Equivalences';
-
-  @override
-  String get helpUnitsKgRow => 'Kilogram (kg)';
-
-  @override
-  String get helpUnitsKgRowDesc => 'Base unit. Everything is converted to kg.';
-
-  @override
-  String get helpUnitsArrobaRow => 'Arroba';
-
-  @override
-  String get helpUnitsArrobaRowDesc => '12.5 kg. Common for coffee in Colombia.';
-
-  @override
-  String get helpUnitsSacoRow => 'Bag (saco)';
-
-  @override
-  String get helpUnitsSacoRowDesc => 'For coffee in sacks. Change the weight in Settings.';
-
-  @override
-  String get helpUnitsCargaRow => 'Load (carga)';
-
-  @override
-  String get helpUnitsCargaRowDesc => '27.2 kg (60 lbs). Colombian coffee unit.';
-
-  @override
-  String get helpUnitsLbRow => 'Pound (lb)';
-
-  @override
-  String get helpUnitsLbRowDesc => '0.45 kg. Common in some countries.';
-
-  @override
-  String get helpUnitsRacimoRow => 'Bunch';
-
-  @override
-  String get helpUnitsRacimoRowDesc => 'For plantain. Not weighed.';
-
-  @override
-  String get helpUnitsCajonRow => 'Crate';
-
-  @override
-  String get helpUnitsCajonRowDesc => 'For fruits and vegetables. Weight varies.';
-
-  @override
-  String get helpCaseAExampleTitle => 'Case A — coffee in production (2 ha, 3000 plants)';
-
-  @override
-  String get helpCaseAEx1 => 'Coffee, Producing, Perennial, 2 ha, 3000 plants';
-
-  @override
-  String get helpCaseAEx2 => 'COP 500,000 expense on Fertilizer';
-
-  @override
-  String get helpCaseAEx4 => 'COP 750,000 income from selling 50 kg (4 arrobas)';
-
-  @override
-  String get helpCaseAEx5 => 'Balance +COP 250,000 · Margin 33% · ROI 50%';
-
-  @override
-  String get helpCaseBExampleTitle => 'Case B — freshly planted plantain (500 plants on 0.5 ha)';
-
-  @override
-  String get helpCaseBEx1 => 'Plantain, Not producing yet, Perennial, 0.5 ha, 500 plants';
-
-  @override
-  String get helpCaseBEx2 => 'Initial planting, 500 plants, 0.5 ha, cost COP 200,000';
-
-  @override
-  String get helpCaseBEx3 => 'COP 100,000 labor and COP 150,000 fertilizer';
-
-  @override
-  String get helpCaseBEx4 => 'Investment COP 450,000. It does not say loss: it is an investment until it produces.';
-
-  @override
-  String get helpPerPlantTitle => 'And per plant? When does it start yielding?';
-
-  @override
-  String get helpPerPlantIntro => 'If you know how many live plants the crop has, the app also shows kilos per plant. It helps when you counted the plants but did not measure the land.';
-
-  @override
-  String get helpPerPlantOwn => 'Next to it you get your own average from previous years. It is nobody\'s table: the app measures against your own land.';
-
-  @override
-  String get helpPerPlantAlert => 'If you wrote when you expected the first harvest and that date passed with no harvest, the app warns you: “should be yielding since …”.';
-
-  @override
-  String get helpOtherTitle => 'The rest of what the app does';
-
-  @override
-  String get helpTerrenosTitle => 'Your plots (terrenos)';
-
-  @override
-  String get helpTerrenosIntro => 'A plot is the land where your crop sits. It does two things: keeps the plot\'s location and splits one expense that belongs to several crops together.';
-
-  @override
-  String get helpTerrenosWhere => 'In Crops, tap the mountain icon to create the plot: name, hectares if you measured them, which crops go inside, and the location if you want.';
-
-  @override
-  String get helpTerrenosLocation => 'You can take the location from the phone, type it by hand, or leave it empty. The app never re-measures it on its own.';
-
-  @override
-  String get helpTerrenosSplit => 'An expense for the whole plot (a clearing, the fertilizer) is logged on the plot and split by hectares. If a crop has no area, that part is not split and shows separately.';
-
-  @override
-  String get helpTerrenosReport => 'In Report a “Your plots · location” card appears only if some plot has a coordinate.';
-
-  @override
-  String get helpWorkersTitle => 'Workers and day wages';
-
-  @override
-  String get helpWorkersIntro => 'You save your workers so you don\'t type their pay each time.';
-
-  @override
-  String get helpWorkersWhere => 'In the ⋮ menu → Workers. Give a name and, if you want, their pay per day; if you leave it empty, you write it when logging each day wage.';
-
-  @override
-  String get helpWorkersJornal => 'The day wage is logged as a labor expense in Record: you pick the worker and the days. The name is saved with the record, so deleting a worker does not delete their history.';
-
-  @override
-  String get helpWorkersReport => 'In Report you see the period\'s payroll (who, how many days, the total) and the monthly timesheet.';
-
-  @override
-  String get helpCajaTitle => 'The month\'s cash box';
-
-  @override
-  String get helpCajaIntro => 'The cash box is the money you set aside each month for the farm: it covers day wages and small expenses (power, water, repairs).';
-
-  @override
-  String get helpCajaWhere => 'You set it in Settings → “Monthly cash contribution”. If you leave it empty, the card does not show.';
-
-  @override
-  String get helpCajaCarry => 'What you don\'t spend is not lost: it carries over to the next month. The bar turns green, amber, or red depending on how much you have spent.';
-
-  @override
-  String get helpReportTitle => 'The report and its files';
-
-  @override
-  String get helpReportIntro => 'In Report you pick the period (week, month, year, or year-to-date) and see whether you made or lost money, the cost per kilo, how each crop is doing, the month\'s cash box, and what is worth doing next.';
-
-  @override
-  String get helpReportExport => 'With the export buttons you take it as PDF or Excel, plus a balance template. Share it wherever you want.';
-
-  @override
-  String get helpBackupTitle => 'Your backup';
-
-  @override
-  String get helpBackupIntro => 'A backup is a file of your own with all your data: crops, plantings, expenses, sales, workers, and settings.';
-
-  @override
-  String get helpBackupWhere => 'In Settings → Backup you export it (and share it) and restore it whenever you want.';
-
-  @override
-  String get helpBackupAdditive => 'Restoring deletes nothing: what you already have stays and the file\'s data is added.';
-
-  @override
-  String get helpBackupVsSync => 'This is not the same as syncing. Syncing saves to the cloud so you can see it from another device.';
-
-  @override
-  String get helpLanguageTitle => 'Language and how numbers are read';
-
-  @override
-  String get helpLanguageIntro => 'The app speaks Spanish and English: you pick it in Settings → “Language”.';
-
-  @override
-  String get helpLanguageNumbers => 'Numbers are read the way your language does: in Spanish COP 1.500 and in English COP 1,500.';
-
-  @override
-  String get helpLanguageCurrency => 'The currency is picked once and always read with its code (COP), never with a symbol.';
-
-  @override
-  String get helpGlossaryTitle => 'Glossary';
-
-  @override
-  String get helpGlossaryBody => 'Seedlings: young plantation in establishment. Area: crop surface. Live plants: current total (planting − losses + replanting). Sold vs harvested: how much of the harvest has already gone out as a sale. Sync: saves to the cloud to log in from any device. Alert: automatic notice on the Overview.';
-
-  @override
-  String get helpGlossaryFinance => 'View financial glossary';
-
-  @override
-  String get helpPerHaTitle => 'What does per-hectare mean?';
-
-  @override
-  String get helpPerHaIntro => 'Normalizing per hectare makes your data comparable: you can tell whether one plot outperforms another even when their sizes differ.';
-
-  @override
-  String get helpPerHaTitleYield => 'Yield (kg/ha)';
-
-  @override
-  String get helpPerHaYield => 'Harvests in the period ÷ crop area. The same standard as your exports.';
-
-  @override
-  String get helpPerHaTitleVentas => 'Sales per ha';
-
-  @override
-  String get helpPerHaRevenue => 'Income in the period ÷ area. How much money your land produces.';
-
-  @override
-  String get helpPerHaTitleGastos => 'Expenses per ha';
-
-  @override
-  String get helpPerHaCost => 'How much each hectare costs to produce. It adds the crop\'s expenses plus its share of the lot\'s expenses, and divides by its hectares.';
-
-  @override
-  String get helpPerHaTitleMargen => 'Margin per ha';
-
-  @override
-  String get helpPerHaMargin => 'Sales − expenses, per hectare. Positive = the hectare leaves profit.';
-
-  @override
-  String get helpPerHaWhy => 'Why normalize? A 3 ha plot selling COP 9,000,000 does not compete with a 1 ha plot selling COP 5,000,000: per hectare, the second one wins. The panel divides by area so you compare by the same rule.';
-
-  @override
-  String get helpPaybackTitle => 'How is the establishment investment recovered?';
-
-  @override
-  String get helpPaybackIntro => 'When editing a crop you can record the Total investment: what you invested in planting and raising the crop (seedlings, labor, initial fertilization…).';
-
-  @override
-  String get helpPaybackTitlePercent => '% recovered';
-
-  @override
-  String get helpPaybackPercent => 'The app divides the crop\'s accumulated margin (sales − expenses) by that investment. 100% = you have paid it off.';
-
-  @override
-  String get helpPaybackTitleYears => 'Payback in N years (approx.)';
-
-  @override
-  String get helpPaybackYears => 'Average of the measured annual margin. It is an average of your real data, not a harvest promise.';
-
-  @override
-  String get helpPaybackTitleNotLoss => 'It is not a loss: it is an investment';
-
-  @override
-  String get helpPaybackNotLoss => 'If you invest COP 1,000,000 planting coffee and have not sold yet, you did not lose COP 1,000,000. You invested COP 1,000,000. When you start selling, the recovery percentage starts to rise.';
-
-  @override
-  String get helpFlowTitle => 'The order of the app';
-
-  @override
-  String get helpFlowIntro => 'Think of it as a chain: first you tell it what you grow, then how much you planted, then what you spent, and finally what you sold — that is where your harvest is logged.';
-
-  @override
-  String get helpFlowStep1Title => 'Define the crop';
-
-  @override
-  String get helpFlowStep1Body => 'What you manage (coffee, plantain…).';
-
-  @override
-  String get helpFlowStep2Title => 'Record the planting';
-
-  @override
-  String get helpFlowStep2Body => 'How many plants you put in.';
-
-  @override
-  String get helpFlowStep3Title => 'Log expenses';
-
-  @override
-  String get helpFlowStep3Body => 'What you invested.';
-
-  @override
-  String get helpFlowStep4Title => 'Record the sale';
-
-  @override
-  String get helpFlowStep4Body => 'Who you sold to, how much and the kilos: that is where your harvest comes from.';
-
-  @override
-  String get helpFlowHint => 'The \"Your next step\" card on the Overview tells you exactly which record you need next. Once you have logged your expenses and your sales, the card disappears on its own.';
-
-  @override
-  String get helpCommonTitle => 'Common mistakes (and how to fix them)';
-
-  @override
-  String get helpCommonAmount => 'I entered the wrong amount';
-
-  @override
-  String get helpCommonAmountFix => 'Go to History, find the record, edit or delete it';
-
-  @override
-  String get helpCommonAssigned => 'I did not assign a crop to an expense';
-
-  @override
-  String get helpCommonAssignedFix => 'In History you will see \"X records without a crop\". Press \"Assign crops now\" and pick which crop it belongs to';
-
-  @override
-  String get helpCommonType => 'I mixed up expense and income';
-
-  @override
-  String get helpCommonTypeFix => 'Open the record and switch the type from Expense to Income (or the other way)';
-
-  @override
-  String get helpCommonCurrency => 'Can I change the currency?';
-
-  @override
-  String get helpCommonCurrencyFix => 'No. It is chosen once, when you start, and cannot be changed — so all your amounts always match';
-
-  @override
-  String get helpCommonArea => 'I cannot see the \"Per hectare\" panel';
-
-  @override
-  String get helpCommonAreaFix => 'Set the crop area: in Crops edit the crop and enter the hectares';
+  String get helpUnitsBody => 'You can use kilograms (kg), pounds (lb), arrobas (1 arroba = 12.5 kg), sacks or loads (1 load = 60 lb = 27.2 kg). The app converts everything to kg for comparison, using the sack weight you set in Settings. Use the unit you normally work with.';
 
   @override
   String get syncTooltip => 'Sync';
@@ -626,7 +500,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expectedYieldLabel => 'Annual goal (kg/ha)';
 
   @override
-  String get helpExpectedYield => 'What you want to get from this lot per year. It\'s YOUR number, not someone else\'s table: the app doesn\'t measure you against Cenicafé or anyone else, it measures against what you set. Empty = nothing is compared.';
+  String get helpExpectedYield => 'What you want to get from this lot per year. It\'s YOUR number, not someone else\'s table: the app doesn\'t measure you against any external table, it measures against what you set. Empty = nothing is compared.';
 
   @override
   String get firstHarvestLabel => 'When do you expect the first harvest?';
@@ -1264,10 +1138,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glossaryGotIt => 'Got it';
 
   @override
+  String get glossaryIncomeTerm => 'Income';
+
+  @override
+  String get glossaryIncomeDef => 'What you were paid for what you sold. It\'s not the same as harvesting: you can harvest and not sell.';
+
+  @override
+  String get glossaryExpenseTerm => 'Expense';
+
+  @override
+  String get glossaryExpenseDef => 'What you paid to produce or maintain the farm. If it belongs to a crop, assign it.';
+
+  @override
   String get glossaryRoiTerm => 'ROI (Return on Investment)';
 
   @override
-  String get glossaryRoiDef => 'Measures how much you recover for every dollar invested in a crop. It is calculated as (Income − Expenses) ÷ Expenses. A negative ROI means the crop spends more than it recovers: for example, an ROI of −70% means that for every \$100 invested only \$30 come back.';
+  String get glossaryRoiDef => 'Measures how much you recover for every 100 invested in a crop. It is calculated as (Income - Expenses) ÷ Expenses. A negative ROI means the crop spends more than it recovers: for example, an ROI of -70% means that for every 100 invested only 30 come back.';
 
   @override
   String get glossaryBalanceTerm => 'Balance / Result';
@@ -1279,13 +1165,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glossaryMarginTerm => 'Margin on sales';
 
   @override
-  String get glossaryMarginDef => 'Of every \$100 you sell, how much remains as profit after covering expenses. A margin of 20% means that for every \$100 sold, \$20 remain.';
+  String get glossaryMarginDef => 'Of every 100 you sell, how much remains as profit after covering expenses. A margin of 20% means that for every 100 sold, 20 remain.';
 
   @override
   String get glossaryRatioTerm => 'Expenses vs income';
 
   @override
-  String get glossaryRatioDef => 'What percentage of your income goes to expenses. For example, 80% means that for every \$100 that come in, \$80 are spent and \$20 remain.';
+  String get glossaryRatioDef => 'What percentage of your income goes to expenses. For example, 80% means that for every 100 that come in, 80 are spent and 20 remain.';
 
   @override
   String get glossaryAvgTerm => 'Monthly historical average';
@@ -1297,7 +1183,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glossaryYieldAreaTerm => 'Yield per area (kg/ha)';
 
   @override
-  String get glossaryYieldAreaDef => 'How many kilos you get from one hectare. It lets you compare plots of different sizes: if one gives 1,200 kg/ha and another 800 kg/ha, the first yields more from the same land.';
+  String get glossaryYieldAreaDef => 'How many kilos you get from one hectare. It lets you compare lots of different sizes: if one gives 1,200 kg/ha and another 800 kg/ha, the first yields more from the same land.';
 
   @override
   String get glossaryYieldPlantTerm => 'Yield per plant (kg/plant)';
@@ -1843,12 +1729,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cohortsNoLivingPlants => 'This crop has no living plants.';
 
   @override
-  String get helpCohortsRenewTitle => 'Renewing part of a lot';
-
-  @override
-  String get helpCohortsRenew => 'Renewing part of a lot subtracts those plants from the old lot and opens a new one with its own age. The old history isn\'t erased.';
-
-  @override
   String perHaAgesAverage(int count) {
     return 'average of $count ages';
   }
@@ -2009,9 +1889,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String cohortKgPerPlantLabel(String value) {
     return '$value kg/plant';
   }
-
-  @override
-  String get helpCohortKg => 'The kilos in a work log can go to a lot: that\'s what you weighed from that lot. The sale isn\'t split; the crop total doesn\'t change.';
 
   @override
   String get cashBoxLabel => 'Monthly cash contribution';

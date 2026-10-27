@@ -36,11 +36,6 @@ void main() {
       'sowingMissingLossesSave',
       // T13 · planilla y renovación.
       'reportPayrollBudgetNote',
-      'helpCaseCTitle',
-      'helpCaseC1',
-      'helpCaseC2',
-      'helpCaseC3',
-      'helpCaseCEnd',
       // T15 · reparto de un gasto entre cultivos.
       'expenseSplitTitle',
       'expenseSplitBody',

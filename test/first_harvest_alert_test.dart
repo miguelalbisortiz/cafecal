@@ -62,8 +62,8 @@ void main() {
     test('la salida manda a la venta, que es la puerta que existe', () {
       expect(
         avisos(correr()).single.suggestion,
-        'Revisá el cultivo: si cambió algo o la fecha ya no va, editala. '
-        'Si ya vendiste, anotá esa venta con los kilos y el dinero que te '
+        'Revisa el cultivo: si cambió algo o la fecha ya no va, edítala. '
+        'Si ya vendiste, anota esa venta con los kilos y el dinero que te '
         'pagaron: con esos kilos la app ya sabe que cosechaste y este aviso '
         'desaparece.',
       );

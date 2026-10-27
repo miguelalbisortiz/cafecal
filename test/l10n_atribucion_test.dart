@@ -17,7 +17,6 @@ void main() {
     'jornalHarvestedKgLotMissing',
     'cohortKgLabel',
     'cohortKgPerPlantLabel',
-    'helpCohortKg',
   ];
 
   test('las claves de la etapa B están en los dos ARB', () {

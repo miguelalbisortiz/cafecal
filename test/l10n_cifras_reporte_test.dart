@@ -21,7 +21,9 @@ void main() {
   });
 
   test('la Ayuda del gasto por ha explica el reparto del lote', () {
-    expect(stringsFor('es').helpPerHaCost.toLowerCase(), contains('lote'));
-    expect(stringsFor('en').helpPerHaCost.toLowerCase(), contains('lot'));
+    // La explicación vive ahora en el diccionario de la Ayuda («Por hectárea»)
+    // y en el glosario: no se ata a una cifra ni a una moneda.
+    expect(stringsFor('es').glossaryYieldAreaDef.toLowerCase(), contains('lote'));
+    expect(stringsFor('en').glossaryYieldAreaDef.toLowerCase(), contains('lot'));
   });
 }

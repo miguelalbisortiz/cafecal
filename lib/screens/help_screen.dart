@@ -1,420 +1,508 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
+import '../providers/transaction_provider.dart';
 import '../widgets/terminology_guide.dart';
 
-/// Sección "Ayuda": la guía de primeros pasos dentro de la app (es/en),
-/// con casos A/B, dónde entrar cada dato, unidades y glosario.
-class HelpScreen extends StatelessWidget {
+/// Casos de finca que ofrece la Ayuda. El identificador se guarda tal cual en
+/// la preferencia `help_case`, así que no se renombra.
+class HelpCase {
+  static const selling = 'selling';
+  static const starting = 'starting';
+  static const renew = 'renew';
+  static const workers = 'workers';
+
+  static const all = [selling, starting, renew, workers];
+
+  static bool isValid(String? value) => all.contains(value);
+}
+
+/// Sección "Ayuda": enseña a operar la app según cómo esté la finca hoy.
+///
+/// Tres pestañas — Empezar, Rutina y Entender — con cuatro casos de ejemplo.
+/// No lee los datos de la finca ni muestra cifras propias: los ejemplos usan
+/// números redondos y «tu moneda», para servir en cualquier país.
+class HelpScreen extends StatefulWidget {
   const HelpScreen({super.key});
+
+  @override
+  State<HelpScreen> createState() => _HelpScreenState();
+}
+
+class _HelpScreenState extends State<HelpScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs;
+  final GlobalKey _detailKey = GlobalKey();
+  String? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = TabController(length: 3, vsync: this);
+    final saved = context.read<TransactionProvider>().helpCase;
+    _selected = HelpCase.isValid(saved) ? saved : null;
+  }
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  void _selectCase(String value) {
+    setState(() => _selected = value);
+    context.read<TransactionProvider>().setHelpCase(value);
+    // El camino se abre debajo de las tarjetas: se lleva la vista hasta él para
+    // que tocar una tarjeta se sienta como abrir algo.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final detail = _detailKey.currentContext;
+      if (detail == null) return;
+      Scrollable.ensureVisible(
+        detail,
+        duration: const Duration(milliseconds: 250),
+        alignment: 0.05,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
           l10n.helpTitle,
           style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
         ),
+        bottom: TabBar(
+          controller: _tabs,
+          tabs: [
+            Tab(text: l10n.helpTabStart),
+            Tab(text: l10n.helpTabRoutine),
+            Tab(text: l10n.helpTabUnderstand),
+          ],
+        ),
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: ListView(
-            padding: const EdgeInsets.all(16),
+          child: TabBarView(
+            controller: _tabs,
             children: [
-              _Section(title: l10n.helpSectionGuide),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpIntro,
-                        style: const TextStyle(
-                            fontSize: 14, height: 1.4)),
-                    const SizedBox(height: 12),
-                    _DefList(items: [
-                      (l10n.helpWhyTitle, l10n.helpWhyBody),
-                      (l10n.helpDoesTitle, l10n.helpDoesBody),
-                      (l10n.helpDataTitle, l10n.helpDataBody),
-                    ]),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpWhereTitle),
-              _Card(
-                child: _WhereTable(
-                  rows: [
-                    (l10n.helpRowOverview, l10n.tabOverview),
-                    (l10n.helpRowCrops, l10n.menuCrops),
-                    (l10n.helpRowSowings, l10n.menuSowings),
-                    (l10n.helpRowExpenses,
-                        '${l10n.tabRegister} (${l10n.expenseTypeLabel})'),
-                    (l10n.helpRowIncome,
-                        '${l10n.tabRegister} (${l10n.incomeTypeLabel})'),
-                    (l10n.helpRowReport, l10n.menuReport),
-                    (l10n.helpRowWorkers, l10n.menuWorkers),
-                    (l10n.helpRowJornal,
-                        '${l10n.tabRegister} (${l10n.expenseTypeLabel})'),
-                    (l10n.helpRowLote, l10n.menuCrops),
-                    (l10n.helpRowSettings, l10n.menuSettings),
-                    (l10n.helpRowHistory, l10n.tabHistory),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpFlowTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpFlowIntro,
-                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 12),
-                    _FlowSteps(items: [
-                      (l10n.helpFlowStep1Title, l10n.helpFlowStep1Body,
-                          Icons.grass_outlined),
-                      (l10n.helpFlowStep2Title, l10n.helpFlowStep2Body,
-                          Icons.spa_outlined),
-                      (l10n.helpFlowStep3Title, l10n.helpFlowStep3Body,
-                          Icons.trending_down_outlined),
-                      (l10n.helpFlowStep4Title, l10n.helpFlowStep4Body,
-                          Icons.sell_outlined),
-                    ]),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.helpFlowHint,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.4,
-                        fontStyle: FontStyle.italic,
-                        color: scheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpCaseTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _StepsCard(
-                      title: l10n.helpCaseATitle,
-                      steps: [
-                        l10n.helpCaseA1,
-                        l10n.helpCaseA2,
-                        l10n.helpCaseA3,
-                        l10n.helpCaseA4,
-                      ],
-                      endNote: l10n.helpCaseAEnd,
-                    ),
-                    _CaseExample(
-                      title: l10n.helpCaseAExampleTitle,
-                      rows: [
-                        (l10n.menuCrops,
-                            l10n.helpCaseAEx1),
-                        ('${l10n.tabRegister} — ${l10n.expenseTypeLabel}',
-                            l10n.helpCaseAEx2),
-                        ('${l10n.tabRegister} — ${l10n.incomeTypeLabel}',
-                            l10n.helpCaseAEx4),
-                        (l10n.tabOverview, l10n.helpCaseAEx5),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _StepsCard(
-                      title: l10n.helpCaseBTitle,
-                      steps: [
-                        l10n.helpCaseB1,
-                        l10n.helpCaseB2,
-                        l10n.helpCaseB3,
-                        l10n.helpCaseB4,
-                      ],
-                    ),
-                    _CaseExample(
-                      title: l10n.helpCaseBExampleTitle,
-                      rows: [
-                        (l10n.menuCrops, l10n.helpCaseBEx1),
-                        (l10n.menuSowings, l10n.helpCaseBEx2),
-                        (l10n.tabRegister, l10n.helpCaseBEx3),
-                        (l10n.tabOverview, l10n.helpCaseBEx4),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _StepsCard(
-                      title: l10n.helpCaseCTitle,
-                      steps: [
-                        l10n.helpCaseC1,
-                        l10n.helpCaseC2,
-                        l10n.helpCaseC3,
-                      ],
-                      endNote: l10n.helpCaseCEnd,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Etapa A · renovar una parte del lote, sin la palabra «cohorte».
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.helpCohortsRenewTitle,
-                      style: const TextStyle(
-                          fontSize: 13.5, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.helpCohortsRenew,
-                      style: const TextStyle(fontSize: 13, height: 1.4),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Etapa B · los kilos del jornal pueden ir a un lote; la venta
-              // no se reparte. Sin la palabra «cohorte».
-              _Card(
-                child: Text(
-                  l10n.helpCohortKg,
-                  style: const TextStyle(fontSize: 13, height: 1.4),
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpUnitsTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpUnitsBody,
-                        style: const TextStyle(
-                            fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        const _UnitChip('kg'),
-                        _UnitChip(l10n.unitLb),
-                        _UnitChip(l10n.unitArroba),
-                        _UnitChip(l10n.unitSaco),
-                        _UnitChip(l10n.unitCarga),
-                        _UnitChip(l10n.unitRacimo),
-                        _UnitChip(l10n.unitCajon),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.helpUnitsTableTitle,
-                      style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    _MiniTable(rows: [
-                      (l10n.helpUnitsKgRow, l10n.helpUnitsKgRowDesc),
-                      (l10n.helpUnitsLbRow, l10n.helpUnitsLbRowDesc),
-                      (l10n.helpUnitsArrobaRow, l10n.helpUnitsArrobaRowDesc),
-                      (l10n.helpUnitsSacoRow, l10n.helpUnitsSacoRowDesc),
-                      (l10n.helpUnitsCargaRow, l10n.helpUnitsCargaRowDesc),
-                      (l10n.helpUnitsRacimoRow, l10n.helpUnitsRacimoRowDesc),
-                      (l10n.helpUnitsCajonRow, l10n.helpUnitsCajonRowDesc),
-                    ]),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpPerHaTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpPerHaIntro,
-                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 12),
-                    _DefList(items: [
-                      (l10n.helpPerHaTitleYield, l10n.helpPerHaYield),
-                      (l10n.helpPerHaTitleVentas, l10n.helpPerHaRevenue),
-                      (l10n.helpPerHaTitleGastos, l10n.helpPerHaCost),
-                      (l10n.helpPerHaTitleMargen, l10n.helpPerHaMargin),
-                    ]),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.helpPerHaWhy,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.4,
-                        fontStyle: FontStyle.italic,
-                        color: scheme.onSurface.withOpacity(0.75),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpPerPlantTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpPerPlantIntro,
-                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 8),
-                    Text(l10n.helpPerPlantOwn,
-                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 8),
-                    Text(l10n.helpPerPlantAlert,
-                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpPaybackTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpPaybackIntro,
-                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 12),
-                    _DefList(items: [
-                      (l10n.helpPaybackTitlePercent, l10n.helpPaybackPercent),
-                      (l10n.helpPaybackTitleYears, l10n.helpPaybackYears),
-                      (l10n.helpPaybackTitleNotLoss, l10n.helpPaybackNotLoss),
-                    ]),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpOtherTitle),
-              _HelpBlock(
-                title: l10n.helpTerrenosTitle,
-                parrafos: [
-                  l10n.helpTerrenosIntro,
-                  l10n.helpTerrenosWhere,
-                  l10n.helpTerrenosLocation,
-                  l10n.helpTerrenosSplit,
-                  l10n.helpTerrenosReport,
-                ],
-              ),
-              const SizedBox(height: 12),
-              _HelpBlock(
-                title: l10n.helpWorkersTitle,
-                parrafos: [
-                  l10n.helpWorkersIntro,
-                  l10n.helpWorkersWhere,
-                  l10n.helpWorkersJornal,
-                  l10n.helpWorkersReport,
-                ],
-              ),
-              const SizedBox(height: 12),
-              _HelpBlock(
-                title: l10n.helpCajaTitle,
-                parrafos: [
-                  l10n.helpCajaIntro,
-                  l10n.helpCajaWhere,
-                  l10n.helpCajaCarry,
-                ],
-              ),
-              const SizedBox(height: 12),
-              _HelpBlock(
-                title: l10n.helpReportTitle,
-                parrafos: [
-                  l10n.helpReportIntro,
-                  l10n.helpReportExport,
-                ],
-              ),
-              const SizedBox(height: 12),
-              _HelpBlock(
-                title: l10n.helpBackupTitle,
-                parrafos: [
-                  l10n.helpBackupIntro,
-                  l10n.helpBackupWhere,
-                  l10n.helpBackupAdditive,
-                  l10n.helpBackupVsSync,
-                ],
-              ),
-              const SizedBox(height: 12),
-              _HelpBlock(
-                title: l10n.helpLanguageTitle,
-                parrafos: [
-                  l10n.helpLanguageIntro,
-                  l10n.helpLanguageNumbers,
-                  l10n.helpLanguageCurrency,
-                ],
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpGlossaryTitle),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.helpGlossaryBody,
-                        style: const TextStyle(
-                            fontSize: 13, height: 1.4)),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => showTerminologyGuide(context),
-                      icon: const Icon(Icons.school_outlined, size: 18),
-                      label: Text(l10n.helpGlossaryFinance),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              _Section(title: l10n.helpCommonTitle),
-              _Card(
-                child: _DefList(items: [
-                  (l10n.helpCommonAmount, l10n.helpCommonAmountFix),
-                  (l10n.helpCommonAssigned, l10n.helpCommonAssignedFix),
-                  (l10n.helpCommonType, l10n.helpCommonTypeFix),
-                  (l10n.helpCommonCurrency, l10n.helpCommonCurrencyFix),
-                  (l10n.helpCommonArea, l10n.helpCommonAreaFix),
-                ]),
-              ),
-              const SizedBox(height: 24),
+              _startTab(context, l10n),
+              _routineTab(context, l10n),
+              _understandTab(context, l10n),
             ],
           ),
         ),
       ),
     );
   }
+
+  // ---- Empezar ----
+
+  Widget _startTab(BuildContext context, AppLocalizations l10n) {
+    final scheme = Theme.of(context).colorScheme;
+    final cases = _cases(l10n);
+    final selected = _selected == null ? null : cases[_selected];
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          l10n.helpStartTitle,
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.helpStartSubtitle,
+          style: const TextStyle(fontSize: 14, height: 1.4),
+        ),
+        const SizedBox(height: 20),
+        _SectionTitle(text: l10n.helpStartQuestion),
+        const SizedBox(height: 8),
+        for (final content in cases.values) ...[
+          _CaseTile(
+            content: content,
+            selected: content.id == _selected,
+            onTap: () => _selectCase(content.id),
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (selected != null) ...[
+          const SizedBox(height: 12),
+          KeyedSubtree(key: _detailKey, child: _CaseDetail(content: selected)),
+        ],
+        const SizedBox(height: 16),
+        Text(
+          l10n.helpStartNote,
+          style: TextStyle(
+            fontSize: 12.5,
+            height: 1.4,
+            fontStyle: FontStyle.italic,
+            color: scheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Map<String, _CaseContent> _cases(AppLocalizations l10n) {
+    return {
+      HelpCase.selling: _CaseContent(
+        id: HelpCase.selling,
+        icon: Icons.sell_outlined,
+        title: l10n.helpCaseSellingTitle,
+        description: l10n.helpCaseSellingDesc,
+        intro: l10n.helpSellingIntro,
+        steps: [
+          l10n.helpSellingStep1,
+          l10n.helpSellingStep2,
+          l10n.helpSellingStep3,
+          l10n.helpSellingStep4,
+        ],
+        exampleTitle: l10n.helpSellingExampleTitle,
+        exampleRows: [
+          l10n.helpSellingExample1,
+          l10n.helpSellingExample2,
+          l10n.helpSellingExample3,
+        ],
+        notes: [l10n.helpSellingClosing, l10n.helpSellingMulti],
+      ),
+      HelpCase.starting: _CaseContent(
+        id: HelpCase.starting,
+        icon: Icons.spa_outlined,
+        title: l10n.helpCaseStartingTitle,
+        description: l10n.helpCaseStartingDesc,
+        intro: l10n.helpStartingIntro,
+        steps: [
+          l10n.helpStartingStep1,
+          l10n.helpStartingStep2,
+          l10n.helpStartingStep3,
+          l10n.helpStartingStep4,
+        ],
+        exampleTitle: l10n.helpStartingExampleTitle,
+        exampleRows: [
+          l10n.helpStartingExample1,
+          l10n.helpStartingExample2,
+          l10n.helpStartingExample3,
+          l10n.helpStartingExample4,
+        ],
+        notes: const [],
+      ),
+      HelpCase.renew: _CaseContent(
+        id: HelpCase.renew,
+        icon: Icons.eco_outlined,
+        title: l10n.helpCaseRenewTitle,
+        description: l10n.helpCaseRenewDesc,
+        intro: l10n.helpRenewIntro,
+        steps: [
+          l10n.helpRenewStep1,
+          l10n.helpRenewStep2,
+          l10n.helpRenewStep3,
+        ],
+        exampleTitle: l10n.helpRenewExampleTitle,
+        exampleRows: [
+          l10n.helpRenewExample1,
+          l10n.helpRenewExample2,
+          l10n.helpRenewExample3,
+        ],
+        notes: const [],
+      ),
+      HelpCase.workers: _CaseContent(
+        id: HelpCase.workers,
+        icon: Icons.groups_outlined,
+        title: l10n.helpCaseWorkersTitle,
+        description: l10n.helpCaseWorkersDesc,
+        intro: l10n.helpWorkersCaseIntro,
+        steps: [
+          l10n.helpWorkersStep1,
+          l10n.helpWorkersStep2,
+          l10n.helpWorkersStep3,
+          l10n.helpWorkersStep4,
+        ],
+        exampleTitle: l10n.helpWorkersExampleTitle,
+        exampleRows: [
+          l10n.helpWorkersExample1,
+          l10n.helpWorkersExample2,
+          l10n.helpWorkersExample3,
+        ],
+        notes: const [],
+      ),
+    };
+  }
+
+  // ---- Rutina ----
+
+  Widget _routineTab(BuildContext context, AppLocalizations l10n) {
+    final scheme = Theme.of(context).colorScheme;
+    final rows = [
+      (
+        l10n.helpRoutineRow1When,
+        l10n.helpRoutineRow1What,
+        l10n.helpRoutineRow1Where
+      ),
+      (
+        l10n.helpRoutineRow2When,
+        l10n.helpRoutineRow2What,
+        l10n.helpRoutineRow2Where
+      ),
+      (
+        l10n.helpRoutineRow3When,
+        l10n.helpRoutineRow3What,
+        l10n.helpRoutineRow3Where
+      ),
+      (
+        l10n.helpRoutineRow4When,
+        l10n.helpRoutineRow4What,
+        l10n.helpRoutineRow4Where
+      ),
+    ];
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          l10n.helpRoutineTitle,
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.helpRoutineIntro,
+          style: const TextStyle(fontSize: 14, height: 1.4),
+        ),
+        const SizedBox(height: 16),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _RoutineRow(
+                when: l10n.helpRoutineWhen,
+                what: l10n.helpRoutineWhat,
+                where: l10n.helpRoutineWhere,
+                header: true,
+                scheme: scheme,
+              ),
+              const Divider(height: 18),
+              for (var i = 0; i < rows.length; i++) ...[
+                _RoutineRow(
+                  when: rows[i].$1,
+                  what: rows[i].$2,
+                  where: rows[i].$3,
+                  header: false,
+                  scheme: scheme,
+                ),
+                if (i < rows.length - 1) const Divider(height: 18),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(
+                TextSpan(
+                  style: const TextStyle(fontSize: 13.5, height: 1.4),
+                  children: [
+                    TextSpan(
+                      text: '${l10n.helpRoutineGoldenTitle} ',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(text: l10n.helpRoutineGolden),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.helpRoutineTwiceTitle,
+                style:
+                    const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _Bullet(text: l10n.helpRoutineTwice1),
+              _Bullet(text: l10n.helpRoutineTwice2),
+              _Bullet(text: l10n.helpRoutineTwice3),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  // ---- Entender ----
+
+  Widget _understandTab(BuildContext context, AppLocalizations l10n) {
+    final scheme = Theme.of(context).colorScheme;
+    final terms = <(String, String)>[
+      (l10n.glossaryIncomeTerm, l10n.glossaryIncomeDef),
+      (l10n.glossaryExpenseTerm, l10n.glossaryExpenseDef),
+      (l10n.glossaryBalanceTerm, l10n.glossaryBalanceDef),
+      (l10n.glossaryCostPerKgTerm, l10n.glossaryCostPerKgDef),
+      (l10n.glossaryMarginTerm, l10n.glossaryMarginDef),
+      (l10n.glossaryYieldAreaTerm, l10n.glossaryYieldAreaDef),
+      (l10n.glossaryYieldPlantTerm, l10n.glossaryYieldPlantDef),
+      (l10n.glossaryRoiTerm, l10n.glossaryRoiDef),
+      (l10n.glossaryPaybackTerm, l10n.glossaryPaybackDef),
+      (l10n.glossaryCashBoxTerm, l10n.glossaryCashBoxDef),
+    ];
+    final troubles = <(String, String)>[
+      (l10n.helpTrouble1Title, l10n.helpTrouble1Body),
+      (l10n.helpTrouble2Title, l10n.helpTrouble2Body),
+      (l10n.helpTrouble3Title, l10n.helpTrouble3Body),
+      (l10n.helpTrouble4Title, l10n.helpTrouble4Body),
+      (l10n.helpTrouble5Title, l10n.helpTrouble5Body),
+      (l10n.helpTrouble6Title, l10n.helpTrouble6Body),
+    ];
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          l10n.helpDictTitle,
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.helpDictIntro,
+          style: const TextStyle(fontSize: 14, height: 1.4),
+        ),
+        const SizedBox(height: 16),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < terms.length; i++) ...[
+                _DefRow(term: terms[i].$1, definition: terms[i].$2),
+                if (i < terms.length - 1) const Divider(height: 18),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.helpUnitsTitle,
+                style:
+                    const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.helpUnitsBody,
+                style: const TextStyle(fontSize: 13, height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.helpDictCurrencyTitle,
+                style:
+                    const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.helpDictCurrencyBody,
+                style: const TextStyle(fontSize: 13, height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        _SectionTitle(text: l10n.helpTroubleTitle),
+        const SizedBox(height: 8),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < troubles.length; i++) ...[
+                _DefRow(
+                  term: troubles[i].$1,
+                  definition: troubles[i].$2,
+                ),
+                if (i < troubles.length - 1) const Divider(height: 18),
+              ],
+              const SizedBox(height: 12),
+              Text(
+                l10n.helpTroubleFooter,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  height: 1.4,
+                  fontStyle: FontStyle.italic,
+                  color: scheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: () => showTerminologyGuide(context),
+          icon: const Icon(Icons.school_outlined, size: 18),
+          label: Text(l10n.helpDictSeeAll),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
 }
 
-class _Section extends StatelessWidget {
+/// Contenido de un caso: pasos numerados y un ejemplo con números redondos.
+class _CaseContent {
+  final String id;
+  final IconData icon;
   final String title;
+  final String description;
+  final String intro;
+  final List<String> steps;
+  final String exampleTitle;
+  final List<String> exampleRows;
+  final List<String> notes;
 
-  const _Section({required this.title});
+  const _CaseContent({
+    required this.id,
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.intro,
+    required this.steps,
+    required this.exampleTitle,
+    required this.exampleRows,
+    required this.notes,
+  });
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+
+  const _SectionTitle({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-      ),
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
     );
   }
 }
@@ -427,351 +515,315 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }
 }
 
-/// Una tarjeta con el título del bloque y sus párrafos: las piezas de la
-/// sección «Lo demás que hace la app», donde cada bloque se lee de corrido.
-class _HelpBlock extends StatelessWidget {
-  final String title;
-  final List<String> parrafos;
+/// Tarjeta de un caso en la portada. La elegida se marca con borde y check.
+class _CaseTile extends StatelessWidget {
+  final _CaseContent content;
+  final bool selected;
+  final VoidCallback onTap;
 
-  const _HelpBlock({required this.title, required this.parrafos});
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
-          ),
-          for (final parrafo in parrafos) ...[
-            const SizedBox(height: 8),
-            Text(parrafo, style: const TextStyle(fontSize: 13, height: 1.4)),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _WhereTable extends StatelessWidget {
-  final List<(String, String)> rows;
-
-  const _WhereTable({required this.rows});
+  const _CaseTile({
+    required this.content,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        for (final (situation, destination) in rows)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.arrow_right_alt,
-                    size: 18, color: scheme.primary),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(situation,
-                          style: const TextStyle(
-                              fontSize: 13, height: 1.4)),
-                      Text(
-                        destination,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: scheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _DefList extends StatelessWidget {
-  final List<(String, String)> items;
-
-  const _DefList({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        for (final (title, body) in items)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(
-                  body,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: scheme.onSurface.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-/// Tabla compacta con 2 columnas (título + descripción) separadas por una raya.
-class _MiniTable extends StatelessWidget {
-  final List<(String, String)> rows;
-
-  const _MiniTable({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: scheme.outlineVariant.withOpacity(0.4)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withOpacity(0.4),
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 7),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 110,
-                    child: Text(
-                      rows[i].$1,
-                      style: const TextStyle(
-                          fontSize: 12.5, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      rows[i].$2,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.4,
-                        color: scheme.onSurface.withOpacity(0.8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Ejemplo con números de un caso: título + lista "dónde → qué poner".
-class _CaseExample extends StatelessWidget {
-  final String title;
-  final List<(String, String)> rows;
-
-  const _CaseExample({required this.title, required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Divider(color: scheme.outlineVariant.withOpacity(0.4)),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: scheme.primary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _DefList(items: rows),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepsCard extends StatelessWidget {
-  final String title;
-  final List<String> steps;
-  final String? endNote;
-
-  const _StepsCard({required this.title, required this.steps, this.endNote});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 8),
-        for (var i = 0; i < steps.length; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundColor: scheme.primaryContainer,
-                  child: Text(
-                    '${i + 1}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(steps[i],
-                      style: const TextStyle(
-                          fontSize: 13, height: 1.4)),
-                ),
-              ],
-            ),
-          ),
-        if (endNote != null)
-          Text(
-            endNote!,
-            style: TextStyle(
-              fontSize: 12.5,
-              height: 1.4,
-              fontStyle: FontStyle.italic,
-              color: scheme.onSurface.withOpacity(0.7),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _UnitChip extends StatelessWidget {
-  final String label;
-
-  const _UnitChip(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: scheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12.5,
-          fontWeight: FontWeight.w600,
-          color: scheme.onSecondaryContainer,
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: selected ? scheme.primary : scheme.outlineVariant,
+          width: selected ? 2 : 1,
         ),
       ),
-    );
-  }
-}
-
-class _FlowSteps extends StatelessWidget {
-  final List<(String, String, IconData)> items;
-
-  const _FlowSteps({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        for (var i = 0; i < items.length; i++) ...[
-          Row(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: scheme.primaryContainer,
-                child: Icon(
-                  items[i].$3,
-                  size: 14,
-                  color: scheme.onPrimaryContainer,
-                ),
+              Icon(
+                content.icon,
+                size: 22,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${i + 1}. ${items[i].$1}',
+                      content.title,
                       style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w600),
+                          fontSize: 14, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 4),
                     Text(
-                      items[i].$2,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: scheme.onSurface.withOpacity(0.75),
-                      ),
+                      content.description,
+                      style: const TextStyle(fontSize: 13, height: 1.35),
                     ),
                   ],
                 ),
               ),
+              if (selected) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.check_circle, size: 20, color: scheme.primary),
+              ],
             ],
           ),
-          if (i < items.length - 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Icon(
-                Icons.arrow_downward,
-                size: 16,
-                color: scheme.primary.withOpacity(0.4),
+        ),
+      ),
+    );
+  }
+}
+
+/// El camino del caso elegido: intro, pasos numerados y ejemplo.
+class _CaseDetail extends StatelessWidget {
+  final _CaseContent content;
+
+  const _CaseDetail({required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            content.title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: scheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content.intro,
+            style: const TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          for (var i = 0; i < content.steps.length; i++)
+            _NumberedStep(index: i + 1, text: content.steps[i]),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: scheme.primary.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  content.exampleTitle,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                for (final row in content.exampleRows)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Text(
+                      row,
+                      style: const TextStyle(fontSize: 13, height: 1.35),
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.helpExampleNote,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontStyle: FontStyle.italic,
+                    color: scheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          for (final note in content.notes) ...[
+            const SizedBox(height: 10),
+            Text(
+              note,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.4,
+                color: scheme.onSurface.withOpacity(0.8),
               ),
             ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _NumberedStep extends StatelessWidget {
+  final int index;
+  final String text;
+
+  const _NumberedStep({required this.index, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '$index',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: scheme.onPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoutineRow extends StatelessWidget {
+  final String when;
+  final String what;
+  final String where;
+  final bool header;
+  final ColorScheme scheme;
+
+  const _RoutineRow({
+    required this.when,
+    required this.what,
+    required this.where,
+    required this.header,
+    required this.scheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      fontSize: header ? 12.5 : 13,
+      height: 1.35,
+      fontWeight: header ? FontWeight.bold : FontWeight.w600,
+      color: header ? scheme.onSurface.withOpacity(0.7) : null,
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: 3, child: Text(when, style: style)),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 5,
+          child: Text(
+            what,
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.35,
+              fontWeight: header ? FontWeight.bold : FontWeight.normal,
+              color: header ? scheme.onSurface.withOpacity(0.7) : null,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 5,
+          child: Text(
+            where,
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.35,
+              fontWeight: header ? FontWeight.bold : FontWeight.w600,
+              color: header ? scheme.onSurface.withOpacity(0.7) : scheme.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Bullet extends StatelessWidget {
+  final String text;
+
+  const _Bullet({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Icon(Icons.circle, size: 6, color: scheme.primary),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DefRow extends StatelessWidget {
+  final String term;
+  final String definition;
+
+  const _DefRow({required this.term, required this.definition});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          term,
+          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          definition,
+          style: const TextStyle(fontSize: 13, height: 1.35),
+        ),
       ],
     );
   }

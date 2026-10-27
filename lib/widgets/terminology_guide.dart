@@ -12,6 +12,14 @@ class TerminologyEntry {
 List<TerminologyEntry> buildGlossary(AppLocalizations l10n) {
   return [
     TerminologyEntry(
+      l10n.glossaryIncomeTerm,
+      l10n.glossaryIncomeDef,
+    ),
+    TerminologyEntry(
+      l10n.glossaryExpenseTerm,
+      l10n.glossaryExpenseDef,
+    ),
+    TerminologyEntry(
       l10n.glossaryRoiTerm,
       l10n.glossaryRoiDef,
     ),

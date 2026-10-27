@@ -15,7 +15,7 @@ void main() {
   const es = {
     'jornalHarvestedKgLabel': 'Kilos recolectados (opcional)',
     'jornalHarvestedKgHelp': 'Para comparar lo cosechado con lo vendido.',
-    'jornalHarvestedKgNoCrop': 'Elegí el cultivo para anotar los kilos.',
+    'jornalHarvestedKgNoCrop': 'Elige el cultivo para anotar los kilos.',
     'jornalHarvestedKgInvalid': 'Ingresa los kilos recolectados (mayor que 0).',
   };
 
