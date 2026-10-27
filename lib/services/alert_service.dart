@@ -420,7 +420,7 @@ class AlertService {
     }
 
     totals.forEach((cropId, row) {
-      // El ROI de un cultivo que cobra y paga en monedas distintas sería
+      // El margen de un cultivo que cobra y paga en monedas distintas sería
       // mentira: ese cultivo no genera aviso hasta que se unifique.
       final monedas = currencies[cropId] ?? const <String>{};
       if (monedas.length != 1) return;
@@ -469,7 +469,7 @@ class AlertService {
           final unassigned = txns
               .where((t) => t.cropId == null && t.terrenoId == null)
               .length;
-          title = l10n.alertDeficitNoCropTitle(_percentage(ratio * 100));
+          title = l10n.alertDeficitNoCropTitle;
           message = l10n.alertDeficitNoCropMessage(
             '$unassigned',
             _money(row.expenses, currency),
@@ -479,7 +479,7 @@ class AlertService {
           suggestion =
               l10n.alertDeficitNoCropSuggestion('$unassigned');
         } else {
-          title = l10n.alertDeficitTitle(label, _percentage(ratio * 100));
+          title = l10n.alertDeficitTitle(label);
           message = l10n.alertDeficitMessage(
             _money(row.expenses, currency),
             label,

@@ -7,8 +7,9 @@ void main() {
   test('el glosario cubre toda la jerga del hallazgo H5 (ES)', () {
     final entries = buildGlossary(stringsFor('es'));
 
-    expect(entries, hasLength(18),
-        reason: '5 originales + 11 nuevas + ingreso y gasto de la Ayuda');
+    expect(entries, hasLength(17),
+        reason: '5 originales + 11 nuevas + ingreso y gasto de la Ayuda; '
+            'ROI salió cuando el cultivo pasó a hablar de margen');
     expect(
       entries.every((e) => e.term.isNotEmpty && e.definition.isNotEmpty),
       isTrue,
@@ -19,6 +20,7 @@ void main() {
     const needles = [
       'ingreso',
       'gasto',
+      'margen',
       'kg/ha',
       'kg/planta',
       'costo total por kg',

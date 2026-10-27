@@ -22,6 +22,7 @@ import 'crop_totals.dart';
 import 'currency_totals.dart';
 import 'derived_harvests.dart';
 import 'metric_signal.dart';
+import 'period_comparison.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
@@ -125,6 +126,15 @@ class PdfExportService {
     // cada total va con su código, sin %, sin margen ni ratio.
     final periodTotals = PeriodCurrencyTotals.fromRecords(periodTx);
     final mixedHeader = periodTotals.isMixed;
+    // Comparativo con el período anterior: la misma cifra y la misma regla
+    // que en pantalla y en el Excel. Sin datos antes (o con mezcla) es null.
+    final comparison = compareWithPreviousPeriod(
+      current: periodTotals,
+      transactions: active,
+      period: period,
+      year: year,
+      month: month,
+    );
 
     final incomeGroups = groupAmountsByCurrency(
       periodTx.where((t) => t.type == TransactionType.income),
@@ -337,6 +347,7 @@ class PdfExportService {
                       ? _pdfNegativeSoft
                       : _pdfPositiveSoft)
                   : (balance < 0 ? _pdfNegativeSoft : _pdfPositiveSoft)),
+          if (comparison != null) _comparisonBlock(l10n, comparison),
           _statementRow(
               l10n.marginLabel,
               (mixedHeader || margen == null)
@@ -472,7 +483,7 @@ class PdfExportService {
           ],
           pw.SizedBox(height: 12),
           pw.Text(
-            l10n.pdfRoiFootnote,
+            l10n.pdfMarginFootnote,
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
         ],
@@ -548,6 +559,63 @@ class PdfExportService {
           ),
         ],
       ),
+    );
+  }
+
+  /// Comparativo con el período anterior, debajo del resultado.
+  ///
+  /// Tres renglones con la cifra de antes, la de ahora y cuánto cambió. La
+  /// pantalla pinta lo mismo con el mismo servicio; aquí no hay color, así
+  /// que la cifra y el signo tienen que estar escritos.
+  pw.Widget _comparisonBlock(
+      AppLocalizations l10n, PeriodComparison comparison) {
+    const f = 9.0;
+    const style = pw.TextStyle(fontSize: f, color: PdfColors.grey800);
+
+    pw.Widget line(String label, double before, double after, double? change) {
+      final pct = formatChangePct(change);
+      return pw.Padding(
+        padding: const pw.EdgeInsets.only(left: 8, right: 8, top: 3),
+        child: pw.Row(
+          children: [
+            pw.Expanded(
+              flex: 2,
+              child: pw.Text(label, style: style),
+            ),
+            pw.Expanded(
+              flex: 3,
+              child: pw.Text(
+                l10n.comparisonFromTo(
+                  formatPdfMoney(before, comparison.currency),
+                  formatPdfMoney(after, comparison.currency),
+                ) +
+                    (pct == null ? '' : '   $pct'),
+                textAlign: pw.TextAlign.right,
+                style: style,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(left: 8, top: 6, bottom: 2),
+          child: pw.Text(
+            l10n.comparisonTitleFor(comparison.period),
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+          ),
+        ),
+        line(l10n.incomeLabel, comparison.previousIncomes, comparison.incomes,
+            comparison.incomeChange),
+        line(l10n.operatingExpensesLabel, comparison.previousExpenses,
+            comparison.expenses, comparison.expenseChange),
+        line(l10n.resultPeriodLabel, comparison.previousBalance,
+            comparison.balance, comparison.balanceChange),
+      ],
     );
   }
 
@@ -661,7 +729,7 @@ class PdfExportService {
     const bandBg = PdfColor.fromInt(0xFFEFEBE9);
     final headers = [
       l10n.pdfColCrop, l10n.pdfColMov, l10n.pdfColExpenses,
-      l10n.pdfColIncomes, l10n.pdfColResult, l10n.pdfColRoi,
+      l10n.pdfColIncomes, l10n.pdfColResult, l10n.pdfColMargin,
     ];
 
     return pw.Table(
@@ -686,19 +754,19 @@ class PdfExportService {
                   ))
               .toList(),
         ),
-        // Data rows with ROI-based coloring
+        // Filas de datos con color según el margen
         ...data.map((line) {
           final cells = line.cells;
-          final roiText = cells[5];
-          final roiNum = roiText == '—'
+          final marginText = cells[5];
+          final marginNum = marginText == '—'
               ? 0.0
-              : (double.tryParse(roiText.replaceAll('%', '')) ?? 0);
+              : (double.tryParse(marginText.replaceAll('%', '')) ?? 0);
           PdfColor? rowBg;
           if (line.isBand) {
             rowBg = bandBg;
-          } else if (roiNum > 0) {
+          } else if (marginNum > 0) {
             rowBg = const PdfColor.fromInt(0xFFF1F8E9); // verde suave
-          } else if (roiNum < 0) {
+          } else if (marginNum < 0) {
             rowBg = const PdfColor.fromInt(0xFFFFF3E0); // naranja suave
           }
           return pw.TableRow(
@@ -721,7 +789,7 @@ class PdfExportService {
   /// Filas de la tabla "Por cultivo". Mismo criterio que la pantalla y el
   /// Excel ([cropBreakdownRows]): moneda única → la cifra de siempre; con
   /// dos o más monedas cada monto sale con su código y la fila no lleva
-  /// neto ni ROI (serían sumas cruzando monedas).
+  /// neto ni margen (serían sumas cruzando monedas).
   ///
   /// W1-c · la agrupación también es la misma (`cropBreakdownLayout`): cada
   /// terreno es una fila de banda con su total, y sus cultivos van debajo.
@@ -756,16 +824,18 @@ class PdfExportService {
       }
       final exp = r.expensesTotal;
       final inc = r.incomesTotal;
-      final roi = exp <= 0
+      // Margen: de cada 100 vendidos, cuánto queda tras los gastos. Sin
+      // ventas o sin gastos no hay porcentaje que calcular.
+      final margin = (exp <= 0 || inc <= 0)
           ? '—'
-          : '${(((inc - exp) / exp) * 100).toStringAsFixed(0)}%';
+          : '${(((inc - exp) / inc) * 100).toStringAsFixed(0)}%';
       return _PdfCropLine([
         r.name,
         r.count.toString(),
         formatPdfMoney(exp, currency),
         formatPdfMoney(inc, currency),
         formatPdfMoney(inc - exp, currency),
-        roi,
+        margin,
       ]);
     }
 
@@ -890,6 +960,9 @@ class PdfExportService {
       Set<String> mixedCurrencies) {
     final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final cropById = {for (final c in crops) c.id: c};
+    // Mismo gasto atribuido que la fila del cultivo: lo propio más su parte
+    // del lote. Si no, el PDF diría dos costos por kilo del mismo cultivo.
+    final shares = cropExpenseShares(records: transactions, crops: crops);
     final out = <pw.Widget>[];
 
     for (final c in byCrop) {
@@ -897,7 +970,7 @@ class PdfExportService {
       if (crop == null) continue;
       final cropHarvests =
           harvests.where((h) => h.cropId == crop.id).toList();
-      final cropExpenses = cropExpensesOf(transactions, crop.id);
+      final cropExpenses = shares.of(crop.id);
       final hasResiembra =
           sowings.any((s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
       // Monedas de los montos del cultivo: con dos o más no hay ni costo

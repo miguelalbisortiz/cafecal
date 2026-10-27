@@ -11,7 +11,7 @@ import '../models/transaction.dart';
 /// - Moneda única → `incomes`/`expenses` tienen una entrada: la cifra de
 ///   siempre, con su código, es válida.
 /// - Dos o más monedas (`isMixed`) → hay que listar moneda por moneda; el
-///   neto, el ROI y cualquier % que cruce monedas serían mentira.
+///   neto, el margen y cualquier % que cruce monedas serían mentira.
 class CropBreakdownRow {
   /// Id del cultivo (`null` = movimientos sin cultivo asignado).
   final String? cropId;
@@ -421,7 +421,7 @@ class CropBreakdownBand {
   /// Monedas presentes en la banda (gastos o ingresos).
   Set<String> get currencies => {...expenses.keys, ...incomes.keys};
 
-  /// true cuando la banda toca más de una moneda: no hay neto ni ROI único.
+  /// true cuando la banda toca más de una moneda: no hay neto ni margen único.
   bool get isMixed => currencies.length > 1;
 
   /// Suma aritmética usada **solo para ordenar**: con moneda mixta no es una

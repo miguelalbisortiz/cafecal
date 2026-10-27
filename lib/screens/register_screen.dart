@@ -967,7 +967,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Cultivo o, si el gasto sirve a todo el lote, el lote. Van en el
           // MISMO desplegable y son mutuamente excluyentes: un gasto es de un
           // cultivo o del lote, nunca de los dos — lo dos a la vez sería
-          // contar el mismo peso dos veces en el ROI de la finca.
+          // contar el mismo peso dos veces en el margen de la finca.
           DropdownButtonFormField<String>(
             // El desplegable exige UN valor elegido; con lote puesto muestra
             // el lote y el cultivo se queda vacío.

@@ -64,7 +64,7 @@ void main() {
 
   group('Desglose por cultivo', () {
     testWidgets(
-        'cultivo con dos monedas: desglose por moneda y sin ROI ni resultado',
+        'cultivo con dos monedas: desglose por moneda y sin margen ni resultado',
         (tester) async {
       viewport(tester);
       final (prefs, tx) = await nuevaFinca();
@@ -140,10 +140,10 @@ void main() {
         find.descendant(
           of: desglose,
           matching: find.byWidgetPredicate(
-              (w) => w is Text && (w.data ?? '').startsWith('ROI ')),
+              (w) => w is Text && (w.data ?? '').startsWith('Margen ')),
         ),
         findsNothing,
-        reason: 'el ROI cruzando pesos y euros sería mentira',
+        reason: 'el margen cruzando pesos y euros sería mentira',
       );
       expect(
         find.descendant(
@@ -153,7 +153,7 @@ void main() {
       );
     });
 
-    testWidgets('cultivo de una sola moneda: ROI y resultado como siempre',
+    testWidgets('cultivo de una sola moneda: margen y resultado como siempre',
         (tester) async {
       viewport(tester);
       final (_, tx) = await nuevaFinca();
@@ -187,9 +187,10 @@ void main() {
 
       expect(
           find.descendant(
-              of: desglose, matching: find.textContaining('ROI 400%')),
+              of: desglose, matching: find.text('Margen 80%')),
           findsOneWidget,
-          reason: '(5.000 − 1.000) / 1.000 = 400%');
+          reason: '(5.000 − 1.000) / 5.000 = 80%: de cada 100 vendidos '
+              'quedan 80');
       expect(
           find.descendant(
               of: desglose, matching: find.text(l10n.cropBreakdownSummaryR)),

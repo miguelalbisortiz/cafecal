@@ -452,12 +452,10 @@
   "glossaryIncomeDef": "Lo que te pagaron por lo que vendiste. No es lo mismo que cosechar: puedes cosechar y no vender.",
   "glossaryExpenseTerm": "Gasto",
   "glossaryExpenseDef": "Lo que pagaste para producir o mantener la finca. Si es de un cultivo, asígnalo.",
-  "glossaryRoiTerm": "ROI (Retorno de la Inversión)",
-  "glossaryRoiDef": "Mide cuánto recuperas por cada 100 invertidos en un cultivo. Se calcula como (Ingresos - Gastos) ÷ Gastos. Un ROI negativo significa que el cultivo gasta más de lo que recupera: por ejemplo, ROI -70% quiere decir que por cada 100 invertidos solo vuelven 30.",
   "glossaryBalanceTerm": "Balance / Resultado",
   "glossaryBalanceDef": "Es la resta de Ingresos menos Gastos en un período. Si el resultado es positivo tienes ganancia; si es negativo, pérdida.",
-  "glossaryMarginTerm": "Margen sobre ventas",
-  "glossaryMarginDef": "De cada 100 que vendes, cuánto queda como ganancia después de cubrir los gastos. Un margen del 20% significa que por cada 100 vendidos quedan 20.",
+  "glossaryMarginTerm": "Margen",
+  "glossaryMarginDef": "De cada 100 que vendes, cuánto queda después de cubrir los gastos. Se calcula como (Ingresos - Gastos) ÷ Ingresos: si vendes 100 y gastas 40, el margen es 60%. Un margen negativo significa que gastas más de lo que vendes.",
   "glossaryRatioTerm": "Gastos vs ingresos",
   "glossaryRatioDef": "Qué porcentaje de tus ingresos se va en gastos. Por ejemplo, 80% quiere decir que por cada 100 que entran, 80 se gastan y quedan 20.",
   "glossaryAvgTerm": "Promedio histórico mensual",
@@ -484,7 +482,7 @@
   "glossaryCashBoxDef": "Dinero disponible para gastos pequeños del mes: transporte, herramientas e imprevistos. Se compara con el presupuesto que definiste para no pasarte.",
   "glossarySoldVsHarvestedTerm": "Vendido vs cosechado",
   "glossarySoldVsHarvestedDef": "Compara los kilos que vendiste con los que cosechaste en el mismo período. Si vendiste más, suele ser una cosecha de meses anteriores o una cosecha sin registrar.",
-  "glossaryRoiTooltip": "¿Qué significa ROI?",
+  "glossaryMarginTooltip": "¿Qué significa margen?",
 
   "authSubtitleSignup": "Crea tu cuenta para llevar tus finanzas",
   "authSubtitleWelcome": "Bienvenido de vuelta",
@@ -867,6 +865,24 @@
   "resultPeriodLabel": "RESULTADO DEL PERÍODO",
   "marginLabel": "Margen sobre ventas",
   "ratioLabel": "Gastos vs ingresos",
+  "@comparisonTitle": {
+    "placeholders": { "previous": { "type": "String" } }
+  },
+  "comparisonTitle": "Comparado con {previous}",
+  "@comparisonFromTo": {
+    "placeholders": {
+      "before": { "type": "String" },
+      "after": { "type": "String" }
+    }
+  },
+  "comparisonFromTo": "de {before} a {after}",
+  "comparisonPreviousWeek": "la semana anterior",
+  "comparisonPreviousMonth": "el mes anterior",
+  "comparisonPreviousYear": "el año anterior",
+  "comparisonPreviousSameStretch": "el mismo tramo del año anterior",
+  "comparisonPreviousColumn": "Anterior",
+  "comparisonCurrentColumn": "Actual",
+  "comparisonChangeColumn": "Cambio",
   "metricMarginGood": "Buen margen: te quedan $20 o más de cada $100 vendidos.",
   "metricMarginFair": "Margen justo: te quedan entre $10 y $20 de cada $100 vendidos.",
   "metricMarginLow": "Margen bajo: te quedan menos de $10 de cada $100 vendidos.",
@@ -921,7 +937,12 @@
   "cropBreakdownOperation": "Operación del período",
   "cropBreakdownSummaryI": "Ingresos",
   "cropBreakdownSummaryR": "Resultado",
-  "cropBreakdownRoiHint": "Cómo leer el ROI: por cada $1 invertido recuperas la ganancia más el capital. Ej.: ROI 516% → por cada $1 vuelven $6,16 (5,16 de ganancia + 1 del capital).",
+  "@cropMarginBadge": {
+    "description": "Cifra del margen de un cultivo: porcentaje de lo vendido que queda tras los gastos.",
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "cropMarginBadge": "Margen {value}",
+  "cropBreakdownMarginHint": "Cómo leer el margen: es el porcentaje de lo que vendes que te queda después de cubrir los gastos. Ej.: si vendes 100 y gastas 40, el margen es 60%.",
   "noCropData": "Sin datos de cultivos en el período.",
   "exportPdf": "Exportar PDF y compartir",
   "generating": "Generando…",
@@ -986,7 +1007,7 @@
       }
     }
   },
-  "cropMixedCurrencyNote": "Este cultivo está en {count} monedas: cada moneda va por separado y no se calcula el ROI.",
+  "cropMixedCurrencyNote": "Este cultivo está en {count} monedas: cada moneda va por separado y no se calcula el margen.",
   "@cropMixedCurrencyNote": {
     "description": "Aviso en el desglose por cultivo cuando un cultivo tiene movimientos en más de una moneda",
     "placeholders": {
@@ -1185,10 +1206,7 @@
     }
   },
   "alertLowPriceManualMessage": "El {date} vendiste a {price} por kg, por debajo de tu precio mínimo de {threshold}. Considera negociar un mejor precio o esperar.",
-  "@alertDeficitNoCropTitle": {
-    "placeholders": { "roi": { "type": "String" } }
-  },
-  "alertDeficitNoCropTitle": "Gastos sin cultivo asignado no se recuperan (ROI {roi})",
+  "alertDeficitNoCropTitle": "Gastos sin cultivo asignado no se recuperan",
   "@alertDeficitNoCropMessage": {
     "description": "El orden de los 'placeholders' es el orden de los argumentos; 'count' va primero porque así aparece en el texto. Sin declararlo, el generador lo manda al final y las cifras caen en la casilla equivocada.",
     "placeholders": {
@@ -1202,11 +1220,10 @@
   "alertDeficitNoCropSuggestion": "Edita esos {count} registros y asígnales su cultivo (Café, Plátano…) para que su costo cuente en el cultivo correcto, y esta alerta desaparecerá.",
   "@alertDeficitTitle": {
     "placeholders": {
-      "crop": { "type": "String" },
-      "roi": { "type": "String" }
+      "crop": { "type": "String" }
     }
   },
-  "alertDeficitTitle": "{crop} está perdiendo dinero (ROI {roi})",
+  "alertDeficitTitle": "{crop} está perdiendo dinero",
   "@alertDeficitMessage": {
     "placeholders": {
       "spent": { "type": "String" },
@@ -1244,19 +1261,23 @@
     "placeholders": { "year": { "type": "int" } }
   },
   "pdfYearAnnex": "Anexo — Acumulado del año {year}",
-  "pdfRoiFootnote": "ROI = (Ingresos − Gastos) / Gastos. Negativo > 30% sugiere revisar el cultivo.",
+  "pdfMarginFootnote": "Margen = (Ingresos − Gastos) / Ingresos. Un margen negativo sugiere revisar el cultivo.",
   "pdfColCrop": "Cultivo",
   "pdfColMov": "Mov.",
   "pdfColExpenses": "Gastos",
   "pdfColIncomes": "Ingresos",
   "pdfColResult": "Resultado",
-  "pdfColRoi": "ROI",
+  "pdfColMargin": "Margen",
   "pdfFileNamePrefix": "reporte",
 
   "excelSheetSummary": "Resumen",
   "excelSheetCrops": "Por cultivo",
   "excelSheetMovements": "Movimientos",
   "excelSheetHarvests": "Cosechas",
+  "excelSheetPayrollCash": "Nómina y caja",
+  "excelTotalIncomes": "Total ingresos",
+  "excelTotalExpenses": "Total gastos",
+  "excelTotalResult": "Resultado",
   "pdfColDate": "Fecha",
   "pdfColType": "Tipo",
   "pdfColCategory": "Categoría",

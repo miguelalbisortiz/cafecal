@@ -351,7 +351,6 @@ class _HelpScreenState extends State<HelpScreen>
       (l10n.glossaryMarginTerm, l10n.glossaryMarginDef),
       (l10n.glossaryYieldAreaTerm, l10n.glossaryYieldAreaDef),
       (l10n.glossaryYieldPlantTerm, l10n.glossaryYieldPlantDef),
-      (l10n.glossaryRoiTerm, l10n.glossaryRoiDef),
       (l10n.glossaryPaybackTerm, l10n.glossaryPaybackDef),
       (l10n.glossaryCashBoxTerm, l10n.glossaryCashBoxDef),
     ];

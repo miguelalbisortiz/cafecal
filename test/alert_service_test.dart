@@ -347,15 +347,17 @@ void main() {
       expect(deficit.suggestion, contains('3'));
     });
 
-    test('aviso de pÃ©rdidas cita el ROI y enuncia el problema con nÃºmeros', () {
+    test('aviso de pérdidas enuncia el problema con números, sin siglas', () {
       final txns = [
         _txn(type: TransactionType.expense, amount: 1000, date: DateTime(2026, 1, 10), cropId: 'cafe'),
         _txn(type: TransactionType.income, amount: 150, date: DateTime(2026, 2, 10), cropId: 'cafe'),
       ];
       final alerts = AlertService(now: now).evaluate(txns, _crops(), _es);
       final deficit = alerts.firstWhere((a) => a.rule == AlertRule.deficitCrop);
-      expect(deficit.title, contains('ROI'));
-      expect(deficit.title, contains('%'));
+      expect(deficit.title, contains('perdiendo dinero'));
+      expect(deficit.title, isNot(contains('ROI')),
+          reason: 'los avisos no usan siglas financieras');
+      expect(deficit.title, isNot(contains('%')));
       expect(deficit.message.toLowerCase(), contains('el problema'));
       expect(deficit.message.toLowerCase(), contains('invertiste'));
       expect(deficit.message, contains('COP'),

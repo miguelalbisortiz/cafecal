@@ -77,10 +77,10 @@ void main() {
         l10n: es,
       )));
 
-  /// La fila de septiembre de la hoja Resumen, tal como la pinta el Excel.
+  /// La fila de septiembre de la hoja Nómina y caja, tal como la pinta el Excel.
   List<Data?> septiembre({required List<Transaction> txns, double? caja}) =>
       excelDe(txns: txns, caja: caja)
-          .tables['Resumen']!
+          .tables['Nómina y caja']!
           .rows
           .firstWhere((r) => t0(r[0]) == es.monthFull[8]);
 

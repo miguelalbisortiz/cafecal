@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/categories.dart';
+import '../models/report_period.dart';
 
 /// Devuelve las traducciones para un código de idioma ('es' o 'en').
 /// Se usa fuera del árbol de widgets (providers, servicios, tests).
@@ -109,3 +110,18 @@ Crop? cropOf(List<Crop> crops, String? cropId) {
 /// Nombre del cultivo con ese id, o null si no existe.
 String? cropNameOf(List<Crop> crops, String? cropId) =>
     cropOf(crops, cropId)?.name;
+
+/// Encabezado del comparativo de período.
+///
+/// La ventana la decide el período; aquí solo se elige la copy, en una sola
+/// casa, para que pantalla, PDF y Excel digan exactamente lo mismo.
+extension L10nComparison on AppLocalizations {
+  String comparisonTitleFor(ReportPeriod period) => comparisonTitle(
+        switch (period) {
+          ReportPeriod.week => comparisonPreviousWeek,
+          ReportPeriod.month => comparisonPreviousMonth,
+          ReportPeriod.year => comparisonPreviousYear,
+          ReportPeriod.yearToDate => comparisonPreviousSameStretch,
+        },
+      );
+}

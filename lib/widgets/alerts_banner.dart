@@ -43,7 +43,7 @@ class AlertsBanner extends StatelessWidget {
                 tooltip: l10n.alertsTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: () =>
-                    showTerminologyGuide(context, highlight: 'ROI'),
+                    showTerminologyGuide(context, highlight: 'Margen'),
                 icon: Icon(Icons.info_outline, size: 16, color: accent),
               ),
               const SizedBox(width: 4),

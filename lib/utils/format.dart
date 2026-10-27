@@ -36,6 +36,16 @@ String formatKgPerPlant(double value, String locale) =>
 String formatPct(double value) =>
     value >= 10 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 
+/// Cambio porcentual con su signo: `+25%`, `-10%`, `0%`.
+///
+/// `null` → `null`: sin base no hay cifra que imprimir, y un `0%` inventado
+/// diría que nada cambió. Una sola regla para pantalla, PDF y Excel.
+String? formatChangePct(double? value) {
+  if (value == null) return null;
+  final sign = value > 0 ? '+' : (value < 0 ? '-' : '');
+  return '$sign${formatPct(value.abs())}%';
+}
+
 String formatMoney(BuildContext context, double value, {int? decimals}) {
   final tx = context.read<TransactionProvider>();
   return formatAmount(value,

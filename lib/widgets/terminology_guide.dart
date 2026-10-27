@@ -20,10 +20,6 @@ List<TerminologyEntry> buildGlossary(AppLocalizations l10n) {
       l10n.glossaryExpenseDef,
     ),
     TerminologyEntry(
-      l10n.glossaryRoiTerm,
-      l10n.glossaryRoiDef,
-    ),
-    TerminologyEntry(
       l10n.glossaryBalanceTerm,
       l10n.glossaryBalanceDef,
     ),

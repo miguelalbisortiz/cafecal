@@ -25,6 +25,7 @@ import '../services/derived_harvests.dart';
 import '../services/excel_export_service.dart' deferred as excel;
 import '../services/pdf_export_service.dart' deferred as pdf;
 import '../services/metric_signal.dart';
+import '../services/period_comparison.dart';
 import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
@@ -363,10 +364,10 @@ class _ReportScreenState extends State<ReportScreen> {
                           ),
                         ),
                         IconButton(
-                          tooltip: l10n.glossaryRoiTooltip,
+                          tooltip: l10n.glossaryMarginTooltip,
                           visualDensity: VisualDensity.compact,
                           onPressed: () =>
-                              showTerminologyGuide(context, highlight: 'ROI'),
+                              showTerminologyGuide(context, highlight: 'Margen'),
                           icon: const Icon(Icons.info_outline, size: 18),
                         ),
                       ],
@@ -402,8 +403,8 @@ class _ReportScreenState extends State<ReportScreen> {
                           )),
                     if (cropRows.isEmpty)
                       Text(l10n.noCropData),
-                    // El consejo de ROI solo tiene sentido si hay alguna fila
-                    // con ROI (moneda única): con mezcla no se calcula.
+                    // El consejo del margen solo tiene sentido si hay alguna
+                    // fila con margen (moneda única): con mezcla no se calcula.
                     if (cropRows.isNotEmpty && cropRows.any((r) => !r.isMixed))
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
@@ -416,7 +417,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                l10n.cropBreakdownRoiHint,
+                                l10n.cropBreakdownMarginHint,
                                 style: TextStyle(
                                   fontSize: 11,
                                   height: 1.3,
@@ -636,7 +637,7 @@ class _ReportScreenState extends State<ReportScreen> {
   /// Los montos salen del helper puro `cropBreakdownRows` (el mismo que
   /// usan el PDF y el Excel): cada cultivo guarda sus montos **por moneda**.
   /// Así, un cultivo de una sola moneda se pinta exactamente como siempre
-  /// y uno con dos o más monedas no llega a imprimir un neto ni un ROI
+  /// y uno con dos o más monedas no llega a imprimir un neto ni un margen
   /// falsos (se desglosa por moneda en su tarjeta).
   List<CropBreakdownRow> _breakdownRows(
       TransactionProvider tx, AppLocalizations l10n) {
@@ -2153,6 +2154,15 @@ class _ReportScreenState extends State<ReportScreen> {
     // Lo vendido en el periodo que todavía no se ha cobrado. Se calcula con
     // los mismos registros del periodo, así que nunca mezcla monedas.
     final receivables = receivablesByCurrency(records);
+    // Comparativo con el período anterior. La misma regla y la misma cifra en
+    // pantalla, PDF y Excel; con moneda mixta (o sin datos antes) no se pinta.
+    final comparison = compareWithPreviousPeriod(
+      current: periodTotals,
+      transactions: tx.transactions,
+      period: _reportPeriod,
+      year: _year,
+      month: _mode == _PeriodMode.week ? _week : _month,
+    );
     final incomeRows = _categoryRows(tx, TransactionType.income, l10n);
     final expenseRows = _categoryRows(tx, TransactionType.expense, l10n);
     final margen = totalIncomes > 0 ? (balance / totalIncomes) * 100 : null;
@@ -2236,6 +2246,12 @@ class _ReportScreenState extends State<ReportScreen> {
               if (converted != null) ...[
                 const SizedBox(height: 4),
                 _hintLine(l10n.currencyRateNote),
+              ],
+              // Comparativo con el período anterior, pegado al resultado:
+              // es la cifra que se está comparando.
+              if (comparison != null) ...[
+                const SizedBox(height: 12),
+                _comparisonBlock(context, tx, l10n, comparison),
               ],
               // Lo que ya vendiste pero todavía no te han pagado. El
               // resultado de arriba lo cuenta porque la venta ocurrió; aquí
@@ -2750,6 +2766,95 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
+  /// Comparativo con el período anterior: tres renglones con la cifra de
+  /// antes, la de ahora y cuánto cambió.
+  ///
+  /// Solo llega aquí cuando [compareWithPreviousPeriod] pudo comparar: una
+  /// sola moneda en los dos períodos y datos en el anterior. Si no, no se
+  /// pinta nada — mejor callar que enseñar un cero o una cifra inventada.
+  Widget _comparisonBlock(
+    BuildContext context,
+    TransactionProvider tx,
+    AppLocalizations l10n,
+    PeriodComparison comparison,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final locale = tx.settings.numberLocale;
+
+    String money(double value) =>
+        formatAmount(value, currency: comparison.currency, locale: locale);
+
+    Widget line(String label, double before, double after, double? change) {
+      final pct = formatChangePct(change);
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                // Sin base no hay porcentaje: se calla, no se pinta un 0%.
+                if (pct != null)
+                  Text(
+                    pct,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+            Text(
+              l10n.comparisonFromTo(money(before), money(after)),
+              style: const TextStyle(fontSize: 12, height: 1.3),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.compare_arrows,
+                size: 14, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.comparisonTitleFor(comparison.period),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+        line(l10n.incomeLabel, comparison.previousIncomes, comparison.incomes,
+            comparison.incomeChange),
+        line(l10n.operatingExpensesLabel, comparison.previousExpenses,
+            comparison.expenses, comparison.expenseChange),
+        line(l10n.resultPeriodLabel, comparison.previousBalance,
+            comparison.balance, comparison.balanceChange),
+      ],
+    );
+  }
+
   /// Monto de una cifra que puede venir negativa: `-COP 1.500`.
   ///
   /// En **pantalla** el negativo lleva su signo. El paréntesis contable se lee
@@ -2992,7 +3097,7 @@ class _CropRow {
   /// Monedas distintas que toca el cultivo en el período.
   Set<String> get currencies => totals.currencies;
 
-  /// true → el cultivo mezcla dos o más monedas: no se imprime neto ni ROI,
+  /// true → el cultivo mezcla dos o más monedas: no se imprime neto ni margen,
   /// solo el desglose moneda por moneda.
   bool get isMixed => totals.isMixed;
 
@@ -3006,9 +3111,27 @@ class _CropRow {
   double get incomes => totals.incomesTotal;
 
   double get net => incomes - expenses;
-  double get roi => expenses <= 0 ? 0 : (incomes - expenses) / expenses;
-  String get roiLabel =>
-      expenses <= 0 ? 'â€”' : 'ROI ${(roi * 100).toStringAsFixed(0)}%';
+
+  /// Margen del cultivo: de cada 100 vendidos, cuánto queda tras los gastos.
+  ///
+  /// Se calcula como (Ingresos − Gastos) ÷ Ingresos. Sin ventas o sin gastos
+  /// no hay margen que mostrar: un 100% diría que producir fue gratis y un 0%
+  /// que no queda nada. Cualquiera de los dos sería inventar una cifra.
+  double? get margin =>
+      incomes <= 0 || expenses <= 0 ? null : (incomes - expenses) / incomes;
+
+  /// Recuperado por cada 100 invertidos. Es la cifra del semáforo: el rojo se
+  /// enciende por debajo de 70, igual que en los avisos, aunque la fila ya no
+  /// hable de recuperación sino de margen.
+  double? get recovery => expenses <= 0 ? null : incomes / expenses;
+
+  /// Porcentaje listo para pintar, o «—» cuando no hay margen que calcular.
+  String get marginPct => margin == null
+      ? '—'
+      : '${(margin! * 100).toStringAsFixed(0)}%';
+
+  /// true → el cultivo está en rojo: recupera menos de 70 por cada 100.
+  bool get isLosing => recovery != null && recovery! < 0.70;
 }
 
 class _CropBreakdownTile extends StatelessWidget {
@@ -3037,7 +3160,7 @@ class _CropBreakdownTile extends StatelessWidget {
 
   /// Cultivo con movimientos en dos o más monedas.
   ///
-  /// Restar pesos con dólares daría un neto y un ROI falsos, así que no se
+  /// Restar pesos con dólares daría un neto y un margen falsos, así que no se
   /// imprimen: cada moneda sale por separado con su código.
   Widget _mixedByCurrency() {
     final currencies = row.currencies.toList()..sort();
@@ -3089,7 +3212,7 @@ class _CropBreakdownTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Moneda mixta dentro del cultivo: sin neto ni ROI, solo el desglose.
+    // Moneda mixta dentro del cultivo: sin neto ni margen, solo el desglose.
     if (row.isMixed) return _mixedByCurrency();
     final net = row.net;
     final netColor = net >= 0 ? _green : scheme.error;
@@ -3108,11 +3231,11 @@ class _CropBreakdownTile extends StatelessWidget {
                 ),
               ),
               Text(
-                row.roiLabel,
+                l10n.cropMarginBadge(row.marginPct),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: row.roi < -0.30 ? scheme.error : scheme.primary,
+                  color: row.isLosing ? scheme.error : scheme.primary,
                 ),
               ),
             ],
@@ -3217,7 +3340,7 @@ Widget _miniLine({
 }
 
 /// W1-c · cabecera de una banda: el terreno, su área si la anotó y el total
-/// del período. Nunca neto ni ROI: esa cifra vive en cada cultivo.
+/// del período. Nunca neto ni margen: esa cifra vive en cada cultivo.
 ///
 /// Con una sola moneda pinta «Gastos» e «Ingresos»; con dos o más, una línea
 /// por moneda y por total, cada una con su código. Nunca suma monedas.

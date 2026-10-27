@@ -1150,22 +1150,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glossaryExpenseDef => 'What you paid to produce or maintain the farm. If it belongs to a crop, assign it.';
 
   @override
-  String get glossaryRoiTerm => 'ROI (Return on Investment)';
-
-  @override
-  String get glossaryRoiDef => 'Measures how much you recover for every 100 invested in a crop. It is calculated as (Income - Expenses) ÷ Expenses. A negative ROI means the crop spends more than it recovers: for example, an ROI of -70% means that for every 100 invested only 30 come back.';
-
-  @override
   String get glossaryBalanceTerm => 'Balance / Result';
 
   @override
   String get glossaryBalanceDef => 'Income minus Expenses in a period. If the result is positive you have a gain; if negative, a loss.';
 
   @override
-  String get glossaryMarginTerm => 'Margin on sales';
+  String get glossaryMarginTerm => 'Margin';
 
   @override
-  String get glossaryMarginDef => 'Of every 100 you sell, how much remains as profit after covering expenses. A margin of 20% means that for every 100 sold, 20 remain.';
+  String get glossaryMarginDef => 'Of every 100 you sell, how much remains after covering expenses. It is calculated as (Income - Expenses) ÷ Income: if you sell 100 and spend 40, the margin is 60%. A negative margin means you spend more than you sell.';
 
   @override
   String get glossaryRatioTerm => 'Expenses vs income';
@@ -1246,7 +1240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glossarySoldVsHarvestedDef => 'Compares the kilos you sold with the kilos you harvested in the same period. If you sold more, it is usually a harvest from earlier months or one you have not recorded.';
 
   @override
-  String get glossaryRoiTooltip => 'What does ROI mean?';
+  String get glossaryMarginTooltip => 'What does margin mean?';
 
   @override
   String get authSubtitleSignup => 'Create an account to manage your finances';
@@ -2060,6 +2054,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ratioLabel => 'Expenses vs income';
 
   @override
+  String comparisonTitle(String previous) {
+    return 'Compared with $previous';
+  }
+
+  @override
+  String comparisonFromTo(String before, String after) {
+    return 'from $before to $after';
+  }
+
+  @override
+  String get comparisonPreviousWeek => 'the previous week';
+
+  @override
+  String get comparisonPreviousMonth => 'the previous month';
+
+  @override
+  String get comparisonPreviousYear => 'the previous year';
+
+  @override
+  String get comparisonPreviousSameStretch => 'the same stretch of last year';
+
+  @override
+  String get comparisonPreviousColumn => 'Previous';
+
+  @override
+  String get comparisonCurrentColumn => 'Current';
+
+  @override
+  String get comparisonChangeColumn => 'Change';
+
+  @override
   String get metricMarginGood => 'Good margin: you keep \$20 or more of every \$100 sold.';
 
   @override
@@ -2157,7 +2182,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cropBreakdownSummaryR => 'Net result';
 
   @override
-  String get cropBreakdownRoiHint => 'How to read ROI: for every \$1 invested you recover the profit plus the capital. E.g., ROI 516% → \$6.16 back per \$1 (5.16 profit + 1 of capital).';
+  String cropMarginBadge(String value) {
+    return 'Margin $value';
+  }
+
+  @override
+  String get cropBreakdownMarginHint => 'How to read the margin: it is the percentage of what you sell that remains after covering expenses. E.g., if you sell 100 and spend 40, the margin is 60%.';
 
   @override
   String get noCropData => 'No crop data in this period.';
@@ -2242,7 +2272,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cropMixedCurrencyNote(int count) {
-    return 'This crop has $count currencies: each one is shown separately and ROI is not calculated.';
+    return 'This crop has $count currencies: each one is shown separately and the margin is not calculated.';
   }
 
   @override
@@ -2508,9 +2538,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String alertDeficitNoCropTitle(String roi) {
-    return 'Unassigned-crop expenses are not recovering (ROI $roi)';
-  }
+  String get alertDeficitNoCropTitle => 'Unassigned-crop expenses are not recovering';
 
   @override
   String alertDeficitNoCropMessage(String count, String spent, String sold, String recovery) {
@@ -2523,8 +2551,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String alertDeficitTitle(String crop, String roi) {
-    return '$crop is losing money (ROI $roi)';
+  String alertDeficitTitle(String crop) {
+    return '$crop is losing money';
   }
 
   @override
@@ -2570,7 +2598,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pdfRoiFootnote => 'ROI = (Income − Expenses) / Expenses. Negative above 30% suggests reviewing the crop.';
+  String get pdfMarginFootnote => 'Margin = (Income − Expenses) / Income. A negative margin suggests reviewing the crop.';
 
   @override
   String get pdfColCrop => 'Crop';
@@ -2588,7 +2616,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdfColResult => 'Result';
 
   @override
-  String get pdfColRoi => 'ROI';
+  String get pdfColMargin => 'Margin';
 
   @override
   String get pdfFileNamePrefix => 'report';
@@ -2604,6 +2632,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get excelSheetHarvests => 'Harvests';
+
+  @override
+  String get excelSheetPayrollCash => 'Payroll and cash';
+
+  @override
+  String get excelTotalIncomes => 'Total income';
+
+  @override
+  String get excelTotalExpenses => 'Total expenses';
+
+  @override
+  String get excelTotalResult => 'Result';
 
   @override
   String get pdfColDate => 'Date';

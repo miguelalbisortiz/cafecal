@@ -138,7 +138,7 @@ bool comparableToBudget(Set<String> currencies, String budgetCurrency) =>
 
 /// true si los montos dados tocan más de una moneda.
 ///
-/// Es la pregunta que decide si una cifra agregada (costo por kilo, ROI,
+/// Es la pregunta que decide si una cifra agregada (costo por kilo, margen,
 /// % sobre el total, total del período…) es imprimible o sería mentira.
 bool isMixedCurrency(Iterable<Transaction> records) {
   final currencies = <String>{};

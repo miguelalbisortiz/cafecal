@@ -19,6 +19,7 @@ import 'crop_totals.dart';
 import 'currency_totals.dart';
 import 'derived_harvests.dart';
 import 'metric_signal.dart';
+import 'period_comparison.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
@@ -38,7 +39,7 @@ class ExcelExportService {
   static final _excelBrown = ExcelColor.fromHexString('FF6D4C41');
   static final _excelGreenSoft = ExcelColor.fromHexString('FFE8F5E9');
   static final _excelRedSoft = ExcelColor.fromHexString('FFFFF3E0');
-  // W1-c · banda de terreno: gris cálido, distinto del verde/naranja del ROI.
+  // W1-c · banda de terreno: gris cálido, distinto del verde/naranja del margen.
   static final _excelBand = ExcelColor.fromHexString('FFEFEBE9');
   static const _excelWhite = ExcelColor.white;
   static final _excelGreen = ExcelColor.fromHexString('FF1F5E3F');
@@ -114,6 +115,15 @@ class ExcelExportService {
     // Con una sola moneda se imprime la cifra de siempre; con dos o más
     // cada total va con su código, sin %, sin margen ni ratio.
     final periodTotals = PeriodCurrencyTotals.fromRecords(periodTx);
+    // Comparativo con el período anterior: la misma cifra y la misma regla
+    // que en pantalla y en el PDF. Sin datos antes (o con mezcla) es null.
+    final comparison = compareWithPreviousPeriod(
+      current: periodTotals,
+      transactions: active,
+      period: period,
+      year: year,
+      month: month,
+    );
 
     final incomeGroups = groupAmountsByCurrency(
       periodTx.where((t) => t.type == TransactionType.income),
@@ -161,6 +171,7 @@ class ExcelExportService {
         marginPerKg: marginPerKg,
         receivables: receivables,
         periodTotals: periodTotals,
+        comparison: comparison,
         periodTx: periodTx,
         crops: crops,
         period: period,
@@ -192,6 +203,20 @@ class ExcelExportService {
         currency: currency,
         sacoKg: settings.sacoKg,
         l10n: l10n);
+
+    // La nómina y la caja van en su propio tab: responden otra pregunta y no
+    // caben debajo del resultado. Si no hay nada que contar, la hoja no nace.
+    _payrollCashSheet(
+      () => excel[l10n.excelSheetPayrollCash],
+      periodTx: periodTx,
+      crops: crops,
+      settings: settings,
+      currency: currency,
+      l10n: l10n,
+      period: period,
+      year: year,
+      month: month,
+    );
 
     final bytes =
         excel.save(fileName: '${l10n.pdfFileNamePrefix}_$year.xlsx');
@@ -395,6 +420,7 @@ class ExcelExportService {
     required double? marginPerKg,
     required Map<String, double> receivables,
     required PeriodCurrencyTotals periodTotals,
+    required PeriodComparison? comparison,
     required List<Transaction> periodTx,
     required List<Crop> crops,
     required ReportPeriod period,
@@ -482,6 +508,42 @@ class ExcelExportService {
         : balance < 0;
     _styleHeaderRow(sheet, resultRowIdx, 3,
         resultNegative ? _excelRedSoft : _excelGreenSoft);
+
+    // ── Comparativo con el período anterior ──
+    // Tres filas con la cifra de antes, la de ahora y cuánto cambió. Solo
+    // cuando hay con qué comparar y todo está en una sola moneda.
+    if (comparison != null) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.comparisonTitleFor(comparison.period))]);
+      row([
+        null,
+        TextCellValue(l10n.comparisonPreviousColumn),
+        TextCellValue(l10n.comparisonCurrentColumn),
+        TextCellValue(l10n.comparisonChangeColumn),
+      ]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 4, _excelBrown);
+      final firstComparisonRow = sheet.maxRows;
+      void comparisonRow(String label, double before, double after,
+          double? change) {
+        row([
+          TextCellValue(label),
+          DoubleCellValue(before),
+          DoubleCellValue(after),
+          TextCellValue(formatChangePct(change) ?? '—'),
+        ]);
+      }
+
+      comparisonRow(l10n.incomeLabel, comparison.previousIncomes,
+          comparison.incomes, comparison.incomeChange);
+      comparisonRow(l10n.operatingExpensesLabel, comparison.previousExpenses,
+          comparison.expenses, comparison.expenseChange);
+      comparisonRow(l10n.resultPeriodLabel, comparison.previousBalance,
+          comparison.balance, comparison.balanceChange);
+      _applyCurrencyFormat(sheet, currency, 1, firstComparisonRow,
+          sheet.maxRows - 1);
+      _applyCurrencyFormat(sheet, currency, 2, firstComparisonRow,
+          sheet.maxRows - 1);
+    }
 
     row([
       TextCellValue(l10n.marginLabel),
@@ -723,246 +785,6 @@ class ExcelExportService {
       _applyCurrencyFormat(sheet, currency, 2, crossFrom, sheet.maxRows - 1);
     }
 
-    // ── Nómina del período (solo con gastos de mano de obra) ──
-    final payroll = const ReportPayrollMetrics().payroll(periodTx);
-    if (!payroll.isEmpty) {
-      // Mano de obra sobre el gasto del periodo: la misma cifra que en
-      // pantalla y en el PDF. Solo con una sola moneda: cruzar monedas
-      // daria un porcentaje falso.
-      final payrollTotal =
-          payroll.totalByCurrency.values.fold<double>(0, (a, b) => a + b);
-      final expenseCurrencies = <String>{};
-      var periodExpenses = 0.0;
-      for (final t in periodTx) {
-        if (t.deleted || !t.type.isExpense) continue;
-        expenseCurrencies.add(t.currency);
-        periodExpenses += t.amount;
-      }
-      final laborShare = (!payroll.isMixed &&
-              expenseCurrencies.length == 1 &&
-              periodExpenses > 0 &&
-              payrollTotal > 0)
-          ? (payrollTotal / periodExpenses) * 100
-          : null;
-      row([null, null, null]);
-      row([TextCellValue(l10n.reportPayrollSection)]);
-      _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
-      row([
-        TextCellValue(l10n.reportPayrollWorker),
-        TextCellValue(l10n.reportPayrollDays),
-        TextCellValue(l10n.reportPayrollSubtotal),
-      ]);
-      _styleTableHeader(sheet, sheet.maxRows - 1, 3);
-      final payrollFrom = sheet.maxRows;
-      for (final r in payroll.rows) {
-        row([
-          TextCellValue(
-              r.provider.isEmpty ? l10n.reportPayrollUnnamed : r.provider),
-          r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
-          // Trabajador con varias monedas → cada moneda con su código.
-          r.isMixed
-              ? TextCellValue(
-                  byCurrencyText(r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
-              : DoubleCellValue(r.subtotal),
-        ]);
-      }
-      _applyCurrencyFormat(sheet, currency, 2, payrollFrom, sheet.maxRows - 1);
-      row([
-        TextCellValue(l10n.reportPayrollTotal),
-        null,
-        payroll.isMixed
-            ? TextCellValue(byCurrencyText(
-                payroll.totalByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
-            : DoubleCellValue(payroll.total),
-      ]);
-      _applyCurrencyFormat(
-          sheet, currency, 2, sheet.maxRows - 1, sheet.maxRows - 1);
-      if (laborShare != null) {
-        row([
-          TextCellValue(l10n.metricLaborShareLabel),
-          null,
-          TextCellValue('${formatPct(laborShare)}%'),
-        ]);
-        row([
-          TextCellValue(l10n.metricLaborShareNote),
-          null,
-          null,
-        ]);
-      }
-      if (payroll.isMixed) {
-        row([
-          TextCellValue(
-              l10n.currencyMixedByCurrencyNote(payroll.totalByCurrency.length)),
-        ]);
-      }
-      row([TextCellValue(
-          l10n.reportPayrollEmployees(payroll.distinctEmployees))]);
-    }
-
-    // ── Caja menor por mes (solo con monto configurado) ──
-    // E3 · con presupuesto de obra configurado la gente tiene su propia
-    // tabla: contarla también en la caja inflaría el gasto de caja.
-    final laborSeparate = (settings.presupuestoObraMensual ?? 0) > 0;
-    final cashRows = const ReportPayrollMetrics().cashBoxByMonth(
-      periodTx: periodTx,
-      budget: settings.cajaMensualEfectiva,
-      budgetHistory: settings.cashBudgetHistory,
-      period: period,
-      year: year,
-      month: month,
-      includeLabor: !laborSeparate,
-    );
-    if (cashRows.isNotEmpty) {
-      row([null, null, null]);
-      row([TextCellValue(l10n.cashBoxTitle)]);
-      _styleHeaderRow(sheet, sheet.maxRows - 1, 6, _excelBrown);
-      row([
-        TextCellValue(l10n.segMonth),
-        TextCellValue(l10n.reportCashBoxBudget),
-        TextCellValue(l10n.cashBoxLabor),
-        TextCellValue(l10n.cashBoxExtras),
-        TextCellValue(l10n.jornalTotalLabel),
-        TextCellValue(l10n.reportCashBoxBalance),
-      ]);
-      _styleTableHeader(sheet, sheet.maxRows - 1, 6);
-      final multiYear = cashRows.map((r) => r.year).toSet().length > 1;
-      final cashMixed = <String>{
-        for (final r in cashRows)
-          if (r.isMixed) ...r.currencies,
-      };
-      final cashFrom = sheet.maxRows;
-      for (final r in cashRows) {
-        // Misma regla que Reportes y el PDF ([comparableToBudget]): solo hay
-        // saldo si el mes gastó en la moneda del presupuesto. Con una moneda
-        // ajena —aunque fuera una sola, así que isMixed era false— esto
-        // imprimía 800.000 − 100 = 799.900: pesos menos euros.
-        final comparable = comparableToBudget(r.currencies, currency);
-        row([
-          TextCellValue(multiYear
-              ? '${l10n.monthFull[r.month - 1]} ${r.year}'
-              : l10n.monthFull[r.month - 1]),
-          DoubleCellValue(r.budget),
-          comparable
-              ? DoubleCellValue(r.labor)
-              : TextCellValue(byCurrencyText(
-                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
-          comparable
-              ? DoubleCellValue(r.extras)
-              : TextCellValue(byCurrencyText(
-                  r.extrasByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
-          comparable
-              ? DoubleCellValue(r.total)
-              : TextCellValue(byCurrencyText(
-                  r.totalByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
-          comparable ? DoubleCellValue(r.balance) : TextCellValue('—'),
-        ]);
-      }
-      final cashTo = sheet.maxRows - 1;
-      for (var c = 1; c <= 5; c++) {
-        _applyCurrencyFormat(sheet, currency, c, cashFrom, cashTo);
-      }
-      // Saldo en verde/rojo conservando el formato numérico.
-      final info = currencyInfo(currency);
-      final fmt = info.decimals > 0 ? '#,##0.${'0' * info.decimals}' : '#,##0';
-      final numFmt = NumFormat.custom(formatCode: fmt);
-      for (var r = cashFrom; r <= cashTo; r++) {
-        final cell = sheet.cell(
-            CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r));
-        final val = cell.value;
-        if (val is DoubleCellValue) {
-          cell.cellStyle = CellStyle(
-            numberFormat: numFmt,
-            fontColorHex: val.value >= 0 ? _excelGreen : _excelRed,
-            bold: true,
-            fontSize: 10,
-          );
-        }
-      }
-      if (cashMixed.isNotEmpty) {
-        row([
-          TextCellValue(l10n.currencyMixedByCurrencyNote(cashMixed.length)),
-        ]);
-      }
-    }
-
-    // ── Presupuesto de obra por mes (E3, solo con monto configurado) ──
-    final workRows = const ReportPayrollMetrics().workBudgetByMonth(
-      periodTx: periodTx,
-      budget: settings.presupuestoObraMensual,
-      period: period,
-      year: year,
-      month: month,
-    );
-    if (workRows.isNotEmpty) {
-      row([null, null, null]);
-      row([TextCellValue(l10n.workBudgetTitle)]);
-      _styleHeaderRow(sheet, sheet.maxRows - 1, 6, _excelBrown);
-      row([
-        TextCellValue(l10n.segMonth),
-        TextCellValue(l10n.reportCashBoxBudget),
-        TextCellValue(l10n.jornalTotalLabel),
-        TextCellValue(l10n.workBudgetBalance),
-      ]);
-      _styleTableHeader(sheet, sheet.maxRows - 1, 4);
-      final workMultiYear = workRows.map((r) => r.year).toSet().length > 1;
-      final workFrom = sheet.maxRows;
-      for (final r in workRows) {
-        // Misma regla que en caja: solo hay saldo en la moneda del
-        // presupuesto ([comparableToBudget]).
-        final comparable = comparableToBudget(r.currencies, currency);
-        row([
-          TextCellValue(workMultiYear
-              ? '${l10n.monthFull[r.month - 1]} ${r.year}'
-              : l10n.monthFull[r.month - 1]),
-          DoubleCellValue(r.budget),
-          comparable
-              ? DoubleCellValue(r.used)
-              : TextCellValue(byCurrencyText(
-                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
-          comparable ? DoubleCellValue(r.balance) : TextCellValue('—'),
-        ]);
-      }
-      final workTo = sheet.maxRows - 1;
-      for (var c = 1; c <= 3; c++) {
-        _applyCurrencyFormat(sheet, currency, c, workFrom, workTo);
-      }
-    }
-
-    // ── Planilla del período: en qué se gastó la gente (E3) ──
-    final cropNames = {for (final c in crops) c.id: c.name};
-    final planilla = const ReportPayrollMetrics().workSheetRows(
-      periodTx: periodTx,
-      cropNames: cropNames,
-      unlabeledTaskName: l10n.workSheetUnlabeled,
-    );
-    if (planilla.isNotEmpty) {
-      row([null, null, null]);
-      row([TextCellValue(l10n.workSheetTitle)]);
-      _styleHeaderRow(sheet, sheet.maxRows - 1, 6, _excelBrown);
-      row([
-        TextCellValue(l10n.taskFieldLabel),
-        TextCellValue(l10n.pdfColCrop),
-        TextCellValue(l10n.reportPayrollWorker),
-        TextCellValue(l10n.reportPayrollDays),
-        TextCellValue(l10n.reportPayrollSubtotal),
-      ]);
-      _styleTableHeader(sheet, sheet.maxRows - 1, 5);
-      final wsFrom = sheet.maxRows;
-      for (final r in planilla) {
-        row([
-          TextCellValue('${taskIcon(r.task)} ${taskLabel(r.task)}'),
-          TextCellValue(r.cropName),
-          r.workers > 0 ? IntCellValue(r.workers) : TextCellValue('—'),
-          r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
-          r.isMixed
-              ? TextCellValue(byCurrencyText(
-                  r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
-              : DoubleCellValue(r.total),
-        ]);
-      }
-      _applyCurrencyFormat(sheet, currency, 4, wsFrom, sheet.maxRows - 1);
-    }
-
     // ── Anexo de ubicación ──
     //
     // Mismo texto que en Reportes y en el PDF: los tres pintadores tienen
@@ -1005,6 +827,278 @@ class ExcelExportService {
     sheet.setColumnWidth(5, 16);
   }
 
+  /// Hoja «Nómina y caja»: quién trabajó, cuánto se le pagó y cómo va la caja.
+  ///
+  /// Antes estas cuatro tablas vivían apiladas debajo del resultado, en la
+  /// misma hoja del P&L: siete tablas seguidas y ninguna jerarquía. La hoja
+  /// solo se crea si hay algo que contar.
+  void _payrollCashSheet(
+    Sheet Function() sheetOf, {
+    required List<Transaction> periodTx,
+    required List<Crop> crops,
+    required FarmSettings settings,
+    required String currency,
+    required AppLocalizations l10n,
+    required ReportPeriod period,
+    required int year,
+    int? month,
+  }) {
+    Sheet? created;
+    Sheet sheet() => created ??= sheetOf();
+    void row(List<CellValue?> cols) => sheet().appendRow(cols);
+
+    // ── Nómina del período (solo con gastos de mano de obra) ──
+    final payroll = const ReportPayrollMetrics().payroll(periodTx);
+    if (!payroll.isEmpty) {
+      // Mano de obra sobre el gasto del periodo: la misma cifra que en
+      // pantalla y en el PDF. Solo con una sola moneda: cruzar monedas
+      // daria un porcentaje falso.
+      final payrollTotal =
+          payroll.totalByCurrency.values.fold<double>(0, (a, b) => a + b);
+      final expenseCurrencies = <String>{};
+      var periodExpenses = 0.0;
+      for (final t in periodTx) {
+        if (t.deleted || !t.type.isExpense) continue;
+        expenseCurrencies.add(t.currency);
+        periodExpenses += t.amount;
+      }
+      final laborShare = (!payroll.isMixed &&
+              expenseCurrencies.length == 1 &&
+              periodExpenses > 0 &&
+              payrollTotal > 0)
+          ? (payrollTotal / periodExpenses) * 100
+          : null;
+      row([null, null, null]);
+      row([TextCellValue(l10n.reportPayrollSection)]);
+      _styleHeaderRow(sheet(), sheet().maxRows - 1, 3, _excelBrown);
+      row([
+        TextCellValue(l10n.reportPayrollWorker),
+        TextCellValue(l10n.reportPayrollDays),
+        TextCellValue(l10n.reportPayrollSubtotal),
+      ]);
+      _styleTableHeader(sheet(), sheet().maxRows - 1, 3);
+      final payrollFrom = sheet().maxRows;
+      for (final r in payroll.rows) {
+        row([
+          TextCellValue(
+              r.provider.isEmpty ? l10n.reportPayrollUnnamed : r.provider),
+          r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
+          // Trabajador con varias monedas → cada moneda con su código.
+          r.isMixed
+              ? TextCellValue(
+                  byCurrencyText(r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
+              : DoubleCellValue(r.subtotal),
+        ]);
+      }
+      _applyCurrencyFormat(sheet(), currency, 2, payrollFrom, sheet().maxRows - 1);
+      row([
+        TextCellValue(l10n.reportPayrollTotal),
+        null,
+        payroll.isMixed
+            ? TextCellValue(byCurrencyText(
+                payroll.totalByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
+            : DoubleCellValue(payroll.total),
+      ]);
+      _applyCurrencyFormat(
+          sheet(), currency, 2, sheet().maxRows - 1, sheet().maxRows - 1);
+      if (laborShare != null) {
+        row([
+          TextCellValue(l10n.metricLaborShareLabel),
+          null,
+          TextCellValue('${formatPct(laborShare)}%'),
+        ]);
+        row([
+          TextCellValue(l10n.metricLaborShareNote),
+          null,
+          null,
+        ]);
+      }
+      if (payroll.isMixed) {
+        row([
+          TextCellValue(
+              l10n.currencyMixedByCurrencyNote(payroll.totalByCurrency.length)),
+        ]);
+      }
+      row([TextCellValue(
+          l10n.reportPayrollEmployees(payroll.distinctEmployees))]);
+    }
+
+    // ── Caja menor por mes (solo con monto configurado) ──
+    // E3 · con presupuesto de obra configurado la gente tiene su propia
+    // tabla: contarla también en la caja inflaría el gasto de caja.
+    final laborSeparate = (settings.presupuestoObraMensual ?? 0) > 0;
+    final cashRows = const ReportPayrollMetrics().cashBoxByMonth(
+      periodTx: periodTx,
+      budget: settings.cajaMensualEfectiva,
+      budgetHistory: settings.cashBudgetHistory,
+      period: period,
+      year: year,
+      month: month,
+      includeLabor: !laborSeparate,
+    );
+    if (cashRows.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.cashBoxTitle)]);
+      _styleHeaderRow(sheet(), sheet().maxRows - 1, 6, _excelBrown);
+      row([
+        TextCellValue(l10n.segMonth),
+        TextCellValue(l10n.reportCashBoxBudget),
+        TextCellValue(l10n.cashBoxLabor),
+        TextCellValue(l10n.cashBoxExtras),
+        TextCellValue(l10n.jornalTotalLabel),
+        TextCellValue(l10n.reportCashBoxBalance),
+      ]);
+      _styleTableHeader(sheet(), sheet().maxRows - 1, 6);
+      final multiYear = cashRows.map((r) => r.year).toSet().length > 1;
+      final cashMixed = <String>{
+        for (final r in cashRows)
+          if (r.isMixed) ...r.currencies,
+      };
+      final cashFrom = sheet().maxRows;
+      for (final r in cashRows) {
+        // Misma regla que Reportes y el PDF ([comparableToBudget]): solo hay
+        // saldo si el mes gastó en la moneda del presupuesto. Con una moneda
+        // ajena —aunque fuera una sola, así que isMixed era false— esto
+        // imprimía 800.000 − 100 = 799.900: pesos menos euros.
+        final comparable = comparableToBudget(r.currencies, currency);
+        row([
+          TextCellValue(multiYear
+              ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+              : l10n.monthFull[r.month - 1]),
+          DoubleCellValue(r.budget),
+          comparable
+              ? DoubleCellValue(r.labor)
+              : TextCellValue(byCurrencyText(
+                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable
+              ? DoubleCellValue(r.extras)
+              : TextCellValue(byCurrencyText(
+                  r.extrasByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable
+              ? DoubleCellValue(r.total)
+              : TextCellValue(byCurrencyText(
+                  r.totalByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable ? DoubleCellValue(r.balance) : TextCellValue('—'),
+        ]);
+      }
+      final cashTo = sheet().maxRows - 1;
+      for (var c = 1; c <= 5; c++) {
+        _applyCurrencyFormat(sheet(), currency, c, cashFrom, cashTo);
+      }
+      // Saldo en verde/rojo conservando el formato numérico.
+      final info = currencyInfo(currency);
+      final fmt = info.decimals > 0 ? '#,##0.${'0' * info.decimals}' : '#,##0';
+      final numFmt = NumFormat.custom(formatCode: fmt);
+      for (var r = cashFrom; r <= cashTo; r++) {
+        final cell = sheet().cell(
+            CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r));
+        final val = cell.value;
+        if (val is DoubleCellValue) {
+          cell.cellStyle = CellStyle(
+            numberFormat: numFmt,
+            fontColorHex: val.value >= 0 ? _excelGreen : _excelRed,
+            bold: true,
+            fontSize: 10,
+          );
+        }
+      }
+      if (cashMixed.isNotEmpty) {
+        row([
+          TextCellValue(l10n.currencyMixedByCurrencyNote(cashMixed.length)),
+        ]);
+      }
+    }
+
+    // ── Presupuesto de obra por mes (E3, solo con monto configurado) ──
+    final workRows = const ReportPayrollMetrics().workBudgetByMonth(
+      periodTx: periodTx,
+      budget: settings.presupuestoObraMensual,
+      period: period,
+      year: year,
+      month: month,
+    );
+    if (workRows.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.workBudgetTitle)]);
+      _styleHeaderRow(sheet(), sheet().maxRows - 1, 6, _excelBrown);
+      row([
+        TextCellValue(l10n.segMonth),
+        TextCellValue(l10n.reportCashBoxBudget),
+        TextCellValue(l10n.jornalTotalLabel),
+        TextCellValue(l10n.workBudgetBalance),
+      ]);
+      _styleTableHeader(sheet(), sheet().maxRows - 1, 4);
+      final workMultiYear = workRows.map((r) => r.year).toSet().length > 1;
+      final workFrom = sheet().maxRows;
+      for (final r in workRows) {
+        // Misma regla que en caja: solo hay saldo en la moneda del
+        // presupuesto ([comparableToBudget]).
+        final comparable = comparableToBudget(r.currencies, currency);
+        row([
+          TextCellValue(workMultiYear
+              ? '${l10n.monthFull[r.month - 1]} ${r.year}'
+              : l10n.monthFull[r.month - 1]),
+          DoubleCellValue(r.budget),
+          comparable
+              ? DoubleCellValue(r.used)
+              : TextCellValue(byCurrencyText(
+                  r.laborByCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+          comparable ? DoubleCellValue(r.balance) : TextCellValue('—'),
+        ]);
+      }
+      final workTo = sheet().maxRows - 1;
+      for (var c = 1; c <= 3; c++) {
+        _applyCurrencyFormat(sheet(), currency, c, workFrom, workTo);
+      }
+    }
+
+    // ── Planilla del período: en qué se gastó la gente (E3) ──
+    final cropNames = {for (final c in crops) c.id: c.name};
+    final planilla = const ReportPayrollMetrics().workSheetRows(
+      periodTx: periodTx,
+      cropNames: cropNames,
+      unlabeledTaskName: l10n.workSheetUnlabeled,
+    );
+    if (planilla.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.workSheetTitle)]);
+      _styleHeaderRow(sheet(), sheet().maxRows - 1, 6, _excelBrown);
+      row([
+        TextCellValue(l10n.taskFieldLabel),
+        TextCellValue(l10n.pdfColCrop),
+        TextCellValue(l10n.reportPayrollWorker),
+        TextCellValue(l10n.reportPayrollDays),
+        TextCellValue(l10n.reportPayrollSubtotal),
+      ]);
+      _styleTableHeader(sheet(), sheet().maxRows - 1, 5);
+      final wsFrom = sheet().maxRows;
+      for (final r in planilla) {
+        row([
+          TextCellValue('${taskIcon(r.task)} ${taskLabel(r.task)}'),
+          TextCellValue(r.cropName),
+          r.workers > 0 ? IntCellValue(r.workers) : TextCellValue('—'),
+          r.days > 0 ? DoubleCellValue(r.days) : TextCellValue('—'),
+          r.isMixed
+              ? TextCellValue(byCurrencyText(
+                  r.byCurrency, (v, c) => formatMoneyLabel(v, c, locale: _locale)))
+              : DoubleCellValue(r.total),
+        ]);
+      }
+      _applyCurrencyFormat(sheet(), currency, 4, wsFrom, sheet().maxRows - 1);
+    }
+
+    // Si no se escribió ninguna fila la hoja no existe y no se toca.
+    final painted = created;
+    if (painted != null) {
+      painted.setColumnWidth(0, 42);
+      painted.setColumnWidth(1, 16);
+      painted.setColumnWidth(2, 22);
+      painted.setColumnWidth(3, 14);
+      painted.setColumnWidth(4, 14);
+      painted.setColumnWidth(5, 16);
+    }
+  }
+
   void _cropsSheet(
     Sheet sheet, {
     required List<Transaction> periodTx,
@@ -1019,12 +1113,12 @@ class ExcelExportService {
       TextCellValue(l10n.pdfColExpenses),
       TextCellValue(l10n.pdfColIncomes),
       TextCellValue(l10n.pdfColResult),
-      TextCellValue(l10n.pdfColRoi),
+      TextCellValue(l10n.pdfColMargin),
     ]);
     _styleTableHeader(sheet, 0, 6);
     // Mismo criterio que la pantalla y el PDF ([cropBreakdownRows]):
     // moneda única → números de siempre; mezcla → cada monto con su
-    // código, sin resultado ni ROI, y una fila de aviso al final.
+    // código, sin resultado ni margen, y una fila de aviso al final.
     final breakdown = cropBreakdownRows(
       records: periodTx,
       crops: crops,
@@ -1062,21 +1156,27 @@ class ExcelExportService {
       }
       final exp = row.expensesTotal;
       final inc = row.incomesTotal;
-      final roi = exp <= 0
+      // Margen: de cada 100 vendidos, cuánto queda tras los gastos. Sin
+      // ventas o sin gastos no hay porcentaje que calcular (100% diría que
+      // producir fue gratis); la columna de resultado sigue mostrando la
+      // pérdida cuando la hay.
+      final margin = (exp <= 0 || inc <= 0)
           ? '—'
-          : '${(((inc - exp) / exp) * 100).toStringAsFixed(0)}%';
+          : '${(((inc - exp) / inc) * 100).toStringAsFixed(0)}%';
       sheet.appendRow([
         TextCellValue(row.name),
         IntCellValue(row.count),
         DoubleCellValue(exp),
         DoubleCellValue(inc),
         DoubleCellValue(inc - exp),
-        TextCellValue(roi),
+        TextCellValue(margin),
       ]);
-      // Colorear fila por ROI
-      final roiNum = roi == '—' ? 0.0 : double.tryParse(roi.replaceAll('%', '')) ?? 0;
-      if (roiNum != 0) {
-        final bgColor = roiNum > 0 ? _excelGreenSoft : _excelRedSoft;
+      // Colorear fila por margen
+      final marginNum = margin == '—'
+          ? 0.0
+          : double.tryParse(margin.replaceAll('%', '')) ?? 0;
+      if (marginNum != 0) {
+        final bgColor = marginNum > 0 ? _excelGreenSoft : _excelRedSoft;
         for (var c = 0; c < 6; c++) {
           sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r))
               .cellStyle = CellStyle(backgroundColorHex: bgColor);
@@ -1234,6 +1334,62 @@ class ExcelExportService {
     // Formato de moneda en columna monto
     _applyCurrencyFormat(sheet, currency, 6, startRow, r - 1);
 
+    // Cierre de la hoja: los mismos totales del Resumen, al pie del detalle.
+    // Con dos o más monedas no se inventa una cifra única (sumar pesos con
+    // dólares sería mentira): la columna Moneda deja cada movimiento en la
+    // suya y el Resumen ya muestra el desglose por moneda.
+    final codes = {for (final t in periodTx) t.currency};
+    if (periodTx.isNotEmpty && codes.length == 1) {
+      final inc = periodTx
+          .where((t) => !t.type.isExpense)
+          .fold<double>(0, (a, t) => a + t.amount);
+      final exp = periodTx
+          .where((t) => t.type.isExpense)
+          .fold<double>(0, (a, t) => a + t.amount);
+      sheet.appendRow([null]);
+      final firstTotal = sheet.maxRows;
+      for (final t in [
+        (l10n.excelTotalIncomes, inc),
+        (l10n.excelTotalExpenses, -exp),
+        (l10n.excelTotalResult, inc - exp),
+      ]) {
+        sheet.appendRow([
+          TextCellValue(t.$1),
+          null,
+          null,
+          null,
+          null,
+          TextCellValue(codes.first),
+          DoubleCellValue(t.$2),
+        ]);
+      }
+      final info = currencyInfo(codes.first);
+      final fmt = info.decimals > 0
+          ? '#,##0.${'0' * info.decimals}'
+          : '#,##0';
+      final totalStyle = CellStyle(
+        backgroundColorHex: _excelBrown,
+        fontColorHex: _excelWhite,
+        bold: true,
+        fontSize: 10,
+      );
+      final totalMoneyStyle = CellStyle(
+        backgroundColorHex: _excelBrown,
+        fontColorHex: _excelWhite,
+        bold: true,
+        fontSize: 10,
+        numberFormat: NumFormat.custom(formatCode: fmt),
+      );
+      for (var rowIdx = firstTotal; rowIdx < firstTotal + 3; rowIdx++) {
+        for (var c = 0; c < 7; c++) {
+          sheet
+              .cell(CellIndex.indexByColumnRow(
+                  columnIndex: c, rowIndex: rowIdx))
+              .cellStyle = c == 6 ? totalMoneyStyle : totalStyle;
+        }
+      }
+    }
+
     for (var i = 0; i < 12; i++) {
       sheet.setColumnWidth(i, i == 3 ? 40 : (i == 5 ? 10 : 18));
     }
@@ -1261,6 +1417,11 @@ class ExcelExportService {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
     final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final cropById = {for (final c in crops) c.id: c};
+    // El gasto del cultivo con la misma atribución de «Por cultivo»: lo propio
+    // más la parte del lote que le toca por área. Antes acá se contaba solo el
+    // gasto directo, así que la misma hoja decía 883,62/kg mientras la fila
+    // del cultivo mostraba el gasto repartido.
+    final shares = cropExpenseShares(records: periodTx, crops: crops);
 
     row([TextCellValue(l10n.reportHarvestSection)]);
     if (periodHarvests.isEmpty) {
@@ -1338,7 +1499,7 @@ class ExcelExportService {
       if (crop == null) continue;
       final cropHarvests =
           periodHarvests.where((h) => h.cropId == crop.id).toList();
-      final cropExpenses = cropExpensesOf(periodTx, crop.id);
+      final cropExpenses = shares.of(crop.id);
       final hasResiembra = sowings.any(
           (s) => s.cropId == crop.id && s.kind == SowingKind.resiembra);
       // Monedas de los montos del cultivo: con dos o más no hay ni costo

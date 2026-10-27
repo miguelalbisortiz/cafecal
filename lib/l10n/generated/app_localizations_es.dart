@@ -1150,22 +1150,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get glossaryExpenseDef => 'Lo que pagaste para producir o mantener la finca. Si es de un cultivo, asígnalo.';
 
   @override
-  String get glossaryRoiTerm => 'ROI (Retorno de la Inversión)';
-
-  @override
-  String get glossaryRoiDef => 'Mide cuánto recuperas por cada 100 invertidos en un cultivo. Se calcula como (Ingresos - Gastos) ÷ Gastos. Un ROI negativo significa que el cultivo gasta más de lo que recupera: por ejemplo, ROI -70% quiere decir que por cada 100 invertidos solo vuelven 30.';
-
-  @override
   String get glossaryBalanceTerm => 'Balance / Resultado';
 
   @override
   String get glossaryBalanceDef => 'Es la resta de Ingresos menos Gastos en un período. Si el resultado es positivo tienes ganancia; si es negativo, pérdida.';
 
   @override
-  String get glossaryMarginTerm => 'Margen sobre ventas';
+  String get glossaryMarginTerm => 'Margen';
 
   @override
-  String get glossaryMarginDef => 'De cada 100 que vendes, cuánto queda como ganancia después de cubrir los gastos. Un margen del 20% significa que por cada 100 vendidos quedan 20.';
+  String get glossaryMarginDef => 'De cada 100 que vendes, cuánto queda después de cubrir los gastos. Se calcula como (Ingresos - Gastos) ÷ Ingresos: si vendes 100 y gastas 40, el margen es 60%. Un margen negativo significa que gastas más de lo que vendes.';
 
   @override
   String get glossaryRatioTerm => 'Gastos vs ingresos';
@@ -1246,7 +1240,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get glossarySoldVsHarvestedDef => 'Compara los kilos que vendiste con los que cosechaste en el mismo período. Si vendiste más, suele ser una cosecha de meses anteriores o una cosecha sin registrar.';
 
   @override
-  String get glossaryRoiTooltip => '¿Qué significa ROI?';
+  String get glossaryMarginTooltip => '¿Qué significa margen?';
 
   @override
   String get authSubtitleSignup => 'Crea tu cuenta para llevar tus finanzas';
@@ -2060,6 +2054,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ratioLabel => 'Gastos vs ingresos';
 
   @override
+  String comparisonTitle(String previous) {
+    return 'Comparado con $previous';
+  }
+
+  @override
+  String comparisonFromTo(String before, String after) {
+    return 'de $before a $after';
+  }
+
+  @override
+  String get comparisonPreviousWeek => 'la semana anterior';
+
+  @override
+  String get comparisonPreviousMonth => 'el mes anterior';
+
+  @override
+  String get comparisonPreviousYear => 'el año anterior';
+
+  @override
+  String get comparisonPreviousSameStretch => 'el mismo tramo del año anterior';
+
+  @override
+  String get comparisonPreviousColumn => 'Anterior';
+
+  @override
+  String get comparisonCurrentColumn => 'Actual';
+
+  @override
+  String get comparisonChangeColumn => 'Cambio';
+
+  @override
   String get metricMarginGood => 'Buen margen: te quedan \$20 o más de cada \$100 vendidos.';
 
   @override
@@ -2157,7 +2182,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropBreakdownSummaryR => 'Resultado';
 
   @override
-  String get cropBreakdownRoiHint => 'Cómo leer el ROI: por cada \$1 invertido recuperas la ganancia más el capital. Ej.: ROI 516% → por cada \$1 vuelven \$6,16 (5,16 de ganancia + 1 del capital).';
+  String cropMarginBadge(String value) {
+    return 'Margen $value';
+  }
+
+  @override
+  String get cropBreakdownMarginHint => 'Cómo leer el margen: es el porcentaje de lo que vendes que te queda después de cubrir los gastos. Ej.: si vendes 100 y gastas 40, el margen es 60%.';
 
   @override
   String get noCropData => 'Sin datos de cultivos en el período.';
@@ -2242,7 +2272,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cropMixedCurrencyNote(int count) {
-    return 'Este cultivo está en $count monedas: cada moneda va por separado y no se calcula el ROI.';
+    return 'Este cultivo está en $count monedas: cada moneda va por separado y no se calcula el margen.';
   }
 
   @override
@@ -2508,9 +2538,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String alertDeficitNoCropTitle(String roi) {
-    return 'Gastos sin cultivo asignado no se recuperan (ROI $roi)';
-  }
+  String get alertDeficitNoCropTitle => 'Gastos sin cultivo asignado no se recuperan';
 
   @override
   String alertDeficitNoCropMessage(String count, String spent, String sold, String recovery) {
@@ -2523,8 +2551,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String alertDeficitTitle(String crop, String roi) {
-    return '$crop está perdiendo dinero (ROI $roi)';
+  String alertDeficitTitle(String crop) {
+    return '$crop está perdiendo dinero';
   }
 
   @override
@@ -2570,7 +2598,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get pdfRoiFootnote => 'ROI = (Ingresos − Gastos) / Gastos. Negativo > 30% sugiere revisar el cultivo.';
+  String get pdfMarginFootnote => 'Margen = (Ingresos − Gastos) / Ingresos. Un margen negativo sugiere revisar el cultivo.';
 
   @override
   String get pdfColCrop => 'Cultivo';
@@ -2588,7 +2616,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdfColResult => 'Resultado';
 
   @override
-  String get pdfColRoi => 'ROI';
+  String get pdfColMargin => 'Margen';
 
   @override
   String get pdfFileNamePrefix => 'reporte';
@@ -2604,6 +2632,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get excelSheetHarvests => 'Cosechas';
+
+  @override
+  String get excelSheetPayrollCash => 'Nómina y caja';
+
+  @override
+  String get excelTotalIncomes => 'Total ingresos';
+
+  @override
+  String get excelTotalExpenses => 'Total gastos';
+
+  @override
+  String get excelTotalResult => 'Resultado';
 
   @override
   String get pdfColDate => 'Fecha';

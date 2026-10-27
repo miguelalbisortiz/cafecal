@@ -30,6 +30,7 @@ Transaction _txn({
   required DateTime date,
   String category = 'venta',
   String? cropId,
+  String? terrenoId,
   bool deleted = false,
 }) =>
     Transaction(
@@ -40,6 +41,7 @@ Transaction _txn({
       date: date,
       createdAt: DateTime(2026, 1, 1),
       cropId: cropId,
+      terrenoId: terrenoId,
       deleted: deleted,
     );
 
@@ -91,9 +93,10 @@ void main() {
       excel = Excel.decodeBytes(bytes);
     });
 
-    test('produce 3 hojas', () {
-      expect(excel.tables.keys,
-          containsAll(['Resumen', 'Por cultivo', 'Movimientos']));
+    test('las hojas salen en orden y sin la de nómina si no hay nada que contar',
+        () {
+      expect(excel.tables.keys.toList(),
+          ['Resumen', 'Por cultivo', 'Movimientos', 'Cosechas']);
     });
 
     test('resumen contiene balance correcto (5000−2000 = 3000)', () {
@@ -116,14 +119,15 @@ void main() {
       expect(cv(ratio[1]), '40%');
     });
 
-    test('crops sheet tiene ROI correcto y excluye borrados', () {
+    test('por cultivo: la columna es margen y excluye borrados', () {
       final rows = excel.tables['Por cultivo']!.rows;
+      expect(cv(rows[0][5]), 'Margen');
       final cafeRow = rows.firstWhere(
           (r) => (cv(r[0])?.toString() ?? '').contains('Café'));
       // 2 movimientos visibles
       expect(cv(cafeRow[1]), 2);
-      // ROI (5000−2000)/2000 = 150%
-      expect(cv(cafeRow[5]).toString(), contains('150%'));
+      // Margen (5000−2000)/5000 = 60%: de cada 100 vendidos quedan 60.
+      expect(cv(cafeRow[5]), '60%');
       // Plátano sin datos → sin fila
       expect(
           rows.any((r) =>
@@ -133,8 +137,8 @@ void main() {
 
     test('movements excluye borrados y monto negativo para gasto', () async {
       final rows = excel.tables['Movimientos']!.rows;
-      // 1 header + 2 datos visibles
-      expect(rows.length, 3);
+      // 1 encabezado + 2 datos visibles + 1 en blanco + 3 totales
+      expect(rows.length, 7);
 
       final expRow = rows.firstWhere(
           (r) => (cv(r[1])?.toString() ?? '') == 'Gasto');
@@ -146,9 +150,24 @@ void main() {
           (r) => (cv(r[1])?.toString() ?? '') == 'Ingreso');
       expect(cv(incRow[6]), 5000.0);
     });
+
+    // Sin totales la hoja obliga a sumar a mano para saber cuánto entró y
+    // cuánto salió: los mismos números del Resumen, pero al pie del detalle.
+    test('movimientos cierra con totales de ingresos, gastos y resultado', () {
+      final rows = excel.tables['Movimientos']!.rows;
+      final incTotal = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Total ingresos');
+      expect(cv(incTotal[6]), 5000.0);
+      final expTotal = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Total gastos');
+      expect(cv(expTotal[6]), -2000.0);
+      final result = rows.firstWhere(
+          (r) => (cv(r[0])?.toString() ?? '') == 'Resultado');
+      expect(cv(result[6]), 3000.0);
+    });
   });
 
-  group('Resumen — secciones Nómina y Caja menor', () {
+  group('Nómina y caja — hoja propia', () {
     // Jornales de septiembre: Juan 8 días, María 6 días a $50.000/día.
     // Extras: energía $100.000. Fertilizante NO descuenta de caja.
     final laborTxns = [
@@ -206,8 +225,36 @@ void main() {
         periodName: 'Septiembre 2026',
         l10n: _es,
       ));
-      return Excel.decodeBytes(bytes).tables['Resumen']!.rows;
+      return Excel.decodeBytes(bytes).tables['Nómina y caja']!.rows;
     }
+
+    // La hoja de Resumen responde «¿cómo le fue al período?». La nómina y la
+    // caja responden otra pregunta y antes estaban apiladas debajo del P&L:
+    // siete tablas en una hoja que nadie terminaba de leer.
+    test('el Resumen ya no carga nómina ni caja', () {
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: const FarmSettings(
+            farmName: 'Finca Test', currency: 'COP', cajaMenorMensual: 800000),
+        transactions: laborTxns,
+        crops: _crops,
+        year: 2026,
+        month: 9,
+        period: ReportPeriod.month,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      ));
+      final excel = Excel.decodeBytes(bytes);
+      final resumen = excel.tables['Resumen']!.rows;
+      final texto = resumen
+          .expand((r) => r)
+          .map((c) => cv(c)?.toString() ?? '')
+          .join(' | ');
+      expect(texto, isNot(contains('Nómina del período')));
+      expect(texto, isNot(contains('Caja menor')));
+      expect(texto, isNot(contains('Presupuesto de obra')));
+      // Nómina y caja va al final: primero el P&L, después el detalle.
+      expect(excel.tables.keys.toList().last, 'Nómina y caja');
+    });
 
     test('nómina: trabajadores, días, subtotal, total y empleados distintos',
         () {
@@ -291,7 +338,7 @@ void main() {
         periodName: 'Septiembre 2026',
         l10n: _es,
       ));
-      final rows = Excel.decodeBytes(bytes).tables['Resumen']!.rows;
+      final rows = Excel.decodeBytes(bytes).tables['Nómina y caja']!.rows;
       expect(
           rows.any((r) => r.any(
               (c) => (cv(c)?.toString() ?? '').contains('Nómina del período'))),
@@ -737,11 +784,12 @@ void main() {
     List<List<Data?>> cosechasCon({
       required List<Transaction> txns,
       List<Harvest> harvests = const [],
+      List<Crop>? crops,
     }) =>
         Excel.decodeBytes(Uint8List.fromList(service.buildReport(
           settings: _settings,
           transactions: txns,
-          crops: _crops,
+          crops: crops ?? _crops,
           year: 2026,
           month: 9,
           period: ReportPeriod.month,
@@ -779,6 +827,46 @@ void main() {
       expect(cv(cost[1]), 200.0,
           reason: '20.000 de gasto ÷ 100 kg; los 100.000 de la venta no son '
               'costo');
+    });
+
+    test('el costo por kilo incluye la parte del lote', () {
+      // Dos cultivos en el mismo lote: 3 ha de café y 1 ha de plátano. Un
+      // gasto del lote sin cultivo (30.000) se reparte 75/25. El costo por
+      // kilo del café tiene que decir lo mismo que su fila en «Por cultivo»:
+      // 20.000 propios + 22.500 del lote = 42.500 ÷ 100 kg.
+      final rows = cosechasCon(
+        crops: const [
+          Crop(id: 'cafe', name: 'Café', terrenoId: 'lote1', areaHa: 3),
+          Crop(id: 'platano', name: 'Plátano', terrenoId: 'lote1', areaHa: 1),
+        ],
+        txns: [
+          _txn(
+              type: TransactionType.expense,
+              amount: 20000,
+              date: DateTime(2026, 9, 6),
+              category: 'mano_obra',
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.expense,
+              amount: 30000,
+              date: DateTime(2026, 9, 7),
+              category: 'energia',
+              terrenoId: 'lote1'),
+        ],
+        harvests: [
+          Harvest(
+              id: 'h1',
+              cropId: 'cafe',
+              date: DateTime(2026, 9, 5),
+              amount: 100,
+              unit: 'kg'),
+        ],
+      );
+      final cost = rows.firstWhere(
+          (r) => cv(r[0]) == 'Café — ${_es.reportTotalCostPerKg}');
+      expect(cv(cost[1]), 425.0,
+          reason: '42.500 de gasto atribuido ÷ 100 kg; antes solo contaba '
+              'los 20.000 propios y el mismo café costaba 200/kg');
     });
 
     test('sin gasto de recogida la fila no sale (nunca un 0)', () {

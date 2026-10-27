@@ -26,7 +26,6 @@ void main() {
     'metricRatioHealthy',
     'metricRatioHigh',
     'metricRatioCritical',
-    'cropBreakdownRoiHint',
   };
 
   test('ningún texto cita un monto con el símbolo', () {

@@ -110,7 +110,7 @@ void main() {
       expect(t0(cafe[3]), contains('COP'));
       expect(t0(cafe[3]), contains('EUR'), reason: 'ingresos moneda por moneda');
       expect(cv(cafe[4]), '—', reason: 'sin resultado que cruce monedas');
-      expect(cv(cafe[5]), '—', reason: 'sin ROI que cruce monedas');
+      expect(cv(cafe[5]), '—', reason: 'sin margen que cruce monedas');
       expect(
         rows.any((r) => t0(r[0]) == es.currencyMixedByCurrencyNote(2)),
         isTrue,
@@ -118,7 +118,7 @@ void main() {
       );
     });
 
-    test('fila de moneda única: números y ROI como siempre', () {
+    test('fila de moneda única: números y margen como siempre', () {
       final rows = excelDe(txns: [
         txn(
             type: TransactionType.income,
@@ -137,7 +137,7 @@ void main() {
       expect(cv(cafe[2]), 2000.0, reason: 'celda numérica, sin código');
       expect(cv(cafe[3]), 5000.0);
       expect(cv(cafe[4]), 3000.0, reason: 'el resultado de siempre');
-      expect(t0(cafe[5]), contains('150%'));
+      expect(t0(cafe[5]), contains('60%'));
       expect(
         rows.any((r) => t0(r[0]) == es.currencyMixedByCurrencyNote(2)),
         isFalse,
@@ -145,7 +145,7 @@ void main() {
     });
   });
 
-  group('Excel — Resumen: nómina', () {
+  group('Excel — Nómina y caja: nómina', () {
     test('trabajador y total mixtos salen por moneda con aviso', () {
       final rows = excelDe(txns: [
         txn(
@@ -161,7 +161,7 @@ void main() {
             category: 'mano_obra',
             provider: 'Juan',
             date: DateTime(2026, 9, 6)),
-      ]).tables['Resumen']!.rows;
+      ]).tables['Nómina y caja']!.rows;
 
       final juan = rows.firstWhere((r) => t0(r[0]) == 'Juan');
       expect(t0(juan[2]), contains('COP'));
@@ -185,7 +185,7 @@ void main() {
             category: 'mano_obra',
             provider: 'Juan',
             date: DateTime(2026, 9, 5)),
-      ]).tables['Resumen']!.rows;
+      ]).tables['Nómina y caja']!.rows;
 
       final juan = rows.firstWhere((r) => t0(r[0]) == 'Juan');
       expect(cv(juan[2]), 400000.0);
@@ -198,7 +198,7 @@ void main() {
     });
   });
 
-  group('Excel — Resumen: caja menor', () {
+  group('Excel — Nómina y caja: caja menor', () {
     test('mes mixto: montos por moneda y saldo en guion', () {
       final rows = excelDe(
         caja: 800000,
@@ -215,7 +215,7 @@ void main() {
               category: 'energia',
               date: DateTime(2026, 9, 6)),
         ],
-      ).tables['Resumen']!.rows;
+      ).tables['Nómina y caja']!.rows;
 
       final sep = rows.firstWhere((r) => t0(r[0]) == es.monthFull[8]);
       expect(cv(sep[1]), 800000.0, reason: 'el presupuesto tiene su moneda');
@@ -246,7 +246,7 @@ void main() {
               category: 'energia',
               date: DateTime(2026, 9, 6)),
         ],
-      ).tables['Resumen']!.rows;
+      ).tables['Nómina y caja']!.rows;
 
       final sep = rows.firstWhere((r) => t0(r[0]) == es.monthFull[8]);
       expect(cv(sep[2]), 400000.0);

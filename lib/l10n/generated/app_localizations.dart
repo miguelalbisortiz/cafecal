@@ -2177,18 +2177,6 @@ abstract class AppLocalizations {
   /// **'Lo que pagaste para producir o mantener la finca. Si es de un cultivo, asígnalo.'**
   String get glossaryExpenseDef;
 
-  /// No description provided for @glossaryRoiTerm.
-  ///
-  /// In es, this message translates to:
-  /// **'ROI (Retorno de la Inversión)'**
-  String get glossaryRoiTerm;
-
-  /// No description provided for @glossaryRoiDef.
-  ///
-  /// In es, this message translates to:
-  /// **'Mide cuánto recuperas por cada 100 invertidos en un cultivo. Se calcula como (Ingresos - Gastos) ÷ Gastos. Un ROI negativo significa que el cultivo gasta más de lo que recupera: por ejemplo, ROI -70% quiere decir que por cada 100 invertidos solo vuelven 30.'**
-  String get glossaryRoiDef;
-
   /// No description provided for @glossaryBalanceTerm.
   ///
   /// In es, this message translates to:
@@ -2204,13 +2192,13 @@ abstract class AppLocalizations {
   /// No description provided for @glossaryMarginTerm.
   ///
   /// In es, this message translates to:
-  /// **'Margen sobre ventas'**
+  /// **'Margen'**
   String get glossaryMarginTerm;
 
   /// No description provided for @glossaryMarginDef.
   ///
   /// In es, this message translates to:
-  /// **'De cada 100 que vendes, cuánto queda como ganancia después de cubrir los gastos. Un margen del 20% significa que por cada 100 vendidos quedan 20.'**
+  /// **'De cada 100 que vendes, cuánto queda después de cubrir los gastos. Se calcula como (Ingresos - Gastos) ÷ Ingresos: si vendes 100 y gastas 40, el margen es 60%. Un margen negativo significa que gastas más de lo que vendes.'**
   String get glossaryMarginDef;
 
   /// No description provided for @glossaryRatioTerm.
@@ -2369,11 +2357,11 @@ abstract class AppLocalizations {
   /// **'Compara los kilos que vendiste con los que cosechaste en el mismo período. Si vendiste más, suele ser una cosecha de meses anteriores o una cosecha sin registrar.'**
   String get glossarySoldVsHarvestedDef;
 
-  /// No description provided for @glossaryRoiTooltip.
+  /// No description provided for @glossaryMarginTooltip.
   ///
   /// In es, this message translates to:
-  /// **'¿Qué significa ROI?'**
-  String get glossaryRoiTooltip;
+  /// **'¿Qué significa margen?'**
+  String get glossaryMarginTooltip;
 
   /// No description provided for @authSubtitleSignup.
   ///
@@ -3857,6 +3845,60 @@ abstract class AppLocalizations {
   /// **'Gastos vs ingresos'**
   String get ratioLabel;
 
+  /// No description provided for @comparisonTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Comparado con {previous}'**
+  String comparisonTitle(String previous);
+
+  /// No description provided for @comparisonFromTo.
+  ///
+  /// In es, this message translates to:
+  /// **'de {before} a {after}'**
+  String comparisonFromTo(String before, String after);
+
+  /// No description provided for @comparisonPreviousWeek.
+  ///
+  /// In es, this message translates to:
+  /// **'la semana anterior'**
+  String get comparisonPreviousWeek;
+
+  /// No description provided for @comparisonPreviousMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'el mes anterior'**
+  String get comparisonPreviousMonth;
+
+  /// No description provided for @comparisonPreviousYear.
+  ///
+  /// In es, this message translates to:
+  /// **'el año anterior'**
+  String get comparisonPreviousYear;
+
+  /// No description provided for @comparisonPreviousSameStretch.
+  ///
+  /// In es, this message translates to:
+  /// **'el mismo tramo del año anterior'**
+  String get comparisonPreviousSameStretch;
+
+  /// No description provided for @comparisonPreviousColumn.
+  ///
+  /// In es, this message translates to:
+  /// **'Anterior'**
+  String get comparisonPreviousColumn;
+
+  /// No description provided for @comparisonCurrentColumn.
+  ///
+  /// In es, this message translates to:
+  /// **'Actual'**
+  String get comparisonCurrentColumn;
+
+  /// No description provided for @comparisonChangeColumn.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambio'**
+  String get comparisonChangeColumn;
+
   /// No description provided for @metricMarginGood.
   ///
   /// In es, this message translates to:
@@ -4031,11 +4073,17 @@ abstract class AppLocalizations {
   /// **'Resultado'**
   String get cropBreakdownSummaryR;
 
-  /// No description provided for @cropBreakdownRoiHint.
+  /// Cifra del margen de un cultivo: porcentaje de lo vendido que queda tras los gastos.
   ///
   /// In es, this message translates to:
-  /// **'Cómo leer el ROI: por cada \$1 invertido recuperas la ganancia más el capital. Ej.: ROI 516% → por cada \$1 vuelven \$6,16 (5,16 de ganancia + 1 del capital).'**
-  String get cropBreakdownRoiHint;
+  /// **'Margen {value}'**
+  String cropMarginBadge(String value);
+
+  /// No description provided for @cropBreakdownMarginHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Cómo leer el margen: es el porcentaje de lo que vendes que te queda después de cubrir los gastos. Ej.: si vendes 100 y gastas 40, el margen es 60%.'**
+  String get cropBreakdownMarginHint;
 
   /// No description provided for @noCropData.
   ///
@@ -4166,7 +4214,7 @@ abstract class AppLocalizations {
   /// Aviso en el desglose por cultivo cuando un cultivo tiene movimientos en más de una moneda
   ///
   /// In es, this message translates to:
-  /// **'Este cultivo está en {count} monedas: cada moneda va por separado y no se calcula el ROI.'**
+  /// **'Este cultivo está en {count} monedas: cada moneda va por separado y no se calcula el margen.'**
   String cropMixedCurrencyNote(int count);
 
   /// Aviso genérico cuando hay moneda mixta y cada cifra se lista por moneda (caja, planilla, exportaciones)
@@ -4568,8 +4616,8 @@ abstract class AppLocalizations {
   /// No description provided for @alertDeficitNoCropTitle.
   ///
   /// In es, this message translates to:
-  /// **'Gastos sin cultivo asignado no se recuperan (ROI {roi})'**
-  String alertDeficitNoCropTitle(String roi);
+  /// **'Gastos sin cultivo asignado no se recuperan'**
+  String get alertDeficitNoCropTitle;
 
   /// El orden de los 'placeholders' es el orden de los argumentos; 'count' va primero porque así aparece en el texto. Sin declararlo, el generador lo manda al final y las cifras caen en la casilla equivocada.
   ///
@@ -4586,8 +4634,8 @@ abstract class AppLocalizations {
   /// No description provided for @alertDeficitTitle.
   ///
   /// In es, this message translates to:
-  /// **'{crop} está perdiendo dinero (ROI {roi})'**
-  String alertDeficitTitle(String crop, String roi);
+  /// **'{crop} está perdiendo dinero'**
+  String alertDeficitTitle(String crop);
 
   /// No description provided for @alertDeficitMessage.
   ///
@@ -4649,11 +4697,11 @@ abstract class AppLocalizations {
   /// **'Anexo — Acumulado del año {year}'**
   String pdfYearAnnex(int year);
 
-  /// No description provided for @pdfRoiFootnote.
+  /// No description provided for @pdfMarginFootnote.
   ///
   /// In es, this message translates to:
-  /// **'ROI = (Ingresos − Gastos) / Gastos. Negativo > 30% sugiere revisar el cultivo.'**
-  String get pdfRoiFootnote;
+  /// **'Margen = (Ingresos − Gastos) / Ingresos. Un margen negativo sugiere revisar el cultivo.'**
+  String get pdfMarginFootnote;
 
   /// No description provided for @pdfColCrop.
   ///
@@ -4685,11 +4733,11 @@ abstract class AppLocalizations {
   /// **'Resultado'**
   String get pdfColResult;
 
-  /// No description provided for @pdfColRoi.
+  /// No description provided for @pdfColMargin.
   ///
   /// In es, this message translates to:
-  /// **'ROI'**
-  String get pdfColRoi;
+  /// **'Margen'**
+  String get pdfColMargin;
 
   /// No description provided for @pdfFileNamePrefix.
   ///
@@ -4720,6 +4768,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cosechas'**
   String get excelSheetHarvests;
+
+  /// No description provided for @excelSheetPayrollCash.
+  ///
+  /// In es, this message translates to:
+  /// **'Nómina y caja'**
+  String get excelSheetPayrollCash;
+
+  /// No description provided for @excelTotalIncomes.
+  ///
+  /// In es, this message translates to:
+  /// **'Total ingresos'**
+  String get excelTotalIncomes;
+
+  /// No description provided for @excelTotalExpenses.
+  ///
+  /// In es, this message translates to:
+  /// **'Total gastos'**
+  String get excelTotalExpenses;
+
+  /// No description provided for @excelTotalResult.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado'**
+  String get excelTotalResult;
 
   /// No description provided for @pdfColDate.
   ///
