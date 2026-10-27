@@ -169,3 +169,8 @@ Last updated: 2026-10-26
 - Preference: los datos de prueba se cargan por **SQL con ids fijos** y se corrigen **desde la app** cuando el flujo lo permite: el jornal mal asignado se arregló en Historial, no con un `update` | carga de datos | 2026-10-26
 - Preference: los hallazgos de una prueba **no se arreglan en caliente**: se anotan con severidad en el informe y se deciden después, con test en rojo | cierre de la prueba | 2026-10-26
 - Preference: los datos de prueba **se quedan** en la cuenta hasta que él diga; se limpian con un script, no a mano | cierre de la prueba | 2026-10-26
+- Preference: el Excel del reporte se lee por **pregunta**: una hoja por pregunta (Resumen, Por cultivo, Movimientos, Cosechas, Nómina y caja), no una hoja con todo | estructura del Excel | 2026-10-26
+- Preference: el nombre de una cifra dice **qué se gana**, no la sigla: ROI pasó a Margen con la fórmula a la vista | lenguaje del reporte | 2026-10-26
+- Preference: cuando el período anterior **no tiene datos**, el comparativo no se pinta —ni ceros ni «sin datos»—: `null` es oculto | comparativo de período | 2026-10-26
+- Constraint: el **Roboto del PDF no trae el glifo U+2192** (`→`): en copy se usa «de X a Y» | comparativo de período | 2026-10-26
+- Preference: el costo por kilo usa el **gasto repartido**, la misma atribución de «Por cultivo», para que las dos cifras no se contradigan | costo/kg | 2026-10-26
