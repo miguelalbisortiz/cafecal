@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Mi Cafetal';
+  String get appTitle => 'Balance';
 
   @override
-  String get appTitleFull => 'Mi Cafetal App';
+  String get appTitleFull => 'Balance';
 
   @override
   String get tabOverview => 'Overview';
@@ -110,7 +110,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sowingNewCropTitle => 'New crop';
 
   @override
-  String get helpStartTitle => 'Learn to run Mi Cafetal';
+  String get helpStartTitle => 'Learn to run Balance';
 
   @override
   String get helpTabStart => 'Start';
@@ -2228,7 +2228,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pdfShareSubject(int year) {
-    return 'Mi Cafetal — Report $year';
+    return 'Balance - Report $year';
   }
 
   @override
@@ -2937,7 +2937,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupRestore => 'Restore backup';
 
   @override
-  String get backupShareSubject => 'Mi Cafetal — Data backup';
+  String get backupShareSubject => 'Balance - Data backup';
 
   @override
   String get backupExportDoneMsg => 'Backup ready to share.';
@@ -3020,7 +3020,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupInvalidFile => 'That file is not a valid backup.';
 
   @override
-  String get backupUnknownFormat => 'That file is not a Mi Cafetal backup.';
+  String get backupUnknownFormat => 'That file is not a Balance backup.';
 
   @override
   String get backupUnsupportedVersion => 'This backup was made with a newer version of the app. Update the app to restore it.';

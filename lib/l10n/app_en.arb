@@ -1,8 +1,8 @@
 {
   "@@locale": "en",
 
-  "appTitle": "Mi Cafetal",
-  "appTitleFull": "Mi Cafetal App",
+  "appTitle": "Balance",
+  "appTitleFull": "Balance",
 
   "tabOverview": "Overview",
   "tabRegister": "Record",
@@ -40,7 +40,7 @@
   "sowingNewCropOption": "+ Create new crop…",
   "sowingNewCropTitle": "New crop",
 
-  "helpStartTitle": "Learn to run Mi Cafetal",
+  "helpStartTitle": "Learn to run Balance",
   "helpTabStart": "Start",
   "helpTabRoutine": "Routine",
   "helpTabUnderstand": "Understand",
@@ -898,7 +898,7 @@
     "description": "First export while offline: the PDF/Excel chunk is not on the device yet"
   },
   "exportNeedsNetworkOnce": "The first time, you need a connection to prepare the export. Check your connection and try again.",
-  "pdfShareSubject": "Mi Cafetal — Report {year}",
+  "pdfShareSubject": "Balance - Report {year}",
 
   "farmNameLabel": "Farm name",
   "currencyLabel": "Currency",
@@ -1245,7 +1245,7 @@
   "backupSectionSubtitle": "Save all your farm data to a file and load it back whenever you need it.",
   "backupExport": "Export backup",
   "backupRestore": "Restore backup",
-  "backupShareSubject": "Mi Cafetal — Data backup",
+  "backupShareSubject": "Balance - Data backup",
   "backupExportDoneMsg": "Backup ready to share.",
   "backupConfirmTitle": "Restore this backup?",
   "@backupConfirmMessage": {
@@ -1292,7 +1292,7 @@
   },
   "backupOrphans": "{count, plural, one{{count} item was not linked to its crop or harvest} other{{count} items were not linked to their crops or harvests}}",
   "backupInvalidFile": "That file is not a valid backup.",
-  "backupUnknownFormat": "That file is not a Mi Cafetal backup.",
+  "backupUnknownFormat": "That file is not a Balance backup.",
   "backupUnsupportedVersion": "This backup was made with a newer version of the app. Update the app to restore it.",
   "backupRestoreError": "The backup could not be restored. Please try again.",
   "terrenosSection": "Your plots",

@@ -1,8 +1,8 @@
 {
   "@@locale": "es",
 
-  "appTitle": "Mi Cafetal",
-  "appTitleFull": "Mi Cafetal App",
+  "appTitle": "Balance",
+  "appTitleFull": "Balance",
 
   "tabOverview": "Resumen",
   "tabRegister": "Registrar",
@@ -40,7 +40,7 @@
   "sowingNewCropOption": "+ Crear nuevo cultivo…",
   "sowingNewCropTitle": "Nuevo cultivo",
 
-  "helpStartTitle": "Aprende a operar Mi Cafetal",
+  "helpStartTitle": "Aprende a operar Balance",
   "helpTabStart": "Empezar",
   "helpTabRoutine": "Rutina",
   "helpTabUnderstand": "Entender",
@@ -967,7 +967,7 @@
   "@pdfShareSubject": {
     "placeholders": { "year": { "type": "int" } }
   },
-  "pdfShareSubject": "Mi Cafetal — Reporte {year}",
+  "pdfShareSubject": "Balance - Reporte {year}",
 
   "farmNameLabel": "Nombre de la finca",
   "currencyLabel": "Moneda",
@@ -1446,7 +1446,7 @@
   "backupSectionSubtitle": "Guarda todos los datos de tu finca en un archivo y vuelve a cargarlos cuando quieras.",
   "backupExport": "Exportar respaldo",
   "backupRestore": "Restaurar respaldo",
-  "backupShareSubject": "Mi Cafetal — Respaldo de datos",
+  "backupShareSubject": "Balance - Respaldo de datos",
   "backupExportDoneMsg": "Respaldo listo para compartir.",
   "backupConfirmTitle": "¿Restaurar este respaldo?",
   "@backupConfirmMessage": {
@@ -1493,7 +1493,7 @@
   },
   "backupOrphans": "{count, plural, one{{count} dato quedó sin enlazar con su cultivo o cosecha} other{{count} datos quedaron sin enlazar con su cultivo o cosecha}}",
   "backupInvalidFile": "Ese archivo no es un respaldo válido.",
-  "backupUnknownFormat": "Ese archivo no es un respaldo de Mi Cafetal.",
+  "backupUnknownFormat": "Ese archivo no es un respaldo de Balance.",
   "backupUnsupportedVersion": "Este respaldo se hizo con una versión más nueva de la app. Actualiza la app para restaurarlo.",
   "backupRestoreError": "No se pudo restaurar el respaldo. Inténtalo de nuevo.",
   "terrenosSection": "Tus terrenos",

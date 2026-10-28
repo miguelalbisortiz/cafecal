@@ -1,11 +1,11 @@
 {
-    "name": "Mi Cafetal App",
-    "short_name": "Mi Cafetal",
+    "name": "Balance",
+    "short_name": "Balance",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F6F7F2",
     "theme_color": "#1F5E3F",
-    "description": "Control de gastos e ingresos para el cafetal - Mi Cafetal",
+    "description": "Control de gastos e ingresos para tu finca",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

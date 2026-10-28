@@ -190,7 +190,7 @@ class PdfExportService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(
-                'Mi Cafetal',
+                l10n.appTitle,
                 style: const pw.TextStyle(
                     fontSize: 8, color: PdfColors.grey500),
               ),

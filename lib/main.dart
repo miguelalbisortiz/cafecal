@@ -59,7 +59,7 @@ class MiCafetalApp extends StatelessWidget {
       ],
       child: Consumer<TransactionProvider>(
         builder: (context, tx, _) => MaterialApp(
-          title: 'Mi Cafetal',
+          title: 'Balance',
           debugShowCheckedModeBanner: false,
           locale: Locale(tx.settings.language),
           localizationsDelegates: AppLocalizations.localizationsDelegates,

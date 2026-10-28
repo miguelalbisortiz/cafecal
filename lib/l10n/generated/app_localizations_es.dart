@@ -9,10 +9,10 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Mi Cafetal';
+  String get appTitle => 'Balance';
 
   @override
-  String get appTitleFull => 'Mi Cafetal App';
+  String get appTitleFull => 'Balance';
 
   @override
   String get tabOverview => 'Resumen';
@@ -110,7 +110,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sowingNewCropTitle => 'Nuevo cultivo';
 
   @override
-  String get helpStartTitle => 'Aprende a operar Mi Cafetal';
+  String get helpStartTitle => 'Aprende a operar Balance';
 
   @override
   String get helpTabStart => 'Empezar';
@@ -2228,7 +2228,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String pdfShareSubject(int year) {
-    return 'Mi Cafetal — Reporte $year';
+    return 'Balance - Reporte $year';
   }
 
   @override
@@ -2937,7 +2937,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backupRestore => 'Restaurar respaldo';
 
   @override
-  String get backupShareSubject => 'Mi Cafetal — Respaldo de datos';
+  String get backupShareSubject => 'Balance - Respaldo de datos';
 
   @override
   String get backupExportDoneMsg => 'Respaldo listo para compartir.';
@@ -3020,7 +3020,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backupInvalidFile => 'Ese archivo no es un respaldo válido.';
 
   @override
-  String get backupUnknownFormat => 'Ese archivo no es un respaldo de Mi Cafetal.';
+  String get backupUnknownFormat => 'Ese archivo no es un respaldo de Balance.';
 
   @override
   String get backupUnsupportedVersion => 'Este respaldo se hizo con una versión más nueva de la app. Actualiza la app para restaurarlo.';

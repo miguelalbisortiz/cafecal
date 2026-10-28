@@ -98,13 +98,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In es, this message translates to:
-  /// **'Mi Cafetal'**
+  /// **'Balance'**
   String get appTitle;
 
   /// No description provided for @appTitleFull.
   ///
   /// In es, this message translates to:
-  /// **'Mi Cafetal App'**
+  /// **'Balance'**
   String get appTitleFull;
 
   /// No description provided for @tabOverview.
@@ -296,7 +296,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpStartTitle.
   ///
   /// In es, this message translates to:
-  /// **'Aprende a operar Mi Cafetal'**
+  /// **'Aprende a operar Balance'**
   String get helpStartTitle;
 
   /// No description provided for @helpTabStart.
@@ -4142,7 +4142,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfShareSubject.
   ///
   /// In es, this message translates to:
-  /// **'Mi Cafetal — Reporte {year}'**
+  /// **'Balance - Reporte {year}'**
   String pdfShareSubject(int year);
 
   /// No description provided for @farmNameLabel.
@@ -5294,7 +5294,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupShareSubject.
   ///
   /// In es, this message translates to:
-  /// **'Mi Cafetal — Respaldo de datos'**
+  /// **'Balance - Respaldo de datos'**
   String get backupShareSubject;
 
   /// No description provided for @backupExportDoneMsg.
@@ -5372,7 +5372,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupUnknownFormat.
   ///
   /// In es, this message translates to:
-  /// **'Ese archivo no es un respaldo de Mi Cafetal.'**
+  /// **'Ese archivo no es un respaldo de Balance.'**
   String get backupUnknownFormat;
 
   /// No description provided for @backupUnsupportedVersion.
