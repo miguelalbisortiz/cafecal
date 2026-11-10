@@ -2915,6 +2915,12 @@ abstract class AppLocalizations {
   /// **'Moneda'**
   String get excelColCurrency;
 
+  /// No description provided for @excelColTerreno.
+  ///
+  /// In es, this message translates to:
+  /// **'Terreno'**
+  String get excelColTerreno;
+
   /// No description provided for @excelColBalance.
   ///
   /// In es, this message translates to:
@@ -5614,6 +5620,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El gasto sirve a varios cultivos del mismo lote, como una limpieza compartida. Se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte.'**
   String get terrenoGroupHint;
+
+  /// No description provided for @excelSheetRawData.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos'**
+  String get excelSheetRawData;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

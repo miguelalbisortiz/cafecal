@@ -1533,6 +1533,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excelColCurrency => 'Currency';
 
   @override
+  String get excelColTerreno => 'Plot';
+
+  @override
   String get excelColBalance => 'Balance';
 
   @override
@@ -3167,4 +3170,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terrenoGroupHint => 'The expense serves several crops in the same plot, like shared weeding. It is split between them by hectares; if one is missing its area, it shows separately.';
+
+  @override
+  String get excelSheetRawData => 'Data';
 }

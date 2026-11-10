@@ -1533,6 +1533,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get excelColCurrency => 'Moneda';
 
   @override
+  String get excelColTerreno => 'Terreno';
+
+  @override
   String get excelColBalance => 'Balance';
 
   @override
@@ -3167,4 +3170,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get terrenoGroupHint => 'El gasto sirve a varios cultivos del mismo lote, como una limpieza compartida. Se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte.';
+
+  @override
+  String get excelSheetRawData => 'Datos';
 }

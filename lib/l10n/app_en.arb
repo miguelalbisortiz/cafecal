@@ -592,6 +592,7 @@
   "excelColClient": "Client",
   "excelColProvider": "Supplier",
   "excelColCurrency": "Currency",
+  "excelColTerreno": "Plot",
   "excelColBalance": "Balance",
   "excelMonthlyTitle": "Income and expenses by month",
   "excelCrossExpensesTitle": "Expenses by category and crop",
@@ -1396,5 +1397,6 @@
   "helpCropTerreno":
       "The plot where it is planted. You can leave it empty.",
   "terrenoGroupLabel": "Plots",
-  "terrenoGroupHint": "The expense serves several crops in the same plot, like shared weeding. It is split between them by hectares; if one is missing its area, it shows separately."
+  "terrenoGroupHint": "The expense serves several crops in the same plot, like shared weeding. It is split between them by hectares; if one is missing its area, it shows separately.",
+  "excelSheetRawData": "Data"
 }

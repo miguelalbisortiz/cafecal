@@ -96,7 +96,7 @@ void main() {
     test('las hojas salen en orden y sin la de nómina si no hay nada que contar',
         () {
       expect(excel.tables.keys.toList(),
-          ['Resumen', 'Por cultivo', 'Movimientos', 'Cosechas']);
+          ['Resumen', 'Por cultivo', 'Movimientos', 'Cosechas', 'Datos']);
     });
 
     test('resumen contiene balance correcto (5000−2000 = 3000)', () {
@@ -164,6 +164,74 @@ void main() {
       final result = rows.firstWhere(
           (r) => (cv(r[0])?.toString() ?? '') == 'Resultado');
       expect(cv(result[6]), 3000.0);
+    });
+
+    // La hoja «Datos»: cada movimiento del período sin agrupar, con el
+    // terreno del propio movimiento (o el de su cultivo) para poder filtrar.
+    test('datos: filas crudas, ordenadas por fecha, con terreno y signo', () {
+      final bytes = Uint8List.fromList(service.buildReport(
+        settings: _settings,
+        transactions: [
+          _txn(
+              type: TransactionType.expense,
+              amount: 2000,
+              date: DateTime(2026, 9, 5),
+              category: 'mano_obra',
+              cropId: 'cafe'),
+          _txn(
+              type: TransactionType.income,
+              amount: 5000,
+              date: DateTime(2026, 9, 3),
+              cropId: 'cafe'),
+          // Gasto «del lote»: terreno propio, no el del cultivo.
+          _txn(
+              type: TransactionType.expense,
+              amount: 800,
+              date: DateTime(2026, 9, 4),
+              category: 'mantenimiento',
+              terrenoId: 'lote1'),
+          // borrada → fuera.
+          _txn(
+              type: TransactionType.expense,
+              amount: 1000,
+              date: DateTime(2026, 9, 10),
+              deleted: true),
+        ],
+        crops: const [Crop(id: 'cafe', name: 'Café', terrenoId: 'finca1')],
+        terrenos: const [
+          Terreno(id: 'lote1', name: 'La Loma'),
+          Terreno(id: 'finca1', name: 'El Cañón'),
+        ],
+        year: 2026,
+        month: 9,
+        period: ReportPeriod.month,
+        periodName: 'Septiembre 2026',
+        l10n: _es,
+      ));
+      final datos = Excel.decodeBytes(bytes).tables['Datos']!;
+      final rows = datos.rows;
+
+      // Cabecera: la columna de terreno existe y está entre cultivo y moneda.
+      expect(cv(rows[0][5]), _es.excelColTerreno);
+      expect(cv(rows[0][6]), _es.excelColCurrency);
+
+      // 1 encabezado + 3 visibles (la borrada no cuenta), sin fila de totales.
+      expect(rows.length, 4);
+
+      // Orden cronológico: 3, 4 y 5 de septiembre, fecha ISO.
+      expect(cv(rows[1][0]), '2026-09-03');
+      expect(cv(rows[2][0]), '2026-09-04');
+      expect(cv(rows[3][0]), '2026-09-05');
+
+      // Monto con signo en la columna 7: ingreso +, gasto −.
+      expect(cv(rows[1][7]), 5000.0);
+      expect(cv(rows[2][7]), -800.0);
+      expect(cv(rows[3][7]), -2000.0);
+
+      // Terreno: el del movimiento cuando lo tiene; si no, el del cultivo.
+      expect(cv(rows[1][5]), 'El Cañón');
+      expect(cv(rows[2][5]), 'La Loma');
+      expect(cv(rows[3][5]), 'El Cañón');
     });
   });
 
@@ -252,8 +320,9 @@ void main() {
       expect(texto, isNot(contains('Nómina del período')));
       expect(texto, isNot(contains('Caja menor')));
       expect(texto, isNot(contains('Presupuesto de obra')));
-      // Nómina y caja va al final: primero el P&L, después el detalle.
-      expect(excel.tables.keys.toList().last, 'Nómina y caja');
+      // Nómina y caja cierra las hojas «de lectura»; la de Datos va detrás,
+      // como detalle crudo para filtrar y segmentar.
+      expect(excel.tables.keys.toList().last, 'Datos');
     });
 
     test('nómina: trabajadores, días, subtotal, total y empleados distintos',
@@ -893,6 +962,55 @@ void main() {
         isFalse,
         reason: 'un 0 se lee "cosechar fue gratis"',
       );
+    });
+
+    // La hoja llevaba los títulos y el encabezado sin estilo, y los números
+    // crudos (3846.1538…): se veía como un volcado, no como un reporte.
+    test('tiene formato: títulos con banda, decimales y unidad', () {
+      final rows = cosechasCon(
+        txns: [
+          _txn(
+              type: TransactionType.expense,
+              amount: 20000,
+              date: DateTime(2026, 9, 6),
+              category: 'mano_obra',
+              cropId: 'cafe'),
+        ],
+        harvests: [
+          Harvest(
+              id: 'h1',
+              cropId: 'cafe',
+              date: DateTime(2026, 9, 5),
+              amount: 100,
+              unit: 'kg',
+              destination: HarvestDestination.vendido),
+        ],
+      );
+
+      // El título de la hoja es una banda marrón (no texto suelto).
+      expect(rows[0][0]?.cellStyle?.isBold, isTrue);
+      expect(rows[0][0]?.cellStyle?.backgroundColor.colorHex, isNot('none'));
+
+      // Cada sección: título con banda y su encabezado de columnas también.
+      final totalIdx =
+          rows.indexWhere((r) => cv(r[0]) == _es.reportHarvestedTotal);
+      expect(totalIdx, isNot(-1));
+      expect(rows[totalIdx][0]?.cellStyle?.backgroundColor.colorHex,
+          isNot('none'));
+      final headerRow = rows[totalIdx + 1];
+      expect(headerRow[0]?.cellStyle?.isBold, isTrue);
+      expect(headerRow[0]?.cellStyle?.backgroundColor.colorHex, isNot('none'));
+
+      // Costo por kilo y rendimiento: dos decimales, no 3846.153846153846.
+      final cost = rows.firstWhere(
+          (r) => cv(r[0]) == 'Café — ${_es.reportTotalCostPerKg}');
+      expect(cost[1]?.cellStyle?.numberFormat.toString(), contains('#,##0.00'));
+      expect(cv(cost[1]), 200.0);
+
+      // «Por destino» lleva la unidad; un 400 suelto no dice de qué es.
+      final vendido =
+          rows.firstWhere((r) => cv(r[0]) == _es.harvestDstVendido);
+      expect(cv(vendido[1]), '100,00 kg');
     });
   });
 }

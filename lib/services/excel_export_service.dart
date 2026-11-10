@@ -218,6 +218,15 @@ class ExcelExportService {
       month: month,
     );
 
+    _rawDataSheet(
+      excel[l10n.excelSheetRawData],
+      periodTx: periodTx,
+      crops: crops,
+      terrenos: terrenos,
+      currency: currency,
+      l10n: l10n,
+    );
+
     final bytes =
         excel.save(fileName: '${l10n.pdfFileNamePrefix}_$year.xlsx');
     if (bytes == null) {
@@ -1395,6 +1404,114 @@ class ExcelExportService {
     }
   }
 
+  void _rawDataSheet(
+    Sheet sheet, {
+    required List<Transaction> periodTx,
+    required List<Crop> crops,
+    required List<Terreno> terrenos,
+    required String currency,
+    required AppLocalizations l10n,
+  }) {
+    sheet.appendRow([
+      TextCellValue(l10n.pdfColDate),
+      TextCellValue(l10n.pdfColType),
+      TextCellValue(l10n.pdfColCategory),
+      TextCellValue(l10n.pdfColDescription),
+      TextCellValue(l10n.pdfColCrop),
+      TextCellValue(l10n.excelColTerreno),
+      TextCellValue(l10n.excelColCurrency),
+      TextCellValue(l10n.pdfColAmount),
+      TextCellValue(l10n.excelColQty),
+      TextCellValue(l10n.excelColUnit),
+      TextCellValue(l10n.excelColPricePerUnit),
+      TextCellValue(l10n.excelColClient),
+      TextCellValue(l10n.excelColProvider),
+    ]);
+    _styleTableHeader(sheet, 0, 13);
+
+    final cropById = {for (final c in crops) c.id: c};
+    final terrenoById = {for (final t in terrenos) t.id: t};
+
+    // Orden cronológico (y por id): la hoja es para filtrar y segmentar, y
+    // el orden de registro no dice nada.
+    final sorted = List<Transaction>.from(periodTx)
+      ..sort((a, b) {
+        final byDate = a.date.compareTo(b.date);
+        if (byDate != 0) return byDate;
+        return a.id.compareTo(b.id);
+      });
+
+    const startRow = 1;
+    var r = startRow;
+    for (final t in sorted) {
+      final crop = t.cropId == null ? null : cropById[t.cropId];
+      final cropName = t.cropId == null
+          ? (t.type.isExpense ? l10n.commonCosts : l10n.cropUnspecified)
+          : (crop?.name ?? t.cropId!);
+      // El terreno del movimiento cuando lo tiene (gasto "del lote"), y si
+      // no, el del cultivo al que pertenece. `null` → celda vacía.
+      final terrenoId = t.terrenoId ?? crop?.terrenoId;
+      final terrenoName = terrenoId == null ? '' : (terrenoById[terrenoId]?.name ?? '');
+      final pricePerUnit = (t.quantity != null && t.quantity! > 0)
+          ? DoubleCellValue(t.amount / t.quantity!)
+          : null;
+      final unitLabel = t.unit == null
+          ? null
+          : switch (t.unit!) {
+              'kg' => TextCellValue(l10n.unitKg),
+              'lb' => TextCellValue(l10n.unitLb),
+              'arroba' => TextCellValue(l10n.unitArroba),
+              'saco' => TextCellValue(l10n.unitSaco),
+              'carga' => TextCellValue(l10n.unitCarga),
+              'racimo' => TextCellValue(l10n.unitRacimo),
+              'cajon' => TextCellValue(l10n.unitCajon),
+              _ => TextCellValue(t.unit!),
+            };
+      sheet.appendRow([
+        // Fecha ISO como texto (igual que Movimientos): ordena y filtra
+        // cronológico en Excel sin ambigüedad de dd/MM vs MM/dd.
+        TextCellValue(t.date.toIso8601String().split('T').first),
+        TextCellValue(
+            t.type.isExpense ? l10n.expenseTypeLabel : l10n.incomeTypeLabel),
+        TextCellValue(
+            t.type.isExpense
+                ? l10n.expenseCategory(t.category)
+                : l10n.incomeCategory(t.category)),
+        TextCellValue(t.description),
+        TextCellValue(cropName),
+        TextCellValue(terrenoName),
+        TextCellValue(t.currency),
+        DoubleCellValue(t.type.isExpense ? -t.amount : t.amount),
+        t.quantity == null ? null : DoubleCellValue(t.quantity!),
+        unitLabel,
+        pricePerUnit,
+        t.client == null ? null : TextCellValue(t.client!),
+        t.provider == null ? null : TextCellValue(t.provider!),
+      ]);
+      final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r));
+      cell.cellStyle = CellStyle(
+        fontColorHex: t.type.isExpense ? _excelRed : _excelGreen,
+        bold: true,
+      );
+      r++;
+    }
+
+    _applyCurrencyFormat(sheet, currency, 7, startRow, r - 1);
+
+    for (var i = 0; i < 13; i++) {
+      sheet.setColumnWidth(
+          i,
+          i == 3
+              ? 40
+              : i == 4
+                  ? 18
+                  : i == 5
+                      ? 18
+                      : (i == 7 || i == 11 ? 16 : 14));
+    }
+  }
+
   // ---- Nivel 2: hoja de cosechas (totales, costos, rendimiento, conciliación, "Qué hacer") ----
 
   void _harvestSheet(
@@ -1415,6 +1532,16 @@ class ExcelExportService {
     required AppLocalizations l10n,
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
+    // Dos decimales para precios unitarios y rendimientos: `3846.1538…` o
+    // `0.1733…` en crudo no se leen. Mismo criterio que el costo de recogida.
+    void twoDecimalsLast() {
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: 1, rowIndex: sheet.maxRows - 1))
+          .cellStyle =
+          CellStyle(numberFormat: NumFormat.custom(formatCode: '#,##0.00'));
+    }
+
     final metrics = ReportHarvestMetrics(sacoKg: sacoKg);
     final cropById = {for (final c in crops) c.id: c};
     // El gasto del cultivo con la misma atribución de «Por cultivo»: lo propio
@@ -1424,6 +1551,7 @@ class ExcelExportService {
     final shares = cropExpenseShares(records: periodTx, crops: crops);
 
     row([TextCellValue(l10n.reportHarvestSection)]);
+    _styleHeaderRow(sheet, 0, 3, _excelBrown);
     if (periodHarvests.isEmpty) {
       row([TextCellValue(l10n.reportNoHarvestData)]);
       // "Qué hacer" NO depende de las cosechas del período: una venta barata
@@ -1431,6 +1559,7 @@ class ExcelExportService {
       // El PDF y la pantalla lo pintan igual; el Excel no puede quedarse sin
       // él solo porque el período salga vacío de cosechas.
       _whatsNextBlock(row,
+          sheet: sheet,
           active: active,
           crops: crops,
           harvests: harvests,
@@ -1444,11 +1573,13 @@ class ExcelExportService {
     // Totales por cultivo.
     row([null, null, null]);
     row([TextCellValue(l10n.reportHarvestedTotal)]);
+    _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
     row([
       TextCellValue(l10n.pdfColCrop),
       TextCellValue(l10n.pdfColAmount),
       TextCellValue(l10n.reportHarvestKg),
     ]);
+    _styleTableHeader(sheet, sheet.maxRows - 1, 3);
     final byCrop = metrics.totalsByCrop(periodHarvests, crops);
     for (final c in byCrop) {
       row([
@@ -1461,11 +1592,16 @@ class ExcelExportService {
     // Por destino.
     row([null, null, null]);
     row([TextCellValue(l10n.reportHarvestDestinations)]);
+    _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
+    // La unidad solo se puede afirmar cuando todo el período comparte una: con
+    // kilos y sacos mezclados la cifra mentiría.
+    final destUnits = periodHarvests.map((h) => h.unit).toSet();
+    final destUnit = destUnits.length == 1 ? ' ${destUnits.first}' : '';
     final byDestination = metrics.totalsByDestination(periodHarvests);
     for (final e in byDestination.entries) {
       row([
         TextCellValue(_destinationLabel(e.key, l10n)),
-        DoubleCellValue(e.value),
+        TextCellValue('${_decimal(e.value)}$destUnit'),
       ]);
     }
 
@@ -1519,6 +1655,10 @@ class ExcelExportService {
                   (v, cur) => formatMoneyLabel(v, cur, locale: _locale)))
               : DoubleCellValue(metrics.accumulatedInvestment(cropExpenses)),
         ]);
+        if (!cropMixed) {
+          _applyCurrencyFormat(
+              sheet, currency, 1, sheet.maxRows - 1, sheet.maxRows - 1);
+        }
       } else {
         final totalKg = metrics.totalCostPerKg(crop, cropExpenses, cropHarvests);
         if (totalKg != null || cropMixed) {
@@ -1526,6 +1666,7 @@ class ExcelExportService {
             TextCellValue('${crop.name} — ${l10n.reportTotalCostPerKg}'),
             cropMixed ? TextCellValue('—') : DoubleCellValue(totalKg!),
           ]);
+          if (!cropMixed) twoDecimalsLast();
         }
         final yieldArea = metrics.yieldPerArea(cropHarvests, crop.areaHa);
         if (yieldArea != null) {
@@ -1534,6 +1675,7 @@ class ExcelExportService {
                 '${hasResiembra ? ' ${l10n.reportApprox}' : ''}'),
             DoubleCellValue(yieldArea),
           ]);
+          twoDecimalsLast();
         }
         final yieldPlant = metrics.yieldPerPlant(cropHarvests, crop.livePlants);
         if (yieldPlant != null) {
@@ -1542,6 +1684,7 @@ class ExcelExportService {
                 '${hasResiembra ? ' ${l10n.reportApprox}' : ''}'),
             DoubleCellValue(yieldPlant),
           ]);
+          twoDecimalsLast();
         }
         // E4 · la referencia: su propia tierra y su meta. Igual que en la
         // pantalla y en el PDF — los tres decimos lo mismo.
@@ -1555,6 +1698,7 @@ class ExcelExportService {
             TextCellValue('${crop.name} — ${l10n.yieldAvgHaLabel(hist.years)}'),
             DoubleCellValue(hist.kgPerHa!),
           ]);
+          twoDecimalsLast();
         }
         if (hist.kgPerPlant != null) {
           row([
@@ -1562,12 +1706,14 @@ class ExcelExportService {
                 '${crop.name} — ${l10n.yieldAvgPlantLabel(hist.years)}'),
             DoubleCellValue(hist.kgPerPlant!),
           ]);
+          twoDecimalsLast();
         }
         if (crop.expectedYieldPerHa != null) {
           row([
             TextCellValue('${crop.name} — ${l10n.yieldGoalLabel}'),
             DoubleCellValue(crop.expectedYieldPerHa!),
           ]);
+          twoDecimalsLast();
         }
       }
     }
@@ -1611,6 +1757,7 @@ class ExcelExportService {
     if (hasIndependentHarvest(periodHarvests)) {
       row([null, null, null]);
       row([TextCellValue(l10n.reportSoldVsHarvested)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
       final soldVs = metrics.soldVsHarvested(
           periodTx, periodHarvests, crops, DateTime.now());
       if (soldVs.isEmpty) {
@@ -1621,15 +1768,18 @@ class ExcelExportService {
           TextCellValue('${s.name} — ${l10n.reportSoldKg}'),
           DoubleCellValue(s.soldKg),
         ]);
+        twoDecimalsLast();
         row([
           TextCellValue('${s.name} — ${l10n.reportHarvestedKg}'),
           DoubleCellValue(s.harvestedKg),
         ]);
+        twoDecimalsLast();
       }
     }
 
     // "Qué hacer" derivado del motor de reglas.
     _whatsNextBlock(row,
+        sheet: sheet,
         active: active,
         crops: crops,
         harvests: harvests,
@@ -1668,6 +1818,7 @@ class ExcelExportService {
   /// Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
   void _whatsNextBlock(
     void Function(List<CellValue?> cols) row, {
+    required Sheet sheet,
     required List<Transaction> active,
     required List<Crop> crops,
     required List<Harvest> harvests,
@@ -1677,6 +1828,7 @@ class ExcelExportService {
   }) {
     row([null, null, null]);
     row([TextCellValue(l10n.reportWhatsNext)]);
+    _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
     final alerts = evaluateAlerts(
       transactions: active,
       crops: crops,
@@ -1693,6 +1845,13 @@ class ExcelExportService {
       row([
         TextCellValue('${i + 1}. ${recommendations[i].title}'),
       ]);
+      // El título de cada recomendación en negrita: sin eso, título y
+      // explicación se leen como un párrafo corrido.
+      sheet
+              .cell(CellIndex.indexByColumnRow(
+                  columnIndex: 0, rowIndex: sheet.maxRows - 1))
+              .cellStyle =
+          CellStyle(bold: true);
       row([
         TextCellValue(recommendations[i].message),
       ]);
