@@ -104,8 +104,7 @@ T3). Las cuatro quedaron cerradas, publicadas y con guarda.
 
 - **G1 · menú ↔ mapa** (`test/help_menu_map_test.dart`). Extrae los `value: '<string>'`
   del `PopupMenuButton` de `home_screen.dart`, los cruza con un mapa declarado
-  `{report: menuReport, crops: menuCrops, sowings: menuSowings, workers: menuWorkers,
-  settings: menuSettings}` más allowlist explícita `{help: menuHelp, logout: menuLogout}`
+  `{report: menuReport, crops: menuCrops, sowings: menuSowings, workers: menuWorkers, settings: menuSettings}` más allowlist explícita `{help: menuHelp, logout: menuLogout}`
   (los dos se exigen pintados, pero no son destinos de datos), falla si el conjunto del
   código ≠ mapa ∪ allowlist, y monta `HelpScreen` exigiendo cada etiqueta mapeada.
 - **G2 · huérfanas** (`test/help_no_orphan_keys_test.dart`). Lee `lib/l10n/app_es.arb`,

@@ -307,8 +307,7 @@ gasto → ganancia cuando ya está en venta**, para **todo** lo sembrado en ese 
    camino, obrero de toda la finca). Es literalmente la clasificación de Cenicafé y
    la app ya la soporta a medias (`"Cultivo (opcional)"` → Excel *"Sin especificar"*).
 4. **Un solo presupuesto de obra para toda la finca**, que baja con cada jornal.
-5. **Clasificar es lo que vale.** `$50.000` no sirve; `$50.000 · mano de obra ·
-   descolgar · café` sí.
+5. **Clasificar es lo que vale.** `$50.000` no sirve; `$50.000 · mano de obra · descolgar · café` sí.
 
 ## 8.1 · Los 3 casos de uso
 
@@ -379,8 +378,7 @@ Estado:     Pagado / Por cobrar      ← NUEVO
 ```
 
 ### Paso 5 · Venta — *lo que entra a la caja* 🟢 (+ 🟡 W3)
-`Ingreso → cultivo → categoría → cantidad + unidad → cliente → monto →
-precio/unit (calculado) → moneda → fecha`. **Ya está.** Falta ver **pagado vs por
+`Ingreso → cultivo → categoría → cantidad + unidad → cliente → monto → precio/unit (calculado) → moneda → fecha`. **Ya está.** Falta ver **pagado vs por
 cobrar** y el desglose de deducciones.
 
 ### Paso 6 · La lectura — *el reporte* 🔴 — **la pieza que más falta**

@@ -77,8 +77,7 @@
   (`app_es.arb` es el template) → `gen-l10n` (commitear `lib/l10n/generated/`)
   → `flutter analyze` + `flutter test` → commit explícito.
 - **`gen-l10n` y `flutter build web` (y por tanto `deploy.ps1`) reescriben
-  `lib/l10n/generated/` en CRLF.** Reconvertir a LF o `git checkout --
-  lib/l10n/generated` después de cada build, o el diff salta a ~12.000 líneas.
+  `lib/l10n/generated/` en CRLF.** Reconvertir a LF o `git checkout -- lib/l10n/generated` después de cada build, o el diff salta a ~12.000 líneas.
 - Regla de oro del reporte: `null` → oculto, nunca 0; nunca inventar cifras;
   avisar sin bloquear.
 - Código de moneda siempre como indicador único, nunca `$`.

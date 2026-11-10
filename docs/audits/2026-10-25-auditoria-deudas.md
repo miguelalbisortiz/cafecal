@@ -20,8 +20,7 @@
 - Frente de base de datos y sync: completo.
 - Frentes de calidad y seguridad: **no se ejecutaron**. Los dos subagentes
   fallaron por límite de uso del proveedor. Lo único de seguridad que quedó
-  revisado es RLS: las 7 tablas tienen sus 4 políticas con `auth.uid() =
-  user_id` y el pull filtra por usuario. **Sin hallazgos de RLS.**
+  revisado es RLS: las 7 tablas tienen sus 4 políticas con `auth.uid() = user_id` y el pull filtra por usuario. **Sin hallazgos de RLS.**
 - No se probó nada contra la base real ni contra producción.
 
 ## 1. Crítica — las cohortes no se sincronizan **[verificado]**

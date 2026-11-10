@@ -144,8 +144,7 @@ se escribe en la fase 3 y se **aplica antes** de desplegar la app que la envía.
   3. Se escriben `copyWith` y los tests de pago/planilla: rojo de compilación
      `The getter 'harvestedKg' isn't defined for the class 'Transaction'`.
   4. Se implementa `copyWith` con sentinela y se corre el gate del subconjunto; verde.
-- **Hecho:** `flutter test test/transaction_test.dart test/jornal_test.dart
-  test/work_sheet_test.dart` en verde; el JSON de un jornal sin kilos contiene
+- **Hecho:** `flutter test test/transaction_test.dart test/jornal_test.dart test/work_sheet_test.dart` en verde; el JSON de un jornal sin kilos contiene
   `"harvested_kg": null`.
 - **Depende:** T1 · **Riesgo:** medio (la sentinela de `copyWith` es fácil de olvidar).
 

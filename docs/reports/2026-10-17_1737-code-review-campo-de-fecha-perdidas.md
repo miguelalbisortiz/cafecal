@@ -116,8 +116,7 @@ debajo del doc nuevo en español (el diff reescribió la primera línea del mism
   La alerta «recién sembrado» compara instantes (`alert_service.dart:541,544`): una pérdida a las
   00:00 solo corre el límite de 15 días <24 h. Nada se descoloca.
 - **P5 — tests:** el del «mismo día» (`sowing_test.dart:131`) es rojo real por comportamiento
-  (verificado, H0 punto 3); los del diálogo son rojos reales (con lib vieja: `Found 0 widgets with
-  text "Fecha"`); los 4 tests viejos de `crop_loss_dialog_test.dart` siguen verdes porque el campo
+  (verificado, H0 punto 3); los del diálogo son rojos reales (con lib vieja: `Found 0 widgets with text "Fecha"`); los 4 tests viejos de `crop_loss_dialog_test.dart` siguen verdes porque el campo
   nuevo es `InputDecorator` y no corre los índices de `TextFormField` (como pedía el PRD).
 
 ## Qué NO miré

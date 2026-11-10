@@ -684,8 +684,7 @@ encontraría:
   `lib/services/backup_service.dart` (solo si hace falta);
   `test/backup_cohorts_test.dart` (nuevo).
 - **Cambios:**
-  - El respaldo ya usa `Sowing.toJson`/`fromJson` (`backup_service.dart:199,
-    245`): **no hay código nuevo** para los campos; se verifica con tests.
+  - El respaldo ya usa `Sowing.toJson`/`fromJson` (`backup_service.dart:199, 245`): **no hay código nuevo** para los campos; se verifica con tests.
   - En el bloque de huérfanos (`:1068-1084`): sumar
     `if (s.cohortSowingId != null && !sowingIds.contains(s.cohortSowingId)) huerfanos++`.
   - Un puntero huérfano **no** se convierte en reemplazo de otra cohorte: se
@@ -785,8 +784,7 @@ encontraría:
   - Sin cohortes vivas: aviso (`sowingCohortNoneTitle` / `sowingCohortNoneBody`)
     + botón **«Anotar como siembra»** (`sowingCohortNoneSaveAs`); la resiembra no
     cambia las matas del cultivo (D8).
-  - El selector de fecha de la pérdida usa `lossEarliestDate(..., cohortSowingId:
-    elegido)`: al cambiar de lote, el mínimo se mueve y una pérdida anterior se
+  - El selector de fecha de la pérdida usa `lossEarliestDate(..., cohortSowingId: elegido)`: al cambiar de lote, el mínimo se mueve y una pérdida anterior se
     marca y se corrige **antes** de guardar (aviso, no bloqueo).
   - `crop_loss_dialog.dart` reutiliza el mismo selector de lote y pasa
     `cohortSowingId` a `addSowing`.

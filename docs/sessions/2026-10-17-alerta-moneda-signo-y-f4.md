@@ -24,8 +24,7 @@ que la app sabe, y «cosecha registrada» ya es el idioma de la Ayuda (§2, D2).
 
 ### b · El desplegable de moneda ya no usa el `$`
 
-`currency_setup_gate.dart:80` pintaba `'${c.symbol} ${c.name} (${c.code})'` → `$ Peso colombiano
-(COP)`. Ahora dice **`Peso colombiano (COP)`**, igual que el botón que lo confirma y que el texto
+`currency_setup_gate.dart:80` pintaba `'${c.symbol} ${c.name} (${c.code})'` → `$ Peso colombiano (COP)`. Ahora dice **`Peso colombiano (COP)`**, igual que el botón que lo confirma y que el texto
 bajo Monto: el **código** es el único indicador, porque `$` lo comparten COP, USD y CLP.
 
 ### c · El negativo en pantalla lleva su signo

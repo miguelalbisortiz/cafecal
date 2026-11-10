@@ -302,8 +302,7 @@ Nueva cosecha
   (`docs/` solo si el usuario lo pide.)
 - 🚫 **Ningún commit sin verbo explícito ese turno** del usuario
   (*comitea / comit pus / push / deploy*). Una opción numérica o de letra **no** cuenta.
-- 🌐 Deploy solo con su orden: `flutter build web --release --base-href=/cafecal/
-  --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` →
+- 🌐 Deploy solo con su orden: `flutter build web --release --base-href=/cafecal/ --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` →
   `robocopy build\web _deploy /MIR /XD .git /XF .git /NFL /NDL /NJH /NJS` (exit 1-3 = ok)
   → push main + commit/push `_deploy` (gh-pages) → verificar SHA256 de `main.dart.js`.
 - 🇪🇸 Todo en español. Cambios **aditivos/retrocompatibles**: no romper GitHub Pages + Supabase.

@@ -512,9 +512,7 @@ que un `RegExp` sobre `home_screen.dart` los extrae sin ruido.
 
 **Cómo:** un test que
 1. lee `home_screen.dart`, junta los valores string del popup;
-2. los cruza con un **mapa declarado** `{ 'report': 'menuReport', 'crops':
-   'menuCrops', 'sowings': 'menuSowings', 'workers': 'menuWorkers', 'settings':
-   'menuSettings' }` más una **allowlist** explícita para `'help'` (es esta misma
+2. los cruza con un **mapa declarado** `{ 'report': 'menuReport', 'crops': 'menuCrops', 'sowings': 'menuSowings', 'workers': 'menuWorkers', 'settings': 'menuSettings' }` más una **allowlist** explícita para `'help'` (es esta misma
    pantalla) y `'logout'` (no es un destino de datos);
 3. falla si el conjunto del código ≠ claves del mapa ∪ allowlist (avisa de un menú
    nuevo sin fila);

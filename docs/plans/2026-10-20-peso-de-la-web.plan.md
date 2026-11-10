@@ -31,8 +31,7 @@ El ahorro se compra en dos pasos, y el orden no es negociable:
    pdf_export_service.dart:19 → alert_service.dart        (¡vuelve!)
    ```
 
-   Es un **ciclo** de imports: `alert_service → report_payroll_metrics → pdf_export_service
-   → alert_service`. Mientras exista, dart2js no puede diferir `pdf_export_service.dart`
+   Es un **ciclo** de imports: `alert_service → report_payroll_metrics → pdf_export_service → alert_service`. Mientras exista, dart2js no puede diferir `pdf_export_service.dart`
    (la librería diferida quedaría alcanzable desde el library inicial) y `ReportPeriod`,
    declarado dentro de ese archivo, se usa como tipo fuera de él (`report_screen.dart:557`).
 
@@ -339,8 +338,7 @@ para no prometer un porcentaje antes de tener el reparto.
 - **Cambio:**
   - `import '../services/pdf_export_service.dart' deferred as pdf;`
   - Comprobación previa (una línea de análisis, no de código): después de T5 el PDF
-    **no vuelve** al library inicial (`pdf → alert_service → report_payroll_metrics →
-    models/report_period`), así que no hay ciclo que impida diferirlo. Si `analyze` o el
+    **no vuelve** al library inicial (`pdf → alert_service → report_payroll_metrics → models/report_period`), así que no hay ciclo que impida diferirlo. Si `analyze` o el
     build se quejan de ciclos, es que T5 quedó incompleto: se vuelve a T5, no se parchea acá.
   - Seam de test en el widget (no cambia el uso normal):
     `const ReportScreen({super.key, this.loadPdfLibrary});` +
@@ -399,8 +397,7 @@ para no prometer un porcentaje antes de tener el reparto.
   - `el error se puede reintentar` (segundo tap vuelve a mostrar el mensaje, no queda trabado)
 - **Rojo esperado:**
   1. compilación del test de widget: `No named parameter with the name 'loadPdfLibrary'`;
-  2. el test de grafo: `Expected: sin ruta / Actual: main.dart → … → home_screen.dart →
-     report_screen.dart → pdf_export_service.dart`.
+  2. el test de grafo: `Expected: sin ruta / Actual: main.dart → … → home_screen.dart → report_screen.dart → pdf_export_service.dart`.
 - **Hecho:** `deferred` compilando, los **cinco + dos** tests nuevos en verde, `flutter analyze` 0,
   `test/report_screen_test.dart` sigue verde (el calentamiento no rompe el `pump`).
 - **Depende:** T5, T6 · **Riesgo:** **alto** — async en `initState`, timers en
@@ -558,8 +555,7 @@ previstos. **Ningún commit ni push** sin el verbo del usuario.
 
 `--base-href=/cafecal/` no cambia. `deploy.ps1` ya corre sus propios pasos 1/7 y 2/7
 (`flutter analyze` + `flutter test`) y compila con el mismo comando que T2/T9, así que es
-un tercer gate gratis. Copia con `Copy-Item -Path 'build\web\*' -Destination '_deploy'
--Recurse -Force`: **todo** lo que quede en `build\web` se publica (de ahí el cuidado con el
+un tercer gate gratis. Copia con `Copy-Item -Path 'build\web\*' -Destination '_deploy' -Recurse -Force`: **todo** lo que quede en `build\web` se publica (de ahí el cuidado con el
 `.info.json` de `--dump-info`). Si `-VerifyOnly` falla por las claves de Supabase (G11),
 **se detiene el deploy**: no se publica un build que dejaría el login en modo local.
 

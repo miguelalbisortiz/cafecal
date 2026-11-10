@@ -96,8 +96,7 @@ Verificables de a uno, contra la app corriendo o contra una prueba automática.
   incluir `cohort_sowing_id` **siempre**, incluido `null`; un viaje de ida y
   vuelta por JSON y por respaldo SHALL devolver el mismo valor.
 - **SC-14 · Migración.** La migración SHALL ser aditiva e idempotente
-  (`add column if not exists`), con FK `references public.sowings(id) on delete
-  set null` e índice, sin backfill y sin tocar `harvests` ni otras columnas de
+  (`add column if not exists`), con FK `references public.sowings(id) on delete set null` e índice, sin backfill y sin tocar `harvests` ni otras columnas de
   `transactions`.
 - **SC-15 · La venta no cambia.** The system SHALL NOT agregar selector de lote
   a la venta ni a los ingresos, y `Transaction.fromJson` SHALL limpiar
@@ -626,10 +625,8 @@ dato ausente; no se promete reparto de la venta.
 2. `'JSON sin la clave entra null y no marca sucio'`.
 3. `'copyWith puede volver el puntero a null y no lo pierde si no se pasa'`.
 4. `'un ingreso con cohort_sowing_id se limpia y queda pendingSync'` (SC-15).
-5. `'categoría distinta de mano_obra, labor distinta de cosechar, sin kilos, sin
-   cultivo o con lote de terreno: el puntero se limpia'` (SC-11, SC-15).
-6. `'un puntero a una siembra que no está se conserva (no se limpia en
-   fromJson)'` (SC-12).
+5. `'categoría distinta de mano_obra, labor distinta de cosechar, sin kilos, sin cultivo o con lote de terreno: el puntero se limpia'` (SC-11, SC-15).
+6. `'un puntero a una siembra que no está se conserva (no se limpia en fromJson)'` (SC-12).
 
 **Lectura — `test/cohort_kilos_test.dart` (nuevo)**
 
@@ -646,8 +643,7 @@ dato ausente; no se promete reparto de la venta.
 
 14. `'addTransaction guarda el puntero y pendingSync'` (SC-1).
 15. `'updateTransaction cambia el lote y puede limpiarlo'` (SC-11).
-16. `'deleteSowing limpia el puntero de los jornales y los kilos del cultivo no
-    cambian'` (SC-10).
+16. `'deleteSowing limpia el puntero de los jornales y los kilos del cultivo no cambian'` (SC-10).
 17. `'deleteSowing no toca jornales de otras siembras'` (guarda).
 
 **Sync y respaldo — `test/sync_transaction_cohort_test.dart`,
@@ -676,8 +672,7 @@ dato ausente; no se promete reparto de la venta.
 29. `'sin lotes vivos el selector no aparece y guarda null'` (SC-3).
 30. `'con kilos y sin lote muestra el aviso y guarda igual'` (SC-2).
 31. `'cambiar la labor limpia el lote y no lo restaura'` (SC-11).
-32. `'editar un jornal precarga su lote; un lote cerrado se ofrece como
-    renovado'` (D9-A).
+32. `'editar un jornal precarga su lote; un lote cerrado se ofrece como renovado'` (D9-A).
 
 **Tarjeta — `test/crops_screen_cohort_kilos_test.dart` (nuevo)**
 
