@@ -1262,6 +1262,7 @@
     "placeholders": { "year": { "type": "int" } }
   },
   "pdfYearAnnex": "Anexo — Acumulado del año {year}",
+  "pdfPayrollCashAnnex": "Nómina y caja",
   "pdfMarginFootnote": "Margen = (Ingresos − Gastos) / Ingresos. Un margen negativo sugiere revisar el cultivo.",
   "pdfColCrop": "Cultivo",
   "pdfColMov": "Mov.",

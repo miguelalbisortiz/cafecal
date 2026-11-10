@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -120,6 +121,49 @@ void main() {
     expect(con.length, greaterThan(sin.length),
         reason: 'la tabla de nómina añade filas, total y empleados');
   });
+
+  test('Nómina y caja va en anexo con salto de página solo si hay contenido',
+      () async {
+    // Gasto que no es mano de obra y sin caja ni presupuesto de obra: ninguna
+    // de las cuatro secciones del anexo tiene nada que pintar.
+    final sinAnexo = await _build(
+      settings: const FarmSettings(),
+      txns: [
+        Transaction(
+          id: '1',
+          type: TransactionType.expense,
+          category: 'fertilizante',
+          amount: 100000,
+          date: DateTime(2026, 6, 5),
+          createdAt: DateTime(2026, 6, 5),
+        ),
+      ],
+    );
+    // El mismo monto como jornal: hay nómina y planilla, así que el anexo
+    // aparece y arranca en página nueva.
+    final conAnexo = await _build(
+      settings: const FarmSettings(),
+      txns: [
+        Transaction(
+          id: '1',
+          type: TransactionType.expense,
+          category: 'mano_obra',
+          amount: 100000,
+          quantity: 2,
+          unit: 'día',
+          pricePerUnit: 50000,
+          provider: 'Juan Pérez',
+          date: DateTime(2026, 6, 5),
+          createdAt: DateTime(2026, 6, 5),
+        ),
+      ],
+    );
+
+    expect(_pdfPages(sinAnexo), 1,
+        reason: 'sin contenido no se cuela un salto de página');
+    expect(_pdfPages(conAnexo), greaterThan(_pdfPages(sinAnexo)),
+        reason: 'el anexo arranca en página nueva');
+  });
   test('cosechas con personal y kilos generan un PDF válido', () async {
     final bytes = await _build(
       settings: const FarmSettings(cajaMenorMensual: 600000),
@@ -233,3 +277,11 @@ Future<Uint8List> _build({
       l10n: stringsFor('es'),
       harvests: harvests,
     );
+
+/// Páginas físicas del PDF: los objetos `/Type /Page` van sin comprimir en el
+/// archivo, así que se pueden contar sobre los bytes. `/Type /Pages` (el nodo
+/// de la colección) no coincide porque después de `Page` no viene `s`.
+int _pdfPages(Uint8List bytes) {
+  final text = latin1.decode(bytes, allowInvalid: true);
+  return RegExp(r'/Type\s*/Page[^s]').allMatches(text).length;
+}

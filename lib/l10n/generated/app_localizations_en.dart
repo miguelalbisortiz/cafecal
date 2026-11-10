@@ -2601,6 +2601,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get pdfPayrollCashAnnex => 'Payroll and cash';
+
+  @override
   String get pdfMarginFootnote => 'Margin = (Income − Expenses) / Income. A negative margin suggests reviewing the crop.';
 
   @override

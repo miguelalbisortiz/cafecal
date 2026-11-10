@@ -4703,6 +4703,12 @@ abstract class AppLocalizations {
   /// **'Anexo — Acumulado del año {year}'**
   String pdfYearAnnex(int year);
 
+  /// No description provided for @pdfPayrollCashAnnex.
+  ///
+  /// In es, this message translates to:
+  /// **'Nómina y caja'**
+  String get pdfPayrollCashAnnex;
+
   /// No description provided for @pdfMarginFootnote.
   ///
   /// In es, this message translates to:

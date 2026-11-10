@@ -168,6 +168,44 @@ class PdfExportService {
             : _pdfPositive)
         : (balance < 0 ? _pdfNegative : _pdfPositive);
 
+    // ── Anexo «Nómina y caja» ──
+    // El Excel ya separa nómina, caja menor, presupuesto de obra y planilla
+    // en su propia hoja; en el PDF van como anexo con salto de página para
+    // no mezclarlas con el estado de resultados. Las cuatro secciones
+    // devuelven null sin contenido: si ninguna tiene nada, el anexo entero
+    // desaparece (sin salto de página ni título huérfano).
+    final payrollSection = _payrollSection(periodTx, currency, l10n);
+    final cashBoxSection = _cashBoxSection(
+      periodTx,
+      settings.cajaMensualEfectiva,
+      period,
+      year,
+      month,
+      now,
+      currency,
+      l10n,
+      budgetHistory: settings.cashBudgetHistory,
+      includeLabor: (settings.presupuestoObraMensual ?? 0) <= 0,
+    );
+    final workBudgetSection = _workBudgetSection(
+      periodTx,
+      settings.presupuestoObraMensual,
+      period,
+      year,
+      month,
+      now,
+      currency,
+      l10n,
+    );
+    final workSheetSection =
+        _workSheetSection(periodTx, crops, currency, l10n);
+    final payrollCashSections = <pw.Widget>[
+      if (payrollSection != null) payrollSection,
+      if (cashBoxSection != null) cashBoxSection,
+      if (workBudgetSection != null) workBudgetSection,
+      if (workSheetSection != null) workSheetSection,
+    ];
+
     final regular = await _regularFont();
     final bold = await _boldFont();
     final doc = pw.Document();
@@ -437,37 +475,19 @@ class PdfExportService {
           pw.SizedBox(height: 20),
           _soldVsHarvestedSection(periodTx, periodHarvests, crops, sowings,
               currency, settings.sacoKg, l10n),
-          pw.SizedBox(height: 20),
-          _payrollSection(periodTx, currency, l10n),
-          pw.SizedBox(height: 20),
-          // E3 · con presupuesto de obra, la gente tiene su propia sección
-          // en el PDF: contarla también en la caja inflaría el gasto de caja.
-          _cashBoxSection(
-            periodTx,
-            settings.cajaMensualEfectiva,
-            period,
-            year,
-            month,
-            now,
-            currency,
-            l10n,
-            budgetHistory: settings.cashBudgetHistory,
-            includeLabor: (settings.presupuestoObraMensual ?? 0) <= 0,
-          ),
-          pw.SizedBox(height: 20),
-          _workBudgetSection(
-            periodTx,
-            settings.presupuestoObraMensual,
-            period,
-            year,
-            month,
-            now,
-            currency,
-            l10n,
-          ),
-          pw.SizedBox(height: 20),
-          _workSheetSection(periodTx, crops, currency, l10n),
-          pw.SizedBox(height: 20),
+          // ── Anexo Nómina y caja ──
+          // Salto de página y título de grupo, como la hoja del Excel. Solo
+          // si al menos una de las cuatro secciones tiene contenido.
+          if (payrollCashSections.isNotEmpty) ...[
+            pw.NewPage(),
+            _sectionHeader(l10n.pdfPayrollCashAnnex, PdfColors.brown700),
+            for (var i = 0; i < payrollCashSections.length; i++) ...[
+              if (i > 0) pw.SizedBox(height: 20),
+              payrollCashSections[i],
+            ],
+            pw.SizedBox(height: 20),
+          ] else
+            pw.SizedBox(height: 20),
           // El MISMO motor, con la MISMA ventana y los MISMOS ajustes que
           // Inicio: histórico completo (no solo el período exportado) y la
           // caja/umbral que puso en Ajustes. Antes el PDF podía decir
@@ -1092,10 +1112,11 @@ class PdfExportService {
   /// Sección "Nómina del período": tabla por trabajador (días, subtotal),
   /// total de nómina y cantidad de empleados distintos.
   /// Solo se muestra si hay gastos de mano de obra en el período.
-  pw.Widget _payrollSection(
+  /// Devuelve null sin contenido: el anexo decide con eso si aparece o no.
+  pw.Widget? _payrollSection(
       Iterable<Transaction> source, String currency, AppLocalizations l10n) {
     final summary = const ReportPayrollMetrics().payroll(source);
-    if (summary.isEmpty) return pw.SizedBox.shrink();
+    if (summary.isEmpty) return null;
 
     // Mano de obra sobre el gasto del periodo. Solo con una sola moneda en
     // nomina y en gastos: cruzar monedas daria un porcentaje falso. Sin
@@ -1218,14 +1239,14 @@ class PdfExportService {
   /// E3 · la planilla en el PDF: en qué se gastó la gente, agrupada por
   /// labor y cultivo. Mismo criterio que la pantalla y el Excel — si los
   /// tres calculan distinto, uno de los tres miente.
-  pw.Widget _workSheetSection(Iterable<Transaction> source, List<Crop> crops,
+  pw.Widget? _workSheetSection(Iterable<Transaction> source, List<Crop> crops,
       String currency, AppLocalizations l10n) {
     final rows = const ReportPayrollMetrics().workSheetRows(
       periodTx: source,
       cropNames: {for (final c in crops) c.id: c.name},
       unlabeledTaskName: l10n.workSheetUnlabeled,
     );
-    if (rows.isEmpty) return pw.SizedBox.shrink();
+    if (rows.isEmpty) return null;
 
     pw.Widget cell(String text, {bool bold = false}) => pw.Padding(
           padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -1292,7 +1313,7 @@ class PdfExportService {
 
   /// E3 · sección de presupuesto de obra en el PDF: solo mano de obra,
   /// contra su propio presupuesto. Si no está configurado no se imprime.
-  pw.Widget _workBudgetSection(
+  pw.Widget? _workBudgetSection(
     Iterable<Transaction> source,
     double? budget,
     ReportPeriod period,
@@ -1310,7 +1331,7 @@ class PdfExportService {
       month: month,
       now: now,
     );
-    if (rows.isEmpty) return pw.SizedBox.shrink();
+    if (rows.isEmpty) return null;
     final multiYear = rows.map((r) => r.year).toSet().length > 1;
     final mixed = <String>{
       for (final r in rows)
@@ -1388,7 +1409,7 @@ class PdfExportService {
     );
   }
 
-  pw.Widget _cashBoxSection(
+  pw.Widget? _cashBoxSection(
     Iterable<Transaction> source,
     double? budget,
     ReportPeriod period,
@@ -1410,7 +1431,7 @@ class PdfExportService {
       now: now,
       includeLabor: includeLabor,
     );
-    if (rows.isEmpty) return pw.SizedBox.shrink();
+    if (rows.isEmpty) return null;
     final multiYear = rows.map((r) => r.year).toSet().length > 1;
 
     // Monedas que aparecen mezcladas en algún mes del período (para el

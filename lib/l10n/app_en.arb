@@ -1068,6 +1068,7 @@
   "pdfNoExpensesSub": "    No expenses in this period",
   "pdfCropBreakdown": "Breakdown by crop — {period}",
   "pdfYearAnnex": "Annex — Accumulated for {year}",
+  "pdfPayrollCashAnnex": "Payroll and cash",
   "pdfMarginFootnote": "Margin = (Income − Expenses) / Income. A negative margin suggests reviewing the crop.",
   "pdfColCrop": "Crop",
   "pdfColMov": "Mov.",

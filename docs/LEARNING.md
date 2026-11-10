@@ -1,6 +1,6 @@
 # Project Learnings
 
-Last updated: 2026-10-26
+Last updated: 2026-11-10
 
 ## Code Patterns
 - Pattern: una sola función por regla, y separar la regla de LECTURA de la de GUARDADO | `lossOf(s)` decide qué es una pérdida (solo las resiembras) y lo leen el modelo (`recomputeCropState`), la lista y el informe; `Sowing.fromJson` es la puerta única de entrada (disco, nube y respaldo) y limpia el registro viejo al entrar | lib/models/sowing.dart | 2026-10-17
@@ -75,6 +75,14 @@ Last updated: 2026-10-26
 - Pattern: la tarjeta del cultivo **sí muestra los kilos de un lote cerrado**; no muestra kg/planta ni «0 matas» | lib/screens/crops_screen.dart | 2026-10-26 (actualizado)
 - Pattern: el color de un texto sale del **tema** (`scheme.onSurface` / `scheme.onSurfaceVariant`), nunca de `Colors.black87` / `Colors.grey.shade700`: en modo oscuro la tarjeta es casi negra y el valor desaparece. En claro el tema da esos mismos tonos. Test de contraste en oscuro y en claro | lib/screens/report_screen.dart, test/report_screen_contraste_test.dart | 2026-10-26
 - Pattern: `flutter build web` —y por tanto `deploy.ps1`— reescribe `lib/l10n/generated/` en **CRLF**, igual que `gen-l10n`. Hay que reconvertir a LF después de cada build o el diff se infla a ~12.000 líneas | lib/l10n/generated/ | 2026-10-26
+- Pattern: la hoja cruda **«Datos»/«Data»** es el filtro que el paquete `excel` 4.0.6 no graba (sin AutoFilter ni tablas): una tabla contigua normal y la fecha **ISO como texto** para que Excel filtre y ordene sin confundir dd/MM con MM/dd | `_rawDataSheet` | lib/services/excel_export_service.dart | 2026-11-10
+- Pattern: el **terreno del movimiento manda** sobre el del cultivo (`t.terrenoId ?? crop.terrenoId`): un gasto «del lote» no es del café ni del plátano, y `Transaction` ya lo guarda aparte (excluyente con `cropId`) | lib/services/excel_export_service.dart | 2026-11-10
+- Pattern: en Excel, **banda de sección** = `_styleHeaderRow(...)` y **encabezado de columnas** = `_styleTableHeader(...)`; las cifras unitarias van con `#,##0.00` — un `3846.153846153846` crudo se lee como volcado, no como reporte | `_harvestSheet` | lib/services/excel_export_service.dart | 2026-11-10
+- Pattern (API `excel` 4.0.6): `CellStyle` expone `isBold`, `backgroundColor.colorHex` y `numberFormat` — **no** `bold` ni `backgroundColorHex`; los tests de estilo se escriben sobre esos getters | test/excel_export_service_test.dart | 2026-11-10
+- Pattern: una hoja que solo tiene **«Qué hacer»** igual se pinta: las recomendaciones viven ahí y en ningún otro sitio del libro, así que borrarla por «vacía» las pierde | `_harvestSheet` | lib/services/excel_export_service.dart | 2026-11-10
+- Pattern: un anexo condicional se decide con **widgets nulos**, no con un booleano aparte: las secciones devuelven `null` sin contenido y la lista vacía apaga salto, título y espaciado de una sola vez (una condición duplicada se desincroniza) | `payrollCashSections` | lib/services/pdf_export_service.dart | 2026-11-10
+- Pattern (API `pdf` 3.11.3): **no existe `pw.PageBreak`**; el salto forzado es `pw.NewPage()` sin argumentos (`freeSpace` null = siempre). El salto va antes del título del anexo, y el bloque se pinta solo si alguna sección tiene contenido | anexo «Nómina y caja» | lib/services/pdf_export_service.dart | 2026-11-10
+- Pattern: una guarda de **páginas congeladas** (`/Type /Page` en los bytes) se actualiza con el motivo escrito al lado; si sube sin explicación, es una regresión, no un número nuevo | páginas 2 → 3 por el anexo | test/export_parity_test.dart | 2026-11-10
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -121,6 +129,8 @@ Last updated: 2026-10-26
 - Bug (test): el mes de `cohortRenewedOn` es el de la siembra **que reemplaza** (la nueva, por defecto hoy), no el de la vieja; un test con `'03/2020'` hardcodeado falla cualquier día | calcular el mes con `DateTime.now()` | test/cohortes_puntos_3_10_test.dart | 2026-10-22
 - Bug (test): `pumpEventQueue()` colgó un test de widgets hasta el timeout; el mismo caso con `pumpAndSettle` corre en segundos | usarlo solo en tests puros | test/cohortes_puntos_1_2_test.dart | 2026-10-22
 - Bug: desplegar antes de aplicar la migración hace que el primer sync devuelva **PGRST204** (`cohort_sowing_id` no existe) y el registro no sube; el orden es SQL primero, deploy después | aplicar y verificar columna/FK/índice antes de publicar | supabase/migrations/202610220001_add_transaction_cohort.sql | 2026-10-22
+- Bug (ARB doble-codificado): una edición de `app_es.arb` dejó `próximo` como `prÃ³ximo` y la cola del JSON triplicada; `gen-l10n` propagó el mojibake al generado. Se restauran los **bytes** de `HEAD` (`git show HEAD:<ruta>` redirigido por `cmd`, no `Out-File`) y se re-aplica la clave; `json.load` como verificación | lib/l10n/app_es.arb, lib/l10n/generated/ | 2026-11-10
+- Bug (falso): `git push ... 2>&1` dentro de una tubería de PowerShell sale con código 1 aunque el push haya subido (`To … main -> main` va por stderr). Se confirma con `git log origin/main` o `git status -sb` | no fiarse del `$LASTEXITCODE` cuando se mezcla stderr | 2026-11-10
 
 ## Performance
 - Pattern: para medir el **primer arranque** de Flutter web no sirve FCP (pinta en canvas y no emite entrada de paint). Se usa `PerformanceResourceTiming.responseEnd` del último recurso, con un servidor Node local a 200 KB/s, service worker desregistrado y caches borrados antes de cada corrida; 3 corridas, mediana | el servidor no comprime, así que el segundo es pesimista pero comparable | C:\Users\MKY\AppData\Local\Temp\opencode\w_throttle.js | 2026-10-20
@@ -174,3 +184,6 @@ Last updated: 2026-10-26
 - Preference: cuando el período anterior **no tiene datos**, el comparativo no se pinta —ni ceros ni «sin datos»—: `null` es oculto | comparativo de período | 2026-10-26
 - Constraint: el **Roboto del PDF no trae el glifo U+2192** (`→`): en copy se usa «de X a Y» | comparativo de período | 2026-10-26
 - Preference: el costo por kilo usa el **gasto repartido**, la misma atribución de «Por cultivo», para que las dos cifras no se contradigan | costo/kg | 2026-10-26
+- Preference: el Excel se lee por pregunta, y la hoja **Datos** cruda es el sitio para filtrar y segmentar lo que el formato no permite; las hojas de respuesta tienen que verse parejas (banda de sección, encabezado, decimales) | estructura del Excel | 2026-11-10
+- Preference: la hoja **Cosechas** no se borra por fea: su contenido no está en otra hoja y el bloque «Qué hacer» solo vive ahí; se formatea | hoja Cosechas | 2026-11-10
+- Preference: la nómina del PDF va en **anexo con salto de página** (título «Nómina y caja»), no al final del documento ni suelta en el estado de resultados | PDF | 2026-11-10

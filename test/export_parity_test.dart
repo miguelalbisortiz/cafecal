@@ -190,10 +190,12 @@ void main() {
 
     // Los cuatro números, congelados a mano el 2026-10-20 (T2, build
     // `e9c2761`). Si cambian, es una decisión: no se actualizan a ciegas.
+    // 2026-11-10 · páginas 2 → 3: decisión de sacar «Nómina y caja» a un
+    // anexo con salto de página (nómina, caja, obra y planilla).
     const filasEsperadas = 6;
     const ingresosEsperados = 'COP 350.000 · USD 30,00';
     const gastosEsperados = '(COP 150.000) · (USD 20,00)';
-    const paginasEsperadas = 2;
+    const paginasEsperadas = 3;
 
     expect(_movementRows(movimientos), filasEsperadas,
         reason: 'la hoja de movimientos cambió de tamaño');
