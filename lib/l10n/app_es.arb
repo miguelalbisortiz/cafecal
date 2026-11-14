@@ -862,7 +862,7 @@
   "incomeStatementTitle": "Estado de resultados",
   "noIncomePeriod": "Sin ingresos en este período",
   "operatingExpensesLabel": "Gastos operacionales",
-  "noExpensesPeriod": "Sin gastos en este período",
+  "noExpensesPeriod": "Sin gastos en este período.",
   "resultPeriodLabel": "RESULTADO DEL PERÍODO",
   "marginLabel": "Margen sobre ventas",
   "ratioLabel": "Gastos vs ingresos",
@@ -1055,7 +1055,6 @@
   },
   "settingsSavedMsg": "Configuración guardada",
 
-  "noExpensesPeriod": "Sin gastos en este período.",
   "noIncomesPeriod": "Sin ingresos en este período.",
   "recordExpense": "Registrar gasto",
   "recordIncome": "Registrar ingreso",

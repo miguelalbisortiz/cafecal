@@ -773,8 +773,6 @@
   "cashBoxLabor": "Day labor",
   "cashBoxExtras": "Extras",
 
-  "workBudgetLabel": "Monthly work budget",
-  "workBudgetHelp": "How much you plan to spend on labor each month. Leave it empty and labor keeps counting inside the cash box, as always.",
   "workBudgetTitle": "Work budget",
   "@workBudgetOf": {
     "placeholders": { "used": { "type": "String" }, "total": { "type": "String" } }
@@ -817,7 +815,7 @@
   "incomeStatementTitle": "Income statement",
   "noIncomePeriod": "No income in this period",
   "operatingExpensesLabel": "Operating expenses",
-  "noExpensesPeriod": "No expenses in this period",
+  "noExpensesPeriod": "No expenses in this period.",
   "resultPeriodLabel": "PERIOD RESULT",
   "marginLabel": "Margin on sales",
   "ratioLabel": "Expenses vs income",
@@ -986,7 +984,6 @@
   },
   "settingsSavedMsg": "Settings saved",
 
-  "noExpensesPeriod": "No expenses in this period.",
   "noIncomesPeriod": "No income in this period.",
   "recordExpense": "Record expense",
   "recordIncome": "Record income",
