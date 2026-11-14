@@ -3,14 +3,16 @@
 > Estado al cierre: el Excel gana una hoja **Datos** cruda para filtrar y
 > segmentar a mano, la hoja **Cosechas** deja de verse como un volcado y el
 > PDF separa **nómina y caja** en un anexo con salto de página.
-> `main` = `origin/main` = **`36ba7c5`** (el anexo del PDF quedó sin commitear).
-> Nada de esto tenía PRD: fueron peticiones directas del usuario sobre el reporte.
+> `main` = **`9e6be5d`**, tres commits por delante de `origin/main`
+> (`36ba7c5`); sin push. Nada de esto tenía PRD: fueron peticiones directas del
+> usuario sobre el reporte. Árbol de trabajo limpio.
 
 ## 1. Dónde quedó el proyecto
 
-- `main` = `origin/main` = **`36ba7c5`** (commit de la hoja Datos).
-- Gate: `flutter analyze` limpio (proyecto entero) · **1365/1365** tests.
-- El anexo de nómina en PDF está en el árbol de trabajo, sin commit todavía.
+- `main` = **`9e6be5d`**; `origin/main` = **`36ba7c5`** (ahead 3, sin push).
+- Gate: `flutter analyze` limpio (proyecto entero) · **1365/1365** tests, más
+  los 23 de l10n/Ayuda re-corridos tras la limpieza de los ARB.
+- Los tres pendientes de l10n y los iconos sueltos quedaron cerrados (§6).
 
 ## 2. Qué se cambió
 
@@ -87,31 +89,44 @@ por ARB. Los generados se normalizaron a LF.
   con retorno `null` y anexo `pw.NewPage()` + título.
 - `test/pdf_export_test.dart`: guarda del anexo (con y sin contenido).
 - `test/export_parity_test.dart`: páginas congeladas 2 → 3 por el anexo.
-- `lib/l10n/app_es.arb` / `app_en.arb`: `pdfPayrollCashAnnex`.
+- `lib/l10n/app_es.arb` / `app_en.arb`: `pdfPayrollCashAnnex`, más la limpieza
+  de la clave duplicada y de los textos EN sin uso.
+- `.gitignore`: bloque de bocetos de iconos en la raíz.
 - `build/sample_datos.xlsx` y `build/sample_cosechas.xlsx` (muestras reales,
   no versionadas).
-- Commit **`36ba7c5`** (7 archivos, +311/-6), pusheado a `origin/main`. El
-  anexo del PDF quedó en el árbol de trabajo, sin commit.
+- Commits: **`36ba7c5`** (hoja Datos, 7 archivos, +311/-6, en `origin/main`) ·
+  **`793c4a1`** (anexo de nómina, 11 archivos, +366/-113) ·
+  **`1ea6581`** (limpieza de ARB, 2 archivos) · **`9e6be5d`** (`.gitignore`).
+  Los tres últimos sin push.
 
 ## 6. Pendientes
 
-- **Commit del anexo de nómina:** los cambios de PDF, ARB, generados y tests
-  están sin commitear. No se commitea sin verbo explícito.
-- **Ayuda:** no menciona «Cosechas» como menú/pantalla.
-- **l10n menores:** `noExpensesPeriod` duplicada en ES y EN;
-  `workBudgetLabel`/`workBudgetHelp` están en EN y no en ES;
-  `metricMargin*`/`metricRatio*` usan `$` literal en ambos ARB.
-- **`balance_icon_*.png/.zip`** sin seguimiento en la raíz: decidir si se
-  ignoran, se guardan o se borran.
+Ninguno abierto. Así se cerraron:
+
+- **Commit del anexo de nómina** → `793c4a1`, con verbo explícito del usuario.
+- **Ayuda:** **ya cumplía**; no la menciona desde el PRD del 2026-10-26 y
+  `help_l10n_test` lo vigila. El pendiente estaba rancio, no pendiente.
+- **`noExpensesPeriod` duplicada** → queda una sola clave por ARB, la que
+  termina en punto (la que ya usaba el generado). `1ea6581`.
+- **`workBudgetLabel`/`workBudgetHelp`** → borradas: solo existían en EN y
+  ningún widget las pintaba. `1ea6581`.
+- **`metricMargin*`/`metricRatio*` con `$`** → **no era un bug**: son razones
+  («de cada `$100` vendidos»), no montos, y `l10n_money_notation_test` ya las
+  documenta como excepción.
+- **`balance_icon_*.png/.zip`** → ignorados en `.gitignore` (`9e6be5d`);
+  siguen en disco y no entran al build (`pubspec.yaml` solo declara
+  `assets/fonts/`).
 - `limpia_cuenta_prueba.sql` **ya no existe**: el pendiente de limpiar datos de
   prueba quedó obsoleto.
 
 ## 7. Cómo continuar
 
-1. Revisar el anexo de nómina en un PDF real y commitear cuando el usuario lo
-   pida (recordar: generados en LF después de `gen-l10n`).
-2. Después, los tres hallazgos de l10n, cada uno con su guarda.
+1. **Push pendiente:** `793c4a1`, `1ea6581` y `9e6be5d` están solo en local.
+   Solo se empuja con verbo explícito del usuario.
+2. Lo que queda del pack para estos cambios: `/verify` → `/audit-report` →
+   diagramas (`diagram-generator`) y, si ambos pasan, `manual-writer`.
 3. Regla vigente: `null` → oculto, nunca 0; código de moneda, nunca `$`; en
    `pdf` 3.11.3 el salto de página es `pw.NewPage()`, no `PageBreak`;
    `gen-l10n` y `build web` reescriben `lib/l10n/generated/` en CRLF →
-   reconvertir a LF.
+   reconvertir a LF. Una limpieza de ARB se demuestra **invisible** cuando los
+   generados quedan idénticos a `HEAD` (`git status` sin ellos).
