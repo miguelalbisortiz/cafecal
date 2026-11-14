@@ -60,6 +60,11 @@ build/
 /icons/
 /canvaskit/
 
+# Bocetos de iconos en la raiz (PNG y ZIP de trabajo). pubspec.yaml solo
+# declara assets/fonts/, asi que ninguno entra en el build; se ignoran para
+# que no ensucien `git status` en cada corrida.
+/balance_icon_*
+
 # Local env secrets
 # Cualquier *.env entra aqui: creds.env, prod.env, supabase.env... El
 # bloqueador del pack tambien los cubre por nombre, y esto evita que lleguen
