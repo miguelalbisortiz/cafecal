@@ -1,6 +1,6 @@
 # Project Learnings
 
-Last updated: 2026-11-10
+Last updated: 2026-11-17
 
 ## Code Patterns
 - Pattern: una sola función por regla, y separar la regla de LECTURA de la de GUARDADO | `lossOf(s)` decide qué es una pérdida (solo las resiembras) y lo leen el modelo (`recomputeCropState`), la lista y el informe; `Sowing.fromJson` es la puerta única de entrada (disco, nube y respaldo) y limpia el registro viejo al entrar | lib/models/sowing.dart | 2026-10-17
@@ -83,6 +83,11 @@ Last updated: 2026-11-10
 - Pattern: un anexo condicional se decide con **widgets nulos**, no con un booleano aparte: las secciones devuelven `null` sin contenido y la lista vacía apaga salto, título y espaciado de una sola vez (una condición duplicada se desincroniza) | `payrollCashSections` | lib/services/pdf_export_service.dart | 2026-11-10
 - Pattern (API `pdf` 3.11.3): **no existe `pw.PageBreak`**; el salto forzado es `pw.NewPage()` sin argumentos (`freeSpace` null = siempre). El salto va antes del título del anexo, y el bloque se pinta solo si alguna sección tiene contenido | anexo «Nómina y caja» | lib/services/pdf_export_service.dart | 2026-11-10
 - Pattern: una guarda de **páginas congeladas** (`/Type /Page` en los bytes) se actualiza con el motivo escrito al lado; si sube sin explicación, es una regresión, no un número nuevo | páginas 2 → 3 por el anexo | test/export_parity_test.dart | 2026-11-10
+- Pattern: una recomendación nueva se implementa como **servicio puro en `lib/services/`** con el reloj inyectable (`now`) y lo consumen los tres pintadores; la regla no se copia en pantalla, PDF ni Excel | `unsold_stock.dart` (corte `now − 365 días`), `crop_margin.dart`, `buyer_concentration.dart` | 2026-11-17
+- Pattern: si un dato de la regla falta, se **oculta la fila**, no se rellena con cero: sin área u operación no hay margen; sin comprador la venta queda fuera del denominador de concentración; sin peso se lista aparte en pantalla | lib/services/crop_margin.dart, lib/services/buyer_concentration.dart, lib/services/unsold_stock.dart | 2026-11-17
+- Pattern: un aviso de concentración se calcula con **porcentaje estricto y cardinalidad mínima** (`> 50 %` y `≥2` compradores) y se pinta solo con `{pct}` + `{buyer}`, sin monto: el monto ya está en otra fila y repetirlo mezclaría monedas | lib/services/buyer_concentration.dart, lib/l10n/app_es.arb, lib/l10n/app_en.arb | 2026-11-17
+- Pattern: las reglas nuevas de Reportes **no se emiten desde `evaluateAlerts`**; se concatenan después de `derive` en cada pintador para que el banner de Inicio siga igual | lib/screens/report_screen.dart, lib/services/pdf_export_service.dart, lib/services/excel_export_service.dart | 2026-11-17
+- Pattern (guarda): al añadir una fila a los exportadores, los fixtures y las guardas de **páginas congeladas** (4 y 1) se dejan intactos: si el número de páginas cambia, es regresión, no ajuste | test/export_parity_test.dart, test/pdf_export_test.dart | 2026-11-17
 
 ## Bugs & Solutions
 - Bug: resiembra con "plantas nuevas" en blanco y mortandad anotada → `FormatException` al guardar y no se registraba nada (el validador sí permite el campo vacío: la mortandad se anota sin reponer plantas) | `int.tryParse(...) ?? 0` | lib/screens/sowing_screen.dart | 2026-10-17
@@ -132,6 +137,7 @@ Last updated: 2026-11-10
 - Bug (ARB doble-codificado): una edición de `app_es.arb` dejó `próximo` como `prÃ³ximo` y la cola del JSON triplicada; `gen-l10n` propagó el mojibake al generado. Se restauran los **bytes** de `HEAD` (`git show HEAD:<ruta>` redirigido por `cmd`, no `Out-File`) y se re-aplica la clave; `json.load` como verificación | lib/l10n/app_es.arb, lib/l10n/generated/ | 2026-11-10
 - Bug (falso): `git push ... 2>&1` dentro de una tubería de PowerShell sale con código 1 aunque el push haya subido (`To … main -> main` va por stderr). Se confirma con `git log origin/main` o `git status -sb` | no fiarse del `$LASTEXITCODE` cuando se mezcla stderr | 2026-11-10
 - Bug (ARB duplicado): `noExpensesPeriod` estaba dos veces en cada ARB; `gen-l10n` se queda con la **última** aparición, así que deduplicar "la primera" cambia el texto en pantalla. Se conserva la que ya pintaba el generado y la prueba de que el cambio es invisible es que los tres `lib/l10n/generated/*.dart` quedan **idénticos a `HEAD`** en `git status` | noExpensesPeriod, dedupe | lib/l10n/app_es.arb, lib/l10n/app_en.arb | 2026-11-10
+- Bug (plan): el plan del hito 3 traía un caso 4 que no alcanzaba los `≥2` compradores y contaba 14 casos nuevos cuando la línea base era uno de ellos. Se corrigió en ejecución (A700/B300 + 300 sin comprador → `70 %`) y se anotó en el plan, sin tocar tests viejos ni fixtures | docs/plans/2026-11-17_1205_hito3-concentracion-de-comprador.plan.md | 2026-11-17
 
 ## Performance
 - Pattern: para medir el **primer arranque** de Flutter web no sirve FCP (pinta en canvas y no emite entrada de paint). Se usa `PerformanceResourceTiming.responseEnd` del último recurso, con un servidor Node local a 200 KB/s, service worker desregistrado y caches borrados antes de cada corrida; 3 corridas, mediana | el servidor no comprime, así que el segundo es pesimista pero comparable | C:\Users\MKY\AppData\Local\Temp\opencode\w_throttle.js | 2026-10-20
@@ -188,3 +194,7 @@ Last updated: 2026-11-10
 - Preference: el Excel se lee por pregunta, y la hoja **Datos** cruda es el sitio para filtrar y segmentar lo que el formato no permite; las hojas de respuesta tienen que verse parejas (banda de sección, encabezado, decimales) | estructura del Excel | 2026-11-10
 - Preference: la hoja **Cosechas** no se borra por fea: su contenido no está en otra hoja y el bloque «Qué hacer» solo vive ahí; se formatea | hoja Cosechas | 2026-11-10
 - Preference: la nómina del PDF va en **anexo con salto de página** (título «Nómina y caja»), no al final del documento ni suelta en el estado de resultados | PDF | 2026-11-10
+- Preference: para recomendaciones de negocio exige **TDD con rojo ejecutado** antes de tocar producción, la misma fila en los tres pintadores y `null` → oculto sin inventar cifras | Tanda 3 | 2026-11-17
+- Preference: aprueba commit y push **solo con verbo explícito en el turno**; cerrar la sesión (snapshot + LEARNING.md) no autoriza tocar código ni git | Tanda 3 | 2026-11-17
+- Constraint: sin esquema, migración, sync, backfill ni entidades nuevas sin evidencia; los tres hitos se resolvieron con servicios puros sobre campos existentes | Tanda 3 | 2026-11-17
+- Preference: `/verify` y `/audit-report` se aceptan con skills equivalentes siempre que dejen rastro en `docs/reports/` y `docs/audits/` | Tanda 3 | 2026-11-17
