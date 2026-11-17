@@ -18,6 +18,7 @@ import '../models/transaction.dart';
 import '../models/report_period.dart';
 import '../utils/format.dart';
 import 'alert_service.dart';
+import 'crop_margin.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
 import 'derived_harvests.dart';
@@ -534,8 +535,8 @@ class PdfExportService {
           // Inicio: histórico completo (no solo el período exportado) y la
           // caja/umbral que puso en Ajustes. Antes el PDF podía decir
           // «Sin recomendaciones» con el banner encendido en la portada.
-          _recommendationsSection(
-              active, crops, harvests, sowings, settings, l10n),
+          _recommendationsSection(active, crops, harvests, sowings, settings,
+              l10n, periodTx, terrenos),
           // Anexo de ubicación: el mismo y en el mismo sitio que en
           // Reportes y en Excel. Sin un solo punto, no aparece — y con él
           // desaparece también el hueco que dejaría su separación.
@@ -1832,7 +1833,9 @@ class PdfExportService {
       List<Harvest> harvests,
       List<Sowing> sowings,
       FarmSettings settings,
-      AppLocalizations l10n) {
+      AppLocalizations l10n,
+      Iterable<Transaction> periodRecords,
+      List<Terreno> terrenos) {
     final alerts = evaluateAlerts(
       transactions: history,
       crops: crops,
@@ -1851,6 +1854,17 @@ class PdfExportService {
         crops: crops,
         sacoKg: settings.sacoKg,
         now: DateTime.now(),
+        l10n: l10n,
+        locale: settings.numberLocale,
+      ),
+      // Tanda 3 · hito 2: el margen usa el período exportado, no el histórico
+      // completo que alimenta las alertas del banner de Inicio.
+      ...cropMarginRecommendations(
+        records: periodRecords,
+        crops: crops,
+        terrenos: terrenos,
+        unspecifiedName: l10n.commonCosts,
+        loteNoRepartidoName: l10n.loteNoRepartido,
         l10n: l10n,
         locale: settings.numberLocale,
       ),

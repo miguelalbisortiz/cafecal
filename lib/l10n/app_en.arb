@@ -328,6 +328,16 @@
     }
   },
   "stockUnsoldLine": "You have {kg} kg of {crop} unsold in the last 12 months. Define a buyer or presentation before the next harvest.",
+  "cropMarginTitle": "Margin by crop",
+  "@cropMarginLine": {
+    "description": "Margin by crop: percentage, margin per hectare and action in the same sentence",
+    "placeholders": {
+      "crop": { "type": "String" },
+      "pct": { "type": "String" },
+      "money": { "type": "String" }
+    }
+  },
+  "cropMarginLine": "{crop} leaves a {pct}% margin and {money}/ha. Prioritize labor there.",
   "reportNoHarvestData": "No harvest data in this period.",
 
   "harvestWorkersLabel": "No. of workers",

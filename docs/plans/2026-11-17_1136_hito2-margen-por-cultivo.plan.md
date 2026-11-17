@@ -1,6 +1,6 @@
 ---
 prd: docs/prds/2026-11-17_1050-recomendaciones-de-negocio.prd.md
-status: DRAFT
+status: DONE 2026-11-17_1200
 created: 2026-11-17_1136
 milestone: 2 · Margen por cultivo y por hectárea
 source:
@@ -338,3 +338,24 @@ usuario en el turno correspondiente.
   Inicio (aparte del valor nuevo del enum).
 - Añadir una segunda fila para el margen por hectárea o convertir la fila en un
   panel nuevo dentro del desglose (D3 del PRD y D1/D2 de este plan).
+
+## Cierre — 2026-11-17_1200
+
+**DONE.** Ejecutado con TDD: rojo de 3 unidades antes del servicio, línea base
+de 4 y 1 páginas verde, 14/14 dirigidos, 61/61 targeted, 1464/1464 suite
+completa, analyze limpio, `diff --check` limpio y generados en LF.
+
+- Reporte: `docs/reports/2026-11-17_1200_hito2-margen-por-cultivo.md`.
+- Auditoría: `docs/audits/2026-11-17_1200_hito2-margen-por-cultivo.md` →
+  **PASS** (SC-2.1..2.5 y SC-G1..G6; SC-G3 N/A por no sumar kilos), sin FAIL
+  ni NIT.
+- Decisión D1 aplicada: gana el mayor margen %, con `$/ha` como segunda cifra;
+  D2 oculta la fila sin área u operación; D3 rotula «Margen por cultivo».
+- Dos cestas documentadas y fijadas por test: el % usa todos los gastos del
+  desglose y el `$/ha` solo operación (sin equipo).
+- Guardas intactas: `paginasEsperadas = 4` y el fixture de 1 página sin
+  `cropId`; `evaluateAlerts` y el banner de Inicio sin cambios.
+- Nota: los ejemplos numéricos inconsistentes del plan se sustituyeron por
+  equivalentes coherentes en los tests, conservando la intención de cada SC.
+- Sin commit ni push: requiere verbo explícito.
+- Siguiente: hito 3 (concentración de comprador).

@@ -1745,6 +1745,18 @@ abstract class AppLocalizations {
   /// **'Tienes {kg} kg de {crop} sin vender en los últimos 12 meses. Define comprador o presentación antes de la próxima cosecha.'**
   String stockUnsoldLine(String kg, String crop);
 
+  /// Etiqueta corta del aviso de margen por cultivo
+  ///
+  /// In es, this message translates to:
+  /// **'Margen por cultivo'**
+  String get cropMarginTitle;
+
+  /// Margen por cultivo: porcentaje, margen por hectárea y acción en la misma frase
+  ///
+  /// In es, this message translates to:
+  /// **'{crop} deja un {pct}% de margen y {money}/ha. Prioriza ahí la mano de obra.'**
+  String cropMarginLine(String crop, String pct, String money);
+
   /// No description provided for @reportNoHarvestData.
   ///
   /// In es, this message translates to:

@@ -24,6 +24,7 @@ import '../services/currency_totals.dart';
 import '../services/derived_harvests.dart';
 import '../services/excel_export_service.dart' deferred as excel;
 import '../services/pdf_export_service.dart' deferred as pdf;
+import '../services/crop_margin.dart';
 import '../services/metric_signal.dart';
 import '../services/period_comparison.dart';
 import '../services/product_contribution.dart';
@@ -1970,6 +1971,17 @@ class _ReportScreenState extends State<ReportScreen> {
         l10n: l10n,
         locale: tx.settings.numberLocale,
       ),
+      // Tanda 3 · hito 2: el margen usa el MISMO período del desglose que
+      // se está pintando, y va detrás de `derive` por el mismo motivo.
+      ...cropMarginRecommendations(
+        records: _recordsFor(tx),
+        crops: tx.crops,
+        terrenos: tx.terrenos,
+        unspecifiedName: l10n.commonCosts,
+        loteNoRepartidoName: (n) => l10n.loteNoRepartido(n),
+        l10n: l10n,
+        locale: tx.settings.numberLocale,
+      ),
     ];
     final scheme = Theme.of(context).colorScheme;
     return Card(
@@ -3408,11 +3420,10 @@ class _CropRow {
 
   /// Margen del cultivo: de cada 100 vendidos, cuánto queda tras los gastos.
   ///
-  /// Se calcula como (Ingresos − Gastos) ÷ Ingresos. Sin ventas o sin gastos
-  /// no hay margen que mostrar: un 100% diría que producir fue gratis y un 0%
-  /// que no queda nada. Cualquiera de los dos sería inventar una cifra.
-  double? get margin =>
-      incomes <= 0 || expenses <= 0 ? null : (incomes - expenses) / incomes;
+  /// La fórmula vive en [CropBreakdownRow.margin]; acá solo se delega para
+  /// que la tarjeta del desglose y la recomendación de «Qué hacer» digan
+  /// siempre lo mismo. Sin ventas o sin gastos no hay margen que mostrar.
+  double? get margin => totals.margin;
 
   /// Recuperado por cada 100 invertidos. Es la cifra del semáforo: el rojo se
   /// enciende por debajo de 70, igual que en los avisos, aunque la fila ya no

@@ -906,6 +906,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get cropMarginTitle => 'Margen por cultivo';
+
+  @override
+  String cropMarginLine(String crop, String pct, String money) {
+    return '$crop deja un $pct% de margen y $money/ha. Prioriza ahí la mano de obra.';
+  }
+
+  @override
   String get reportNoHarvestData => 'Sin datos de cosechas en el período.';
 
   @override

@@ -331,6 +331,19 @@
     }
   },
   "stockUnsoldLine": "Tienes {kg} kg de {crop} sin vender en los últimos 12 meses. Define comprador o presentación antes de la próxima cosecha.",
+  "@cropMarginTitle": {
+    "description": "Etiqueta corta del aviso de margen por cultivo"
+  },
+  "cropMarginTitle": "Margen por cultivo",
+  "@cropMarginLine": {
+    "description": "Margen por cultivo: porcentaje, margen por hectárea y acción en la misma frase",
+    "placeholders": {
+      "crop": { "type": "String" },
+      "pct": { "type": "String" },
+      "money": { "type": "String" }
+    }
+  },
+  "cropMarginLine": "{crop} deja un {pct}% de margen y {money}/ha. Prioriza ahí la mano de obra.",
   "reportNoHarvestData": "Sin datos de cosechas en el período.",
 
   "harvestWorkersLabel": "N° de empleados",

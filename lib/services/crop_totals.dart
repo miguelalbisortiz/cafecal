@@ -79,6 +79,22 @@ class CropBreakdownRow {
   /// true si la fila tiene algún monto que mostrar.
   bool get hasAnyAmount => expensesTotal > 0 || incomesTotal > 0;
 
+  /// Margen del cultivo: de cada 100 vendidos, cuánto queda tras los gastos.
+  ///
+  /// La misma fórmula que pintaba la tarjeta del desglose, traída acá para
+  /// que la tarjeta y la nueva recomendación no calculen dos veces distinto.
+  /// Sin ingresos o sin gastos no hay margen: un 100 % diría que producir
+  /// fue gratis y un 0 % que no queda nada.
+  double? get margin => incomesTotal <= 0 || expensesTotal <= 0
+      ? null
+      : (incomesTotal - expensesTotal) / incomesTotal;
+
+  /// El margen como porcentaje (0..100), listo para `formatPct`.
+  double? get marginPct {
+    final m = margin;
+    return m == null ? null : m * 100;
+  }
+
   static double _sum(Iterable<double> values) =>
       values.fold<double>(0, (a, b) => a + b);
 }

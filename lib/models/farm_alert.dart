@@ -30,7 +30,10 @@ enum AlertRule {
   firstHarvestOverdue,
   // Tanda 3 · hito 1: aviso de stock por cultivo. No lo emite `evaluateAlerts`; las
   // filas se appendan en los tres pintadores después de `derive`.
-  unsoldStock;
+  unsoldStock,
+  // Tanda 3 · hito 2: margen por cultivo y por hectárea en una sola fila.
+  // Tampoco lo emite `evaluateAlerts`: la fila se appenda tras `derive`.
+  cropMargin;
 
   String get key => name;
 }

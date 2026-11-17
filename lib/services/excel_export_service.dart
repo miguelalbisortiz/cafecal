@@ -16,6 +16,7 @@ import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/report_period.dart';
 import 'alert_service.dart';
+import 'crop_margin.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
 import 'derived_harvests.dart';
@@ -234,7 +235,8 @@ class ExcelExportService {
         settings: settings,
         currency: currency,
         sacoKg: settings.sacoKg,
-        l10n: l10n);
+        l10n: l10n,
+        terrenos: terrenos);
 
     // La nómina y la caja van en su propio tab: responden otra pregunta y no
     // caben debajo del resultado. Si no hay nada que contar, la hoja no nace.
@@ -1734,6 +1736,7 @@ class ExcelExportService {
     required String currency,
     required double sacoKg,
     required AppLocalizations l10n,
+    required List<Terreno> terrenos,
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
     // Dos decimales para precios unitarios y rendimientos: `3846.1538…` o
@@ -1769,7 +1772,9 @@ class ExcelExportService {
           harvests: harvests,
           sowings: sowings,
           settings: settings,
-          l10n: l10n);
+          l10n: l10n,
+          periodRecords: periodTx,
+          terrenos: terrenos);
       sheet.setColumnWidth(0, 42);
       return;
     }
@@ -1991,7 +1996,9 @@ class ExcelExportService {
         harvests: harvests,
         sowings: sowings,
         settings: settings,
-        l10n: l10n);
+        l10n: l10n,
+        periodRecords: periodTx,
+        terrenos: terrenos);
 
     // Aviso: los costos por kilo no salen en una cifra porque los montos
     // que los componen están en más de una moneda.
@@ -2031,6 +2038,8 @@ class ExcelExportService {
     required List<Sowing> sowings,
     required FarmSettings settings,
     required AppLocalizations l10n,
+    required List<Transaction> periodRecords,
+    required List<Terreno> terrenos,
   }) {
     row([null, null, null]);
     row([TextCellValue(l10n.reportWhatsNext)]);
@@ -2052,6 +2061,16 @@ class ExcelExportService {
         crops: crops,
         sacoKg: settings.sacoKg,
         now: DateTime.now(),
+        l10n: l10n,
+        locale: settings.numberLocale,
+      ),
+      // Tanda 3 · hito 2: mismo período del desglose que en PDF y pantalla.
+      ...cropMarginRecommendations(
+        records: periodRecords,
+        crops: crops,
+        terrenos: terrenos,
+        unspecifiedName: l10n.commonCosts,
+        loteNoRepartidoName: l10n.loteNoRepartido,
         l10n: l10n,
         locale: settings.numberLocale,
       ),
