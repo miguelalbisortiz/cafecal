@@ -3242,4 +3242,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get contributionCoverageNoData => 'No se calcula: falta la inversión de siembra del café o los datos están en más de una moneda.';
+
+  @override
+  String get cropAreaInvalid => 'Escribe un área válida en hectáreas (por ejemplo 2,5).';
+
+  @override
+  String get quickAddOptionalHelp => 'Opcional. Puedes dejarlo vacío y completarlo después.';
 }

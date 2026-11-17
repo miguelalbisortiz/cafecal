@@ -14,33 +14,48 @@ import 'crop_editor_dialog.dart';
 /// ofrece el formulario completo.
 ///
 /// Es un banner superior, no un modal: no bloquea nada y se cierra con
-/// "Ahora no". Si el productor dice que no, la preferencia queda guardada en
-/// preferencias locales y la app **no vuelve a preguntar**.
+/// "Ahora no". El descarte es **por cultivo**: decir que no en uno no calla
+/// los avisos de los demás, y un cultivo nuevo siempre merece su pregunta.
+///
+/// La clave vieja `crop_setup_prompt_dismissed_v1` era global y se ignora:
+/// estaba mal porque convertía un "ahora no" puntual en un silencio para
+/// siempre. Se deja de leer, no se migra su valor.
 class CropSetupPrompt {
   CropSetupPrompt._();
 
-  static const String dismissedKey = 'crop_setup_prompt_dismissed_v1';
+  /// Ids de los cultivos a los que ya se les dijo "ahora no".
+  static const String dismissedKey = 'crop_setup_prompt_dismissed_v2';
 
-  /// true si todavía corresponde ofrecer completar los datos.
-  static Future<bool> canAsk() async {
+  static Future<List<String>> _dismissedIds() async {
     final prefs = await SharedPreferences.getInstance();
-    return !(prefs.getBool(dismissedKey) ?? false);
+    return prefs.getStringList(dismissedKey) ?? const <String>[];
   }
 
-  /// Marca la respuesta "Ahora no": no se pregunta nunca más.
-  static Future<void> markDismissed() async {
+  /// true si todavía corresponde ofrecer completar los datos de [cropId].
+  static Future<bool> canAsk(String cropId) async {
+    final ids = await _dismissedIds();
+    return !ids.contains(cropId);
+  }
+
+  /// Marca la respuesta "Ahora no" para este cultivo únicamente.
+  static Future<void> markDismissed(String cropId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(dismissedKey, true);
+    final ids = List<String>.from(
+        prefs.getStringList(dismissedKey) ?? const <String>[]);
+    if (ids.contains(cropId)) return;
+    ids.add(cropId);
+    await prefs.setStringList(dismissedKey, ids);
   }
 
   /// Ofrece completar los datos de [crop] si el usuario todavía no dijo que
-  /// no. [context] debe ser el de una pantalla viva con Scaffold.
+  /// no para **ese** cultivo. [context] debe ser el de una pantalla viva con
+  /// Scaffold.
   static Future<void> show(
     BuildContext context,
     TransactionProvider tx,
     Crop crop,
   ) async {
-    if (!await canAsk()) return;
+    if (!await canAsk(crop.id)) return;
     if (!context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
@@ -60,7 +75,7 @@ class CropSetupPrompt {
         TextButton(
           onPressed: () {
             controller.close();
-            markDismissed();
+            markDismissed(crop.id);
           },
           child: Text(l10n.cropSetupLater),
         ),

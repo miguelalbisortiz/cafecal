@@ -5740,6 +5740,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se calcula: falta la inversión de siembra del café o los datos están en más de una moneda.'**
   String get contributionCoverageNoData;
+
+  /// No description provided for @cropAreaInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un área válida en hectáreas (por ejemplo 2,5).'**
+  String get cropAreaInvalid;
+
+  /// No description provided for @quickAddOptionalHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional. Puedes dejarlo vacío y completarlo después.'**
+  String get quickAddOptionalHelp;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

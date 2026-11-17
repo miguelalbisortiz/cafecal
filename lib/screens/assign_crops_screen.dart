@@ -29,7 +29,7 @@ class _AssignCropsScreenState extends State<AssignCropsScreen> {
       final tx = context.read<TransactionProvider>();
       final res = await showDialog<NewCropResult>(
         context: context,
-        builder: (_) => NewCropDialog(crops: tx.crops),
+        builder: (_) => NewCropDialog(crops: tx.crops, terrenos: tx.terrenos),
       );
       if (res == null || !mounted) return;
       // L2.2: el id devuelto por el diálogo manda; el nombre ya no se
@@ -38,8 +38,14 @@ class _AssignCropsScreenState extends State<AssignCropsScreen> {
         setState(() => _pending[t.id] = res.existingId);
         return;
       }
-      final crop =
-          await tx.addCrop(res.name, currency: tx.settings.currency);
+      final crop = await tx.addCrop(
+        res.name,
+        currency: tx.settings.currency,
+        // Tanda 2A: el alta corta puede dejar el contexto mínimo ya puesto.
+        terrenoId: res.terrenoId,
+        areaHa: res.areaHa,
+        defaultUnit: res.defaultUnit,
+      );
       if (!mounted) return;
       setState(() => _pending[t.id] = crop.id);
       // L2.5b: aviso opcional y descartable para completar los datos.

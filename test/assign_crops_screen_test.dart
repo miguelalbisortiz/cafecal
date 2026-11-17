@@ -94,7 +94,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nuevo cultivo…').last);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'Café');
+    await tester.enterText(
+        find.byWidgetPredicate((w) =>
+            w is TextField && w.decoration?.labelText == 'Nombre del cultivo'),
+        'Café');
     await tester.tap(find.text('Agregar'));
     await tester.pumpAndSettle();
 

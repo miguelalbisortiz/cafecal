@@ -325,7 +325,7 @@ class _SowingFormState extends State<_SowingForm> {
     final tx = context.read<TransactionProvider>();
     final res = await showDialog<NewCropResult>(
       context: context,
-      builder: (_) => NewCropDialog(crops: tx.crops),
+      builder: (_) => NewCropDialog(crops: tx.crops, terrenos: tx.terrenos),
     );
     if (res == null || !mounted) return;
     // L2.2: el diálogo ya resolvió la ambigüedad. Si devolvió un id, se usa
@@ -348,8 +348,14 @@ class _SowingFormState extends State<_SowingForm> {
       });
       return;
     }
-    final crop =
-        await tx.addCrop(res.name, currency: tx.settings.currency);
+    final crop = await tx.addCrop(
+      res.name,
+      currency: tx.settings.currency,
+      // Tanda 2A: el alta corta puede dejar el contexto mínimo ya puesto.
+      terrenoId: res.terrenoId,
+      areaHa: res.areaHa,
+      defaultUnit: res.defaultUnit,
+    );
     if (!mounted) return;
     setState(() {
       _cropId = crop.id;

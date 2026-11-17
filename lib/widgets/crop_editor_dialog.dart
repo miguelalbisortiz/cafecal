@@ -5,6 +5,7 @@ import '../models/crop.dart';
 import '../models/terreno.dart';
 import '../services/terreno_area.dart';
 import 'crop_loss_dialog.dart';
+import 'crop_units.dart';
 
 /// Editor de cultivo (crear y editar). Permite configurar fase/ciclo, unidad
 /// preferida, área y plantas vivas. Al confirmar devuelve los valores editados.
@@ -99,8 +100,6 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   /// imponga. Vacío = sin meta.
   final _goalController = TextEditingController();
   String? _error;
-
-  static const _unitOptions = ['kg', 'lb', 'arroba', 'saco', 'carga', 'racimo', 'cajon'];
 
   @override
   void initState() {
@@ -300,15 +299,6 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   /// fase arranca en `produccion`, que es lo habitual (se siembra y se cosecha
   /// en el año). Es una sugerencia, no un candado.
 
-  String _unitLabel(String key, AppLocalizations l10n) => switch (key) {
-        'kg' => l10n.unitKg,
-        'arroba' => l10n.unitArroba,
-        'saco' => l10n.unitSaco,
-        'racimo' => l10n.unitRacimo,
-        'cajon' => l10n.unitCajon,
-        _ => key,
-      };
-
   /// Tanda 4 · cuánto del terreno elegido ya está asignado entre sus cultivos.
   ///
   /// Es una ayuda, no un límite: si se pasa, se pinta en ámbar y el guardado
@@ -488,9 +478,9 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                   value: null,
                   child: Text(l10n.defaultUnitNone),
                 ),
-                ..._unitOptions.map((u) => DropdownMenuItem<String>(
+                ...cropUnitOptions.map((u) => DropdownMenuItem<String>(
                       value: u,
-                      child: Text(_unitLabel(u, l10n)),
+                      child: Text(cropUnitLabel(u, l10n)),
                     )),
               ],
               onChanged: (v) => setState(() => _defaultUnit = v),

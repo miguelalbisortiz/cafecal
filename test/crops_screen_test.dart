@@ -293,7 +293,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(0), 'Café de altura');
     final selector = find.byWidgetPredicate((w) =>
         w is DropdownButtonFormField<String> &&
-        w.decoration?.labelText == dialogL10n.cropTerrenoLabel);
+        w.decoration.labelText == dialogL10n.cropTerrenoLabel);
     expect(selector, findsOneWidget);
     await tester.tap(selector);
     await tester.pumpAndSettle();

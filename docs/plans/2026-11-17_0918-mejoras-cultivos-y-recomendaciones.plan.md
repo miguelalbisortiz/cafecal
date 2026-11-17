@@ -2,6 +2,7 @@
 prd: pendiente (solo Tanda 3)
 status: IN_PROGRESS
 tanda1: DONE 2026-11-17_0943
+tanda2a: DONE 2026-11-17_1015
 created: 2026-11-17_0918
 source:
   - docs/analysis/2026-11-17_tipos-de-cultivo.md
@@ -85,7 +86,12 @@ silenciosos; no garantiza más ingreso por sí sola.
 
 ## Tanda 2 · Datos completos y paridad (sin PRD, sí decisiones de UI)
 
-### 2.1 Altas cortas con contexto — P1
+> 2.1 ejecutada y verificada el 2026-11-17 10:15 (Tanda 2A). Evidencia:
+> `docs/reports/2026-11-17_1015_tanda2a-altas-cortas-contexto.md` y
+> `docs/audits/2026-11-17_1015_tanda2a-altas-cortas-contexto.md`.
+> 2.2, 2.3 y 2.4 siguen pendientes.
+
+### 2.1 Altas cortas con contexto — P1 ✅ DONE
 - Qué: Registro y Siembras crean solo nombre + moneda; el banner para completar
   se descarta para siempre (`register_screen.dart:401-433`,
   `sowing_screen.dart:325-359`, `crop_setup_prompt.dart:22-33`).
@@ -173,7 +179,8 @@ reporte en `docs/reports/`. Solo entonces `/verify` y `/audit-report`.
 - [x] «Qué hacer» muestra diagnóstico **y** acción en los tres pintadores.
 - [x] Cultivo creado con terreno lo conserva.
 - [x] Ningún texto contradice el código (ES/EN).
-- [ ] Más cultivos con área/terreno y métricas calculables.
+- [ ] Más cultivos con área/terreno y métricas calculables. Mecanismo listo en
+  2.1; el conteo real requiere prueba con datos de finca.
 - [ ] Pantalla, PDF y Excel dicen lo mismo.
 - [ ] Al menos una recomendación de negocio aprobada e implementada con test.
 - [ ] Sin commit ni push sin verbo explícito del usuario.

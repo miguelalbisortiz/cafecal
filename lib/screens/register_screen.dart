@@ -402,7 +402,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final tx = context.read<TransactionProvider>();
     final res = await showDialog<NewCropResult>(
       context: context,
-      builder: (_) => NewCropDialog(crops: tx.crops),
+      builder: (_) => NewCropDialog(crops: tx.crops, terrenos: tx.terrenos),
     );
     if (!mounted) return;
     if (res == null) {
@@ -422,7 +422,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
       return;
     }
-    final crop = await tx.addCrop(res.name, currency: _currency);
+    final crop = await tx.addCrop(
+      res.name,
+      currency: _currency,
+      // Tanda 2A: el alta corta puede dejar el contexto mínimo ya puesto.
+      terrenoId: res.terrenoId,
+      areaHa: res.areaHa,
+      defaultUnit: res.defaultUnit,
+    );
     if (!mounted) return;
     setState(() {
       _cropId = crop.id;

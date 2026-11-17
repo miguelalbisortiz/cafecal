@@ -5,6 +5,7 @@ import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/screens/assign_crops_screen.dart';
 import 'package:mi_cafetal/screens/register_screen.dart';
 import 'package:mi_cafetal/screens/sowing_screen.dart';
+import 'package:mi_cafetal/widgets/crop_setup_prompt.dart';
 
 import 'helpers/l2_common.dart';
 
@@ -97,7 +98,8 @@ void main() {
   });
 
   group('(b) aviso opcional para completar los datos', () {
-    testWidgets('se descarta y no vuelve a preguntar', (tester) async {
+    testWidgets('se descarta solo para ese cultivo, no para todos',
+        (tester) async {
       bigScreen(tester);
       final provider = await makeTx();
       await tester.pumpWidget(
@@ -123,11 +125,15 @@ void main() {
       expect(find.byType(MaterialBanner), findsNothing,
           reason: '"Ahora no" cierra el aviso al instante');
 
+      expect(await CropSetupPrompt.canAsk(provider.crops.first.id), isFalse,
+          reason: 'el cultivo al que se le dijo "ahora no" no se repregunta');
+
       await crearCrop('Plátano');
       expect(provider.crops, hasLength(2));
-      expect(find.byType(MaterialBanner), findsNothing,
-          reason: 'quien dijo que no, ya no vuelve a ser preguntado');
-      expect(find.text(es.cropSetupPrompt), findsNothing);
+      expect(find.byType(MaterialBanner), findsOneWidget,
+          reason: 'un cultivo distinto merece su propia pregunta');
+      expect(find.text(es.cropSetupPrompt), findsOneWidget);
+      expect(await CropSetupPrompt.canAsk(provider.crops.last.id), isTrue);
     });
 
     testWidgets('"Completar" abre el editor y guarda con updateCrop',

@@ -51,7 +51,10 @@ Finder inNewCrop(Finder matching) => find.descendant(
 
 /// Escribe en el campo de nombre del diálogo de cultivo y pulsa "Agregar".
 Future<void> submitNewCrop(WidgetTester tester, String name) async {
-  await tester.enterText(inNewCrop(find.byType(TextField)), name);
+  await tester.enterText(
+      inNewCrop(find.byWidgetPredicate((w) =>
+          w is TextField && w.decoration?.labelText == es.cropNameLabel)),
+      name);
   await tester.pumpAndSettle();
   await tester.tap(inNewCrop(find.text(es.add)));
   await tester.pumpAndSettle();

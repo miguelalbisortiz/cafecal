@@ -3242,4 +3242,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contributionCoverageNoData => 'Not calculated: the coffee\'s planting investment is missing or the data spans more than one currency.';
+
+  @override
+  String get cropAreaInvalid => 'Enter a valid area in hectares (for example 2.5).';
+
+  @override
+  String get quickAddOptionalHelp => 'Optional. Leave it empty and fill it in later.';
 }

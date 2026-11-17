@@ -1414,5 +1414,7 @@
   "contributionCoverageTitle": "Coffee coverage",
   "contributionCoverageLine": "The other products cover {pct}% of the coffee's initial investment: {covered} of {investment}.",
   "contributionCoverageNegative": "The other products do not cover anything yet: their accumulated contribution is {covered}, against {investment} of initial investment in {coffee}.",
-  "contributionCoverageNoData": "Not calculated: the coffee's planting investment is missing or the data spans more than one currency."
+  "contributionCoverageNoData": "Not calculated: the coffee's planting investment is missing or the data spans more than one currency.",
+  "cropAreaInvalid": "Enter a valid area in hectares (for example 2.5).",
+  "quickAddOptionalHelp": "Optional. Leave it empty and fill it in later."
 }
