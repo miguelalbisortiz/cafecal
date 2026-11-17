@@ -5,6 +5,86 @@ import '../models/transaction.dart';
 import '../models/units.dart';
 import 'derived_harvests.dart';
 
+/// Fecha de la primera cosecha del cultivo, o `null` si todavía no dio nada.
+///
+/// Es el corte de C9: antes de esa fecha el cultivo se estaba estableciendo.
+DateTime? firstHarvestDateOf(Iterable<Harvest> harvests, String? cropId) {
+  if (cropId == null) return null;
+  DateTime? first;
+  for (final h in harvests) {
+    if (h.cropId != cropId) continue;
+    if (first == null || h.date.isBefore(first)) first = h.date;
+  }
+  return first;
+}
+
+/// Corte de C9 para una fila del desglose de Reportes.
+///
+/// - **fila de cultivo** → la primera cosecha de ese cultivo;
+/// - **fila de lote** (gasto de un terreno que no se pudo repartir) → la
+///   primera cosecha **más temprana entre los cultivos del lote**. Si el lote
+///   ya sirve a un cultivo que produce, sus cercas son mantenimiento: no se
+///   puede decir «este lote se está estableciendo» mientras adentro hay un
+///   cafetal cosechando;
+/// - **sin cultivo ni lote** («Costos comunes») → `null`, que deja las cercas
+///   como inversión (no hay contra qué cortar).
+DateTime? establishmentCutForRow({
+  required String? cropId,
+  required String? terrenoId,
+  required List<Crop> crops,
+  required Iterable<Harvest> harvests,
+}) {
+  if (cropId != null) return firstHarvestDateOf(harvests, cropId);
+  if (terrenoId == null) return null;
+  DateTime? first;
+  for (final c in crops) {
+    if (c.terrenoId != terrenoId) continue;
+    final d = firstHarvestDateOf(harvests, c.id);
+    if (d != null && (first == null || d.isBefore(first))) first = d;
+  }
+  return first;
+}
+
+/// ¿Este gasto entra a los ratios de operación (costo por kilo y por
+/// hectárea)?
+///
+/// Todo menos el bloque de **inversión en equipo**: comprar una despulpadora
+/// no encarece el kilo de este mes. Sigue contando en el total de gastos y en
+/// su bloque; solo queda fuera del ratio, que es de operación.
+bool isOperationExpense(Transaction t) =>
+    expenseGroupOf(t.category) != ExpenseGroup.inversion;
+
+/// Suma de los gastos de operación (sin el bloque de inversión en equipo).
+///
+/// Es lo que va al numerador del costo por kilo del estado de resultados.
+/// Los borrados no cuentan y los ingresos tampoco.
+double operationExpenseTotal(Iterable<Transaction> txs) {
+  double total = 0;
+  for (final t in txs) {
+    if (t.deleted || !t.type.isExpense) continue;
+    if (!isOperationExpense(t)) continue;
+    total += t.amount;
+  }
+  return total;
+}
+
+/// ¿Este gasto es inversión de establecimiento del cultivo?
+///
+/// Dos caminos:
+/// - **siembra**, por categoría ([kExpenseCategorySowing]) o por traer
+///   `sowingId` anotado;
+/// - **cercas y preparación antes de la primera cosecha** (C9). Después de la
+///   primera cosecha, arreglar una cerca es mantenimiento y va a operación:
+///   el mismo gasto no significa lo mismo en un cafetal que se está armando
+///   que en uno que ya produce. Sin primera cosecha conocida, todas las cercas
+///   siguen siendo de establecimiento.
+bool isEstablishmentExpense(Transaction t,
+    {DateTime? firstHarvestDate}) {
+  if (t.category == kExpenseCategorySowing || t.sowingId != null) return true;
+  if (t.category != kExpenseCategoryFences) return false;
+  return firstHarvestDate == null || !t.date.isAfter(firstHarvestDate);
+}
+
 /// Métricas de cosecha para la sección "Cosechas" del reporte.
 /// Funciones puras sobre datos locales (testables sin UI).
 class ReportHarvestMetrics {
@@ -141,9 +221,13 @@ class ReportHarvestMetrics {
         kg += _kgOf(h);
       }
       if (kg <= 0) return null;
-      if (cropAmountCurrencies(cropExpenses).length > 1) return null;
+      // Monedas del ratio: solo las de los gastos que suman. Un equipo
+      // comprado en otra moneda no lo vuelve incomparable (C10).
+      final operationExpenses =
+          cropExpenses.where(isOperationExpense).toList();
+      if (cropAmountCurrencies(operationExpenses).length > 1) return null;
       double cost = 0;
-      for (final t in cropExpenses) {
+      for (final t in operationExpenses) {
         cost += t.amount;
       }
       return cost / kg;
@@ -169,24 +253,56 @@ class ReportHarvestMetrics {
   /// del período** (la separación estándar de Cenicafé: costos de
   /// establecimiento vs costos de operación).
   ///
-  /// Un gasto es inversión inicial si viene de una siembra: su categoría es
-  /// [kExpenseCategorySowing] ('siembra') **o** trae `sowingId` anotado.
-  /// Todo lo demás es operación del período. Los borrados (`t.deleted`) no
-  /// cuentan. Es una partición exacta: `inversión + operación` siempre suma
-  /// el total de gastos, sin duplicar ni perder montos.
+  /// Tres cestas, sin solaparse:
+  /// - **inversión inicial** ([isEstablishmentExpense]): siembra, o
+  ///   cercas/preparación de **antes de la primera cosecha**
+  ///   ([firstHarvestDate]; sin cosecha, todo cuenta);
+  /// - **operación del período** ([isOperationExpense]): lo que cuesta
+  ///   producir este período;
+  /// - **inversión en equipo**: lo que no es ninguna de las dos, es decir el
+  ///   bloque de capital (comprar una despulpadora no encarece el kilo).
+  ///
+  /// Los borrados (`t.deleted`) no cuentan. Es una partición exacta: las tres
+  /// cestas siempre suman el total de gastos, sin duplicar ni perder montos.
   CropExpenseSplit splitInvestmentAndOperation(
-      List<Transaction> cropExpenses) {
+      List<Transaction> cropExpenses,
+      {DateTime? firstHarvestDate}) {
     double investment = 0;
+    double equipment = 0;
     double operation = 0;
     for (final t in cropExpenses) {
       if (t.deleted) continue;
-      if (t.category == kExpenseCategorySowing || t.sowingId != null) {
+      if (isEstablishmentExpense(t, firstHarvestDate: firstHarvestDate)) {
         investment += t.amount;
-      } else {
+      } else if (isOperationExpense(t)) {
         operation += t.amount;
+      } else {
+        // Ni establecimiento ni operación: el bloque de inversión en equipo.
+        equipment += t.amount;
       }
     }
-    return CropExpenseSplit(investment: investment, operation: operation);
+    return CropExpenseSplit(
+        investment: investment, equipment: equipment, operation: operation);
+  }
+
+  /// Reparto de una fila del desglose con el corte de C9 que le toca
+  /// ([establishmentCutForRow]): el mismo en pantalla, PDF y Excel.
+  CropExpenseSplit splitForRow({
+    required List<Transaction> expenseTxs,
+    required String? cropId,
+    required String? terrenoId,
+    required List<Crop> crops,
+    required Iterable<Harvest> harvests,
+  }) {
+    return splitInvestmentAndOperation(
+      expenseTxs,
+      firstHarvestDate: establishmentCutForRow(
+        cropId: cropId,
+        terrenoId: terrenoId,
+        crops: crops,
+        harvests: harvests,
+      ),
+    );
   }
 
   /// Costo por kilo cosechado en el período: gastos ÷ kg cosechados.
@@ -323,6 +439,10 @@ class ReportHarvestMetrics {
     final currencies = <String>{};
     for (final t in txs) {
       if (t.deleted || !t.type.isExpense) continue;
+      // La inversión en equipo no es costo de la hectárea de este período:
+      // ni suma ni cuenta para el chequeo de monedas. Un equipo comprado en
+      // otra moneda dejaba el ratio en «—» sin motivo.
+      if (!isOperationExpense(t)) continue;
       total += t.amount;
       currencies.add(t.currency);
     }
@@ -411,13 +531,26 @@ class ReportHarvestMetrics {
 /// Reparto de los gastos de un cultivo en inversión inicial vs operación.
 /// `total` es exactamente la suma de ambos: la UI lo usa para comprobar que
 /// el desglose no pierde ni duplica montos.
+/// Reparto de los gastos de una fila del desglose.
+///
+/// - [investment] · inversión inicial (siembra y cercas de antes de la primera
+///   cosecha);
+/// - [equipment] · inversión en equipo (compra de capital, C10);
+/// - [operation] · operación del período.
+///
+/// Partición exacta: los tres suman el total de gastos.
 class CropExpenseSplit {
   final double investment;
+  final double equipment;
   final double operation;
 
-  const CropExpenseSplit({required this.investment, required this.operation});
+  const CropExpenseSplit({
+    required this.investment,
+    required this.equipment,
+    required this.operation,
+  });
 
-  double get total => investment + operation;
+  double get total => investment + equipment + operation;
 }
 
 class _Acc {

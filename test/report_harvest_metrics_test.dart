@@ -363,6 +363,200 @@ void main() {
     });
   });
 
+  // C9 · el corte de una fila del desglose. La fila de un lote no tiene
+  // cultivo propio: si adentro ya hay un cultivo que cosechó, el lote ya no
+  // se está estableciendo y sus cercas son mantenimiento.
+  group('establishmentCutForRow (C9 — el corte de cada fila)', () {
+    const cafe = Crop(id: 'cafe', name: 'Café', terrenoId: 't1');
+    const platano = Crop(id: 'pl', name: 'Plátano', terrenoId: 't1');
+    const maiz = Crop(id: 'maiz', name: 'Maíz', terrenoId: 't2');
+    final cosechaCafe = _h(
+      id: 'h-cafe',
+      cropId: 'cafe',
+      date: DateTime(2024, 3, 1),
+      amount: 100,
+    );
+    final cosechaPlatano = _h(
+      id: 'h-pl',
+      cropId: 'pl',
+      date: DateTime(2025, 1, 1),
+      amount: 50,
+    );
+
+    test('fila de cultivo usa la cosecha de SU cultivo', () {
+      final harvests = [cosechaCafe, cosechaPlatano];
+      expect(
+        establishmentCutForRow(
+            cropId: 'pl',
+            terrenoId: null,
+            crops: const [cafe, platano],
+            harvests: harvests),
+        DateTime(2025, 1, 1),
+        reason: 'la cosecha del café no corta la fila del plátano',
+      );
+      expect(
+        establishmentCutForRow(
+            cropId: 'cafe',
+            terrenoId: null,
+            crops: const [cafe, platano],
+            harvests: harvests),
+        DateTime(2024, 3, 1),
+      );
+    });
+
+    test('fila de lote corta con la cosecha más temprana de sus cultivos', () {
+      expect(
+        establishmentCutForRow(
+            cropId: null,
+            terrenoId: 't1',
+            crops: const [cafe, platano, maiz],
+            harvests: [cosechaCafe, cosechaPlatano]),
+        DateTime(2024, 3, 1),
+        reason: 'basta que un cultivo del lote produzca para cerrar el '
+            'establecimiento',
+      );
+    });
+
+    test('lote sin cultivos que cosecharon no corta: sigue en inversión', () {
+      expect(
+        establishmentCutForRow(
+            cropId: null,
+            terrenoId: 't1',
+            crops: const [cafe, platano],
+            harvests: const []),
+        isNull,
+      );
+      expect(
+        establishmentCutForRow(
+            cropId: null,
+            terrenoId: 't9',
+            crops: const [cafe],
+            harvests: [cosechaCafe]),
+        isNull,
+        reason: 'un lote sin cultivos no hereda la cosecha de otro lote',
+      );
+    });
+
+    test('la fila de «Costos comunes» no corta', () {
+      expect(
+        establishmentCutForRow(
+            cropId: null,
+            terrenoId: null,
+            crops: const [cafe],
+            harvests: [cosechaCafe]),
+        isNull,
+      );
+    });
+  });
+
+  // C10 · el bloque de inversión en equipo se queda en el total de gastos y
+  // en su bloque, pero no entra a los ratios: una despulpadora no encarece
+  // el kilo ni la hectárea de este mes.
+  group('C10 · la inversión en equipo no entra a los ratios', () {
+    Transaction gasto(String category, double amount) => Transaction(
+          id: 'g-$category-$amount',
+          type: TransactionType.expense,
+          cropId: 'cafe',
+          category: category,
+          amount: amount,
+          date: DateTime(2026, 5, 1),
+          createdAt: DateTime(2026, 5, 1),
+        );
+
+    test('el costo por hectárea deja fuera el equipo', () {
+      final cost = const ReportHarvestMetrics().costPerHa(
+        [gasto('equipo', 2500000), gasto('fertilizante', 300000)],
+        3,
+      );
+      expect(cost, 100000,
+          reason: 'solo los 300.000 de operación ÷ 3 ha');
+    });
+
+    test('el costo por kilo del cultivo deja fuera el equipo', () {
+      const cafe = Crop(id: 'cafe', name: 'Café', phase: CropPhase.produccion);
+      final kg = const ReportHarvestMetrics().totalCostPerKg(
+        cafe,
+        [
+          gasto('equipo', 2500000),
+          gasto('fertilizante', 300000),
+          gasto('mano_obra', 200000),
+          gasto('arriendo', 100000),
+        ],
+        [_h(id: 'h1', cropId: 'cafe', date: DateTime(2026, 5, 2), amount: 1500)],
+      );
+      expect(kg, 400,
+          reason: '600.000 de operación ÷ 1.500 kg, no 3.100.000 ÷ 1.500');
+    });
+
+    test('un equipo en otra moneda no rompe el costo por hectárea', () {
+      final cost = const ReportHarvestMetrics().costPerHa(
+        [
+          Transaction(
+            id: 'equipo-usd',
+            type: TransactionType.expense,
+            cropId: 'cafe',
+            category: 'equipo',
+            amount: 900,
+            currency: 'USD',
+            date: DateTime(2026, 5, 1),
+            createdAt: DateTime(2026, 5, 1),
+          ),
+          gasto('fertilizante', 300000),
+        ],
+        3,
+      );
+      expect(cost, 100000,
+          reason: 'el equipo en USD ni suma ni cuenta para el chequeo de '
+              'monedas: el ratio es de operación en COP');
+    });
+
+    test('un equipo en otra moneda no rompe el costo por kilo', () {
+      const cafe = Crop(id: 'cafe', name: 'Café', phase: CropPhase.produccion);
+      final kg = const ReportHarvestMetrics().totalCostPerKg(
+        cafe,
+        [
+          Transaction(
+            id: 'equipo-usd',
+            type: TransactionType.expense,
+            cropId: 'cafe',
+            category: 'equipo',
+            amount: 900,
+            currency: 'USD',
+            date: DateTime(2026, 5, 1),
+            createdAt: DateTime(2026, 5, 1),
+          ),
+          gasto('fertilizante', 300000),
+        ],
+        [_h(id: 'h1', cropId: 'cafe', date: DateTime(2026, 5, 2), amount: 1500)],
+      );
+      expect(kg, 200, reason: '300.000 ÷ 1.500 = 200, sin el equipo en USD');
+    });
+
+    test('operationExpenseTotal suma solo gastos de operación', () {
+      expect(
+        operationExpenseTotal([
+          gasto('equipo', 2500000),
+          gasto('fertilizante', 300000),
+        ]),
+        300000,
+      );
+      expect(
+        operationExpenseTotal([
+          Transaction(
+            id: 'ing',
+            type: TransactionType.income,
+            category: kIncomeCategorySale,
+            amount: 500000,
+            date: DateTime(2026, 5, 1),
+            createdAt: DateTime(2026, 5, 1),
+          ),
+        ]),
+        0,
+        reason: 'un ingreso no es gasto de operación',
+      );
+    });
+  });
+
   group('splitInvestmentAndOperation (L2.1 — inversión inicial vs operación)', () {
     Transaction expense(
       double amount, {
@@ -401,6 +595,63 @@ void main() {
       final split = metrics.splitInvestmentAndOperation([expense(400000)]);
       expect(split.investment, 0);
       expect(split.operation, 400000);
+    });
+
+    // C9 · cercas y preparación son inversión solo mientras el cultivo se
+    // estaba estableciendo: el mismo gasto después de la primera cosecha es
+    // mantenimiento de un cultivo que ya produce.
+    test('cercas de antes de la primera cosecha son inversión', () {
+      final split = metrics.splitInvestmentAndOperation(
+        [expense(400000, category: kExpenseCategoryFences)],
+        firstHarvestDate: DateTime(2026, 9, 1),
+      );
+      expect(split.investment, 400000);
+      expect(split.operation, 0);
+    });
+
+    test('cercas de después de la primera cosecha son operación', () {
+      final split = metrics.splitInvestmentAndOperation(
+        [expense(400000, category: kExpenseCategoryFences)],
+        firstHarvestDate: DateTime(2026, 4, 1),
+      );
+      expect(split.investment, 0);
+      expect(split.operation, 400000);
+    });
+
+    test('sin primera cosecha, las cercas son inversión', () {
+      final split = metrics.splitInvestmentAndOperation(
+          [expense(400000, category: kExpenseCategoryFences)]);
+      expect(split.investment, 400000);
+      expect(split.operation, 0);
+    });
+
+    // C10 · comprar equipo es capital, no operación del período: la fila
+    // «Operación del período» del desglose no lo puede incluir.
+    test('el equipo es inversión de capital, no operación del período', () {
+      final split = metrics.splitInvestmentAndOperation([
+        expense(2500000, category: 'equipo'),
+        expense(400000, category: 'fertilizante'),
+      ]);
+      expect(split.equipment, 2500000);
+      expect(split.investment, 0);
+      expect(split.operation, 400000,
+          reason: 'comprar la despulpadora no es gasto de este mes');
+      expect(split.total, 2900000,
+          reason: 'las tres cestas suman el total de gastos');
+    });
+
+    test('la fecha de la cosecha solo mueve las cercas, no la siembra', () {
+      final split = metrics.splitInvestmentAndOperation(
+        [
+          expense(600000, category: kExpenseCategorySowing),
+          expense(400000, category: kExpenseCategoryFences),
+          expense(150000, category: 'fertilizante'),
+        ],
+        firstHarvestDate: DateTime(2026, 4, 1),
+      );
+      expect(split.investment, 600000);
+      expect(split.operation, 550000);
+      expect(split.total, 1150000);
     });
 
     test('los borrados no cuentan en ninguna de las dos', () {

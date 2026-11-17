@@ -26,10 +26,12 @@ import '../services/excel_export_service.dart' deferred as excel;
 import '../services/pdf_export_service.dart' deferred as pdf;
 import '../services/metric_signal.dart';
 import '../services/period_comparison.dart';
+import '../services/product_contribution.dart';
 import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
 import '../services/report_payroll_metrics.dart';
+import '../services/report_range.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
 import 'harvest_screen.dart';
@@ -151,7 +153,8 @@ class _ReportScreenState extends State<ReportScreen> {
       sinTerrenoName: l10n.cropTerrenoNone,
     );
     final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
-    final cropRows = _cropRows(breakdownRows, metrics);
+    final cropRows =
+        _cropRows(breakdownRows, metrics, tx.harvests, tx.crops);
 
     final insights = const ReportInsightsService().build(
       now: DateTime.now(),
@@ -460,6 +463,8 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
 
             const SizedBox(height: 20),
+            _builtProductContributionCard(context, tx, l10n),
+            const SizedBox(height: 20),
             _builtHarvestCard(context, tx, l10n),
             const SizedBox(height: 20),
             _builtSowingCard(context, tx, l10n),
@@ -612,6 +617,17 @@ class _ReportScreenState extends State<ReportScreen> {
         _PeriodMode.yearToDate => l10n.reportPeriodYtd(_year),
       };
 
+  /// Inicio y fin (inclusive) del período elegido en el selector.
+  ///
+  /// Lo usan las tarjetas que respetan el selector —el aporte por producto—
+  /// para no mostrar siempre el año completo. La semana puede cruzar de año.
+  DateTimeRange _periodRange() => reportPeriodRange(
+        period: _reportPeriod,
+        year: _year,
+        month: _mode == _PeriodMode.month ? _month : null,
+        week: _mode == _PeriodMode.week ? _week : null,
+      );
+
   /// Equivalente del modo de pantalla al periodo de exportación.
   ReportPeriod get _reportPeriod => switch (_mode) {
         _PeriodMode.week => ReportPeriod.week,
@@ -659,11 +675,12 @@ class _ReportScreenState extends State<ReportScreen> {
   ///
   /// Solo se pinta cuando la finca no tiene terrenos (`hasBands == false`),
   /// para que la app sin terrenos se vea exactamente igual que antes de W1-c.
-  List<_CropRow> _cropRows(
-      List<CropBreakdownRow> rows, ReportHarvestMetrics metrics) {
+  List<_CropRow> _cropRows(List<CropBreakdownRow> rows,
+      ReportHarvestMetrics metrics, List<Harvest> harvests,
+      List<Crop> crops) {
     final list = <_CropRow>[
       for (final r in rows)
-        if (r.hasAnyAmount) _cropRow(r, metrics),
+        if (r.hasAnyAmount) _cropRow(r, metrics, harvests, crops),
     ];
     // Orden del contrato ([cropBreakdownRows]): cultivos, luego los lotes que
     // no se pudieron repartir, y "Costos comunes" siempre al final. No se
@@ -678,14 +695,27 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   /// Fila pintable con su inversión/operación ya separadas.
-  _CropRow _cropRow(CropBreakdownRow r, ReportHarvestMetrics metrics) {
+  _CropRow _cropRow(CropBreakdownRow r, ReportHarvestMetrics metrics,
+      List<Harvest> harvests, List<Crop> crops) {
     final row = _CropRow(r);
-    // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras) y
-    // operación del período suman exactamente lo mismo que `expenses`.
+    // L2.1 — desglose de lo que ya se gastó: inversión inicial (siembras y
+    // cercas de antes de la primera cosecha) y operación del período suman
+    // exactamente lo mismo que `expenses`.
+    //
+    // La primera cosecha sale de la lista derivada (manual + kilos del jornal
+    // + venta): la misma con la que Reportes cuenta los kilos, para que un
+    // jornal medido ya cierre el establecimiento.
     // `r.expenseTxs` trae ya la porción que le toca a cada fila, así que la
     // cuenta cuadra también cuando un gasto de lote se reparte entre varios.
-    final split = metrics.splitInvestmentAndOperation(r.expenseTxs);
+    final split = metrics.splitForRow(
+      expenseTxs: r.expenseTxs,
+      cropId: r.cropId,
+      terrenoId: r.terrenoId,
+      crops: crops,
+      harvests: harvests,
+    );
     row.investment = split.investment;
+    row.equipment = split.equipment;
     row.operation = split.operation;
     return row;
   }
@@ -693,7 +723,7 @@ class _ReportScreenState extends State<ReportScreen> {
   /// Tarjeta de una fila del desglose, venga de una banda o del camino plano.
   Widget _tileFrom(CropBreakdownRow r, ReportHarvestMetrics metrics,
       AppLocalizations l10n, TransactionProvider tx) {
-    final row = _cropRow(r, metrics);
+    final row = _cropRow(r, metrics, tx.harvests, tx.crops);
     return _CropBreakdownTile(
       row: row,
       l10n: l10n,
@@ -1261,6 +1291,255 @@ class _ReportScreenState extends State<ReportScreen> {
               value: '',
               color: scheme.onSurfaceVariant,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Aporte por producto: ingresos menos gastos directos de cada cultivo,
+  /// mes a mes, más la cobertura de la inversión del café por los otros
+  /// productos.
+  ///
+  /// Es caja, no costo de producción: un gasto de lote **no** se reparte acá
+  /// —se informa aparte— porque repartirlo exige un criterio que puede no
+  /// existir (hectáreas, jornales) y esta tarjeta no inventa proporciones.
+  Widget _builtProductContributionCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final now = DateTime.now();
+    final report = buildProductContribution(
+      transactions: tx.transactions,
+      crops: tx.crops,
+      period: _periodRange(),
+      // La cobertura no suma movimientos con fecha futura: en el año en curso
+      // se corta al final de hoy, no al 31 de diciembre.
+      coverageThrough:
+          DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
+      harvests: tx.harvests,
+    );
+    final scheme = Theme.of(context).colorScheme;
+
+    // Sin espacio normal entre código y cifra: un monto no se parte en dos
+    // líneas al envolver la cobertura.
+    String money(double v, String c) =>
+        formatMoneyFor(context, v, currency: c).replaceAll(' ', '\u00A0');
+    String byCurrency(Map<String, double> amounts) => amounts.isEmpty
+        ? '—'
+        : byCurrencyText(amounts, (v, c) => money(v, c));
+    String signed(double v, String c) =>
+        v > 0 ? '+${money(v, c)}' : money(v, c);
+
+    // Un producto: sus tres cifras. Con dos monedas no hay neto único, así
+    // que cada línea lista la suya; el rojo solo aparece si TODAS las
+    // monedas del aporte van en contra.
+    Widget producto(ProductContributionRow row) {
+      final net = row.netTotal;
+      final negative = net.isNotEmpty && net.values.every((v) => v < 0);
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              row.name,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${l10n.incomeLabel}: ${byCurrency(row.incomeTotal)}',
+              style: const TextStyle(fontSize: 12),
+            ),
+            Text(
+              '${l10n.contributionDirectCosts}: ${byCurrency(row.expenseTotal)}',
+              style: const TextStyle(fontSize: 12),
+            ),
+            Text(
+              '${l10n.contributionNet}: ${byCurrency(net)}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: negative ? scheme.error : scheme.primary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget unassigned(String label, Map<String, double> amounts) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(label, style: const TextStyle(fontSize: 12)),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                byCurrency(amounts),
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        );
+
+    Widget coverage() {
+      final cov = report.coverage;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.contributionCoverageTitle,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          if (cov == null)
+            Text(
+              l10n.contributionCoverageNoData,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.3,
+                color: scheme.onSurfaceVariant,
+              ),
+            )
+          else if (cov.contributed < 0)
+            Text(
+              l10n.contributionCoverageNegative(
+                money(cov.contributed, cov.currency),
+                money(cov.investment, cov.currency),
+                cov.coffeeName,
+              ),
+              style: TextStyle(fontSize: 12, height: 1.35, color: scheme.error),
+            )
+          else
+            Text(
+              l10n.contributionCoverageLine(
+                '${cov.percent}',
+                cov.coffeeName,
+                money(cov.contributed, cov.currency),
+                money(cov.investment, cov.currency),
+              ),
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+                color: cov.isCovered ? scheme.primary : null,
+              ),
+            ),
+        ],
+      );
+    }
+
+    Widget monthly() {
+      final months = report.monthsWithData;
+      if (months.isEmpty) return const SizedBox.shrink();
+      return ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 4),
+        title: Text(
+          l10n.contributionByMonth(_year),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+        children: [
+          for (final month in months)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 42,
+                    child: Text(
+                      l10n.monthShort[month - 1],
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  // Un producto por bloque: al envolver, el corte cae entre
+                  // productos y nunca dentro de un monto.
+                  Expanded(
+                    child: Wrap(
+                      spacing: 10,
+                      runSpacing: 2,
+                      children: [
+                        for (final row in report.rows)
+                          if (row.netOf(month).isNotEmpty)
+                            Text(
+                              '${row.name} '
+                              '${byCurrencyText(row.netOf(month), (v, c) => signed(v, c))}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      );
+    }
+
+    final hasUnassigned = report.lotExpenseTotal.isNotEmpty ||
+        report.commonExpenseTotal.isNotEmpty;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.contributionTitle,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.contributionPeriod(_periodLabel(l10n)),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              l10n.contributionSubtitle,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.3,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            if (!report.hasData)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  l10n.contributionEmpty(_periodLabel(l10n)),
+                  style:
+                      TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+                ),
+              )
+            else
+              for (final row in report.rows) producto(row),
+            if (hasUnassigned) ...[
+              const Divider(height: 24),
+              if (report.lotExpenseTotal.isNotEmpty)
+                unassigned(l10n.contributionUnassigned, report.lotExpenseTotal),
+              if (report.commonExpenseTotal.isNotEmpty)
+                unassigned(l10n.contributionCommon, report.commonExpenseTotal),
+            ],
+            if (report.coverage != null || report.hasData) ...[
+              const Divider(height: 24),
+              coverage(),
+              // Un mes o una semana ya se leen en las filas de arriba: el
+              // detalle mes a mes solo agrega algo cuando el período abarca
+              // más de un mes.
+              if (report.monthsWithData.length > 1) monthly(),
+            ],
           ],
         ),
       ),
@@ -2171,8 +2450,12 @@ class _ReportScreenState extends State<ReportScreen> {
     // P2: precio de venta por kilo vs costo por kilo. Dos datos que ya
     // existen en la app (solo salían en PDF y Excel, nunca en pantalla).
     final metrics = ReportHarvestMetrics(sacoKg: tx.settings.sacoKg);
-    final costByKg =
-        metrics.periodCostPerKg(totalExpenses, _periodHarvests(tx));
+    // El costo por kilo es de operación: la inversión en equipo queda en el
+    // total de gastos y en su bloque, pero no encarece el kilo (C10).
+    final costByKg = metrics.periodCostPerKg(
+      operationExpenseTotal(records.where((t) => t.type == TransactionType.expense)),
+      _periodHarvests(tx),
+    );
     final priceByKg = metrics.avgSalePricePerKg(records);
 
     final breakdown = CurrencyBreakdown(
@@ -2226,7 +2509,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 mixed: mixedRows)),
             const SizedBox(height: 6),
             if (!showMixedTotals)
-              _statementLine(context, tx, l10n.operatingExpensesLabel,
+              _statementLine(context, tx, l10n.totalExpensesLabel,
                   -totalExpenses, Theme.of(context).colorScheme.error),
             if (expenseRows.isEmpty)
               _hintLine(l10n.noExpensesPeriod),
@@ -2295,14 +2578,13 @@ class _ReportScreenState extends State<ReportScreen> {
                       : '—',
                   signal: signalOfCostPrice(
                       costPriceVerdict(costByKg, priceByKg)),
-                  caption: _costPriceCaption(
-                    l10n,
-                    costPriceVerdict(costByKg, priceByKg),
-                    costByKg == null
-                        ? ''
-                        : _signed(tx, costByKg,
-                            currency: _effectiveCurrency),
-                  ),
+                  // La nota va pegada a la cifra de costo: suelta quedaba
+                  // entre dos métricas y parecía hablar del margen.
+                  caption: costByKg == null
+                      ? _costPriceCaption(
+                          l10n, costPriceVerdict(costByKg, priceByKg), '')
+                      : '${_costPriceCaption(l10n, costPriceVerdict(costByKg, priceByKg), _signed(tx, costByKg, currency: _effectiveCurrency))}'
+                          '\n${l10n.ratioOperationOnlyNote}',
                 ),
               // Nivel 1 · el número que decide: la plata que deja cada kilo.
               // Es la diferencia entre las dos cifras de arriba. Solo se
@@ -2449,6 +2731,7 @@ class _ReportScreenState extends State<ReportScreen> {
           ExpenseGroup.produccion => l10n.expenseGroupProduccion,
           ExpenseGroup.venta => l10n.expenseGroupVenta,
           ExpenseGroup.fijos => l10n.expenseGroupFijos,
+          ExpenseGroup.inversion => l10n.expenseGroupInversion,
           ExpenseGroup.otros => l10n.expenseGroupOtros,
         };
 
@@ -2456,6 +2739,7 @@ class _ReportScreenState extends State<ReportScreen> {
       ExpenseGroup.produccion,
       ExpenseGroup.venta,
       ExpenseGroup.fijos,
+      ExpenseGroup.inversion,
       ExpenseGroup.otros,
     ];
 
@@ -2847,7 +3131,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ),
         line(l10n.incomeLabel, comparison.previousIncomes, comparison.incomes,
             comparison.incomeChange),
-        line(l10n.operatingExpensesLabel, comparison.previousExpenses,
+        line(l10n.totalExpensesLabel, comparison.previousExpenses,
             comparison.expenses, comparison.expenseChange),
         line(l10n.resultPeriodLabel, comparison.previousBalance,
             comparison.balance, comparison.balanceChange),
@@ -3079,10 +3363,11 @@ class _CropRow {
   /// Montos del cultivo **por moneda** (helper compartido con PDF/Excel).
   final CropBreakdownRow totals;
 
-  /// Inversión inicial y operación, repartidas ya por
+  /// Inversión inicial, inversión en equipo y operación, repartidas ya por
   /// [ReportHarvestMetrics.splitInvestmentAndOperation] sobre
   /// `totals.expenseTxs` — la lista trae la porción que le toca a la fila.
   double investment = 0;
+  double equipment = 0;
   double operation = 0;
 
   _CropRow(this.totals);
@@ -3254,8 +3539,9 @@ class _CropBreakdownTile extends StatelessWidget {
             value: _amount(row.expenses),
             valueColor: scheme.onSurfaceVariant,
           ),
-          // L2.1 — inversión inicial y operación suman exactamente el
-          // "Gastos" de arriba; solo se piden si hay monto que mostrar.
+          // L2.1 / C10 — inversión inicial, inversión en equipo y operación
+          // suman exactamente el "Gastos" de arriba; solo se piden si hay
+          // monto que mostrar.
           if (row.investment > 0)
             _miniLine(
               icon: Icons.grass_outlined,
@@ -3263,6 +3549,15 @@ class _CropBreakdownTile extends StatelessWidget {
               label: l10n.cropBreakdownInvestment,
               labelColor: scheme.onSurfaceVariant,
               value: _amount(row.investment),
+              valueColor: scheme.onSurfaceVariant,
+            ),
+          if (row.equipment > 0)
+            _miniLine(
+              icon: Icons.inventory_2_outlined,
+              iconColor: scheme.onSurfaceVariant,
+              label: l10n.expenseGroupInversion,
+              labelColor: scheme.onSurfaceVariant,
+              value: _amount(row.equipment),
               valueColor: scheme.onSurfaceVariant,
             ),
           if (row.operation > 0)

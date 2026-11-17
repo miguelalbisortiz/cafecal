@@ -162,13 +162,10 @@ class TransactionProvider extends ChangeNotifier {
   /// cosecha no puede revivir como zombi en el pull. Por lo mismo este getter
   /// **nunca** es el que se sube ni el que se respalda: eso es
   /// [storedHarvests].
-  List<Harvest> get harvests => [
-        ..._harvests,
-        ...deriveHarvests(
-          transactions: _transactions,
-          manualHarvests: _harvests,
-        ),
-      ];
+  List<Harvest> get harvests => effectiveHarvests(
+        transactions: _transactions,
+        manualHarvests: _harvests,
+      );
 
   /// Las cosechas **guardadas** en disco, sin derivar: exactamente las que
   /// él anotó.

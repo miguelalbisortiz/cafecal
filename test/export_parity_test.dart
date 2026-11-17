@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mi_cafetal/l10n/generated/app_localizations.dart';
 import 'package:mi_cafetal/l10n/strings.dart';
 import 'package:mi_cafetal/models/categories.dart';
+import 'package:mi_cafetal/models/crop.dart';
 import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
@@ -131,6 +132,28 @@ String _summaryTotal(Sheet sheet, String header) {
   return '(sin fila: $header)';
 }
 
+
+/// Filas de reparto («· Inversión inicial», etc.) que van debajo de un cultivo
+/// en la hoja «Por cultivo», con su monto ya parseado.
+Map<String, double> _cropSplitRows(Sheet sheet, String crop) {
+  final rows = sheet.rows;
+  final start = rows.indexWhere(
+      (r) => r.isNotEmpty && r.first?.value?.toString() == crop);
+  final out = <String, double>{};
+  if (start < 0) return out;
+  for (var i = start + 1; i < rows.length; i++) {
+    final label = rows[i].isNotEmpty
+        ? (rows[i].first?.value?.toString() ?? '')
+        : '';
+    if (!label.contains('·')) break;
+    final amount = double.tryParse(rows[i].length > 2
+        ? (rows[i][2]?.value?.toString() ?? '')
+        : '');
+    out[label.replaceAll('·', '').trim()] = amount ?? -1;
+  }
+  return out;
+}
+
 /// Páginas del PDF por dos vías: los objetos `/Type /Page` (sin contar
 /// `/Pages`) y el `/Count` del nodo raíz.
 ({int objects, int count}) _pdfPages(Uint8List bytes) {
@@ -192,16 +215,18 @@ void main() {
     // `e9c2761`). Si cambian, es una decisión: no se actualizan a ciegas.
     // 2026-11-10 · páginas 2 → 3: decisión de sacar «Nómina y caja» a un
     // anexo con salto de página (nómina, caja, obra y planilla).
+    // 2026-11-16 · páginas 3 → 4: la fila de costo por kilo por cultivo lleva
+    // su nota de «solo operación» (C10), una línea más por cultivo.
     const filasEsperadas = 6;
     const ingresosEsperados = 'COP 350.000 · USD 30,00';
     const gastosEsperados = '(COP 150.000) · (USD 20,00)';
-    const paginasEsperadas = 3;
+    const paginasEsperadas = 4;
 
     expect(_movementRows(movimientos), filasEsperadas,
         reason: 'la hoja de movimientos cambió de tamaño');
     expect(_summaryTotal(resumen, _es.pdfIncomesHeader), ingresosEsperados,
         reason: 'los ingresos por moneda cambiaron');
-    expect(_summaryTotal(resumen, _es.pdfExpensesHeader), gastosEsperados,
+    expect(_summaryTotal(resumen, _es.pdfTotalExpensesHeader), gastosEsperados,
         reason: 'los gastos por moneda cambiaron');
     expect(pages.objects, paginasEsperadas,
         reason: 'el PDF cambió de páginas (objetos /Type /Page)');
@@ -230,5 +255,300 @@ void main() {
     final cosechas = book.tables[_es.excelSheetHarvests]!;
     expect(_harvestKgFor(cosechas, 'Yuca'), 240,
         reason: 'la hoja de cosechas del Excel también usa el peso real');
+  });
+
+  test('aporte por producto: la sección y la cobertura salen en el Excel',
+      () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final p = TransactionProvider(LocalStore(prefs));
+    final now = DateTime.now();
+
+    final cafe = await p.addCrop('Café');
+    final platano = await p.addCrop('Plátano');
+    // Inversión acumulada del café y aporte del otro producto: 40 %. Todas
+    // las fechas caen en el período para que el test no dependa del mes.
+    await p.addTransaction(
+      type: TransactionType.expense,
+      category: kExpenseCategorySowing,
+      amount: 100000,
+      cropId: cafe.id,
+      date: now,
+    );
+    await p.addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      amount: 40000,
+      cropId: platano.id,
+      date: now,
+    );
+
+    final book = Excel.decodeBytes(Uint8List.fromList(
+      ExcelExportService().buildReport(
+        settings: p.settings,
+        transactions: p.transactions,
+        crops: p.crops,
+        year: now.year,
+        month: now.month,
+        period: ReportPeriod.month,
+        periodName: 'Mes',
+        l10n: _es,
+      ),
+    ));
+    final cells = [
+      for (final r in book.tables[_es.excelSheetSummary]!.rows)
+        for (final c in r) c?.value?.toString() ?? '',
+    ];
+
+    expect(cells, contains(_es.contributionTitle));
+    expect(cells, contains(_es.contributionCoverageTitle));
+    expect(cells.any((t) => t.contains('cubren 40%')), isTrue,
+        reason: 'la cobertura del café se escribe con la misma frase que '
+            'en pantalla: 40.000 de 100.000 = 40 %');
+    expect(cells, contains('Café'));
+    expect(cells, contains(_es.contributionNet));
+
+    // El PDF no puede quedarse atrás: se genera con la misma sección sin
+    // romper el documento.
+    final pdf = await PdfExportService().buildReport(
+      settings: p.settings,
+      transactions: p.transactions,
+      crops: p.crops,
+      year: now.year,
+      month: now.month,
+      period: ReportPeriod.month,
+      periodName: 'Mes',
+      l10n: _es,
+    );
+    expect(pdf.length, greaterThan(1000));
+  });
+
+  // C10 · el costo por kilo que sale en el Excel es de operación: la compra
+  // de equipo no lo infla (si no, una despulpadora de 2.500.000 sobre 1.500 kg
+  // lo llevaría de 400 a 2.066).
+  test('el costo por kilo del Excel excluye la inversión en equipo', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final p = TransactionProvider(LocalStore(prefs));
+    final now = DateTime.now();
+    final cafe = await p.addCrop('Café',
+        phase: CropPhase.produccion, areaHa: 3);
+    await p.addHarvest(cropId: cafe.id, date: now, amount: 1500);
+
+    for (final e in [
+      ('fertilizante', 300000.0),
+      ('mano_obra', 200000.0),
+      ('equipo', 2500000.0),
+      ('arriendo', 100000.0),
+    ]) {
+      await p.addTransaction(
+        type: TransactionType.expense,
+        category: e.$1,
+        amount: e.$2,
+        cropId: cafe.id,
+        date: now,
+      );
+    }
+    await p.addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      amount: 2000000,
+      cropId: cafe.id,
+      quantity: 1500,
+      unit: 'kg',
+      date: now,
+    );
+
+    final book = Excel.decodeBytes(ExcelExportService().buildReport(
+      settings: p.settings,
+      transactions: p.transactions,
+      crops: p.crops,
+      year: now.year,
+      month: now.month,
+      period: ReportPeriod.month,
+      periodName: 'Mes',
+      l10n: _es,
+      harvests: p.harvests,
+    ));
+    final cells = [
+      for (final r in book.tables[_es.excelSheetSummary]!.rows)
+        for (final c in r) c?.value?.toString() ?? '',
+    ];
+
+    expect(cells, contains(_es.ratioOperationOnlyNote),
+        reason: 'la nota dice de qué está hecho el ratio');
+    // El rótulo del total ya no dice «operacionales»: incluye la inversión en
+    // equipo, y la nota de al lado habla solo de operación.
+    expect(cells, contains(_es.pdfTotalExpensesHeader));
+    expect(cells.any((t) => t.toUpperCase().contains('OPERACIONAL')), isFalse);
+    expect(cells.any((t) => RegExp(r'COP\s?400\b').hasMatch(t)), isTrue,
+        reason: '600.000 de operación ÷ 1.500 kg = 400');
+    expect(cells.any((t) => t.contains('2.066') || t.contains('2066')), isFalse,
+        reason: 'el equipo no puede aparecer en el costo por kilo');
+
+    // La fila de costo por kilo POR CULTIVO (hoja «Cosechas») lleva su nota
+    // pegada abajo, igual que la del estado de resultados.
+    final harvestRows = book.tables[_es.excelSheetHarvests]!.rows;
+    var costRow = -1;
+    for (var i = 0; i < harvestRows.length; i++) {
+      final first = harvestRows[i].first?.value?.toString() ?? '';
+      if (first.contains(_es.reportTotalCostPerKg)) costRow = i;
+    }
+    expect(costRow, greaterThanOrEqualTo(0));
+    expect(
+      harvestRows[costRow].length > 1
+          ? harvestRows[costRow][1]?.value?.toString()
+          : null,
+      '400',
+      reason: 'la fila por cultivo también es de operación',
+    );
+    expect(harvestRows[costRow + 1].first?.value?.toString(),
+        _es.ratioOperationOnlyNote);
+  });
+
+  // C9 · el café es inversión de establecimiento mientras no haya cosechado.
+  // El Excel tiene que contar lo mismo que la pantalla: las cercas de antes de
+  // la primera cosecha sí, las de después no.
+  test('la cobertura del Excel respeta la primera cosecha del café', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final p = TransactionProvider(LocalStore(prefs));
+    final cafe = await p.addCrop('Café');
+    final platano = await p.addCrop('Plátano');
+
+    await p.addTransaction(
+      type: TransactionType.expense,
+      category: kExpenseCategorySowing,
+      amount: 1000,
+      cropId: cafe.id,
+      date: DateTime(2023, 3, 1),
+    );
+    await p.addTransaction(
+      type: TransactionType.expense,
+      category: kExpenseCategoryFences,
+      amount: 500,
+      cropId: cafe.id,
+      date: DateTime(2023, 6, 1),
+    );
+    await p.addHarvest(
+      cropId: cafe.id,
+      date: DateTime(2023, 12, 15),
+      amount: 500,
+    );
+    await p.addTransaction(
+      type: TransactionType.expense,
+      category: kExpenseCategoryFences,
+      amount: 300,
+      cropId: cafe.id,
+      date: DateTime(2024, 6, 1),
+    );
+    await p.addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      amount: 400,
+      cropId: platano.id,
+      date: DateTime(2024, 7, 1),
+    );
+
+    final book = Excel.decodeBytes(ExcelExportService().buildReport(
+      settings: p.settings,
+      transactions: p.transactions,
+      crops: p.crops,
+      year: 2024,
+      period: ReportPeriod.year,
+      periodName: '2024',
+      l10n: _es,
+      harvests: p.harvests,
+    ));
+    final cells = [
+      for (final r in book.tables[_es.excelSheetSummary]!.rows)
+        for (final c in r) c?.value?.toString() ?? '',
+    ];
+    final line = cells.firstWhere((t) => t.contains('cubren'));
+    expect(line, contains('27%'),
+        reason: '400 de 1.500: solo las cercas de antes de la cosecha son '
+            'inversión');
+    expect(line, contains('1.500'));
+  });
+
+  test('el desglose exportado lleva el reparto de gastos de cada cultivo',
+      () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final p = TransactionProvider(LocalStore(prefs));
+    final now = DateTime.now();
+    final cafe = await p.addCrop('Café');
+
+    Future<void> gasto(String category, double amount) => p.addTransaction(
+          type: TransactionType.expense,
+          category: category,
+          cropId: cafe.id,
+          amount: amount,
+          date: now,
+        );
+    await gasto(kExpenseCategorySowing, 600000);
+    await gasto('equipo', 2500000);
+    await gasto('fertilizante', 300000);
+    await p.addTransaction(
+      type: TransactionType.income,
+      category: kIncomeCategorySale,
+      cropId: cafe.id,
+      amount: 1200000,
+      date: now,
+    );
+
+    final excelBytes = Uint8List.fromList(ExcelExportService().buildReport(
+      settings: p.settings,
+      transactions: p.transactions,
+      crops: p.crops,
+      year: now.year,
+      month: now.month,
+      period: ReportPeriod.month,
+      periodName: 'Mes',
+      l10n: _es,
+      harvests: p.harvests,
+    ));
+    final book = Excel.decodeBytes(excelBytes);
+    final porCultivo = book.tables[_es.excelSheetCrops]!;
+
+    final reparto = _cropSplitRows(porCultivo, 'Café');
+    expect(reparto[_es.cropBreakdownInvestment], 600000,
+        reason: 'la siembra es inversión inicial');
+    expect(reparto[_es.expenseGroupInversion], 2500000,
+        reason: 'el equipo tiene su propia línea, no va a operación');
+    expect(reparto[_es.cropBreakdownOperation], 300000,
+        reason: 'la operación del período es el fertilizante');
+    expect(reparto.values.fold<double>(0, (a, b) => a + b), 3400000,
+        reason: 'el reparto suma el total de gastos de la fila');
+
+    // La jerarquía en el Excel la da un prefijo explícito «· », no espacios de
+    // relleno: el paquete no puede escribir sangría de celda.
+    final etiquetas = porCultivo.rows
+        .map((r) => r.isNotEmpty ? (r.first?.value?.toString() ?? '') : '')
+        .where((t) => t.contains('·'))
+        .toList();
+    expect(etiquetas, [
+      '· ${_es.cropBreakdownInvestment}',
+      '· ${_es.expenseGroupInversion}',
+      '· ${_es.cropBreakdownOperation}',
+    ]);
+
+    // El PDF se arma sin romperse con las mismas líneas; su contenido va por
+    // el mismo helper (`cropSplitLines`) que el Excel y la pantalla.
+    final pdfBytes = await PdfExportService().buildReport(
+      settings: p.settings,
+      transactions: p.transactions,
+      crops: p.crops,
+      year: now.year,
+      month: now.month,
+      period: ReportPeriod.month,
+      periodName: 'Mes',
+      l10n: _es,
+      harvests: p.harvests,
+    );
+    final pages = _pdfPages(pdfBytes);
+    expect(pages.objects, greaterThan(0));
+    expect(pages.count, pages.objects,
+        reason: 'el PDF con reparto sigue siendo coherente entre sus dos vías');
   });
 }

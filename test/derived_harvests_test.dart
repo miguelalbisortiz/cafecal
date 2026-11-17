@@ -4,6 +4,7 @@ import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/tasks.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/derived_harvests.dart';
+import 'package:mi_cafetal/services/report_harvest_metrics.dart';
 
 /// La cosecha **se deduce de la venta que él ya anotó**.
 ///
@@ -488,6 +489,48 @@ void main() {
         _venta(id: 'v1', quantity: 480),
       ]);
       expect(out.single.id, 'der_venta_v1');
+    });
+  });
+
+  // Una sola lista es «lo que se cosechó»: la publica el provider y la usan
+  // alertas, Reportes, PDF/Excel y el corte de C9. Si se armara en dos
+  // lugares, uno podría olvidarse de una fuente.
+  group('effectiveHarvests · manual + derivadas', () {
+    test('suma las guardadas a mano y las deducidas', () {
+      final out = effectiveHarvests(
+        transactions: [_venta(id: 'v1', cropId: 'c1')],
+        manualHarvests: [_manual(cropId: 'c2')],
+      );
+      expect(out.map((h) => h.id), containsAll(['m1', 'der_venta_v1']));
+      expect(out, hasLength(2));
+    });
+
+    test('no toca las listas que recibe', () {
+      final manual = [_manual(cropId: 'c2')];
+      final txns = [_venta(id: 'v1')];
+      effectiveHarvests(transactions: txns, manualHarvests: manual);
+      expect(manual, hasLength(1));
+      expect(txns, hasLength(1));
+    });
+
+    test('derivar sobre la lista completa no duplica', () {
+      final txns = [_venta(id: 'v1')];
+      final once =
+          effectiveHarvests(transactions: txns, manualHarvests: const []);
+      final twice =
+          effectiveHarvests(transactions: txns, manualHarvests: once);
+      expect(twice.map((h) => h.id).toList(), once.map((h) => h.id).toList());
+    });
+
+    test('un jornal medido cierra la primera cosecha (corte de C9)', () {
+      final out = effectiveHarvests(
+        transactions: [_jornal(id: 'j1', date: DateTime(2024, 6, 10))],
+        manualHarvests: const [],
+      );
+      expect(firstHarvestDateOf(out, 'c1'), DateTime(2024, 6, 10));
+      expect(firstHarvestDateOf(out, 'c2'), isNull,
+          reason: 'sin cosechas, el corte sigue abierto: las cercas son '
+              'inversión');
     });
   });
 }

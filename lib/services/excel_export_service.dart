@@ -20,10 +20,12 @@ import 'currency_totals.dart';
 import 'derived_harvests.dart';
 import 'metric_signal.dart';
 import 'period_comparison.dart';
+import 'product_contribution.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
 import '../utils/format.dart';
+import 'report_range.dart';
 import 'week_utils.dart';
 
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
@@ -139,7 +141,12 @@ class ExcelExportService {
     // Precio, costo y margen por kilo: el mismo veredicto que en pantalla y
     // en el PDF. Solo con moneda unica: con mezcla cruzaria monedas.
     final perKg = ReportHarvestMetrics(sacoKg: settings.sacoKg);
-    final costByKg = perKg.periodCostPerKg(expenses, periodHarvests);
+    // Costo por kilo de operación: sin el bloque de inversión en equipo.
+    final costByKg = perKg.periodCostPerKg(
+      operationExpenseTotal(
+          periodTx.where((t) => t.type == TransactionType.expense)),
+      periodHarvests,
+    );
     final priceByKg = perKg.avgSalePricePerKg(periodTx);
     final marginPerKg = (costByKg != null && priceByKg != null)
         ? priceByKg - costByKg
@@ -173,7 +180,9 @@ class ExcelExportService {
         periodTotals: periodTotals,
         comparison: comparison,
         periodTx: periodTx,
+        allTx: active,
         crops: crops,
+        harvests: harvests,
         period: period,
         year: year,
         month: month,
@@ -184,7 +193,8 @@ class ExcelExportService {
         crops: crops,
         terrenos: terrenos,
         currency: currency,
-        l10n: l10n);
+        l10n: l10n,
+        harvests: harvests);
 
     _movementsSheet(excel[l10n.excelSheetMovements],
         periodTx: periodTx,
@@ -431,11 +441,15 @@ class ExcelExportService {
     required PeriodCurrencyTotals periodTotals,
     required PeriodComparison? comparison,
     required List<Transaction> periodTx,
+    // Histórico completo, sin borrar: la cobertura del café es acumulada y
+    // necesita lo anterior al período.
+    required List<Transaction> allTx,
     required List<Crop> crops,
     required ReportPeriod period,
     required int year,
     int? month,
     List<Terreno> terrenos = const [],
+    List<Harvest> harvests = const [],
   }) {
     void row(List<CellValue?> cols) => sheet.appendRow(cols);
 
@@ -484,7 +498,7 @@ class ExcelExportService {
     row([null, null, null]);
     // ── Header de gastos ──
     row([
-      TextCellValue(l10n.pdfExpensesHeader),
+      TextCellValue(l10n.pdfTotalExpensesHeader),
       null,
       mixedHeader
           ? TextCellValue(byCurrency(periodTotals.expenses, negative: true))
@@ -544,7 +558,7 @@ class ExcelExportService {
 
       comparisonRow(l10n.incomeLabel, comparison.previousIncomes,
           comparison.incomes, comparison.incomeChange);
-      comparisonRow(l10n.operatingExpensesLabel, comparison.previousExpenses,
+      comparisonRow(l10n.totalExpensesLabel, comparison.previousExpenses,
           comparison.expenses, comparison.expenseChange);
       comparisonRow(l10n.resultPeriodLabel, comparison.previousBalance,
           comparison.balance, comparison.balanceChange);
@@ -586,6 +600,7 @@ class ExcelExportService {
         null,
         null,
       ]);
+      row([TextCellValue(l10n.ratioOperationOnlyNote), null, null]);
     }
     if (!mixedHeader && marginPerKg != null) {
       row([
@@ -658,7 +673,7 @@ class ExcelExportService {
       row([
         TextCellValue(l10n.segMonth),
         TextCellValue(l10n.pdfIncomesHeader),
-        TextCellValue(l10n.pdfExpensesHeader),
+        TextCellValue(l10n.pdfTotalExpensesHeader),
         TextCellValue(l10n.excelColBalance),
       ]);
       _styleTableHeader(sheet, sheet.maxRows - 1, 4);
@@ -792,6 +807,101 @@ class ExcelExportService {
         }
       }
       _applyCurrencyFormat(sheet, currency, 2, crossFrom, sheet.maxRows - 1);
+    }
+
+    // ── Aporte por producto y cobertura del café ──
+    //
+    // La misma sección que la tarjeta de Reportes: ingresos menos gastos
+    // directos de cada cultivo, los gastos de lote y comunes aparte (sin
+    // repartir) y qué % de la inversión del café cubren los otros productos.
+    // El detalle mes a mes solo va cuando el período abarca más de un mes.
+    final now = DateTime.now();
+    final contribution = buildProductContribution(
+      transactions: allTx,
+      crops: crops,
+      period: reportPeriodRange(period: period, year: year, month: month),
+      coverageThrough: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
+      // La primera cosecha decide qué cercas son inversión (C9): sin esto el
+      // Excel daría otro % que la pantalla.
+      harvests: harvests,
+    );
+    if (contribution.hasData || contribution.coverage != null) {
+      CellValue amountOf(Map<String, double> amounts) {
+        // Un producto puede tener ingresos y ningún gasto directo: la celda
+        // vacía con guion, no un 0 que sería una cifra inventada.
+        if (amounts.isEmpty) return TextCellValue('—');
+        return amounts.length > 1
+            ? TextCellValue(byCurrency(amounts))
+            : DoubleCellValue(single(amounts));
+      }
+
+      row([null, null, null]);
+      row([TextCellValue(l10n.contributionTitle)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
+      row([TextCellValue(l10n.contributionSubtitle)]);
+      final amountsFrom = sheet.maxRows;
+      for (final r in contribution.rows) {
+        row([TextCellValue(r.name)]);
+        _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+        row([TextCellValue(l10n.incomeLabel), amountOf(r.incomeTotal)]);
+        row([
+          TextCellValue(l10n.contributionDirectCosts),
+          amountOf(r.expenseTotal),
+        ]);
+        row([TextCellValue(l10n.contributionNet), amountOf(r.netTotal)]);
+      }
+      if (contribution.lotExpenseTotal.isNotEmpty) {
+        row([
+          TextCellValue(l10n.contributionUnassigned),
+          amountOf(contribution.lotExpenseTotal),
+        ]);
+      }
+      if (contribution.commonExpenseTotal.isNotEmpty) {
+        row([
+          TextCellValue(l10n.contributionCommon),
+          amountOf(contribution.commonExpenseTotal),
+        ]);
+      }
+      _applyCurrencyFormat(sheet, currency, 1, amountsFrom, sheet.maxRows - 1);
+
+      final cov = contribution.coverage;
+      row([TextCellValue(l10n.contributionCoverageTitle)]);
+      _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+      row([
+        TextCellValue(cov == null
+            ? l10n.contributionCoverageNoData
+            : cov.contributed < 0
+                ? l10n.contributionCoverageNegative(
+                    formatMoneyLabel(cov.contributed, cov.currency,
+                        locale: _locale),
+                    formatMoneyLabel(cov.investment, cov.currency,
+                        locale: _locale),
+                    cov.coffeeName,
+                  )
+                : l10n.contributionCoverageLine(
+                    '${cov.percent}',
+                    cov.coffeeName,
+                    formatMoneyLabel(cov.contributed, cov.currency,
+                        locale: _locale),
+                    formatMoneyLabel(cov.investment, cov.currency,
+                        locale: _locale),
+                  )),
+      ]);
+
+      if (contribution.monthsWithData.length > 1) {
+        row([TextCellValue(l10n.contributionByMonth(year))]);
+        _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+        for (final m in contribution.monthsWithData) {
+          row([
+            TextCellValue(l10n.monthShort[m - 1]),
+            TextCellValue(contribution.rows
+                .where((r) => r.netOf(m).isNotEmpty)
+                .map((r) =>
+                    '${r.name} ${byCurrencyText(r.netOf(m), (v, c) => v > 0 ? '+${formatMoneyLabel(v, c, locale: _locale)}' : formatMoneyLabel(v, c, locale: _locale))}')
+                .join(' · ')),
+          ]);
+        }
+      }
     }
 
     // ── Anexo de ubicación ──
@@ -1115,6 +1225,7 @@ class ExcelExportService {
     required List<Terreno> terrenos,
     required String currency,
     required AppLocalizations l10n,
+    required Iterable<Harvest> harvests,
   }) {
     sheet.appendRow([
       TextCellValue(l10n.pdfColCrop),
@@ -1180,6 +1291,14 @@ class ExcelExportService {
         DoubleCellValue(inc - exp),
         TextCellValue(margin),
       ]);
+      final reparto = cropSplitLines(
+        row,
+        crops: crops,
+        harvests: harvests,
+        initialInvestmentLabel: l10n.cropBreakdownInvestment,
+        equipmentInvestmentLabel: l10n.expenseGroupInversion,
+        operationLabel: l10n.cropBreakdownOperation,
+      );
       // Colorear fila por margen
       final marginNum = margin == '—'
           ? 0.0
@@ -1192,6 +1311,18 @@ class ExcelExportService {
         }
       }
       r++;
+      // C10 · el mismo reparto que la pantalla y el PDF, debajo del total.
+      for (final line in reparto) {
+        sheet.appendRow([
+          TextCellValue('· ${line.label}'),
+          null,
+          DoubleCellValue(line.amount),
+          TextCellValue('—'),
+          TextCellValue('—'),
+          TextCellValue('—'),
+        ]);
+        r++;
+      }
     }
 
     void escribirBanda(CropBreakdownBand band) {
@@ -1667,6 +1798,8 @@ class ExcelExportService {
             cropMixed ? TextCellValue('—') : DoubleCellValue(totalKg!),
           ]);
           if (!cropMixed) twoDecimalsLast();
+          // C10 · el costo por kilo por cultivo tambien es de operación.
+          row([TextCellValue(l10n.ratioOperationOnlyNote)]);
         }
         final yieldArea = metrics.yieldPerArea(cropHarvests, crop.areaHa);
         if (yieldArea != null) {

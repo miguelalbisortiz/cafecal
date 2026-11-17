@@ -1,6 +1,8 @@
 import '../models/crop.dart';
+import '../models/harvest.dart';
 import '../models/terreno.dart';
 import '../models/transaction.dart';
+import 'report_harvest_metrics.dart';
 
 /// Fila del desglose por cultivo con los montos **separados por moneda**.
 ///
@@ -577,4 +579,37 @@ int _compareBands(CropBreakdownBand a, CropBreakdownBand b) {
   final porNombre = a.name.compareTo(b.name);
   if (porNombre != 0) return porNombre;
   return (a.terrenoId ?? '').compareTo(b.terrenoId ?? '');
+}
+
+/// Líneas de reparto que van debajo del total de gastos de una fila (C10):
+/// inversión inicial, inversión en equipo y operación del período, en ese
+/// orden y solo las que tienen monto.
+///
+/// Con moneda mixta devuelve vacío: sumar pesos con dólares daría un reparto
+/// falso. PDF y Excel llaman aquí para decidir el reparto una sola vez; cada
+/// uno pone su formato de moneda (los rótulos llegan ya resueltos).
+List<({String label, double amount})> cropSplitLines(
+  CropBreakdownRow row, {
+  required List<Crop> crops,
+  required Iterable<Harvest> harvests,
+  required String initialInvestmentLabel,
+  required String equipmentInvestmentLabel,
+  required String operationLabel,
+}) {
+  if (row.isMixed) return const [];
+  final split = const ReportHarvestMetrics().splitForRow(
+    expenseTxs: row.expenseTxs,
+    cropId: row.cropId,
+    terrenoId: row.terrenoId,
+    crops: crops,
+    harvests: harvests,
+  );
+  return [
+    if (split.investment > 0)
+      (label: initialInvestmentLabel, amount: split.investment),
+    if (split.equipment > 0)
+      (label: equipmentInvestmentLabel, amount: split.equipment),
+    if (split.operation > 0)
+      (label: operationLabel, amount: split.operation),
+  ];
 }

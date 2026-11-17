@@ -1106,6 +1106,122 @@ void main() {
     expect(find.text('2 ha'), findsOneWidget);
   });
 
+  // C9 · las cercas de un lote cuyos cultivos ya producen son mantenimiento.
+  // El lote no tiene cultivo propio, así que el corte sale de sus cultivos.
+  testWidgets(
+      'C9: las cercas de un lote que ya produce no son inversión inicial',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final alto = await provider.addTerreno('Lote Alto');
+    // Sin hectáreas: el gasto del lote no se reparte y sale como fila propia.
+    final cafe = await provider.addCrop('Café', terrenoId: alto.id);
+
+    final hoy = DateTime.now();
+    final ahora = DateTime(hoy.year, hoy.month, hoy.day, 12);
+    await provider.addHarvest(
+      cropId: cafe.id,
+      date: ahora.subtract(const Duration(days: 60)),
+      amount: 500,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: kExpenseCategoryFences,
+      terrenoId: alto.id,
+      amount: 400000,
+      date: ahora,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    expect(find.text(l10n.loteNoRepartido('Lote Alto')), findsOneWidget);
+    expect(find.text(l10n.cropBreakdownInvestment), findsNothing,
+        reason: 'el lote ya sirve a un cafetal que produce: sus cercas no '
+            'son establecimiento');
+    expect(find.text(l10n.cropBreakdownOperation), findsOneWidget);
+  });
+
+  testWidgets(
+      'C10: el equipo se pinta como inversión en equipo, no como operación',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final provider = TransactionProvider(LocalStore(prefs));
+    final hoy = DateTime.now();
+    final cafe = await provider.addCrop('Café');
+
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'equipo',
+      cropId: cafe.id,
+      amount: 2500000,
+      description: 'Despulpadora',
+      date: hoy,
+    );
+    await provider.addTransaction(
+      type: TransactionType.expense,
+      category: 'fertilizante',
+      cropId: cafe.id,
+      amount: 300000,
+      description: 'Abono',
+      date: hoy,
+    );
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: const MaterialApp(
+        locale: Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ReportScreen(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final l10n = stringsFor('es');
+    final now = DateTime.now();
+    final titulo = l10n.cropBreakdownTitle(
+        l10n.reportPeriodMonth(l10n.monthFull[now.month - 1], now.year));
+    final desglose =
+        find.ancestor(of: find.text(titulo), matching: find.byType(Card));
+
+    String money(double v) =>
+        formatAmount(v, currency: 'COP', locale: provider.settings.numberLocale);
+
+    expect(
+        find.descendant(
+            of: desglose, matching: find.text(l10n.expenseGroupInversion)),
+        findsOneWidget,
+        reason: 'el equipo tiene su propia línea de inversión');
+    expect(
+        find.descendant(of: desglose, matching: find.text(money(2500000))),
+        findsOneWidget,
+        reason: 'el equipo va entero a inversión en equipo');
+    expect(
+        find.descendant(of: desglose, matching: find.text(money(300000))),
+        findsOneWidget,
+        reason: 'la operación del período es solo el fertilizante');
+  });
+
   testWidgets(
       'W1-c: una finca sin terrenos no estrena bandas ni «Sin terreno»',
       (tester) async {

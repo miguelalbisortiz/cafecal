@@ -1440,6 +1440,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryFieldLabel => 'Category';
 
   @override
+  String get categoryRequired => 'Choose a category.';
+
+  @override
   String get amountFieldLabel => 'Amount';
 
   @override
@@ -1765,6 +1768,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expenseGroupFijos => 'Fixed costs';
 
   @override
+  String get expenseGroupInversion => 'Equipment investment';
+
+  @override
+  String get ratioOperationOnlyNote => 'Operating only: excludes equipment investment.';
+
+  @override
   String get expenseGroupOtros => 'Other costs';
 
   @override
@@ -2042,7 +2051,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noIncomePeriod => 'No income in this period';
 
   @override
-  String get operatingExpensesLabel => 'Operating expenses';
+  String get totalExpensesLabel => 'Total expenses';
 
   @override
   String get noExpensesPeriod => 'No expenses in this period.';
@@ -2431,6 +2440,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String insightTopExpenseCapital(Object category) {
+    return 'More than half of your expenses went to $category: that is a capital purchase, not a cost that repeats every month.';
+  }
+
+  @override
   String insightTopIncome(String category, String amount, String pct) {
     return 'Your best income was $category ($amount, $pct of the total).';
   }
@@ -2585,7 +2599,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdfNoIncomeSub => '    No income in this period';
 
   @override
-  String get pdfExpensesHeader => 'OPERATING EXPENSES';
+  String get pdfTotalExpensesHeader => 'TOTAL EXPENSES';
 
   @override
   String get pdfNoExpensesSub => '    No expenses in this period';
@@ -3176,4 +3190,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get excelSheetRawData => 'Data';
+
+  @override
+  String get contributionTitle => 'Contribution by product';
+
+  @override
+  String get contributionSubtitle => 'Income minus direct costs per crop; whole-plot costs go separately, not split.';
+
+  @override
+  String get contributionDirectCosts => 'Direct costs';
+
+  @override
+  String get contributionNet => 'Contribution';
+
+  @override
+  String contributionPeriod(String range) {
+    return 'Period: $range';
+  }
+
+  @override
+  String contributionEmpty(String range) {
+    return 'No movements linked to crops in $range.';
+  }
+
+  @override
+  String contributionByMonth(int year) {
+    return 'Month by month · $year';
+  }
+
+  @override
+  String get contributionUnassigned => 'Unassigned plot expenses';
+
+  @override
+  String get contributionCommon => 'Expenses with no crop or plot';
+
+  @override
+  String get contributionCoverageTitle => 'Coffee coverage';
+
+  @override
+  String contributionCoverageLine(String pct, String coffee, String covered, String investment) {
+    return 'The other products cover $pct% of the coffee\'s accumulated investment: $covered of $investment.';
+  }
+
+  @override
+  String contributionCoverageNegative(String covered, String investment, String coffee) {
+    return 'The other products do not cover anything yet: their accumulated contribution is $covered, against $investment invested in $coffee.';
+  }
+
+  @override
+  String get contributionCoverageNoData => 'Not calculated: the coffee\'s planting investment is missing or the data spans more than one currency.';
 }

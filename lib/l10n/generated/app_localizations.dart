@@ -2729,6 +2729,12 @@ abstract class AppLocalizations {
   /// **'Categoría'**
   String get categoryFieldLabel;
 
+  /// No description provided for @categoryRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige una categoría.'**
+  String get categoryRequired;
+
   /// No description provided for @amountFieldLabel.
   ///
   /// In es, this message translates to:
@@ -3323,6 +3329,18 @@ abstract class AppLocalizations {
   /// **'Gastos fijos'**
   String get expenseGroupFijos;
 
+  /// No description provided for @expenseGroupInversion.
+  ///
+  /// In es, this message translates to:
+  /// **'Inversión en equipo'**
+  String get expenseGroupInversion;
+
+  /// No description provided for @ratioOperationOnlyNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo operación: no incluye la inversión en equipo.'**
+  String get ratioOperationOnlyNote;
+
   /// No description provided for @expenseGroupOtros.
   ///
   /// In es, this message translates to:
@@ -3821,11 +3839,11 @@ abstract class AppLocalizations {
   /// **'Sin ingresos en este período'**
   String get noIncomePeriod;
 
-  /// No description provided for @operatingExpensesLabel.
+  /// No description provided for @totalExpensesLabel.
   ///
   /// In es, this message translates to:
-  /// **'Gastos operacionales'**
-  String get operatingExpensesLabel;
+  /// **'Total de gastos'**
+  String get totalExpensesLabel;
 
   /// No description provided for @noExpensesPeriod.
   ///
@@ -4463,6 +4481,12 @@ abstract class AppLocalizations {
   /// **'Concentras más de la mitad de tus gastos en {category}: revisa ese costo recurrente antes de que siga creciendo.'**
   String insightTopExpenseDependency(Object category);
 
+  /// No description provided for @insightTopExpenseCapital.
+  ///
+  /// In es, this message translates to:
+  /// **'Concentras más de la mitad de tus gastos en {category}: es una compra de capital, no un costo que se repita cada mes.'**
+  String insightTopExpenseCapital(Object category);
+
   /// No description provided for @insightTopIncome.
   ///
   /// In es, this message translates to:
@@ -4679,11 +4703,11 @@ abstract class AppLocalizations {
   /// **'    Sin ingresos en el período'**
   String get pdfNoIncomeSub;
 
-  /// No description provided for @pdfExpensesHeader.
+  /// No description provided for @pdfTotalExpensesHeader.
   ///
   /// In es, this message translates to:
-  /// **'GASTOS OPERACIONALES'**
-  String get pdfExpensesHeader;
+  /// **'TOTAL DE GASTOS'**
+  String get pdfTotalExpensesHeader;
 
   /// No description provided for @pdfNoExpensesSub.
   ///
@@ -5632,6 +5656,84 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Datos'**
   String get excelSheetRawData;
+
+  /// Título de la tarjeta de aporte por producto
+  ///
+  /// In es, this message translates to:
+  /// **'Aporte por producto'**
+  String get contributionTitle;
+
+  /// No description provided for @contributionSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote va aparte, sin repartirlo.'**
+  String get contributionSubtitle;
+
+  /// No description provided for @contributionDirectCosts.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos directos'**
+  String get contributionDirectCosts;
+
+  /// No description provided for @contributionNet.
+  ///
+  /// In es, this message translates to:
+  /// **'Aporte'**
+  String get contributionNet;
+
+  /// Rango que cubre la tarjeta; sale del selector de período de Reportes
+  ///
+  /// In es, this message translates to:
+  /// **'Período: {range}'**
+  String contributionPeriod(String range);
+
+  /// Sin movimientos ligados a cultivos en el período elegido
+  ///
+  /// In es, this message translates to:
+  /// **'Sin movimientos con cultivo en {range}.'**
+  String contributionEmpty(String range);
+
+  /// Título de la lista mes a mes
+  ///
+  /// In es, this message translates to:
+  /// **'Mes a mes · {year}'**
+  String contributionByMonth(int year);
+
+  /// No description provided for @contributionUnassigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos de lote sin asignar'**
+  String get contributionUnassigned;
+
+  /// No description provided for @contributionCommon.
+  ///
+  /// In es, this message translates to:
+  /// **'Gastos sin cultivo ni lote'**
+  String get contributionCommon;
+
+  /// No description provided for @contributionCoverageTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cobertura del café'**
+  String get contributionCoverageTitle;
+
+  /// Porcentaje de la inversión acumulada del café cubierto por los otros productos
+  ///
+  /// In es, this message translates to:
+  /// **'Los otros productos cubren {pct}% de la inversión acumulada de {coffee}: {covered} de {investment}.'**
+  String contributionCoverageLine(String pct, String coffee, String covered, String investment);
+
+  /// Cuando el aporte acumulado de los otros productos es negativo
+  ///
+  /// In es, this message translates to:
+  /// **'Los otros productos todavía no cubren nada: su aporte acumulado es {covered}, frente a {investment} invertidos en {coffee}.'**
+  String contributionCoverageNegative(String covered, String investment, String coffee);
+
+  /// No description provided for @contributionCoverageNoData.
+  ///
+  /// In es, this message translates to:
+  /// **'No se calcula: falta la inversión de siembra del café o los datos están en más de una moneda.'**
+  String get contributionCoverageNoData;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

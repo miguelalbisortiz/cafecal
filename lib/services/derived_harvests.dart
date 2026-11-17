@@ -206,6 +206,28 @@ List<Harvest> deriveHarvests({
   return out;
 }
 
+/// **Lo que la app sabe que se cosechó**: las guardadas a mano + las
+/// deducidas (jornal y venta).
+///
+/// Es el único lugar donde se arma esa lista. `TransactionProvider.harvests`
+/// la publica y `coffeeCoverage` la usa para el corte de C9 (la primera
+/// cosecha del cultivo), así que los kilos medidos en un jornal cierran el
+/// establecimiento en Reportes, en el PDF y en el Excel a la vez.
+///
+/// Idempotente: un cultivo con cosecha no vuelve a derivar, así que pasar una
+/// lista ya completa no duplica nada.
+List<Harvest> effectiveHarvests({
+  required List<Transaction> transactions,
+  required List<Harvest> manualHarvests,
+}) =>
+    [
+      ...manualHarvests,
+      ...deriveHarvests(
+        transactions: transactions,
+        manualHarvests: manualHarvests,
+      ),
+    ];
+
 /// ¿Este gasto es un jornal de «Cosechar» con kilos medidos?
 ///
 /// Los filtros son la regla entera: gasto no borrado, categoría de mano de

@@ -41,6 +41,10 @@ class IncomeCategory {
 /// por anotar la plata.
 const String kExpenseCategorySowing = 'siembra';
 
+/// Cercas, preparación del terreno y otras obras previas al plantío. Cuenta
+/// como inversión de establecimiento **antes de la primera cosecha** (C9).
+const String kExpenseCategoryFences = 'cercas_preparacion';
+
 /// Clave de la categoría de gasto de recolección. Es la contraparte de
 /// [kExpenseCategorySowing] para el flujo de cosecha: se registra de forma
 /// manual y puede vincularse a una cosecha concreta desde el editor de gastos.
@@ -86,7 +90,7 @@ const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: kExpenseCategorySowing, name: 'Siembra', icon: '🌱', color: '#2E7D32'),
   // H5 · inversión inicial del terreno: lo que se gasta ANTES de que el
   // cultivo arranque (cerca, tapia, desmonte, preparación de camellones).
-  ExpenseCategory(key: 'cercas_preparacion', name: 'Cercas y preparación', icon: '🚧', color: '#5D4037'),
+  ExpenseCategory(key: kExpenseCategoryFences, name: 'Cercas y preparación', icon: '🚧', color: '#5D4037'),
   ExpenseCategory(key: 'semillas_insumos', name: 'Semillas e insumos', icon: '🌾', color: '#7CB342'),
   ExpenseCategory(key: 'fertilizante', name: 'Fertilizante', icon: '🧪', color: '#43A047'),
   ExpenseCategory(key: 'mano_obra', name: 'Mano de obra', icon: '👷', color: '#1E88E5'),
@@ -113,7 +117,7 @@ const List<ExpenseCategory> expenseCategories = [
 /// La idea es responder "¿cuánto me costó producir?" sin sumar a mano las
 /// categorías. `otros` recoge la clave `otro` y cualquier clave legada no
 /// reconocida, para que ningún gasto se pierda de vista.
-enum ExpenseGroup { produccion, venta, fijos, otros }
+enum ExpenseGroup { produccion, venta, fijos, inversion, otros }
 
 const Set<String> _productionKeys = {
   'siembra',
@@ -131,11 +135,16 @@ const Set<String> _sellingKeys = {
   'transporte',
 };
 
+/// Compras de equipo: no se consumen con la cosecha, así que no son costo
+/// fijo del mes ni gasto de producción. Tienen su propio bloque (C10).
+const Set<String> _investmentKeys = {
+  'equipo',
+};
+
 const Set<String> _fixedKeys = {
   'arriendo',
   'energia',
   'agua',
-  'equipo',
   'mantenimiento',
   'impuestos',
   'credito_intereses',
@@ -147,6 +156,7 @@ ExpenseGroup expenseGroupOf(String key) {
   if (_productionKeys.contains(key)) return ExpenseGroup.produccion;
   if (_sellingKeys.contains(key)) return ExpenseGroup.venta;
   if (_fixedKeys.contains(key)) return ExpenseGroup.fijos;
+  if (_investmentKeys.contains(key)) return ExpenseGroup.inversion;
   return ExpenseGroup.otros;
 }
 

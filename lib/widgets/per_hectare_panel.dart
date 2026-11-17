@@ -291,6 +291,9 @@ class PerHectarePanel extends StatelessWidget {
               bold: true,
               color: r.marginPerHa! < 0 ? scheme.error : scheme.primary,
             ),
+          // C10 · el costo y el margen por hectárea son de operación: el
+          // bloque de inversión en equipo no entra.
+          if (r.costPerHa != null) _hint(l10n.ratioOperationOnlyNote),
           if (r.periodMixed)
             _hint(l10n.currencyMixedHint(r.periodCurrencies.length)),
           // R1 · el gasto por ha es solo el del cultivo porque el lote no se

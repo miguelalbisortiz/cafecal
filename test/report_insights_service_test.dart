@@ -225,6 +225,41 @@ void main() {
         isTrue,
       );
     });
+
+    test('el equipo no se llama costo recurrente: es compra de capital', () {
+      final current = [
+        _txn(
+            type: TransactionType.expense,
+            amount: 2500000,
+            date: DateTime(2026, 6, 1),
+            category: 'equipo'),
+        _txn(
+            type: TransactionType.expense,
+            amount: 300000,
+            date: DateTime(2026, 6, 2),
+            category: 'fertilizante'),
+      ];
+      final insights = service.build(
+        now: now,
+        current: current,
+        previousMonth: [],
+        yearRecords: current,
+        year: 2026,
+        month: 6,
+        l10n: _es,
+        money: _money,
+      );
+      expect(
+        insights.any((i) => i.text.contains('costo recurrente')),
+        isFalse,
+        reason: 'una despulpadora no se repite cada mes',
+      );
+      expect(
+        insights.any((i) => i.text.contains('compra de capital')),
+        isTrue,
+        reason: 'la conclusión dice lo que de verdad es',
+      );
+    });
   });
 
   group('Bloque C — Ventas', () {

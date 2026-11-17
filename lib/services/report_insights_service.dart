@@ -1,5 +1,6 @@
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
+import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/transaction.dart';
 import 'currency_totals.dart';
@@ -177,9 +178,16 @@ class ReportInsightsService {
           top.label, money(top.amount), '${pct.toStringAsFixed(0)}%'),
     ));
     if (pct >= 50) {
+      // El equipo es gasto de capital, no un costo que se repita cada mes: la
+      // frase de "costo recurrente" mentiría, así que la conclusión lo llama
+      // por su nombre. Se decide por la categoría, no por el rótulo (el rótulo
+      // cambia con el idioma y con las categorías propias).
+      final isInvestment = expenseGroupOf(top.key) == ExpenseGroup.inversion;
       out.add(ReportInsight(
         tone: InsightTone.info,
-        text: l10n.insightTopExpenseDependency(top.label),
+        text: isInvestment
+            ? l10n.insightTopExpenseCapital(top.label)
+            : l10n.insightTopExpenseDependency(top.label),
       ));
     }
   }
@@ -275,8 +283,11 @@ class ReportInsightsService {
         .fold<double>(0, (a, t) => a + t.amount);
   }
 
-  ({String label, double amount}) _topCategory(List<Transaction> items,
-      bool isExpense, AppLocalizations l10n, List<Crop> crops) {
+  ({String key, String label, double amount}) _topCategory(
+      List<Transaction> items,
+      bool isExpense,
+      AppLocalizations l10n,
+      List<Crop> crops) {
     final totals = <String, double>{};
     for (final t in items) {
       if (t.type.isExpense != isExpense) continue;
@@ -289,7 +300,7 @@ class ReportInsightsService {
     final label = isExpense
         ? l10n.expenseCategory(entry.key)
         : l10n.incomeGroupLabel(entry.key, crops);
-    return (label: label, amount: entry.value);
+    return (key: entry.key, label: label, amount: entry.value);
   }
 
   String _signed(double? v) => v == null

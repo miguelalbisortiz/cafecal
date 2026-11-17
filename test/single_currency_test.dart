@@ -99,6 +99,14 @@ void main() {
     await pumpRegister(tester, provider);
 
     await tester.enterText(campoMonto(), '5000');
+    // La categoría es obligatoria desde que no se guarda como «Otro» sin
+    // avisar; este test es sobre la moneda.
+    await tester.tap(find.byWidgetPredicate((w) =>
+        w is DropdownButton<String> &&
+        (w.items ?? const []).any((i) => i.value == 'fertilizante')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining(_es.catFertilizante).last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text(_es.saveRecord));
     await tester.pumpAndSettle();
 

@@ -567,6 +567,7 @@
   "paidStatusPaid": "Pagado",
   "paidStatusPending": "Por cobrar",
   "categoryFieldLabel": "Categoría",
+  "categoryRequired": "Elige una categoría.",
   "amountFieldLabel": "Monto",
   "amountInvalid": "Ingresa un monto válido",
   "dateFieldLabel": "Fecha",
@@ -726,6 +727,8 @@
   "expenseGroupProduccion": "Gastos de producción",
   "expenseGroupVenta": "Gastos de venta",
   "expenseGroupFijos": "Gastos fijos",
+  "expenseGroupInversion": "Inversión en equipo",
+  "ratioOperationOnlyNote": "Solo operación: no incluye la inversión en equipo.",
   "expenseGroupOtros": "Otros gastos",
   "menuCrops": "Cultivos",
   "cropsEmpty": "Aún no hay cultivos. Agrega el primero.",
@@ -861,7 +864,7 @@
   "harvestCargasNote": "1 carga ≈ 60 lbs ≈ 27.2 kg",
   "incomeStatementTitle": "Estado de resultados",
   "noIncomePeriod": "Sin ingresos en este período",
-  "operatingExpensesLabel": "Gastos operacionales",
+  "totalExpensesLabel": "Total de gastos",
   "noExpensesPeriod": "Sin gastos en este período.",
   "resultPeriodLabel": "RESULTADO DEL PERÍODO",
   "marginLabel": "Margen sobre ventas",
@@ -1106,6 +1109,7 @@
   },
   "insightTopExpense": "Tu mayor gasto fue {category} ({amount}, el {pct} del total).",
   "insightTopExpenseDependency": "Concentras más de la mitad de tus gastos en {category}: revisa ese costo recurrente antes de que siga creciendo.",
+  "insightTopExpenseCapital": "Concentras más de la mitad de tus gastos en {category}: es una compra de capital, no un costo que se repita cada mes.",
   "@insightTopIncome": {
     "placeholders": {
       "category": { "type": "String" },
@@ -1251,7 +1255,7 @@
   "pdfGeneratedOn": "Generado el {date} · Moneda: {currency}",
   "pdfIncomesHeader": "INGRESOS",
   "pdfNoIncomeSub": "    Sin ingresos en el período",
-  "pdfExpensesHeader": "GASTOS OPERACIONALES",
+  "pdfTotalExpensesHeader": "TOTAL DE GASTOS",
   "pdfNoExpensesSub": "    Sin gastos en el período",
   "@pdfCropBreakdown": {
     "placeholders": { "period": { "type": "String" } }
@@ -1594,5 +1598,50 @@
   "helpCropTerreno": "El terreno donde está plantado. Puedes dejarlo vacío.",
   "terrenoGroupLabel": "Lotes",
   "terrenoGroupHint": "El gasto sirve a varios cultivos del mismo lote, como una limpieza compartida. Se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte.",
-  "excelSheetRawData": "Datos"
+  "excelSheetRawData": "Datos",
+  "@contributionTitle": {
+    "description": "Título de la tarjeta de aporte por producto"
+  },
+  "contributionTitle": "Aporte por producto",
+  "contributionSubtitle": "Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote va aparte, sin repartirlo.",
+  "contributionDirectCosts": "Gastos directos",
+  "contributionNet": "Aporte",
+  "@contributionPeriod": {
+    "description": "Rango que cubre la tarjeta; sale del selector de período de Reportes",
+    "placeholders": { "range": { "type": "String" } }
+  },
+  "contributionPeriod": "Período: {range}",
+  "@contributionEmpty": {
+    "description": "Sin movimientos ligados a cultivos en el período elegido",
+    "placeholders": { "range": { "type": "String" } }
+  },
+  "contributionEmpty": "Sin movimientos con cultivo en {range}.",
+  "@contributionByMonth": {
+    "description": "Título de la lista mes a mes",
+    "placeholders": { "year": { "type": "int" } }
+  },
+  "contributionByMonth": "Mes a mes · {year}",
+  "contributionUnassigned": "Gastos de lote sin asignar",
+  "contributionCommon": "Gastos sin cultivo ni lote",
+  "contributionCoverageTitle": "Cobertura del café",
+  "@contributionCoverageLine": {
+    "description": "Porcentaje de la inversión acumulada del café cubierto por los otros productos",
+    "placeholders": {
+      "pct": { "type": "String" },
+      "coffee": { "type": "String" },
+      "covered": { "type": "String" },
+      "investment": { "type": "String" }
+    }
+  },
+  "contributionCoverageLine": "Los otros productos cubren {pct}% de la inversión acumulada de {coffee}: {covered} de {investment}.",
+  "@contributionCoverageNegative": {
+    "description": "Cuando el aporte acumulado de los otros productos es negativo",
+    "placeholders": {
+      "covered": { "type": "String" },
+      "investment": { "type": "String" },
+      "coffee": { "type": "String" }
+    }
+  },
+  "contributionCoverageNegative": "Los otros productos todavía no cubren nada: su aporte acumulado es {covered}, frente a {investment} invertidos en {coffee}.",
+  "contributionCoverageNoData": "No se calcula: falta la inversión de siembra del café o los datos están en más de una moneda."
 }

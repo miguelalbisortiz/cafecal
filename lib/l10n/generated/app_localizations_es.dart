@@ -1440,6 +1440,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get categoryFieldLabel => 'Categoría';
 
   @override
+  String get categoryRequired => 'Elige una categoría.';
+
+  @override
   String get amountFieldLabel => 'Monto';
 
   @override
@@ -1765,6 +1768,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get expenseGroupFijos => 'Gastos fijos';
 
   @override
+  String get expenseGroupInversion => 'Inversión en equipo';
+
+  @override
+  String get ratioOperationOnlyNote => 'Solo operación: no incluye la inversión en equipo.';
+
+  @override
   String get expenseGroupOtros => 'Otros gastos';
 
   @override
@@ -2042,7 +2051,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noIncomePeriod => 'Sin ingresos en este período';
 
   @override
-  String get operatingExpensesLabel => 'Gastos operacionales';
+  String get totalExpensesLabel => 'Total de gastos';
 
   @override
   String get noExpensesPeriod => 'Sin gastos en este período.';
@@ -2431,6 +2440,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String insightTopExpenseCapital(Object category) {
+    return 'Concentras más de la mitad de tus gastos en $category: es una compra de capital, no un costo que se repita cada mes.';
+  }
+
+  @override
   String insightTopIncome(String category, String amount, String pct) {
     return 'Tu mejor ingreso fue $category ($amount, el $pct del total).';
   }
@@ -2585,7 +2599,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdfNoIncomeSub => '    Sin ingresos en el período';
 
   @override
-  String get pdfExpensesHeader => 'GASTOS OPERACIONALES';
+  String get pdfTotalExpensesHeader => 'TOTAL DE GASTOS';
 
   @override
   String get pdfNoExpensesSub => '    Sin gastos en el período';
@@ -3176,4 +3190,53 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get excelSheetRawData => 'Datos';
+
+  @override
+  String get contributionTitle => 'Aporte por producto';
+
+  @override
+  String get contributionSubtitle => 'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote va aparte, sin repartirlo.';
+
+  @override
+  String get contributionDirectCosts => 'Gastos directos';
+
+  @override
+  String get contributionNet => 'Aporte';
+
+  @override
+  String contributionPeriod(String range) {
+    return 'Período: $range';
+  }
+
+  @override
+  String contributionEmpty(String range) {
+    return 'Sin movimientos con cultivo en $range.';
+  }
+
+  @override
+  String contributionByMonth(int year) {
+    return 'Mes a mes · $year';
+  }
+
+  @override
+  String get contributionUnassigned => 'Gastos de lote sin asignar';
+
+  @override
+  String get contributionCommon => 'Gastos sin cultivo ni lote';
+
+  @override
+  String get contributionCoverageTitle => 'Cobertura del café';
+
+  @override
+  String contributionCoverageLine(String pct, String coffee, String covered, String investment) {
+    return 'Los otros productos cubren $pct% de la inversión acumulada de $coffee: $covered de $investment.';
+  }
+
+  @override
+  String contributionCoverageNegative(String covered, String investment, String coffee) {
+    return 'Los otros productos todavía no cubren nada: su aporte acumulado es $covered, frente a $investment invertidos en $coffee.';
+  }
+
+  @override
+  String get contributionCoverageNoData => 'No se calcula: falta la inversión de siembra del café o los datos están en más de una moneda.';
 }

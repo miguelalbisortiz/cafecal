@@ -215,6 +215,13 @@ void main() {
           reason: 'sin id no habría forma de saber cuál de los dos "Café"');
 
       await tester.enterText(find.byType(TextFormField).at(1), '1000');
+      // Categoría obligatoria: este test es sobre el nombre duplicado.
+      await tester.tap(find.byWidgetPredicate((w) =>
+          w is DropdownButton<String> &&
+          (w.items ?? const []).any((i) => i.value == 'fertilizante')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining(es.catFertilizante).last);
+      await tester.pumpAndSettle();
       await tester.tap(find.text(es.saveRecord));
       await tester.pumpAndSettle();
 

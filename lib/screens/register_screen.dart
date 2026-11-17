@@ -117,6 +117,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'venta_otro',
   };
 
+  /// Categorías donde ligar el gasto a una cosecha tiene sentido.
+  ///
+  /// El lazo mete el monto en el «costo de recogida por kg»
+  /// (`report_harvest_metrics.dart`), así que en un fertilizante o un
+  /// arriendo sería una cifra falsa. El jornal entra aparte: solo si su labor
+  /// es «Cosechar» (ver [_offersHarvestLink]), porque un jornal de abono con
+  /// una cosecha ligada infla ese costo igual que un fertilizante.
+  ///
+  /// La restricción es **solo de la pantalla**: los lazos que ya existen en
+  /// datos viejos se siguen contando igual, para no reescribir números
+  /// históricos.
+  static const _harvestLinkCategories = {
+    kExpenseCategoryHarvest,
+    'empaque',
+    'transporte',
+  };
+
   /// Claves de venta fijas que ya no se ofrecen al registrar (su equivalente
   /// es la venta por cultivo); se mantienen como ítem si el movimiento en
   /// edición ya las usa, para no romper el dropdown.
@@ -571,6 +588,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    // El desplegable ya lo exige; acá no se cae en «Otro» sin avisar.
+    final category = _category;
+    if (category == null) return;
     final tx = context.read<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
     final isSale = _type == TransactionType.income &&
@@ -692,7 +712,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // exactamente como estaba.
         terrenoId: _terrenoId,
         type: _type,
-        category: _category ?? 'otro',
+        category: category,
         amount: amount,
         currency: _currency,
         description: _descriptionController.text.trim(),
@@ -741,7 +761,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       for (var i = 0; i < split.length; i++) {
         await tx.addTransaction(
           type: _type,
-          category: _category ?? 'otro',
+          category: category,
           cropId: split[i].cropId,
           amount: amounts[i],
           currency: _currency,
@@ -754,7 +774,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else {
       await tx.addTransaction(
         type: _type,
-        category: _category ?? 'otro',
+        category: category,
         cropId: _cropId,
         terrenoId: _terrenoId,
         amount: amount,
@@ -871,6 +891,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   /// Cosechas del cultivo activo ordenadas de más reciente a más antigua,
   /// usadas para vincular el gasto con una cosecha.
+  /// Si el formulario ofrece «Vincular a cosecha» para lo que se está
+  /// cargando. Un lazo que ya existe (`_harvestId`) siempre se ofrece, para
+  /// poder verlo y quitarlo.
+  bool _offersHarvestLink() =>
+      _harvestId != null ||
+      _harvestLinkCategories.contains(_category) ||
+      (_category == 'mano_obra' && _jornalTaskValue == kTaskCosechar);
+
+  /// La clave de ingreso en edición, cuando ya no se ofrece en la lista.
+  Iterable<({String key, String icon, String name})> _unknownIncomeCategory(
+      AppLocalizations l10n) sync* {
+    final key = _category;
+    if (key == null || incomeCategories.any((c) => c.key == key)) return;
+    yield (key: key, icon: '📦', name: l10n.incomeCategory(key));
+  }
+
   List<Harvest> _linkedHarvests(TransactionProvider tx) {
     if (_cropId == null) return const [];
     final list = tx.harvestsFor(_cropId).toList()
@@ -896,9 +932,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final loteGuardadoCerrado = loteGuardado != null &&
         !cohortesVivas.any((c) => c.sowingId == loteGuardado.id);
     final categories = isExpense
-        ? expenseCategories
-            .map((c) => (key: c.key, icon: c.icon, name: l10n.expenseCategory(c.key)))
-            .toList()
+        ? [
+            ...expenseCategories.map((c) =>
+                (key: c.key, icon: c.icon, name: l10n.expenseCategory(c.key))),
+            // Un dato viejo, un backup o un sync pueden traer una clave que
+            // hoy no está en la lista. Se ofrece con su clave tal cual —como
+            // ya hacen las ventas legadas— en vez de romper el desplegable
+            // con un valor sin ítem.
+            if (_category != null &&
+                !expenseCategories.any((c) => c.key == _category))
+              (
+                key: _category!,
+                icon: '📦',
+                name: l10n.expenseCategory(_category!),
+              ),
+          ]
         : incomeCategories
             // Las claves legadas (Venta café/…) solo se ofrecen si el
             // movimiento ya las usa; lo nuevo es la venta por cultivo.
@@ -915,6 +963,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     : l10n.incomeCategory(c.key),
               );
             })
+            // Mismo caso que en gastos: una clave que hoy no se ofrece (un
+            // dato viejo, un backup) se muestra igual en vez de reventar el
+            // desplegable por un valor sin ítem.
+            .followedBy(_unknownIncomeCategory(l10n))
             .toList();
 
     final form = Form(
@@ -1103,6 +1155,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Text('${c.icon} ${c.name}'),
                     ))
                 .toList(),
+            // Sin categoría el gasto no tiene grupo ni cuenta en el costo:
+            // guardarlo como «Otro» en silencio era esconderlo.
+            validator: (v) => v == null ? l10n.categoryRequired : null,
             onChanged: (v) => setState(() {
               _category = v;
               _clearHarvestedKgIfHidden();
@@ -1600,7 +1655,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             // Vincular a cosecha (solo gastos): las cosechas recientes del
             // cultivo elegido, para asociar el pago de recogida.
-            if (_cropId != null && _linkedHarvests(tx).isNotEmpty) ...[
+            if (_cropId != null &&
+                _offersHarvestLink() &&
+                _linkedHarvests(tx).isNotEmpty) ...[
               DropdownButtonFormField<String?>(
                 value: _harvestId,
                 decoration: InputDecoration(

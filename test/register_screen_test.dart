@@ -761,6 +761,143 @@ void main() {
     });
   });
 
+  group('categorías de gasto', () {
+    void tall(WidgetTester tester) {
+      tester.view.physicalSize = const Size(900, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
+
+    Future<void> elegir(WidgetTester tester, String key) async {
+      final icon = expenseCategories.firstWhere((c) => c.key == key).icon;
+      await tester.tap(dropdownWithValue(key));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('$icon ${_es.expenseCategory(key)}').last);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> guardar(WidgetTester tester, String label) async {
+      final boton = find.text(label);
+      await tester.ensureVisible(boton);
+      await tester.tap(boton);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+        'editar un gasto con una categoría que no está en la lista no rompe '
+        'y la conserva', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      // Un dato viejo o venido de un backup: la clave ya no se ofrece.
+      await p.addTransaction(
+        type: TransactionType.expense,
+        category: 'insumos',
+        amount: 5000,
+        date: DateTime(2026, 1, 2),
+      );
+
+      await pumpRegister(tester, p, editing: p.transactions.single);
+
+      // El desplegable muestra la clave en vez de reventar con un valor sin
+      // ítem.
+      expect(find.textContaining('insumos'), findsWidgets);
+
+      await guardar(tester, _es.saveChanges);
+      expect(p.transactions.single.category, 'insumos',
+          reason: 'editar el monto no puede reclasificar el gasto solo');
+    });
+
+    testWidgets('sin categoría no se guarda y se avisa', (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      await pumpRegister(tester, p);
+
+      await tester.enterText(
+        find.ancestor(
+            of: find.text(_es.amountFieldLabel),
+            matching: find.byType(TextFormField)),
+        '1000',
+      );
+      await guardar(tester, _es.saveRecord);
+
+      expect(p.transactions, isEmpty,
+          reason: 'guardarlo como «Otro» en silencio lo escondía de '
+              'producción y del costo por kilo');
+      expect(find.text(_es.categoryRequired), findsOneWidget);
+    });
+
+    testWidgets('vincular a cosecha solo se ofrece en gastos de recolección',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final cafe = await p.addCrop('Café');
+      await p.addHarvest(cropId: cafe.id, date: DateTime.now(), amount: 100);
+      await pumpRegister(tester, p);
+
+      await tester.tap(dropdownWithValue(cafe.id));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('🌱 Café').last);
+      await tester.pumpAndSettle();
+
+      // Un fertilizante no es plata de recolección: ligarlo a una cosecha la
+      // metería en el costo de recogida por kg.
+      await elegir(tester, 'fertilizante');
+      expect(find.text(_es.expenseLinkHarvestLabel), findsNothing);
+
+      // Cosecha sí.
+      await elegir(tester, kExpenseCategoryHarvest);
+      expect(find.text(_es.expenseLinkHarvestLabel), findsOneWidget);
+    });
+
+    testWidgets('un jornal solo se liga a cosecha cuando la labor es cosechar',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      final cafe = await p.addCrop('Café');
+      await p.addHarvest(cropId: cafe.id, date: DateTime.now(), amount: 100);
+      await pumpRegister(tester, p);
+
+      await tester.tap(dropdownWithValue(cafe.id));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('🌱 Café').last);
+      await tester.pumpAndSettle();
+      await elegir(tester, 'mano_obra');
+
+      // Un jornal de abono no es plata de recolección, aunque sea mano de obra.
+      final abonar = farmTasks.firstWhere((t) => t.key == 'abonar');
+      await tester.tap(dropdownWithValue('abonar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('${abonar.icon} ${abonar.name}').last);
+      await tester.pumpAndSettle();
+      expect(find.text(_es.expenseLinkHarvestLabel), findsNothing);
+
+      final cosechar = farmTasks.firstWhere((t) => t.key == kTaskCosechar);
+      await tester.tap(dropdownWithValue(kTaskCosechar));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('${cosechar.icon} ${cosechar.name}').last);
+      await tester.pumpAndSettle();
+      expect(find.text(_es.expenseLinkHarvestLabel), findsOneWidget);
+    });
+
+    testWidgets('editar un ingreso con una categoría fuera de la lista no rompe',
+        (tester) async {
+      tall(tester);
+      final p = await makeProvider();
+      await p.addTransaction(
+        type: TransactionType.income,
+        category: 'donacion',
+        amount: 70000,
+        date: DateTime(2026, 1, 3),
+      );
+
+      await pumpRegister(tester, p, editing: p.transactions.single);
+      expect(find.textContaining('donacion'), findsWidgets);
+
+      await guardar(tester, _es.saveChanges);
+      expect(p.transactions.single.category, 'donacion');
+    });
+  });
+
   group('T15 · reparto de un gasto entre cultivos', () {
     /// Deja tres cultivos medidos y abre el formulario de gasto.
     Future<TransactionProvider> abrirFormulario(WidgetTester tester) async {
@@ -780,6 +917,14 @@ void main() {
             matching: find.byType(TextFormField)),
         '100000',
       );
+      await tester.pumpAndSettle();
+
+      // La categoría es obligatoria: el reparto no la elige por vos.
+      await tester.tap(find.byWidgetPredicate((w) =>
+          w is DropdownButton<String> &&
+          (w.items ?? const []).any((i) => i.value == 'fertilizante')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining(_es.catFertilizante).last);
       await tester.pumpAndSettle();
       return p;
     }

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/models/categories.dart';
 
 /// P5 — los gastos del estado de resultados se agrupan en bloques
-/// (producción / venta / fijos / otros) para responder "¿cuánto me costó
+/// (producción / venta / fijos / inversión / otros) para responder "¿cuánto me costó
 /// producir?" sin sumar a mano las 16 categorías.
 void main() {
   group('expenseGroupOf (P5)', () {
@@ -47,7 +47,6 @@ void main() {
         'arriendo',
         'energia',
         'agua',
-        'equipo',
         'mantenimiento',
         'impuestos',
         'credito_intereses',
@@ -56,6 +55,10 @@ void main() {
       for (final k in keys) {
         expect(expenseGroupOf(k), ExpenseGroup.fijos, reason: k);
       }
+    });
+
+    test('inversión = compras de equipo, con bloque propio (C10)', () {
+      expect(expenseGroupOf('equipo'), ExpenseGroup.inversion);
     });
 
     test('"otro" y cualquier clave legada van a Otros: nada desaparece', () {

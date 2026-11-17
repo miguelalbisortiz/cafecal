@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/crop.dart';
+import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/transaction.dart';
 import 'package:mi_cafetal/services/crop_totals.dart';
 
@@ -196,6 +198,102 @@ void main() {
       expect(rows.last.cropId, isNull,
           reason: 'los costos comunes son de la finca, no de un lote');
       expect(rows.first.cropId, 'cafe');
+    });
+  });
+
+  // C10 · el reparto que va debajo del total de gastos. Pantalla, PDF y Excel
+  // lo piden a este helper: si cambia el criterio, cambia en los tres.
+  group('cropSplitLines', () {
+    Harvest cosecha(DateTime date) => Harvest(
+          id: 'h${date.millisecondsSinceEpoch}',
+          cropId: 'cafe',
+          date: date,
+          amount: 100,
+        );
+
+    List<({String label, double amount})> lines(
+      List<Transaction> txs, {
+      List<Harvest> harvests = const [],
+    }) =>
+        cropSplitLines(
+          cropRow(txs, 'cafe'),
+          crops: const [cafe, platano],
+          harvests: harvests,
+          initialInvestmentLabel: 'Inversión inicial',
+          equipmentInvestmentLabel: 'Inversión en equipo',
+          operationLabel: 'Operación del período',
+        );
+
+    test('tres líneas en orden, y suman el gasto de la fila', () {
+      final txs = [
+        tx(
+            type: TransactionType.expense,
+            amount: 600,
+            category: kExpenseCategorySowing,
+            cropId: 'cafe'),
+        tx(
+            type: TransactionType.expense,
+            amount: 2500,
+            category: 'equipo',
+            cropId: 'cafe'),
+        tx(
+            type: TransactionType.expense,
+            amount: 400,
+            category: 'fertilizante',
+            cropId: 'cafe'),
+      ];
+
+      final out = lines(txs);
+
+      expect(out.map((e) => e.label).toList(),
+          ['Inversión inicial', 'Inversión en equipo', 'Operación del período']);
+      expect(out.map((e) => e.amount).toList(), [600, 2500, 400]);
+      expect(out.fold<double>(0, (a, e) => a + e.amount), 3500);
+      expect(cropRow(txs, 'cafe').expensesTotal, 3500,
+          reason: 'el reparto suma el total de gastos de la fila');
+    });
+
+    test('solo salen las líneas con monto', () {
+      final out = lines([
+        tx(
+            type: TransactionType.expense,
+            amount: 400,
+            category: 'fertilizante',
+            cropId: 'cafe'),
+      ]);
+      expect(out.single.label, 'Operación del período');
+    });
+
+    test('una fila con moneda mixta no reparte', () {
+      final out = lines([
+        tx(
+            type: TransactionType.expense,
+            amount: 400,
+            category: 'fertilizante',
+            cropId: 'cafe'),
+        tx(
+            type: TransactionType.expense,
+            amount: 20,
+            currency: 'USD',
+            category: 'insumos',
+            cropId: 'cafe'),
+      ]);
+      expect(out, isEmpty,
+          reason: 'sumar pesos con dólares daría un reparto falso');
+    });
+
+    test('el corte sale de la primera cosecha del cultivo', () {
+      final cercas = [
+        tx(
+            type: TransactionType.expense,
+            amount: 400,
+            category: kExpenseCategoryFences,
+            cropId: 'cafe'),
+      ];
+      expect(lines(cercas, harvests: [cosecha(DateTime(2026, 10, 1))]).single.label,
+          'Inversión inicial');
+      expect(lines(cercas, harvests: [cosecha(DateTime(2026, 9, 1))]).single.label,
+          'Operación del período');
     });
   });
 }

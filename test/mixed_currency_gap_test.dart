@@ -167,7 +167,7 @@ void main() {
       expect(t0(rows[h + 1][1]), isNotEmpty, reason: 'con una moneda sí hay %');
       expect(cv(rows[h + 1][2]), 5000.0);
 
-      final e = rows.indexWhere((r) => t0(r[0]) == _es.pdfExpensesHeader);
+      final e = rows.indexWhere((r) => t0(r[0]) == _es.pdfTotalExpensesHeader);
       expect(cv(rows[e][2]), -1000.0);
       expect(t0(rows[e + 1][1]), isNotEmpty, reason: '% de gastos');
 
@@ -212,7 +212,7 @@ void main() {
       expect(t0(firstIncome[2]), contains('COP'));
       expect(t0(firstIncome[2]), contains('EUR'));
 
-      final e = rows.indexWhere((r) => t0(r[0]) == _es.pdfExpensesHeader);
+      final e = rows.indexWhere((r) => t0(r[0]) == _es.pdfTotalExpensesHeader);
       expect(t0(rows[e][2]), contains('COP'));
       expect(t0(rows[e][2]), contains('EUR'));
       expect(t0(rows[e + 1][1]), isEmpty, reason: 'sin % de gastos');

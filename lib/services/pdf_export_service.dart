@@ -23,9 +23,11 @@ import 'currency_totals.dart';
 import 'derived_harvests.dart';
 import 'metric_signal.dart';
 import 'period_comparison.dart';
+import 'product_contribution.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
 import 'report_payroll_metrics.dart';
+import 'report_range.dart';
 import 'week_utils.dart';
 
 export '../models/report_period.dart';
@@ -153,7 +155,12 @@ class PdfExportService {
     // pintadores digan lo mismo. Solo con moneda unica: con mezcla el precio
     // por kilo cruzaria monedas y saldria una cifra inventada.
     final perKg = ReportHarvestMetrics(sacoKg: settings.sacoKg);
-    final costByKg = perKg.periodCostPerKg(expenses, periodHarvests);
+    // Costo por kilo de operación: sin el bloque de inversión en equipo.
+    final costByKg = perKg.periodCostPerKg(
+      operationExpenseTotal(
+          periodTx.where((t) => t.type == TransactionType.expense)),
+      periodHarvests,
+    );
     final priceByKg = perKg.avgSalePricePerKg(periodTx);
     final marginPerKg = (costByKg != null && priceByKg != null)
         ? priceByKg - costByKg
@@ -295,7 +302,7 @@ class PdfExportService {
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _summaryCard(
-                  label: l10n.pdfExpensesHeader,
+                  label: l10n.pdfTotalExpensesHeader,
                   amount: mixedHeader
                       ? byCurrencyText(
                           {
@@ -353,7 +360,7 @@ class PdfExportService {
           pw.SizedBox(height: 6),
 
           // ── Detalle de gastos ──
-          _sectionHeader(l10n.pdfExpensesHeader, _pdfNegative),
+          _sectionHeader(l10n.pdfTotalExpensesHeader, _pdfNegative),
           if (expenseGroups.isEmpty)
             _statementRow(l10n.pdfNoExpensesSub, '',
                 small: true, valueColor: PdfColors.grey700),
@@ -416,6 +423,8 @@ class PdfExportService {
                 '',
                 small: true,
                 valueColor: PdfColors.grey700),
+            _statementRow(l10n.ratioOperationOnlyNote, '',
+                small: true, valueColor: PdfColors.grey700),
           ],
           if (!mixedHeader && marginPerKg != null)
             _statementRow(
@@ -442,7 +451,9 @@ class PdfExportService {
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
           ),
           pw.SizedBox(height: 6),
-          _cropTable(context, periodTx, crops, terrenos, currency, l10n),
+          _cropTable(context, periodTx, crops, terrenos, currency, l10n, harvests),
+          _contributionSection(
+              active, crops, period, year, month, l10n, harvests),
           if (showYearAnnex) ...[
             pw.SizedBox(height: 20),
             pw.Text(
@@ -451,7 +462,7 @@ class PdfExportService {
             ),
             pw.SizedBox(height: 6),
             _cropTable(context, active.where((t) => t.date.year == year), crops,
-                terrenos, currency, l10n),
+                terrenos, currency, l10n, harvests),
           ],
           // Cultivos asociados: la MISMA nota que en pantalla y en Excel, y
           // en el mismo sitio relativo al desglose por cultivo. Los tres
@@ -631,7 +642,7 @@ class PdfExportService {
         ),
         line(l10n.incomeLabel, comparison.previousIncomes, comparison.incomes,
             comparison.incomeChange),
-        line(l10n.operatingExpensesLabel, comparison.previousExpenses,
+        line(l10n.totalExpensesLabel, comparison.previousExpenses,
             comparison.expenses, comparison.expenseChange),
         line(l10n.resultPeriodLabel, comparison.previousBalance,
             comparison.balance, comparison.balanceChange),
@@ -730,10 +741,160 @@ class PdfExportService {
     );
   }
 
+  /// Aporte por producto y cobertura del café: la misma sección, con las
+  /// mismas reglas y textos que la tarjeta de Reportes.
+  ///
+  /// Es caja, no costo de producción: los gastos de lote y los comunes no se
+  /// reparten, se listan aparte. La cobertura suma hasta el cierre del período
+  /// o hasta hoy, lo que llegue antes, para no contar fechas futuras.
+  pw.Widget _contributionSection(
+    List<Transaction> active,
+    List<Crop> crops,
+    ReportPeriod period,
+    int year,
+    int? month,
+    AppLocalizations l10n,
+    List<Harvest> harvests,
+  ) {
+    final now = DateTime.now();
+    final report = buildProductContribution(
+      transactions: active,
+      crops: crops,
+      period: reportPeriodRange(period: period, year: year, month: month),
+      coverageThrough: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
+      // La primera cosecha decide qué cercas son inversión (C9): sin esto el
+      // PDF daría otro % que la pantalla.
+      harvests: harvests,
+    );
+    if (!report.hasData && report.coverage == null) {
+      return pw.SizedBox.shrink();
+    }
+
+    String amounts(Map<String, double> byCurrency, {bool signed = false}) =>
+        byCurrencyText(
+          byCurrency,
+          (v, c) => signed && v > 0
+              ? '+${formatPdfMoney(v, c)}'
+              : formatPdfMoney(v, c),
+        );
+
+    final cov = report.coverage;
+    final coverageText = cov == null
+        ? l10n.contributionCoverageNoData
+        : cov.contributed < 0
+            ? l10n.contributionCoverageNegative(
+                formatPdfMoney(cov.contributed, cov.currency),
+                formatPdfMoney(cov.investment, cov.currency),
+                cov.coffeeName,
+              )
+            : l10n.contributionCoverageLine(
+                '${cov.percent}',
+                cov.coffeeName,
+                formatPdfMoney(cov.contributed, cov.currency),
+                formatPdfMoney(cov.investment, cov.currency),
+              );
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.SizedBox(height: 20),
+        pw.Text(
+          l10n.contributionTitle,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(height: 2),
+        pw.Text(
+          l10n.contributionSubtitle,
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+        ),
+        for (final row in report.rows) ...[
+          pw.SizedBox(height: 8),
+          pw.Text(
+            row.name,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          ),
+          _statementRow(l10n.incomeLabel, amounts(row.incomeTotal),
+              small: true),
+          _statementRow(
+              l10n.contributionDirectCosts, amounts(row.expenseTotal),
+              small: true),
+          _statementRow(
+            l10n.contributionNet,
+            amounts(row.netTotal),
+            small: true,
+            bold: true,
+            valueColor: row.netTotal.isNotEmpty &&
+                    row.netTotal.values.every((v) => v < 0)
+                ? _pdfNegative
+                : _pdfPositive,
+          ),
+        ],
+        if (report.lotExpenseTotal.isNotEmpty)
+          _statementRow(
+              l10n.contributionUnassigned, amounts(report.lotExpenseTotal),
+              small: true),
+        if (report.commonExpenseTotal.isNotEmpty)
+          _statementRow(
+              l10n.contributionCommon, amounts(report.commonExpenseTotal),
+              small: true),
+        pw.SizedBox(height: 10),
+        pw.Text(
+          l10n.contributionCoverageTitle,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+        ),
+        pw.SizedBox(height: 2),
+        pw.Text(
+          coverageText,
+          style: pw.TextStyle(
+            fontSize: 9,
+            color: cov != null && cov.contributed < 0
+                ? _pdfNegative
+                : PdfColors.grey800,
+          ),
+        ),
+        if (report.monthsWithData.length > 1) ...[
+          pw.SizedBox(height: 10),
+          pw.Text(
+            l10n.contributionByMonth(year),
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          ),
+          for (final m in report.monthsWithData)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 3),
+              child: pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.SizedBox(
+                    width: 32,
+                    child: pw.Text(
+                      l10n.monthShort[m - 1],
+                      style: pw.TextStyle(
+                          fontSize: 8, fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+                  pw.Expanded(
+                    child: pw.Text(
+                      report.rows
+                          .where((r) => r.netOf(m).isNotEmpty)
+                          .map((r) =>
+                              '${r.name} ${amounts(r.netOf(m), signed: true)}')
+                          .join(' · '),
+                      style: const pw.TextStyle(fontSize: 8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
   pw.Widget _cropTable(pw.Context context, Iterable<Transaction> source,
       List<Crop> crops, List<Terreno> terrenos, String currency,
-      AppLocalizations l10n) {
-    final data = _cropRows(context, source, crops, terrenos, currency, l10n);
+      AppLocalizations l10n, Iterable<Harvest> harvests) {
+    final data =
+        _cropRows(context, source, crops, terrenos, currency, l10n, harvests);
     if (data.isEmpty) return pw.SizedBox.shrink();
 
     final headerStyle = pw.TextStyle(
@@ -793,9 +954,14 @@ class PdfExportService {
             decoration:
                 rowBg != null ? pw.BoxDecoration(color: rowBg) : null,
             children: List.generate(cells.length, (i) {
+              // Las líneas de reparto van sangradas: se leen como parte del
+              // cultivo de arriba, no como un cultivo más. Con espacios en el
+              // texto no alcanza: el PDF los colapsa.
+              final padding = i == 0 && line.isDetail
+                  ? const pw.EdgeInsets.only(left: 18, right: 6, top: 4, bottom: 4)
+                  : const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4);
               return pw.Padding(
-                padding:
-                    const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                padding: padding,
                 child: pw.Text(cells[i],
                     style: line.isBand ? bandStyle : cellStyle),
               );
@@ -816,7 +982,7 @@ class PdfExportService {
   /// «Sin terreno» y «Costos comunes» cierran la tabla, en ese orden.
   List<_PdfCropLine> _cropRows(pw.Context context, Iterable<Transaction> source,
       List<Crop> crops, List<Terreno> terrenos, String currency,
-      AppLocalizations l10n) {
+      AppLocalizations l10n, Iterable<Harvest> harvests) {
     final rows = cropBreakdownRows(
       records: source,
       crops: crops,
@@ -831,16 +997,44 @@ class PdfExportService {
       sinTerrenoName: l10n.cropTerrenoNone,
     );
 
-    _PdfCropLine fila(CropBreakdownRow r) {
+    // C10 · debajo del total, el mismo reparto que la pantalla: inversión
+    // inicial, inversión en equipo y operación del período.
+    List<_PdfCropLine> reparto(CropBreakdownRow r) {
+      return [
+        for (final line in cropSplitLines(
+          r,
+          crops: crops,
+          harvests: harvests,
+          initialInvestmentLabel: l10n.cropBreakdownInvestment,
+          equipmentInvestmentLabel: l10n.expenseGroupInversion,
+          operationLabel: l10n.cropBreakdownOperation,
+        ))
+          _PdfCropLine(
+            [
+              '· ${line.label}',
+              '—',
+              formatPdfMoney(line.amount, currency),
+              '—',
+              '—',
+              '—',
+            ],
+            isDetail: true,
+          ),
+      ];
+    }
+
+    List<_PdfCropLine> fila(CropBreakdownRow r) {
       if (r.isMixed) {
-        return _PdfCropLine([
-          '${r.name}\n${l10n.cropMixedCurrencyNote(r.currencies.length)}',
-          r.count.toString(),
-          byCurrencyText(r.expenses, (v, c) => formatPdfMoney(v, c)),
-          byCurrencyText(r.incomes, (v, c) => formatPdfMoney(v, c)),
-          '—',
-          '—',
-        ]);
+        return [
+          _PdfCropLine([
+            '${r.name}\n${l10n.cropMixedCurrencyNote(r.currencies.length)}',
+            r.count.toString(),
+            byCurrencyText(r.expenses, (v, c) => formatPdfMoney(v, c)),
+            byCurrencyText(r.incomes, (v, c) => formatPdfMoney(v, c)),
+            '—',
+            '—',
+          ]),
+        ];
       }
       final exp = r.expensesTotal;
       final inc = r.incomesTotal;
@@ -849,18 +1043,21 @@ class PdfExportService {
       final margin = (exp <= 0 || inc <= 0)
           ? '—'
           : '${(((inc - exp) / inc) * 100).toStringAsFixed(0)}%';
-      return _PdfCropLine([
-        r.name,
-        r.count.toString(),
-        formatPdfMoney(exp, currency),
-        formatPdfMoney(inc, currency),
-        formatPdfMoney(inc - exp, currency),
-        margin,
-      ]);
+      return [
+        _PdfCropLine([
+          r.name,
+          r.count.toString(),
+          formatPdfMoney(exp, currency),
+          formatPdfMoney(inc, currency),
+          formatPdfMoney(inc - exp, currency),
+          margin,
+        ]),
+        ...reparto(r),
+      ];
     }
 
     if (!layout.hasBands) {
-      return rows.where((r) => r.hasAnyAmount).map(fila).toList();
+      return rows.where((r) => r.hasAnyAmount).expand(fila).toList();
     }
 
     return [
@@ -881,9 +1078,9 @@ class PdfExportService {
           ],
           isBand: true,
         ),
-        for (final r in band.rows) fila(r),
+        for (final r in band.rows) ...fila(r),
       ],
-      if (layout.commonCosts != null) fila(layout.commonCosts!),
+      if (layout.commonCosts != null) ...fila(layout.commonCosts!),
     ];
   }
 
@@ -1018,6 +1215,9 @@ class PdfExportService {
             cropMixed ? '—' : formatPdfMoney(totalKg!, currency),
             small: true,
           ));
+          // C10 · el costo por kilo por cultivo también es de operación.
+          out.add(_statementRow(l10n.ratioOperationOnlyNote, '',
+              small: true, valueColor: PdfColors.grey700));
         }
         final yieldArea = metrics.yieldPerArea(cropHarvests, crop.areaHa);
         if (yieldArea != null) {
@@ -1697,10 +1897,13 @@ class PdfExportService {
       : v.toStringAsFixed(v % 1 == 0 ? 0 : 2);
 }
 
-/// Una fila de la tabla «Por cultivo»: sus celdas y si es cabecera de banda.
+/// Una fila de la tabla «Por cultivo»: sus celdas, si es cabecera de banda y
+/// si es una línea de reparto (inversión inicial, equipo u operación), que va
+/// sangrada bajo el cultivo.
 class _PdfCropLine {
   final List<String> cells;
   final bool isBand;
+  final bool isDetail;
 
-  const _PdfCropLine(this.cells, {this.isBand = false});
+  const _PdfCropLine(this.cells, {this.isBand = false, this.isDetail = false});
 }
