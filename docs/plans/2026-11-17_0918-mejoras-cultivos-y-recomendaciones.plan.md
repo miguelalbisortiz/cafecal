@@ -1,0 +1,179 @@
+---
+prd: pendiente (solo Tanda 3)
+status: IN_PROGRESS
+tanda1: DONE 2026-11-17_0943
+created: 2026-11-17_0918
+source:
+  - docs/analysis/2026-11-17_tipos-de-cultivo.md
+  - docs/analysis/2026-11-17_calculos-recomendaciones.md
+---
+
+# Plan: mejoras en cultivos y recomendaciones financieras
+
+## Objetivo
+
+Convertir los cálculos que la app ya hace en **acciones claras** para el pequeño
+cafetero, y corregir los datos que hoy se pierden o se rotulan mal, sin inventar
+cifras ni modelar entidades que la práctica no pida.
+
+## Recomendación
+
+Tres tandas en este orden. La primera es barata y recupera confianza; la segunda
+completa los datos; la tercera es la que ayuda a **crecer** y exige PRD.
+
+| Tanda | Qué | Por qué primero | Riesgo |
+|---|---|---|---|
+| 1 | Acción en «Qué hacer», terreno al crear, copy que miente | Corrige decisiones y confianza con cambios mínimos y sin esquema | Bajo |
+| 2 | Altas cortas completas y paridad pantalla/PDF/Excel | Sin área y terreno, kg/ha y costo/kg no existen o se tuercen | Medio |
+| 3 | Recomendaciones de negocio (stock, margen, comprador, caja) | Es el valor que hoy no se entrega; requiere PRD y decisiones | Medio |
+
+**No hacer todavía:** catálogo de variedades, sombra/sol, densidad, recepa o
+asocio como entidades. La regla del pack es validar contra la práctica antes de
+modelar; hoy no hay evidencia de que haga falta.
+
+## Impacto esperado
+
+No se prometen porcentajes de mejora: no hay datos de una finca real en esta
+sesión. El impacto se mide por **mecanismo** y por criterios observables.
+
+| Cambio | Mecanismo | Cómo se comprueba |
+|---|---|---|
+| `suggestion` restaurada | El agricultor ve qué hacer, no solo qué está mal | Cada fila de «Qué hacer» lleva acción en pantalla, PDF y Excel |
+| `terrenoId` al crear | El gasto del lote cae donde debe; costo/kg por cultivo deja de torcerse | Test: cultivo creado con terreno conserva `terrenoId` |
+| Copy corregido | La app nombra lo que el agricultor ve en el campo | «variedad» → «cultivo»; «transitorio» → «Anual»; subtítulo del aporte dice la verdad |
+| Altas cortas completas | Más cultivos con área y unidad → kg/ha y costo/kg calculables | Conteo de cultivos sin área/terreno antes y después |
+| Paridad de exportes | La decisión viaja fuera del teléfono con la misma información | `export_parity_test` + conclusión y compradores presentes |
+| Recomendaciones nuevas | Stock, margen por cultivo, comprador y caja se vuelven decisión | Adopción: reportes con al menos una recomendación accionable |
+
+Límite honesto: la app mejora la **calidad de la decisión** y evita errores
+silenciosos; no garantiza más ingreso por sí sola.
+
+## Tanda 1 · Confianza y acción (sin PRD)
+
+> Ejecutada y verificada el 2026-11-17 09:43. Evidencia:
+> `docs/reports/2026-11-17_0943_tanda1-cultivos-y-recomendaciones.md` y
+> `docs/audits/2026-11-17_0943_tanda1-cultivos-y-recomendaciones.md`.
+
+### 1.1 Devolver la acción a «Qué hacer» — P0
+- Qué: `RecommendationService.derive` copia `title` y `message`, descarta
+  `suggestion` (`lib/services/recommendations.dart:47-52`).
+- Cómo: propagar `suggestion`; los tres pintadores ya reciben la recomendación
+  (`report_screen.dart:1971-1996`, `pdf_export_service.dart:1779-1789`,
+  `excel_export_service.dart:1969-1982`).
+- Test en rojo: una recomendación derivada conserva la sugerencia; el texto
+  aparece en pantalla, PDF y Excel.
+- Aceptación: diagnóstico + acción en la misma fila, sin desbordes con el texto
+  más largo del ARB.
+
+### 1.2 Terreno al crear desde Cultivos — P0
+- Qué: el editor entrega `form.terrenoId` (`crop_editor_dialog.dart:287`) y
+  `crops_screen.dart:287-302` no lo pasa a `addCrop`.
+- Cómo: pasar `terrenoId` en esa llamada. Sin esquema, sin backfill.
+- Test: crear con terreno elegido → `crop.terrenoId` igual al elegido.
+- Aceptación: cultivo nuevo conserva el lote; los viejos se corrigen editando.
+
+### 1.3 Copy que contradice el código — P1
+- `Nueva variedad` / `+ Nueva variedad…` → «cultivo» (`app_es.arb:508-509,617`).
+- `transitorio` → «Anual» (`app_es.arb:70`).
+- `contributionSubtitle` dice que el lote no se reparte, pero sí se reparte por
+  área (`app_es.arb:1606`; `crop_totals.dart:104-113`).
+- Test: coherencia de Ayuda y orden de placeholders; ES y EN.
+- Aceptación: ningún texto promete lo que el código no hace.
+
+**Gate Tanda 1:** `flutter analyze` del proyecto entero + `flutter test`
+(línea base 1365) + tests de l10n. Sin commit ni push sin verbo explícito.
+
+## Tanda 2 · Datos completos y paridad (sin PRD, sí decisiones de UI)
+
+### 2.1 Altas cortas con contexto — P1
+- Qué: Registro y Siembras crean solo nombre + moneda; el banner para completar
+  se descarta para siempre (`register_screen.dart:401-433`,
+  `sowing_screen.dart:325-359`, `crop_setup_prompt.dart:22-33`).
+- Cómo: ofrecer terreno, área y unidad como opcionales en el alta corta; que
+  «Ahora no» posponga, no bloquee futuros cultivos; el prompt debe recibir
+  terrenos (`crop_setup_prompt.dart:78-87`).
+- Riesgo: más fricción en el registro rápido. Mitigación: opcionales y un solo
+  paso, con «completar luego» visible por cultivo.
+- Aceptación: se puede crear rápido y completar después sin perder el aviso.
+
+### 2.2 Paridad de los tres pintadores — P1
+- «Conclusión del período» solo vive en pantalla (`report_screen.dart:285-307`).
+- PDF calla cuando «Qué hacer» está vacío (`pdf_export_service.dart:1779-1789`).
+- Excel no trae «Principales compradores».
+- Cómo: mismas secciones y mismo texto en pantalla, PDF y Excel; actualizar el
+  conteo de páginas congeladas con motivo escrito.
+- Aceptación: `export_parity_test` verde y una guarda por sección nueva.
+
+### 2.3 Rotular las dos atribuciones — P1
+- Reparto por hectáreas (desglose y costo/kg) vs aporte sin reparto (producto).
+  No es bug; el riesgo es comparar cifras de distinta regla.
+- Cómo: copy de tarjeta/ayuda que diga qué regla usa cada cifra.
+- Aceptación: dos tarjetas no pueden confundirse leyendo su etiqueta.
+
+### 2.4 Aviso de áreas que no cuadran — P2
+- Si la suma de áreas de un terreno supera el terreno, avisar sin bloquear
+  (puede ser asocio legítimo). Nunca corregir automáticamente.
+- Aceptación: aviso solo cuando ambas áreas existen; no aparece sin datos.
+
+**Gate Tanda 2:** analyze + test + prueba manual con datos de finca real
+(10 ha, 3 cultivos, 4 trabajadores), sin arreglar hallazgos en caliente.
+
+## Tanda 3 · Crecer con los datos que ya existen (PRD obligatorio)
+
+### 3.1 PRD primero
+Crear `docs/prds/{fecha}-recomendaciones-de-negocio.prd.md` y decidir una por
+una, con recomendación delante. Orden propuesto por fuerza del dato:
+
+1. **Stock sin vender** — `cosechaKg − ventaKg` en 12 meses; si > 0, avisar.
+2. **Margen por cultivo y por hectárea** — ya existe el desglose; convertirlo en
+   «dónde poner la mano de obra».
+3. **Concentración de comprador** — `%` de ventas del principal cliente.
+4. **Descuento del comprador** — `kg descontados / kg entregados`.
+5. **Brecha de rendimiento propio** — actual vs promedio de ≥2 años.
+6. **Días de caja restantes** — al ritmo de gasto actual.
+
+Reglas para todas: moneda única o se oculta; `null` → oculto; kilos sin peso se
+listan, no se suman; el texto dice qué hacer y con qué cifra.
+
+### 3.2 Implementación por recomendación
+- Clave ARB ES/EN, placeholders en el orden de la frase.
+- Misma regla en pantalla, PDF y Excel.
+- Test en rojo por recomendación y guarda de que no inventa datos.
+- Prioridad de entrega: 1 → 2 → 3; luego 4 → 5 → 6.
+
+### 3.3 Tipo de cultivo explícito (opcional, solo si hay error real)
+- Hoy el café se detecta por el nombre (`product_contribution.dart:307-315`).
+- Solo si aparecen cultivos mal clasificados: PRD + campo `tipo` + migración
+  aplicada **antes** del deploy + sync que envíe el campo siempre, incluido
+  `null` (evitar PGRST204).
+- No hacer backfill automático sin consentimiento.
+
+**Gate Tanda 3:** PRD aprobado, analyze + test, prueba con datos reales y
+reporte en `docs/reports/`. Solo entonces `/verify` y `/audit-report`.
+
+## Riesgos y mitigaciones
+
+| Riesgo | Mitigación |
+|---|---|
+| `suggestion` larga desborda PDF/Excel | Probar con el texto más largo del ARB |
+| Cambios de ARB rompen generado | Regenerar, normalizar CRLF a LF, comparar generados |
+| `Ahora no` sigue bloqueando | Cambiar a posposición por cultivo, no global |
+| Copiar terreno sin ajustar área tuercen el reparto | Pedir área nueva y avisar; nunca repartir sin áreas completas |
+| Recomendación nueva con dato faltante | `null` → oculto; lista de pendientes cuando toca |
+| Migración de tipo de cultivo antes del deploy | SQL primero, verificar columna/FK, después publicar |
+
+## Dependencias
+
+- Tanda 3: PRD aprobado por el usuario.
+- Tanda 3.3: migración de Supabase aplicada por el usuario antes del deploy.
+- Sin dependencias externas para Tandas 1 y 2.
+
+## Criterios de éxito del plan
+
+- [x] «Qué hacer» muestra diagnóstico **y** acción en los tres pintadores.
+- [x] Cultivo creado con terreno lo conserva.
+- [x] Ningún texto contradice el código (ES/EN).
+- [ ] Más cultivos con área/terreno y métricas calculables.
+- [ ] Pantalla, PDF y Excel dicen lo mismo.
+- [ ] Al menos una recomendación de negocio aprobada e implementada con test.
+- [ ] Sin commit ni push sin verbo explícito del usuario.

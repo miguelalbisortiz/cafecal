@@ -138,4 +138,12 @@ void main() {
         reason: 'y tiene que decir lo MISMO que con cosecha: el motor lee el '
             'histórico, no el período exportado');
   });
+
+  test('«Qué hacer» exporta la acción, no solo el diagnóstico', () {
+    final libro = exportar(const FarmSettings(lowPriceThresholdPerKg: 80000));
+    final textos = _textos(libro, 'Cosechas');
+
+    expect(textos.any((t) => t.contains(_es.alertLowPriceSuggestion)), isTrue,
+        reason: 'el motor ya redactó la acción; el Excel no puede callarla');
+  });
 }

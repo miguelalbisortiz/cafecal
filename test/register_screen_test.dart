@@ -110,7 +110,7 @@ void main() {
     expect(find.text(_es.cropGroupHint), findsNothing);
   });
 
-  testWidgets('con un cultivo elegido vuelve el aviso de crear variedades',
+  testWidgets('con un cultivo elegido vuelve el aviso de crear cultivos',
       (tester) async {
     final provider = await makeProvider();
     final crop = await provider.addCrop('Café');
@@ -127,7 +127,7 @@ void main() {
 
     expect(find.text(_es.cropGroupHint), findsOneWidget);
     expect(find.text(_es.commonCostsHint), findsNothing);
-    expect(_es.cropGroupHint, contains('+ Nueva variedad…'));
+    expect(_es.cropGroupHint, contains(_es.cropNewOption));
   });
 
   testWidgets('el bloque jornal pregunta qué labor', (tester) async {

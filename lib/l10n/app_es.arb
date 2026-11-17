@@ -67,7 +67,7 @@
   "helpSellingClosing": "Lo que vendiste antes de usar la app no hace falta: el reporte empieza con lo que anotes.",
   "helpSellingMulti": "Si tienes varios cultivos en el mismo terreno, asígnalos al registrar el gasto; la app reparte por área o por porcentaje.",
   "helpStartingIntro": "Mientras el cultivo no da fruto, la app no te dice que pierdes: te muestra cuánto llevas invertido. Es una inversión, no un mal mes.",
-  "helpStartingStep1": "Crea el cultivo: Cultivos › Nueva variedad. Nombre, fase «Sin dar» y si es perenne o transitorio. El área y las matas pueden quedar vacías.",
+  "helpStartingStep1": "Crea el cultivo: Cultivos › Nuevo cultivo. Nombre, fase «Sin dar» y si es perenne o anual. El área y las matas pueden quedar vacías.",
   "helpStartingStep2": "Anota la siembra: Siembras › Nueva siembra. Cuántas matas, en qué área y la fecha. Si anotas el costo, la app crea el gasto vinculado sola: no lo repitas en Registrar.",
   "helpStartingStep3": "Anota lo que inviertes: Registrar › Gasto, con el cultivo. Fertilizante, mano de obra, herramientas. Todo lo de antes de la primera cosecha se ve como inversión.",
   "helpStartingStep4": "Cuando coseches, cambia la fase: Cultivos › tu cultivo › fase «Dando». Desde ahí, la venta registra la cosecha.",
@@ -505,8 +505,8 @@
   "incomeTypeLabel": "Ingreso",
   "cropFieldLabel": "Cultivo o lote (opcional)",
   "cropUnspecified": "Sin especificar",
-  "cropNewOption": "+ Nueva variedad…",
-  "cropGroupHint": "Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.",
+  "cropNewOption": "+ Nuevo cultivo…",
+  "cropGroupHint": "Toca «+ Nuevo cultivo…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.",
   "commonCosts": "Costos comunes",
   "commonCostsHint": "Es un gasto de toda la finca (cerca, camino, luz). No afecta el costo/kg de ningún cultivo, pero sí el resultado total.",
   "expenseSplitTitle": "Repartir entre cultivos",
@@ -547,7 +547,7 @@
       }
     }
   },
-  "sowingCategoryHint": "Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».",
+  "sowingCategoryHint": "Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nuevo cultivo…».",
   "harvestCategoryHint": "Lo que cuesta la cosecha en sí: bolsas, insumos y mover el café. Si le pagaste a alguien por recoger, ese pago va en Mano de obra, no acá.",
   "laborCategoryHint": "Lo que pagas a las personas, aunque sea por cosechar, abonar o deshierbar. Aquí anotas quién trabajó y cuántos días.",
   "seedsCategoryHint": "Lo que se gasta durante la temporada: semillas, bolsas y demás insumos. Si son colinos o plantas para un cultivo, cámbiate a Siembra: ahí cuenta como inversión y sale en su costo/kg.",
@@ -614,7 +614,7 @@
   "delete": "Eliminar",
   "edit": "Editar",
   "add": "Agregar",
-  "newCropDialogTitle": "Nueva variedad",
+  "newCropDialogTitle": "Nuevo cultivo",
   "welcomeCompleteTitle": "Completar cultivo",
   "save": "Guardar",
   "cropNameLabel": "Nombre del cultivo",
@@ -1603,7 +1603,7 @@
     "description": "Título de la tarjeta de aporte por producto"
   },
   "contributionTitle": "Aporte por producto",
-  "contributionSubtitle": "Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote va aparte, sin repartirlo.",
+  "contributionSubtitle": "Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote se reparte por área cuando todas están medidas, y va aparte si falta un área.",
   "contributionDirectCosts": "Gastos directos",
   "contributionNet": "Aporte",
   "@contributionPeriod": {
@@ -1623,6 +1623,7 @@
   "contributionByMonth": "Mes a mes · {year}",
   "contributionUnassigned": "Gastos de lote sin asignar",
   "contributionCommon": "Gastos sin cultivo ni lote",
+  "contributionCommonIncome": "Ingresos sin cultivo ni lote",
   "contributionCoverageTitle": "Cobertura del café",
   "@contributionCoverageLine": {
     "description": "Porcentaje de la inversión acumulada del café cubierto por los otros productos",

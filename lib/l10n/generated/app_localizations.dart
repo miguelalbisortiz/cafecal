@@ -458,7 +458,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpStartingStep1.
   ///
   /// In es, this message translates to:
-  /// **'Crea el cultivo: Cultivos › Nueva variedad. Nombre, fase «Sin dar» y si es perenne o transitorio. El área y las matas pueden quedar vacías.'**
+  /// **'Crea el cultivo: Cultivos › Nuevo cultivo. Nombre, fase «Sin dar» y si es perenne o anual. El área y las matas pueden quedar vacías.'**
   String get helpStartingStep1;
 
   /// No description provided for @helpStartingStep2.
@@ -2486,13 +2486,13 @@ abstract class AppLocalizations {
   /// No description provided for @cropNewOption.
   ///
   /// In es, this message translates to:
-  /// **'+ Nueva variedad…'**
+  /// **'+ Nuevo cultivo…'**
   String get cropNewOption;
 
   /// No description provided for @cropGroupHint.
   ///
   /// In es, this message translates to:
-  /// **'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.'**
+  /// **'Toca «+ Nuevo cultivo…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.'**
   String get cropGroupHint;
 
   /// No description provided for @commonCosts.
@@ -2612,7 +2612,7 @@ abstract class AppLocalizations {
   /// No description provided for @sowingCategoryHint.
   ///
   /// In es, this message translates to:
-  /// **'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».'**
+  /// **'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nuevo cultivo…».'**
   String get sowingCategoryHint;
 
   /// No description provided for @harvestCategoryHint.
@@ -3014,7 +3014,7 @@ abstract class AppLocalizations {
   /// No description provided for @newCropDialogTitle.
   ///
   /// In es, this message translates to:
-  /// **'Nueva variedad'**
+  /// **'Nuevo cultivo'**
   String get newCropDialogTitle;
 
   /// No description provided for @welcomeCompleteTitle.
@@ -5666,7 +5666,7 @@ abstract class AppLocalizations {
   /// No description provided for @contributionSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote va aparte, sin repartirlo.'**
+  /// **'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote se reparte por área cuando todas están medidas, y va aparte si falta un área.'**
   String get contributionSubtitle;
 
   /// No description provided for @contributionDirectCosts.
@@ -5710,6 +5710,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Gastos sin cultivo ni lote'**
   String get contributionCommon;
+
+  /// No description provided for @contributionCommonIncome.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresos sin cultivo ni lote'**
+  String get contributionCommonIncome;
 
   /// No description provided for @contributionCoverageTitle.
   ///

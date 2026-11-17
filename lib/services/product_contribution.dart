@@ -101,8 +101,16 @@ class ProductContributionReport {
   /// total siga cuadrando sin inventar proporciones.
   final Map<int, Map<String, double>> lotExpensesByMonth;
 
-  /// Gastos e ingresos sin cultivo ni lote («Costos comunes»).
+  /// Gastos sin cultivo ni lote («Costos comunes»).
+  ///
+  /// Solo gastos: antes esta línea también sumaba los ingresos sin
+  /// cultivo, así que una subvención de la finca aparecía rotulada
+  /// como gasto.
   final Map<int, Map<String, double>> commonExpensesByMonth;
+
+  /// Ingresos sin cultivo ni lote. Van en su propia línea por la
+  /// misma razón.
+  final Map<int, Map<String, double>> commonIncomesByMonth;
 
   /// `null` cuando no se puede calcular sin mentir.
   final CoffeeCoverage? coverage;
@@ -111,6 +119,7 @@ class ProductContributionReport {
     required this.rows,
     required this.lotExpensesByMonth,
     required this.commonExpensesByMonth,
+    required this.commonIncomesByMonth,
     required this.coverage,
   });
 
@@ -121,6 +130,7 @@ class ProductContributionReport {
         ...rows.expand((r) => r.monthsWithData),
         ...lotExpensesByMonth.keys,
         ...commonExpensesByMonth.keys,
+        ...commonIncomesByMonth.keys,
       }.toList()
         ..sort();
 
@@ -128,6 +138,9 @@ class ProductContributionReport {
 
   Map<String, double> get commonExpenseTotal =>
       _sumMonths(commonExpensesByMonth);
+
+  Map<String, double> get commonIncomeTotal =>
+      _sumMonths(commonIncomesByMonth);
 }
 
 /// Construye el aporte por producto de [period] con **solo** lo que hay:
@@ -137,7 +150,8 @@ class ProductContributionReport {
 ///    borra la plata, pero tampoco le inventa un nombre.
 /// 2. Gasto con lote y sin cultivo → [ProductContributionReport.lotExpensesByMonth],
 ///    sin repartir.
-/// 3. Sin cultivo ni lote → «comunes», informado aparte.
+/// 3. Sin cultivo ni lote → «comunes», informados aparte y separados
+///    por tipo: una línea de gastos y otra de ingresos, nunca sumados.
 /// 4. Borrados y fechas fuera del período, fuera.
 ///
 /// [coverageThrough] corta solo la cobertura (por ejemplo, «hoy» cuando el
@@ -157,7 +171,8 @@ ProductContributionReport buildProductContribution({
 }) {
   final filas = <String, _Acumulador>{};
   final lot = <int, Map<String, double>>{};
-  final common = <int, Map<String, double>>{};
+  final commonExpenses = <int, Map<String, double>>{};
+  final commonIncomes = <int, Map<String, double>>{};
 
   for (final t in transactions) {
     if (t.deleted ||
@@ -177,8 +192,11 @@ ProductContributionReport buildProductContribution({
       continue;
     }
 
-    // Sin cultivo: o es de un lote (gasto) o es común.
-    final target = t.terrenoId != null && t.type.isExpense ? lot : common;
+    // Sin cultivo: el gasto de lote va aparte y el resto se separa por
+    // tipo.
+    final target = t.type.isExpense
+        ? (t.terrenoId != null ? lot : commonExpenses)
+        : commonIncomes;
     _add(target, month, t.currency, t.amount);
   }
 
@@ -201,7 +219,8 @@ ProductContributionReport buildProductContribution({
   return ProductContributionReport(
     rows: rows,
     lotExpensesByMonth: lot,
-    commonExpensesByMonth: common,
+    commonExpensesByMonth: commonExpenses,
+    commonIncomesByMonth: commonIncomes,
     // La cobertura se corta al cierre del período: mirar enero no puede
     // incluir aportes de diciembre. La inversión sigue siendo acumulada.
     coverage: coffeeCoverage(

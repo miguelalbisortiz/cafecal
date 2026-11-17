@@ -1481,7 +1481,8 @@ class _ReportScreenState extends State<ReportScreen> {
     }
 
     final hasUnassigned = report.lotExpenseTotal.isNotEmpty ||
-        report.commonExpenseTotal.isNotEmpty;
+        report.commonExpenseTotal.isNotEmpty ||
+        report.commonIncomeTotal.isNotEmpty;
 
     return Card(
       child: Padding(
@@ -1531,6 +1532,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 unassigned(l10n.contributionUnassigned, report.lotExpenseTotal),
               if (report.commonExpenseTotal.isNotEmpty)
                 unassigned(l10n.contributionCommon, report.commonExpenseTotal),
+              if (report.commonIncomeTotal.isNotEmpty)
+                unassigned(
+                    l10n.contributionCommonIncome, report.commonIncomeTotal),
             ],
             if (report.coverage != null || report.hasData) ...[
               const Divider(height: 24),
@@ -2027,6 +2031,17 @@ class _ReportScreenState extends State<ReportScreen> {
                                 style: const TextStyle(
                                     fontSize: 12, height: 1.3),
                               ),
+                              if (recommendations[i].suggestion.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  recommendations[i].suggestion,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    height: 1.3,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

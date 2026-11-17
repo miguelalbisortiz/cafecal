@@ -28,6 +28,13 @@ void main() {
     expect(recs[0].message, 'Mensaje a1');
   });
 
+  test('la acción de la alerta llega a la recomendación', () {
+    final recs = svc.derive([_alert('a1', AlertRule.deficitCrop, AlertSeverity.danger)]);
+
+    expect(recs.single.suggestion, 'Sugerencia a1',
+        reason: '«Qué hacer» sin la acción es un diagnóstico, no una recomendación');
+  });
+
   test('no duplica reglas y respeta el máximo', () {
     final alerts = [
       _alert('a1', AlertRule.deficitCrop, AlertSeverity.danger),

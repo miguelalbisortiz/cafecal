@@ -837,6 +837,10 @@ class PdfExportService {
           _statementRow(
               l10n.contributionCommon, amounts(report.commonExpenseTotal),
               small: true),
+        if (report.commonIncomeTotal.isNotEmpty)
+          _statementRow(l10n.contributionCommonIncome,
+              amounts(report.commonIncomeTotal),
+              small: true),
         pw.SizedBox(height: 10),
         pw.Text(
           l10n.contributionCoverageTitle,
@@ -1801,9 +1805,19 @@ class PdfExportService {
           ),
           pw.Padding(
             padding: const pw.EdgeInsets.only(left: 12, bottom: 4),
-            child: pw.Text(
-              recommendations[i].message,
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+            child: pw.RichText(
+              text: pw.TextSpan(children: [
+                pw.TextSpan(
+                  text: recommendations[i].message,
+                  style: const pw.TextStyle(
+                      fontSize: 9, color: PdfColors.grey600),
+                ),
+                if (recommendations[i].suggestion.isNotEmpty)
+                  pw.TextSpan(
+                    text: '\n${recommendations[i].suggestion}',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+              ]),
             ),
           ),
         ],

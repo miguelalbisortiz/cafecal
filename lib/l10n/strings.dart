@@ -90,11 +90,16 @@ extension L10nCategories on AppLocalizations {
 /// Clave de agrupación de un movimiento en los desgloses de ingresos.
 /// La venta ligada a un cultivo se agrupa aparte por cultivo
 /// (`venta|<cropId>`) para que el Resumen muestre filas distintas como
-/// "Venta plátano" y "Venta café" — el mismo criterio que ya tenían las
-/// claves legadas venta_cafe / venta_platano. Para gastos (o ventas sin
-/// cultivo) devuelve la clave tal cual.
+/// "Venta plátano" y "Venta café".
+///
+/// Todas las claves de venta entran por acá, incluidas las legadas
+/// venta_cafe / venta_platano: si hay cultivo, van a la misma fila que
+/// una venta nueva. Antes la venta vieja y la nueva del mismo cultivo
+/// salían como dos renglones con el mismo rótulo. Sin cultivo no hay a
+/// quién pegarles, así que conservan su clave (una venta vieja sigue
+/// diciendo "Venta café"). Para gastos devuelve la clave tal cual.
 String incomeGroupKey(String category, String? cropId) =>
-    (category == kIncomeCategorySale && cropId != null && cropId.isNotEmpty)
+    (isSaleCategory(category) && cropId != null && cropId.isNotEmpty)
         ? '$kIncomeCategorySale|$cropId'
         : category;
 

@@ -279,4 +279,32 @@ void main() {
     expect(find.textContaining('debería estar rindiendo'), findsNothing,
         reason: 'lo que cosechó manda sobre lo que estimó');
   });
+
+  testWidgets('crear desde Cultivos guarda el terreno elegido', (tester) async {
+    final provider = await makeProvider(seed: false);
+    final lote = await provider.addTerreno('Lote Alto');
+    await pump(tester, provider);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    final dialogL10n =
+        AppLocalizations.of(tester.element(find.byType(CropEditorDialog)))!;
+
+    await tester.enterText(find.byType(TextField).at(0), 'Café de altura');
+    final selector = find.byWidgetPredicate((w) =>
+        w is DropdownButtonFormField<String> &&
+        w.decoration?.labelText == dialogL10n.cropTerrenoLabel);
+    expect(selector, findsOneWidget);
+    await tester.tap(selector);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lote Alto').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(dialogL10n.add));
+    await tester.pumpAndSettle();
+
+    final nuevo = provider.crops.firstWhere((c) => c.name == 'Café de altura');
+    expect(nuevo.terrenoId, lote.id,
+        reason: 'elegir el lote en el formulario no puede descartarse al guardar');
+  });
 }

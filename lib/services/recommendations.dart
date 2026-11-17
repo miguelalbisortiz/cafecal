@@ -7,11 +7,17 @@ class Recommendation {
   final String title;
   final String message;
 
+  /// La acción concreta que el motor de alertas ya redactó. Sin ella,
+  /// «Qué hacer» es solo un diagnóstico: el agricultor sabe qué pasó, no
+  /// qué hacer con eso.
+  final String suggestion;
+
   const Recommendation({
     required this.rule,
     required this.severity,
     required this.title,
     required this.message,
+    required this.suggestion,
   });
 }
 
@@ -49,6 +55,7 @@ class RecommendationService {
         severity: a.severity,
         title: a.title,
         message: a.message,
+        suggestion: a.suggestion,
       ));
       if (maxRecommendations != null &&
           result.length >= maxRecommendations) {

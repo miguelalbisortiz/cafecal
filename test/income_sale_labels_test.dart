@@ -22,10 +22,22 @@ void main() {
     test('venta sin cultivo, claves legadas y gastos quedan tal cual', () {
       expect(incomeGroupKey(kIncomeCategorySale, null), 'venta');
       expect(incomeGroupKey(kIncomeCategorySale, ''), 'venta');
-      expect(incomeGroupKey('venta_cafe', 'cafe'), 'venta_cafe');
-      expect(incomeGroupKey('venta_otro', 'cafe'), 'venta_otro');
+      // Sin cultivo no hay fila a la que pegarse: la clave se conserva.
+      expect(incomeGroupKey('venta_cafe', null), 'venta_cafe');
       expect(incomeGroupKey('subvenciones', 'cafe'), 'subvenciones');
       expect(incomeGroupKey('fertilizante', 'cafe'), 'fertilizante');
+    });
+
+    test('una venta vieja y una nueva del mismo cultivo comparten fila', () {
+      final vieja = incomeGroupKey('venta_cafe', 'cafe');
+      final nueva = incomeGroupKey(kIncomeCategorySale, 'cafe');
+
+      expect(vieja, nueva,
+          reason: 'dos renglones «Venta café» eran el bug');
+      expect(_es.incomeGroupLabel(vieja, crops),
+          _es.incomeGroupLabel(nueva, crops));
+      // «Venta otros» con cultivo también es la venta de ese cultivo.
+      expect(incomeGroupKey('venta_otro', 'cafe'), nueva);
     });
   });
 

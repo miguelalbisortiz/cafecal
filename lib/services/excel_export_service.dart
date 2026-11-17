@@ -862,6 +862,12 @@ class ExcelExportService {
           amountOf(contribution.commonExpenseTotal),
         ]);
       }
+      if (contribution.commonIncomeTotal.isNotEmpty) {
+        row([
+          TextCellValue(l10n.contributionCommonIncome),
+          amountOf(contribution.commonIncomeTotal),
+        ]);
+      }
       _applyCurrencyFormat(sheet, currency, 1, amountsFrom, sheet.maxRows - 1);
 
       final cov = contribution.coverage;
@@ -1988,6 +1994,11 @@ class ExcelExportService {
       row([
         TextCellValue(recommendations[i].message),
       ]);
+      if (recommendations[i].suggestion.isNotEmpty) {
+        row([
+          TextCellValue(recommendations[i].suggestion),
+        ]);
+      }
     }
   }
 

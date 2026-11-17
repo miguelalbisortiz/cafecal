@@ -3195,7 +3195,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contributionTitle => 'Contribution by product';
 
   @override
-  String get contributionSubtitle => 'Income minus direct costs per crop; whole-plot costs go separately, not split.';
+  String get contributionSubtitle => 'Income minus direct costs per crop; whole-plot costs are split by area when every area is known, and listed separately when one is missing.';
 
   @override
   String get contributionDirectCosts => 'Direct costs';
@@ -3223,6 +3223,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contributionCommon => 'Expenses with no crop or plot';
+
+  @override
+  String get contributionCommonIncome => 'Income with no crop or plot';
 
   @override
   String get contributionCoverageTitle => 'Coffee coverage';

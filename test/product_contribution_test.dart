@@ -128,6 +128,28 @@ void main() {
       expect(report.commonExpenseTotal['COP'], 200);
     });
 
+    test('un ingreso sin cultivo no se suma a los gastos comunes', () {
+      final report = _build([
+        _tx(
+          id: 'g1',
+          type: TransactionType.expense,
+          amount: 200,
+          date: DateTime(2026, 3, 5),
+        ),
+        _tx(
+          id: 'i1',
+          type: TransactionType.income,
+          amount: 900,
+          date: DateTime(2026, 3, 6),
+        ),
+      ]);
+
+      expect(report.commonExpenseTotal['COP'], 200,
+          reason: 'la línea dice «gastos»: no puede contar una '
+              'subvención');
+      expect(report.commonIncomeTotal['COP'], 900);
+    });
+
     test('una fila con dos monedas no tiene neto único', () {
       final report = _build([
         _tx(

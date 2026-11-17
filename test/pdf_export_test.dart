@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show ZLibDecoder;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -124,8 +125,11 @@ void main() {
 
   test('Nómina y caja va en anexo con salto de página solo si hay contenido',
       () async {
-    // Gasto que no es mano de obra y sin caja ni presupuesto de obra: ninguna
-    // de las cuatro secciones del anexo tiene nada que pintar.
+    // Gasto que no es mano de obra, con venta y cosecha que cuadran: ni el
+    // anexo ni «Qué hacer» tienen nada que pintar, así que el PDF cabe en una
+    // página. Sin la venta, la alerta de «gastos sin ventas» suma su acción y
+    // el número de páginas deja de medir solo el anexo.
+    final hoy = DateTime.now();
     final sinAnexo = await _build(
       settings: const FarmSettings(),
       txns: [
@@ -136,6 +140,25 @@ void main() {
           amount: 100000,
           date: DateTime(2026, 6, 5),
           createdAt: DateTime(2026, 6, 5),
+        ),
+        Transaction(
+          id: '2',
+          type: TransactionType.income,
+          category: 'venta',
+          amount: 200000,
+          quantity: 100,
+          unit: 'kg',
+          date: hoy,
+          createdAt: hoy,
+        ),
+      ],
+      harvests: [
+        Harvest(
+          id: 'h1',
+          cropId: 'cafe',
+          date: hoy,
+          amount: 100,
+          unit: 'kg',
         ),
       ],
     );
@@ -255,6 +278,32 @@ void main() {
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     expect(bytes.length, greaterThan(1000));
   });
+
+  test('«Qué hacer» del PDF lleva la acción, no solo el diagnóstico', () async {
+    final bytes = await _build(
+      settings: const FarmSettings(lowPriceThresholdPerKg: 80000),
+      txns: [
+        Transaction(
+          id: 'venta_enero',
+          type: TransactionType.income,
+          category: 'venta',
+          amount: 50000,
+          quantity: 1,
+          unit: 'kg',
+          date: DateTime(2026, 1, 10),
+          createdAt: DateTime(2026, 1, 10),
+        ),
+      ],
+    );
+
+    // El espaciado del PDF va en los ajustes `TJ`, no en glifos: al decodificar
+    // queda «Comparaprecios…». Se compara sin espacios para no confundir la
+    // puntuación tipográfica con la acción que sí está en el archivo.
+    final texto = _pdfText(bytes).replaceAll(RegExp(r'\s'), '');
+    expect(texto.contains('Comparapreciosconotroscompradores'),
+        isTrue,
+        reason: 'el PDF es lo que el agricultor comparte: no puede callar la acción');
+  });
 }
 
 List<Crop> _crops() => const [
@@ -277,6 +326,73 @@ Future<Uint8List> _build({
       l10n: stringsFor('es'),
       harvests: harvests,
     );
+
+/// Texto de los streams FlateDecode del PDF, ya inflado. El `pdf` 3.11.3
+/// comprime por defecto (`defaultDeflate = zlib.encode`), así que buscar el
+/// texto sobre los bytes crudos daría un falso negativo.
+String _pdfStreams(Uint8List bytes) {
+  final comoTexto = latin1.decode(bytes, allowInvalid: true);
+  final salida = StringBuffer();
+  for (final m in RegExp(r'stream\r?\n').allMatches(comoTexto)) {
+    final inicio = m.end;
+    final fin = comoTexto.indexOf('endstream', inicio);
+    if (fin < 0) continue;
+    var trozo = bytes.sublist(inicio, fin);
+    while (trozo.isNotEmpty && (trozo.last == 10 || trozo.last == 13)) {
+      trozo = trozo.sublist(0, trozo.length - 1);
+    }
+    try {
+      salida.write(
+          latin1.decode(ZLibDecoder().convert(trozo), allowInvalid: true));
+    } catch (_) {
+      // Un stream que no es Flate (p. ej. datos binarios) no es texto.
+    }
+  }
+  return salida.toString();
+}
+
+/// Texto legible del PDF. Los streams no traen letras sino IDs de glifo
+/// (`[<0001...>]TJ`) y un CMap `beginbfchar` que los traduce a UTF-16BE.
+/// Buscar el texto sin pasar por ese mapa da falso negativo.
+String _pdfText(Uint8List bytes) {
+  final streams = _pdfStreams(bytes);
+  final mapas = RegExp(r'beginbfchar(.*?)endbfchar', dotAll: true)
+      .allMatches(streams)
+      .map((m) => m.group(1)!)
+      .toList();
+  final salida = StringBuffer();
+  for (final bloque in mapas) {
+    final cmap = <String, String>{};
+    for (final m in RegExp(r'<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>')
+        .allMatches(bloque)) {
+      final dst = m.group(2)!;
+      final unidades = <int>[];
+      for (var i = 0; i + 3 < dst.length; i += 4) {
+        unidades.add(int.parse(dst.substring(i, i + 4), radix: 16));
+      }
+      cmap[m.group(1)!.toUpperCase()] = String.fromCharCodes(unidades);
+    }
+    for (final m in RegExp(r'<([0-9A-Fa-f]+)>\s*Tj').allMatches(streams)) {
+      salida.write(_pdfGlifos(m.group(1)!, cmap));
+    }
+    for (final m in RegExp(r'\[(.*?)\]\s*TJ', dotAll: true)
+        .allMatches(streams)) {
+      for (final h
+          in RegExp(r'<([0-9A-Fa-f]+)>').allMatches(m.group(1)!)) {
+        salida.write(_pdfGlifos(h.group(1)!, cmap));
+      }
+    }
+  }
+  return salida.toString();
+}
+
+String _pdfGlifos(String hex, Map<String, String> cmap) {
+  final salida = StringBuffer();
+  for (var i = 0; i + 3 < hex.length; i += 4) {
+    salida.write(cmap[hex.substring(i, i + 4).toUpperCase()] ?? '');
+  }
+  return salida.toString();
+}
 
 /// Páginas físicas del PDF: los objetos `/Type /Page` van sin comprimir en el
 /// archivo, así que se pueden contar sobre los bytes. `/Type /Pages` (el nodo

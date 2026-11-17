@@ -292,6 +292,7 @@ class CropsScreen extends StatelessWidget {
         phase: form.phase,
         cycle: form.cycle,
         defaultUnit: form.defaultUnit,
+        terrenoId: form.terrenoId,
         areaHa: form.areaHa,
         livePlants: form.livePlants,
         establishmentCost: form.establishmentCost,

@@ -191,7 +191,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpStartingIntro => 'Mientras el cultivo no da fruto, la app no te dice que pierdes: te muestra cuánto llevas invertido. Es una inversión, no un mal mes.';
 
   @override
-  String get helpStartingStep1 => 'Crea el cultivo: Cultivos › Nueva variedad. Nombre, fase «Sin dar» y si es perenne o transitorio. El área y las matas pueden quedar vacías.';
+  String get helpStartingStep1 => 'Crea el cultivo: Cultivos › Nuevo cultivo. Nombre, fase «Sin dar» y si es perenne o anual. El área y las matas pueden quedar vacías.';
 
   @override
   String get helpStartingStep2 => 'Anota la siembra: Siembras › Nueva siembra. Cuántas matas, en qué área y la fecha. Si anotas el costo, la app crea el gasto vinculado sola: no lo repitas en Registrar.';
@@ -1303,10 +1303,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cropUnspecified => 'Sin especificar';
 
   @override
-  String get cropNewOption => '+ Nueva variedad…';
+  String get cropNewOption => '+ Nuevo cultivo…';
 
   @override
-  String get cropGroupHint => 'Toca «+ Nueva variedad…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.';
+  String get cropGroupHint => 'Toca «+ Nuevo cultivo…» para crear un cultivo nuevo; los que ya tienes están en la lista. Los movimientos del mismo cultivo se suman juntos en el reporte.';
 
   @override
   String get commonCosts => 'Costos comunes';
@@ -1380,7 +1380,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nueva variedad…».';
+  String get sowingCategoryHint => 'Si esto es para un cultivo, elige su nombre abajo: el gasto pasará a contar como su inversión y a salir en su costo/kg. Si el cultivo no existe, toca «+ Nuevo cultivo…».';
 
   @override
   String get harvestCategoryHint => 'Lo que cuesta la cosecha en sí: bolsas, insumos y mover el café. Si le pagaste a alguien por recoger, ese pago va en Mano de obra, no acá.';
@@ -1581,7 +1581,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get add => 'Agregar';
 
   @override
-  String get newCropDialogTitle => 'Nueva variedad';
+  String get newCropDialogTitle => 'Nuevo cultivo';
 
   @override
   String get welcomeCompleteTitle => 'Completar cultivo';
@@ -3195,7 +3195,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get contributionTitle => 'Aporte por producto';
 
   @override
-  String get contributionSubtitle => 'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote va aparte, sin repartirlo.';
+  String get contributionSubtitle => 'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote se reparte por área cuando todas están medidas, y va aparte si falta un área.';
 
   @override
   String get contributionDirectCosts => 'Gastos directos';
@@ -3223,6 +3223,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get contributionCommon => 'Gastos sin cultivo ni lote';
+
+  @override
+  String get contributionCommonIncome => 'Ingresos sin cultivo ni lote';
 
   @override
   String get contributionCoverageTitle => 'Cobertura del café';
