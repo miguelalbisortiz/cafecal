@@ -85,6 +85,14 @@ bool isEstablishmentExpense(Transaction t,
   return firstHarvestDate == null || !t.date.isAfter(firstHarvestDate);
 }
 
+/// Kilos de una cosecha, o 0 si falta el peso convertible.
+///
+/// Extraída de `ReportHarvestMetrics._kgOf` para que el stock sin vender use
+/// **exactamente** la misma conversión que la tarjeta «Cosechas»: un racimo o
+/// un cajón sin peso no suma (nunca 1 kg por unidad).
+double harvestKg(Harvest h, {double sacoKg = kSacoKgPorDefecto}) =>
+    kgFromUnit(h.amount, h.unit, h.equivalentKg, sacoKg: sacoKg) ?? 0;
+
 /// Métricas de cosecha para la sección "Cosechas" del reporte.
 /// Funciones puras sobre datos locales (testables sin UI).
 class ReportHarvestMetrics {
@@ -99,8 +107,7 @@ class ReportHarvestMetrics {
   ///
   /// Un racimo o un cajón sin peso **no suma** (D2): la lista de «sin peso»
   /// los cuenta aparte para completarlos. Nunca 1 kg por unidad.
-  double _kgOf(Harvest h) =>
-      kgFromUnit(h.amount, h.unit, h.equivalentKg, sacoKg: sacoKg) ?? 0;
+  double _kgOf(Harvest h) => harvestKg(h, sacoKg: sacoKg);
 
   /// Total cosechado por cultivo, en su unidad original y normalizado a kg.
   /// [harvests] ya debe estar filtrado al rango de fechas del reporte.

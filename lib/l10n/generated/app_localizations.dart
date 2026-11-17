@@ -1733,6 +1733,18 @@ abstract class AppLocalizations {
   /// **'No hay recomendaciones para este período.'**
   String get reportNoRecommendations;
 
+  /// Etiqueta corta del aviso de stock sin vender por cultivo
+  ///
+  /// In es, this message translates to:
+  /// **'Stock sin vender'**
+  String get stockUnsoldTitle;
+
+  /// Aviso de stock sin vender: cifra y acción en la misma frase
+  ///
+  /// In es, this message translates to:
+  /// **'Tienes {kg} kg de {crop} sin vender en los últimos 12 meses. Define comprador o presentación antes de la próxima cosecha.'**
+  String stockUnsoldLine(String kg, String crop);
+
   /// No description provided for @reportNoHarvestData.
   ///
   /// In es, this message translates to:

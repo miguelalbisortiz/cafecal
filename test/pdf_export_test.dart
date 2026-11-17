@@ -129,6 +129,12 @@ void main() {
     // anexo ni «Qué hacer» tienen nada que pintar, así que el PDF cabe en una
     // página. Sin la venta, la alerta de «gastos sin ventas» suma su acción y
     // el número de páginas deja de medir solo el anexo.
+    //
+    // Tanda 3 · hito 1: la venta y la cosecha van **sin cultivo** a propósito.
+    // Si se ligan a uno, aparece `deficitCrop`; si solo se liga la cosecha,
+    // aparece la fila de stock sin vender. Cualquiera de las dos añade una
+    // línea a «Qué hacer» y el guarda dejaría de medir solo el anexo. El stock
+    // y el déficit ya tienen sus propios tests; aquí se aísla la paginación.
     final hoy = DateTime.now();
     final sinAnexo = await _build(
       settings: const FarmSettings(),
@@ -155,7 +161,6 @@ void main() {
       harvests: [
         Harvest(
           id: 'h1',
-          cropId: 'cafe',
           date: hoy,
           amount: 100,
           unit: 'kg',

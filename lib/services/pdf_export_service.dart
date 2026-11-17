@@ -30,6 +30,7 @@ import 'report_insights_service.dart';
 import 'report_payroll_metrics.dart';
 import 'report_period_records.dart';
 import 'report_range.dart';
+import 'unsold_stock.dart';
 import 'week_utils.dart';
 
 export '../models/report_period.dart';
@@ -1841,7 +1842,19 @@ class PdfExportService {
       sowings: sowings,
     );
     // Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
-    final recommendations = const RecommendationService().derive(alerts);
+    // Tanda 3 · hito 1: las filas de stock se appendan después de `derive`.
+    final recommendations = [
+      ...const RecommendationService().derive(alerts),
+      ...unsoldStockRecommendations(
+        transactions: history,
+        harvests: harvests,
+        crops: crops,
+        sacoKg: settings.sacoKg,
+        now: DateTime.now(),
+        l10n: l10n,
+        locale: settings.numberLocale,
+      ),
+    ];
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [

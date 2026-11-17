@@ -898,6 +898,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportNoRecommendations => 'No recommendations for this period.';
 
   @override
+  String get stockUnsoldTitle => 'Unsold stock';
+
+  @override
+  String stockUnsoldLine(String kg, String crop) {
+    return 'You have $kg kg of $crop unsold in the last 12 months. Define a buyer or presentation before the next harvest.';
+  }
+
+  @override
   String get reportNoHarvestData => 'No harvest data in this period.';
 
   @override

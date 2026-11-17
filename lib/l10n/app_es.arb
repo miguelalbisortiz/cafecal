@@ -319,6 +319,18 @@
   "reportSowingsNoPeriod": "No registraste siembras en este período.",
   "reportWhatsNext": "Qué hacer",
   "reportNoRecommendations": "No hay recomendaciones para este período.",
+  "@stockUnsoldTitle": {
+    "description": "Etiqueta corta del aviso de stock sin vender por cultivo"
+  },
+  "stockUnsoldTitle": "Stock sin vender",
+  "@stockUnsoldLine": {
+    "description": "Aviso de stock sin vender: cifra y acción en la misma frase",
+    "placeholders": {
+      "kg": { "type": "String" },
+      "crop": { "type": "String" }
+    }
+  },
+  "stockUnsoldLine": "Tienes {kg} kg de {crop} sin vender en los últimos 12 meses. Define comprador o presentación antes de la próxima cosecha.",
   "reportNoHarvestData": "Sin datos de cosechas en el período.",
 
   "harvestWorkersLabel": "N° de empleados",

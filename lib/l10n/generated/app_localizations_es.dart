@@ -898,6 +898,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportNoRecommendations => 'No hay recomendaciones para este período.';
 
   @override
+  String get stockUnsoldTitle => 'Stock sin vender';
+
+  @override
+  String stockUnsoldLine(String kg, String crop) {
+    return 'Tienes $kg kg de $crop sin vender en los últimos 12 meses. Define comprador o presentación antes de la próxima cosecha.';
+  }
+
+  @override
   String get reportNoHarvestData => 'Sin datos de cosechas en el período.';
 
   @override

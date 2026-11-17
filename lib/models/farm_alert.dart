@@ -27,7 +27,10 @@ enum AlertRule {
   // C7 · pasó la fecha de primera cosecha que él mismo estimó y no hay
   // ninguna cosecha registrada. Se apaga sola al primer cosecha o a los
   // 12 meses de la fecha (no existe descarte de alertas en la app).
-  firstHarvestOverdue;
+  firstHarvestOverdue,
+  // Tanda 3 · hito 1: aviso de stock por cultivo. No lo emite `evaluateAlerts`; las
+  // filas se appendan en los tres pintadores después de `derive`.
+  unsoldStock;
 
   String get key => name;
 }

@@ -319,6 +319,15 @@
   "reportSowingsNoPeriod": "You did not record sowings in this period.",
   "reportWhatsNext": "What to do next",
   "reportNoRecommendations": "No recommendations for this period.",
+  "stockUnsoldTitle": "Unsold stock",
+  "@stockUnsoldLine": {
+    "description": "Unsold stock notice: figure and action in the same sentence",
+    "placeholders": {
+      "kg": { "type": "String" },
+      "crop": { "type": "String" }
+    }
+  },
+  "stockUnsoldLine": "You have {kg} kg of {crop} unsold in the last 12 months. Define a buyer or presentation before the next harvest.",
   "reportNoHarvestData": "No harvest data in this period.",
 
   "harvestWorkersLabel": "No. of workers",

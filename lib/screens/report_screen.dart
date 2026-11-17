@@ -33,6 +33,7 @@ import '../services/report_insights_service.dart';
 import '../services/report_payroll_metrics.dart';
 import '../services/report_period_records.dart';
 import '../services/report_range.dart';
+import '../services/unsold_stock.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
 import 'harvest_screen.dart';
@@ -1956,7 +1957,20 @@ class _ReportScreenState extends State<ReportScreen> {
       harvests: tx.harvests,
       sowings: tx.sowings,
     );
-    final recommendations = const RecommendationService().derive(alerts);
+    // Tanda 3 · hito 1: las filas de stock van DESPUÉS de `derive` para que el
+    // dedupe por regla no se coma dos cultivos con excedente.
+    final recommendations = [
+      ...const RecommendationService().derive(alerts),
+      ...unsoldStockRecommendations(
+        transactions: tx.transactions,
+        harvests: tx.harvests,
+        crops: tx.crops,
+        sacoKg: tx.settings.sacoKg,
+        now: DateTime.now(),
+        l10n: l10n,
+        locale: tx.settings.numberLocale,
+      ),
+    ];
     final scheme = Theme.of(context).colorScheme;
     return Card(
       child: Padding(

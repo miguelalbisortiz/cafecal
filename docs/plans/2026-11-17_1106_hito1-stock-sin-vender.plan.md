@@ -1,6 +1,6 @@
 ---
 prd: docs/prds/2026-11-17_1050-recomendaciones-de-negocio.prd.md
-status: DRAFT
+status: DONE 2026-11-17_1129
 created: 2026-11-17_1106
 milestone: 1 · Stock sin vender
 source:
@@ -260,3 +260,19 @@ del usuario en el turno correspondiente.
 - Tocar los cuatro números congelados de `export_parity_test.dart`.
 - Cualquier cambio en `evaluateAlerts` / `alert_service.dart` (aparte del valor
   nuevo del enum) y en el banner de Inicio.
+
+## Cierre — 2026-11-17_1129
+
+**DONE.** Ejecutado con TDD: rojo de 3 unidades antes del servicio, línea base
+de 4 páginas verde, 13/13 dirigidos, 90/90 guardas, 1450/1450 suite completa,
+analyze limpio, `diff --check` limpio y generados en LF.
+
+- Reporte: `docs/reports/2026-11-17_1129_hito1-stock-sin-vender.md`.
+- Auditoría: `docs/audits/2026-11-17_1129_hito1-stock-sin-vender.md` → **PASS**
+  10/10 criterios (SC-1.1..1.4 y SC-G1..G6), sin FAIL ni NIT.
+- Hallazgo resuelto: el guarda de 1 página de `pdf_export_test.dart` daba 2
+  porque el fixture mezclaba cultivo atribuido y venta sin atribuir. Se aisló
+  el fixture (ambos sin `cropId`); no se tocó la expectativa de páginas ni la
+  regla. `paginasEsperadas = 4` intacto.
+- Sin commit ni push: requiere verbo explícito.
+- Siguiente: hito 2 (margen por cultivo y por hectárea).

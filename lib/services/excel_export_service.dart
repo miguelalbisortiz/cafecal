@@ -29,6 +29,7 @@ import 'report_payroll_metrics.dart';
 import 'report_period_records.dart';
 import '../utils/format.dart';
 import 'report_range.dart';
+import 'unsold_stock.dart';
 import 'week_utils.dart';
 
 /// Exporta reportes a Excel (XLSX) y la plantilla de balance (CSV compatible
@@ -2042,7 +2043,19 @@ class ExcelExportService {
       harvests: harvests,
       sowings: sowings,
     );
-    final recommendations = const RecommendationService().derive(alerts);
+    // Tanda 3 · hito 1: las filas de stock se appendan después de `derive`.
+    final recommendations = [
+      ...const RecommendationService().derive(alerts),
+      ...unsoldStockRecommendations(
+        transactions: active,
+        harvests: harvests,
+        crops: crops,
+        sacoKg: settings.sacoKg,
+        now: DateTime.now(),
+        l10n: l10n,
+        locale: settings.numberLocale,
+      ),
+    ];
     if (recommendations.isEmpty) {
       row([TextCellValue(l10n.reportNoRecommendations)]);
     }
