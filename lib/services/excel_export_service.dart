@@ -1449,6 +1449,9 @@ class ExcelExportService {
       sheet.appendRow([null, null, null]);
       sheet.appendRow([TextCellValue(l10n.associatedCropsCostTitle)]);
       sheet.appendRow([TextCellValue(l10n.associatedCropsCostNote)]);
+      // Tanda 2C · la misma aclaración que en pantalla y PDF: en esta hoja
+      // el gasto se reparte por hectáreas; en el aporte por producto no.
+      sheet.appendRow([TextCellValue(l10n.cropBreakdownSplitNote)]);
     }
     // Formato de moneda en columnas de montos
     _applyCurrencyFormat(sheet, currency, 2, startRow, r - 1);

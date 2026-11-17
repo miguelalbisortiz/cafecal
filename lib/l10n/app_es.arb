@@ -1538,6 +1538,10 @@
   "reportTerrenosHint": "La coordenada de cada lote, tal como la registraste. No se vuelve a medir sola.",
   "associatedCropsCostTitle": "Costos entre cultivos asociados",
   "associatedCropsCostNote": "Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Ese gasto se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.",
+  "@cropBreakdownSplitNote": {
+    "description": "Regla del desglose y el costo por kilo, distinta de 'Aporte por producto'"
+  },
+  "cropBreakdownSplitNote": "Aquí se reparte por hectáreas; si falta un área, ese gasto sale aparte.",
   "@terrenoCropCount": {
     "description": "Cuántos cultivos hay dentro de un terreno",
     "placeholders": { "count": { "type": "int" } }
@@ -1603,7 +1607,7 @@
     "description": "Título de la tarjeta de aporte por producto"
   },
   "contributionTitle": "Aporte por producto",
-  "contributionSubtitle": "Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote se reparte por área cuando todas están medidas, y va aparte si falta un área.",
+  "contributionSubtitle": "Ingresos menos gastos directos de cada cultivo. Los gastos de lote y los comunes van aparte: este aporte no reparte.",
   "contributionDirectCosts": "Gastos directos",
   "contributionNet": "Aporte",
   "@contributionPeriod": {

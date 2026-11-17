@@ -10,7 +10,7 @@ void main() {
       jsonDecode(File(ruta).readAsStringSync()) as Map<String, dynamic>;
 
   for (final ruta in ['lib/l10n/app_es.arb', 'lib/l10n/app_en.arb']) {
-    test('$ruta nombra cultivo y explica el reparto por área', () {
+    test('$ruta nombra cultivo y distingue las dos atribuciones', () {
       final arb = arbDe(ruta);
       final es = ruta.contains('_es.');
 
@@ -30,11 +30,15 @@ void main() {
         expect(arb['helpStartingStep1'], contains('anual'));
         expect(arb['helpStartingStep1'].toString().contains('transitorio'),
             isFalse);
-        expect(arb['contributionSubtitle'], contains('reparte'),
-            reason: 'el gasto de lote sí se reparte cuando hay áreas medidas');
+        // Tanda 2C · el aporte por producto NO reparte: decir lo contrario
+        // hacía comparar dos cifras con reglas distintas como si fueran iguales.
+        expect(arb['contributionSubtitle'], contains('no reparte'),
+            reason: 'el aporte deja el gasto de lote y el común aparte');
+        expect(arb['contributionSubtitle'], isNot(contains('se reparte')));
       } else {
-        expect(arb['contributionSubtitle'], contains('split'),
-            reason: 'el gasto de lote sí se reparte cuando hay áreas medidas');
+        expect(arb['contributionSubtitle'], contains('does not split'),
+            reason: 'the contribution leaves plot and common costs separate');
+        expect(arb['contributionSubtitle'], isNot(contains('are split')));
       }
     });
   }

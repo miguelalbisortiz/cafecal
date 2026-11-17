@@ -4,6 +4,7 @@ status: IN_PROGRESS
 tanda1: DONE 2026-11-17_0943
 tanda2a: DONE 2026-11-17_1015
 tanda2b: DONE 2026-11-17_1033
+tanda2c: DONE 2026-11-17_1049
 created: 2026-11-17_0918
 source:
   - docs/analysis/2026-11-17_tipos-de-cultivo.md
@@ -120,19 +121,27 @@ silenciosos; no garantiza más ingreso por sí sola.
 - Aceptación: 4 tests nuevos de paridad + `export_parity_test` verde + suite
   completa 1433/1433.
 
-### 2.3 Rotular las dos atribuciones — P1
+### 2.3 Rotular las dos atribuciones — P1 — DONE 2026-11-17_1049
 - Reparto por hectáreas (desglose y costo/kg) vs aporte sin reparto (producto).
   No es bug; el riesgo es comparar cifras de distinta regla.
 - Cómo: copy de tarjeta/ayuda que diga qué regla usa cada cifra.
 - Aceptación: dos tarjetas no pueden confundirse leyendo su etiqueta.
+- Cierre: `contributionSubtitle` corregido (el aporte **no** reparte) y clave
+  corta `cropBreakdownSplitNote` en pantalla, PDF y Excel. Rojo 6/6 → 4 nuevos
+  guardas → 1437/1437. Sin tocar el cálculo.
 
-### 2.4 Aviso de áreas que no cuadran — P2
+### 2.4 Aviso de áreas que no cuadran — P2 — DONE 2026-11-17_1049
 - Si la suma de áreas de un terreno supera el terreno, avisar sin bloquear
   (puede ser asocio legítimo). Nunca corregir automáticamente.
 - Aceptación: aviso solo cuando ambas áreas existen; no aparece sin datos.
+- Cierre: verificado, sin código nuevo. `terreno_area.dart:25` calcula `over`
+  solo si ambas áreas existen; banner ámbar en `crops_screen.dart:217-254` y
+  ayuda en el editor. No muta `areaHa`. 63/63 tests de áreas y terrenos.
 
 **Gate Tanda 2:** analyze + test + prueba manual con datos de finca real
 (10 ha, 3 cultivos, 4 trabajadores), sin arreglar hallazgos en caliente.
+- Cierre en código: analyze limpio, 1437/1437 suite, 2.4 en 63/63. La prueba
+  manual con finca real sigue pendiente: no hay datos reales en esta sesión.
 
 ## Tanda 3 · Crecer con los datos que ya existen (PRD obligatorio)
 

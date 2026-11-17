@@ -457,6 +457,20 @@ class _ReportScreenState extends State<ReportScreen> {
                               Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      // Tanda 2C · este desglose SÍ reparte por hectáreas;
+                      // el «Aporte por producto» de abajo no. Rotularlo aquí
+                      // evita comparar las dos cifras como si usaran la misma
+                      // regla.
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.cropBreakdownSplitNote,
+                        style: TextStyle(
+                          fontSize: 11,
+                          height: 1.3,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ],
                 ),

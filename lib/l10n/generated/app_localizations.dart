@@ -5579,6 +5579,12 @@ abstract class AppLocalizations {
   /// **'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Ese gasto se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.'**
   String get associatedCropsCostNote;
 
+  /// Regla del desglose y el costo por kilo, distinta de 'Aporte por producto'
+  ///
+  /// In es, this message translates to:
+  /// **'Aquí se reparte por hectáreas; si falta un área, ese gasto sale aparte.'**
+  String get cropBreakdownSplitNote;
+
   /// Cuántos cultivos hay dentro de un terreno
   ///
   /// In es, this message translates to:
@@ -5666,7 +5672,7 @@ abstract class AppLocalizations {
   /// No description provided for @contributionSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote se reparte por área cuando todas están medidas, y va aparte si falta un área.'**
+  /// **'Ingresos menos gastos directos de cada cultivo. Los gastos de lote y los comunes van aparte: este aporte no reparte.'**
   String get contributionSubtitle;
 
   /// No description provided for @contributionDirectCosts.

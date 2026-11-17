@@ -502,6 +502,13 @@ class PdfExportService {
               l10n.associatedCropsCostNote,
               style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
             ),
+            // Tanda 2C · la misma aclaración que en pantalla y Excel: aquí
+            // el gasto sí se reparte por hectáreas, en el aporte no.
+            pw.SizedBox(height: 2),
+            pw.Text(
+              l10n.cropBreakdownSplitNote,
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+            ),
           ],
           pw.SizedBox(height: 20),
           _harvestSection(periodTx, periodHarvests, harvests, crops, sowings,

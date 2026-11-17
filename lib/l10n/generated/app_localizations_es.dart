@@ -3129,6 +3129,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get associatedCropsCostNote => 'Varios cultivos comparten el mismo terreno: un mismo jornal o la misma bolsa de abono pueden servir a varios. Ese gasto se reparte entre ellos por hectáreas; si a alguno le falta la superficie, sale aparte. Por eso el costo de cada cultivo es una aproximación. El total de la finca sí cuadra.';
 
   @override
+  String get cropBreakdownSplitNote => 'Aquí se reparte por hectáreas; si falta un área, ese gasto sale aparte.';
+
+  @override
   String terrenoCropCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3195,7 +3198,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get contributionTitle => 'Aporte por producto';
 
   @override
-  String get contributionSubtitle => 'Ingresos menos gastos directos de cada cultivo; lo que sirve a un lote se reparte por área cuando todas están medidas, y va aparte si falta un área.';
+  String get contributionSubtitle => 'Ingresos menos gastos directos de cada cultivo. Los gastos de lote y los comunes van aparte: este aporte no reparte.';
 
   @override
   String get contributionDirectCosts => 'Gastos directos';

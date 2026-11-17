@@ -3129,6 +3129,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get associatedCropsCostNote => 'Several crops share the same plot: the same labor or fertilizer can serve several. That expense is split between them by hectares; if one is missing its area, it shows separately. So each crop\'s cost is an approximation, but the farm total does add up.';
 
   @override
+  String get cropBreakdownSplitNote => 'Here costs are split by hectares; if an area is missing, that cost shows separately.';
+
+  @override
   String terrenoCropCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3195,7 +3198,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contributionTitle => 'Contribution by product';
 
   @override
-  String get contributionSubtitle => 'Income minus direct costs per crop; whole-plot costs are split by area when every area is known, and listed separately when one is missing.';
+  String get contributionSubtitle => 'Income minus direct costs per crop. Plot and common costs are listed separately: this contribution does not split them.';
 
   @override
   String get contributionDirectCosts => 'Direct costs';
