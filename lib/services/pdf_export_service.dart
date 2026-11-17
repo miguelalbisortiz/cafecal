@@ -18,6 +18,7 @@ import '../models/transaction.dart';
 import '../models/report_period.dart';
 import '../utils/format.dart';
 import 'alert_service.dart';
+import 'buyer_concentration.dart';
 import 'crop_margin.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
@@ -1865,6 +1866,12 @@ class PdfExportService {
         terrenos: terrenos,
         unspecifiedName: l10n.commonCosts,
         loteNoRepartidoName: l10n.loteNoRepartido,
+        l10n: l10n,
+        locale: settings.numberLocale,
+      ),
+      // Tanda 3 · hito 3: el porcentaje corresponde al período exportado.
+      ...buyerConcentrationRecommendations(
+        records: periodRecords,
         l10n: l10n,
         locale: settings.numberLocale,
       ),

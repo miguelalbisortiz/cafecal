@@ -33,7 +33,10 @@ enum AlertRule {
   unsoldStock,
   // Tanda 3 · hito 2: margen por cultivo y por hectárea en una sola fila.
   // Tampoco lo emite `evaluateAlerts`: la fila se appenda tras `derive`.
-  cropMargin;
+  cropMargin,
+  // Tanda 3 · hito 3: comprador que concentra >50 % de las ventas. Igual que
+  // en los hitos 1 y 2, `evaluateAlerts` no lo emite: la fila se appenda.
+  buyerConcentration;
 
   String get key => name;
 }

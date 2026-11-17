@@ -1757,6 +1757,18 @@ abstract class AppLocalizations {
   /// **'{crop} deja un {pct}% de margen y {money}/ha. Prioriza ahí la mano de obra.'**
   String cropMarginLine(String crop, String pct, String money);
 
+  /// Etiqueta corta del aviso de concentración de comprador
+  ///
+  /// In es, this message translates to:
+  /// **'Concentración de comprador'**
+  String get buyerConcentrationTitle;
+
+  /// Concentración de comprador: porcentaje, nombre y acción en la misma frase
+  ///
+  /// In es, this message translates to:
+  /// **'El {pct}% de tus ventas del período vienen de {buyer}. Busca un segundo comprador antes de depender de uno solo.'**
+  String buyerConcentrationLine(String pct, String buyer);
+
   /// No description provided for @reportNoHarvestData.
   ///
   /// In es, this message translates to:

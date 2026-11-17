@@ -16,6 +16,7 @@ import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/report_period.dart';
 import 'alert_service.dart';
+import 'buyer_concentration.dart';
 import 'crop_margin.dart';
 import 'crop_totals.dart';
 import 'currency_totals.dart';
@@ -2071,6 +2072,12 @@ class ExcelExportService {
         terrenos: terrenos,
         unspecifiedName: l10n.commonCosts,
         loteNoRepartidoName: l10n.loteNoRepartido,
+        l10n: l10n,
+        locale: settings.numberLocale,
+      ),
+      // Tanda 3 · hito 3: mismo período que en PDF y pantalla.
+      ...buyerConcentrationRecommendations(
+        records: periodRecords,
         l10n: l10n,
         locale: settings.numberLocale,
       ),

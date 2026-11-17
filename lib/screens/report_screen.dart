@@ -24,6 +24,7 @@ import '../services/currency_totals.dart';
 import '../services/derived_harvests.dart';
 import '../services/excel_export_service.dart' deferred as excel;
 import '../services/pdf_export_service.dart' deferred as pdf;
+import '../services/buyer_concentration.dart';
 import '../services/crop_margin.dart';
 import '../services/metric_signal.dart';
 import '../services/period_comparison.dart';
@@ -1979,6 +1980,13 @@ class _ReportScreenState extends State<ReportScreen> {
         terrenos: tx.terrenos,
         unspecifiedName: l10n.commonCosts,
         loteNoRepartidoName: (n) => l10n.loteNoRepartido(n),
+        l10n: l10n,
+        locale: tx.settings.numberLocale,
+      ),
+      // Tanda 3 · hito 3: misma ventana del desglose; sin monto en el texto,
+      // pero con la guarda de moneda mixta dentro del servicio.
+      ...buyerConcentrationRecommendations(
+        records: _recordsFor(tx),
         l10n: l10n,
         locale: tx.settings.numberLocale,
       ),

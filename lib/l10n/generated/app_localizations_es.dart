@@ -914,6 +914,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get buyerConcentrationTitle => 'Concentración de comprador';
+
+  @override
+  String buyerConcentrationLine(String pct, String buyer) {
+    return 'El $pct% de tus ventas del período vienen de $buyer. Busca un segundo comprador antes de depender de uno solo.';
+  }
+
+  @override
   String get reportNoHarvestData => 'Sin datos de cosechas en el período.';
 
   @override

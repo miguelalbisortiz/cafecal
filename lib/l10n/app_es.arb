@@ -344,6 +344,18 @@
     }
   },
   "cropMarginLine": "{crop} deja un {pct}% de margen y {money}/ha. Prioriza ahí la mano de obra.",
+  "@buyerConcentrationTitle": {
+    "description": "Etiqueta corta del aviso de concentración de comprador"
+  },
+  "buyerConcentrationTitle": "Concentración de comprador",
+  "@buyerConcentrationLine": {
+    "description": "Concentración de comprador: porcentaje, nombre y acción en la misma frase",
+    "placeholders": {
+      "pct": { "type": "String" },
+      "buyer": { "type": "String" }
+    }
+  },
+  "buyerConcentrationLine": "El {pct}% de tus ventas del período vienen de {buyer}. Busca un segundo comprador antes de depender de uno solo.",
   "reportNoHarvestData": "Sin datos de cosechas en el período.",
 
   "harvestWorkersLabel": "N° de empleados",

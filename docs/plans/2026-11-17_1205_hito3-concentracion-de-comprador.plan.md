@@ -1,6 +1,6 @@
 ---
 prd: docs/prds/2026-11-17_1050-recomendaciones-de-negocio.prd.md
-status: DRAFT
+status: DONE 2026-11-17_1225
 created: 2026-11-17_1205
 milestone: 3 · Concentración de comprador
 source:
@@ -256,3 +256,29 @@ turno correspondiente.
 - Cambios de esquema, columnas nuevas, sync nuevo, backfill automático, cotizaciones, tasas de cambio y comparaciones con fincas externas.
 - Añadir la fila al banner de Inicio, modificar `evaluateAlerts` / `alert_service.dart` o tocar los cuatro números congelados de `export_parity_test.dart` y el fixture sin `cropId` de `pdf_export_test.dart`.
 - Citar el monto del comprador en el texto (D2) o mostrar un comprador «Sin nombre» para las ventas no atribuidas (D4).
+
+## Cierre — 2026-11-17_1225
+
+**DONE.** Ejecutado con TDD: rojo de 3 unidades antes del servicio, línea base
+de 4 y 1 páginas verde, 13/13 dirigidos, 51/51 targeted, 1477/1477 suite
+completa, analyze limpio, `diff --check` limpio y generados en LF.
+
+- Reporte: `docs/reports/2026-11-17_1223_hito3-concentracion-de-comprador.md`.
+- Auditoría: `docs/audits/2026-11-17_1223_hito3-concentracion-de-comprador.md` →
+  **PASS** (SC-3.1..3.4 y SC-G1..G6; SC-G3 N/A por no sumar kilos), sin FAIL
+  ni NIT.
+- Decisiones aplicadas: D1 `>50 %` estricto con ≥2 compradores; D2 solo `%` y
+  nombre sin monto; D3 cadena exacta; D4 ventas sin comprador fuera del
+  denominador.
+- Doble guarda de moneda (global y por comprador) reutilizando
+  `amountsByCurrency` e `isMixedCurrency`; una sola redacción en los tres
+  pintadores, concatenada después de `derive`.
+- Guardas intactas: `paginasEsperadas = 4` y el fixture de 1 página sin
+  `cropId` ni `client`; `evaluateAlerts` y el banner de Inicio sin cambios.
+- Dos detalles del plan ajustados en la ejecución y documentados en el reporte:
+  el caso 4 usa A700/B300 + 300 sin comprador (→ 70 %) para cumplir `≥2`; y
+  los tests nuevos son 13 (el caso 14 del plan era la línea base), con suite
+  1477/1477.
+- Sin commit ni push: requiere verbo explícito.
+- Tanda 3 completa (hitos 1, 2 y 3). Prueba con finca real pendiente no
+  bloqueante.

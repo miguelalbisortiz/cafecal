@@ -338,6 +338,15 @@
     }
   },
   "cropMarginLine": "{crop} leaves a {pct}% margin and {money}/ha. Prioritize labor there.",
+  "buyerConcentrationTitle": "Buyer concentration",
+  "@buyerConcentrationLine": {
+    "description": "Buyer concentration: percentage, name and action in the same sentence",
+    "placeholders": {
+      "pct": { "type": "String" },
+      "buyer": { "type": "String" }
+    }
+  },
+  "buyerConcentrationLine": "{pct}% of your sales for the period come from {buyer}. Find a second buyer before relying on just one.",
   "reportNoHarvestData": "No harvest data in this period.",
 
   "harvestWorkersLabel": "No. of workers",
