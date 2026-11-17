@@ -26,7 +26,9 @@ import 'period_comparison.dart';
 import 'product_contribution.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
+import 'report_insights_service.dart';
 import 'report_payroll_metrics.dart';
+import 'report_period_records.dart';
 import 'report_range.dart';
 import 'week_utils.dart';
 
@@ -72,25 +74,15 @@ class PdfExportService {
         list.where((t) => t.type == type).fold(0.0, (a, t) => a + t.amount);
 
     final now = DateTime.now();
-    final periodTx = switch (period) {
-      ReportPeriod.week => () {
-        final range = weekRange(year, month ?? 1);
-        return active
-            .where((t) =>
-                !t.date.isBefore(range.start) && !t.date.isAfter(range.end))
-            .toList();
-      }(),
-      ReportPeriod.month => active
-          .where((t) => t.date.year == year && t.date.month == (month ?? now.month))
-          .toList(),
-      ReportPeriod.year => active.where((t) => t.date.year == year).toList(),
-      ReportPeriod.yearToDate => active
-          .where((t) =>
-              t.date.year == year &&
-              !t.date.isAfter(
-                  year < now.year ? DateTime(year, 12, 31) : now))
-          .toList(),
-    };
+    // Tanda 2B · una sola regla para el período. Antes cada exportador tenía
+    // este switch copiado y podía quedarse atrás de Reportes.
+    final periodTx = recordsForPeriod(
+      transactions: transactions,
+      period: period,
+      year: year,
+      month: month,
+      now: now,
+    );
     final expenses = sum(periodTx, TransactionType.expense);
     final incomes = sum(periodTx, TransactionType.income);
     final balance = incomes - expenses;
@@ -128,6 +120,35 @@ class PdfExportService {
     // cada total va con su código, sin %, sin margen ni ratio.
     final periodTotals = PeriodCurrencyTotals.fromRecords(periodTx);
     final mixedHeader = periodTotals.isMixed;
+    // Tanda 2B · la conclusión la escribe el MISMO motor que la tarjeta de
+    // Reportes, con los mismos insumos. Con mezcla no se suman monedas: el
+    // motor ya se calla en las frases que dirían una cifra falsa.
+    final currenciesInPeriod = periodTx.map((t) => t.currency).toSet();
+    final effectiveCurrency = currenciesInPeriod.length == 1
+        ? currenciesInPeriod.first
+        : settings.currency;
+    final insights = const ReportInsightsService().build(
+      now: now,
+      current: periodTx,
+      previousMonth: previousMonthRecordsForPeriod(
+        transactions: transactions,
+        period: period,
+        year: year,
+        month: month,
+      ),
+      yearRecords: recordsForPeriod(
+        transactions: transactions,
+        period: ReportPeriod.year,
+        year: year,
+        now: now,
+      ),
+      year: year,
+      month: period == ReportPeriod.month ? (month ?? now.month) : null,
+      crops: crops,
+      l10n: l10n,
+      mixedTotals: periodTotals.isMixed,
+      money: (v) => formatPdfMoney(v, effectiveCurrency),
+    );
     // Comparativo con el período anterior: la misma cifra y la misma regla
     // que en pantalla y en el Excel. Sin datos antes (o con mezcla) es null.
     final comparison = compareWithPreviousPeriod(
@@ -444,6 +465,8 @@ class PdfExportService {
           ],
           if (mixedHeader) _mixedNote(l10n, periodTotals.currencies.length),
           pw.SizedBox(height: 20),
+          _insightsSection(insights, l10n),
+          pw.SizedBox(height: 20),
           _topAccounts(periodTx, l10n, currency),
           pw.SizedBox(height: 20),
           pw.Text(
@@ -692,6 +715,32 @@ class PdfExportService {
 
   String formatPdfMoney(double value, String currency, {int? decimals}) =>
       formatMoneyLabel(value, currency, locale: _locale, decimals: decimals);
+
+  /// «Conclusión del período»: el mismo texto que pintan Reportes y el Excel.
+  /// La tarjeta de pantalla se oculta si no hay nada que decir; aquí se hace
+  /// lo mismo para que los tres pintadores callen o hablen a la vez.
+  pw.Widget _insightsSection(
+      List<ReportInsight> insights, AppLocalizations l10n) {
+    if (insights.isEmpty) return pw.SizedBox.shrink();
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          l10n.insightsTitle,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(height: 6),
+        for (final insight in insights)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 3),
+            child: pw.Text(
+              insight.text,
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+            ),
+          ),
+      ],
+    );
+  }
 
   /// Sección "Principales compradores / proveedores" del período.
   /// Solo se muestra si hay ventas con cliente o gastos con proveedor.
@@ -1786,8 +1835,6 @@ class PdfExportService {
     );
     // Sin tope: lo que se enseña acá es lo que enseña el banner de Inicio.
     final recommendations = const RecommendationService().derive(alerts);
-    if (recommendations.isEmpty) return pw.SizedBox.shrink();
-
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -1796,6 +1843,11 @@ class PdfExportService {
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
         ),
         pw.SizedBox(height: 6),
+        // Tanda 2B · el PDF es lo que se comparte: callar aquí sugería que no
+        // se evaluó, cuando en pantalla y Excel sí dicen que no hay avisos.
+        if (recommendations.isEmpty)
+          _statementRow(l10n.reportNoRecommendations, '',
+              small: true, valueColor: PdfColors.grey700),
         for (var i = 0; i < recommendations.length; i++) ...[
           _statementRow(
             '${i + 1}. ${recommendations[i].title}',

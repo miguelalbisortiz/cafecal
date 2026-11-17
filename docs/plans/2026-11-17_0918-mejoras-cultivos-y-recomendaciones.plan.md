@@ -3,6 +3,7 @@ prd: pendiente (solo Tanda 3)
 status: IN_PROGRESS
 tanda1: DONE 2026-11-17_0943
 tanda2a: DONE 2026-11-17_1015
+tanda2b: DONE 2026-11-17_1033
 created: 2026-11-17_0918
 source:
   - docs/analysis/2026-11-17_tipos-de-cultivo.md
@@ -89,7 +90,10 @@ silenciosos; no garantiza más ingreso por sí sola.
 > 2.1 ejecutada y verificada el 2026-11-17 10:15 (Tanda 2A). Evidencia:
 > `docs/reports/2026-11-17_1015_tanda2a-altas-cortas-contexto.md` y
 > `docs/audits/2026-11-17_1015_tanda2a-altas-cortas-contexto.md`.
-> 2.2, 2.3 y 2.4 siguen pendientes.
+> 2.2 ejecutada y verificada el 2026-11-17 10:33 (Tanda 2B). Evidencia:
+> `docs/reports/2026-11-17_1033_tanda2b-paridad-exportes.md` y
+> `docs/audits/2026-11-17_1033_tanda2b-paridad-exportes.md`.
+> 2.3 y 2.4 siguen pendientes.
 
 ### 2.1 Altas cortas con contexto — P1 ✅ DONE
 - Qué: Registro y Siembras crean solo nombre + moneda; el banner para completar
@@ -102,13 +106,19 @@ silenciosos; no garantiza más ingreso por sí sola.
   paso, con «completar luego» visible por cultivo.
 - Aceptación: se puede crear rápido y completar después sin perder el aviso.
 
-### 2.2 Paridad de los tres pintadores — P1
-- «Conclusión del período» solo vive en pantalla (`report_screen.dart:285-307`).
-- PDF calla cuando «Qué hacer» está vacío (`pdf_export_service.dart:1779-1789`).
-- Excel no trae «Principales compradores».
-- Cómo: mismas secciones y mismo texto en pantalla, PDF y Excel; actualizar el
-  conteo de páginas congeladas con motivo escrito.
-- Aceptación: `export_parity_test` verde y una guarda por sección nueva.
+### 2.2 Paridad de los tres pintadores — P1 ✅ DONE
+- «Conclusión del período» solo vivía en pantalla (`report_screen.dart:285-307`).
+- PDF callaba cuando «Qué hacer» estaba vacío (`pdf_export_service.dart:1779-1789`).
+- Excel no traía «Principales compradores».
+- Cómo: helper compartido `report_period_records.dart` para la selección del
+  período; el mismo `ReportInsightsService` en los tres pintadores; conclusión
+  en Resumen y cuerpo del PDF; compradores y proveedores top 3 en Resumen;
+  `reportNoRecommendations` en el PDF.
+- Guarda de páginas: revisada el 2026-11-17 10:33. Sigue en **4** en el fixture
+  congelado: las secciones nuevas entran en la paginación actual y no añaden
+  página. Sin cambio de número, sin cambio de comentario.
+- Aceptación: 4 tests nuevos de paridad + `export_parity_test` verde + suite
+  completa 1433/1433.
 
 ### 2.3 Rotular las dos atribuciones — P1
 - Reparto por hectáreas (desglose y costo/kg) vs aporte sin reparto (producto).

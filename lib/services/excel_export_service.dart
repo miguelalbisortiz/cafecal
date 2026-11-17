@@ -12,6 +12,7 @@ import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/tasks.dart';
 import '../models/terreno.dart';
+import '../models/top_accounts.dart';
 import '../models/transaction.dart';
 import '../models/report_period.dart';
 import 'alert_service.dart';
@@ -23,7 +24,9 @@ import 'period_comparison.dart';
 import 'product_contribution.dart';
 import 'recommendations.dart';
 import 'report_harvest_metrics.dart';
+import 'report_insights_service.dart';
 import 'report_payroll_metrics.dart';
+import 'report_period_records.dart';
 import '../utils/format.dart';
 import 'report_range.dart';
 import 'week_utils.dart';
@@ -67,26 +70,15 @@ class ExcelExportService {
         list.where((t) => t.type == type).fold(0.0, (a, t) => a + t.amount);
 
     final now = DateTime.now();
-    final periodTx = switch (period) {
-      ReportPeriod.week => () {
-        final range = weekRange(year, month ?? 1);
-        return active
-            .where((t) =>
-                !t.date.isBefore(range.start) && !t.date.isAfter(range.end))
-            .toList();
-      }(),
-      ReportPeriod.month => active
-          .where(
-              (t) => t.date.year == year && t.date.month == (month ?? now.month))
-          .toList(),
-      ReportPeriod.year => active.where((t) => t.date.year == year).toList(),
-      ReportPeriod.yearToDate => active
-          .where((t) =>
-              t.date.year == year &&
-              !t.date.isAfter(
-                  year < now.year ? DateTime(year, 12, 31) : now))
-          .toList(),
-    };
+    // Tanda 2B · una sola regla para el período. Antes cada exportador tenía
+    // este switch copiado y podía quedarse atrás de Reportes.
+    final periodTx = recordsForPeriod(
+      transactions: transactions,
+      period: period,
+      year: year,
+      month: month,
+      now: now,
+    );
     final expenses = sum(periodTx, TransactionType.expense);
     final incomes = sum(periodTx, TransactionType.income);
     final balance = incomes - expenses;
@@ -158,6 +150,34 @@ class ExcelExportService {
     // Sin locale los exportadores imprimían `2400000` y `€200.00` donde la
     // misma app mostraba `2.400.000` y `€200,00` en pantalla.
     _locale = settings.numberLocale;
+    // Tanda 2B · la conclusión la escribe el MISMO motor que la tarjeta de
+    // Reportes y el PDF, con los mismos insumos. Nunca inventa cifras.
+    final currenciesInPeriod = periodTx.map((t) => t.currency).toSet();
+    final effectiveCurrency = currenciesInPeriod.length == 1
+        ? currenciesInPeriod.first
+        : settings.currency;
+    final insights = const ReportInsightsService().build(
+      now: now,
+      current: periodTx,
+      previousMonth: previousMonthRecordsForPeriod(
+        transactions: transactions,
+        period: period,
+        year: year,
+        month: month,
+      ),
+      yearRecords: recordsForPeriod(
+        transactions: transactions,
+        period: ReportPeriod.year,
+        year: year,
+        now: now,
+      ),
+      year: year,
+      month: period == ReportPeriod.month ? (month ?? now.month) : null,
+      crops: crops,
+      l10n: l10n,
+      mixedTotals: periodTotals.isMixed,
+      money: (v) => formatMoneyLabel(v, effectiveCurrency, locale: _locale),
+    );
     final excel = Excel.createExcel();
     excel.rename('Sheet1', l10n.excelSheetSummary);
 
@@ -180,6 +200,7 @@ class ExcelExportService {
         periodTotals: periodTotals,
         comparison: comparison,
         periodTx: periodTx,
+        insights: insights,
         allTx: active,
         crops: crops,
         harvests: harvests,
@@ -441,6 +462,8 @@ class ExcelExportService {
     required PeriodCurrencyTotals periodTotals,
     required PeriodComparison? comparison,
     required List<Transaction> periodTx,
+    // Tanda 2B · la conclusión ya calculada por ReportInsightsService.
+    required List<ReportInsight> insights,
     // Histórico completo, sin borrar: la cobertura del café es acumulada y
     // necesita lo anterior al período.
     required List<Transaction> allTx,
@@ -633,6 +656,18 @@ class ExcelExportService {
     _applyCurrencyFormat(sheet, currency, 2,
         6 + incomeGroups.length, 6 + incomeGroups.length + expenseGroups.length);
     _applyCurrencyFormat(sheet, currency, 2, resultRowIdx, resultRowIdx);
+
+    // ── Conclusión del período ──
+    // Mismo motor, mismas frases y misma guarda que Reportes y el PDF. Va
+    // después de los formatos de moneda para no desplazar las filas que ya
+    // tienen formato aplicado.
+    if (insights.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.insightsTitle), null, null]);
+      for (final insight in insights) {
+        row([TextCellValue(insight.text), null, null]);
+      }
+    }
 
     // ── Ingresos y gastos por mes (períodos multi-mes: anual/año hasta hoy) ──
     if (period == ReportPeriod.year || period == ReportPeriod.yearToDate) {
@@ -908,6 +943,34 @@ class ExcelExportService {
           ]);
         }
       }
+    }
+
+    // ── Principales compradores y proveedores ──
+    // Tanda 2B · mismo bloque y mismos títulos que el PDF y la tarjeta de
+    // Reportes. Con mezcla se lista cada moneda por separado: nunca una suma
+    // que cruza pesos con dólares.
+    final accounts = TopAccounts.from(periodTx);
+    if (!accounts.isEmpty) {
+      row([null, null, null]);
+      void accountBlock(
+          String title, List<MapEntry<String, AccountTotal>> entries) {
+        if (entries.isEmpty) return;
+        row([TextCellValue(title), null, null]);
+        for (final e in entries) {
+          final value = e.value.amount != null
+              ? formatMoneyLabel(e.value.amount!, currency, locale: _locale)
+              : byCurrencyText(e.value.byCurrency,
+                  (v, c) => formatMoneyLabel(v, c, locale: _locale));
+          row([
+            TextCellValue('${e.key} (${e.value.count})'),
+            null,
+            TextCellValue(value),
+          ]);
+        }
+      }
+
+      accountBlock(l10n.topClientsTitle, accounts.topClients(3));
+      accountBlock(l10n.topProvidersTitle, accounts.topProviders(3));
     }
 
     // ── Anexo de ubicación ──

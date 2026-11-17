@@ -31,6 +31,7 @@ import '../services/recommendations.dart';
 import '../services/report_harvest_metrics.dart';
 import '../services/report_insights_service.dart';
 import '../services/report_payroll_metrics.dart';
+import '../services/report_period_records.dart';
 import '../services/report_range.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
@@ -550,57 +551,22 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  List<Transaction> _recordsFor(TransactionProvider tx) {
-    final inYear = tx.transactions
-        .where((t) => !t.deleted && t.date.year == _year);
-    switch (_mode) {
-      case _PeriodMode.week:
-        final range = weekRange(_year, _week);
-        return tx.transactions
-            .where((t) =>
-                !t.deleted &&
-                !t.date.isBefore(range.start) &&
-                !t.date.isAfter(range.end))
-            .toList();
-      case _PeriodMode.month:
-        return inYear.where((t) => t.date.month == _month).toList();
-      case _PeriodMode.year:
-        return inYear.toList();
-      case _PeriodMode.yearToDate:
-        final today = DateTime.now();
-        final end =
-            _year < today.year ? DateTime(_year, 12, 31) : today;
-        return inYear.where((t) => !t.date.isAfter(end)).toList();
-    }
-  }
+  /// Tanda 2B · la regla ya no vive aquí: la comparten Reportes, PDF y Excel.
+  List<Transaction> _recordsFor(TransactionProvider tx) => recordsForPeriod(
+        transactions: tx.transactions,
+        period: _reportPeriod,
+        year: _year,
+        month: _reportPeriodArg,
+      );
 
-  // Registros del mes anterior para la comparaciÃ³n de tendencia mensual.
-  List<Transaction> _previousMonthRecords(TransactionProvider tx) {
-    if (_mode == _PeriodMode.week) {
-      int prevWeek = _week - 1;
-      int prevYear = _year;
-      if (prevWeek < 1) {
-        prevWeek = 52;
-        prevYear--;
-      }
-      final range = weekRange(prevYear, prevWeek);
-      return tx.transactions
-          .where((t) =>
-              !t.deleted &&
-              !t.date.isBefore(range.start) &&
-              !t.date.isAfter(range.end))
-          .toList();
-    }
-    if (_mode != _PeriodMode.month) return const [];
-    final prevYear = _month == 1 ? _year - 1 : _year;
-    final prevMonth = _month == 1 ? 12 : _month - 1;
-    return tx.transactions
-        .where((t) =>
-            !t.deleted &&
-            t.date.year == prevYear &&
-            t.date.month == prevMonth)
-        .toList();
-  }
+  /// Mes (o semana) anterior para la comparación de tendencia mensual.
+  List<Transaction> _previousMonthRecords(TransactionProvider tx) =>
+      previousMonthRecordsForPeriod(
+        transactions: tx.transactions,
+        period: _reportPeriod,
+        year: _year,
+        month: _reportPeriodArg,
+      );
 
   Color _toneColor(InsightTone tone) => switch (tone) {
         InsightTone.positive => const Color(0xFF2E7D32),
