@@ -728,7 +728,7 @@
   "expenseGroupVenta": "Gastos de venta",
   "expenseGroupFijos": "Gastos fijos",
   "expenseGroupInversion": "Inversión en equipo",
-  "ratioOperationOnlyNote": "Solo operación: no incluye la inversión en equipo.",
+  "ratioOperationOnlyNote": "No incluye la inversión en equipo; la siembra y las cercas sí cuentan.",
   "expenseGroupOtros": "Otros gastos",
   "menuCrops": "Cultivos",
   "cropsEmpty": "Aún no hay cultivos. Agrega el primero.",
@@ -1633,7 +1633,7 @@
       "investment": { "type": "String" }
     }
   },
-  "contributionCoverageLine": "Los otros productos cubren {pct}% de la inversión acumulada de {coffee}: {covered} de {investment}.",
+  "contributionCoverageLine": "Los otros productos cubren {pct}% de la inversión inicial de {coffee}: {covered} de {investment}.",
   "@contributionCoverageNegative": {
     "description": "Cuando el aporte acumulado de los otros productos es negativo",
     "placeholders": {
@@ -1642,6 +1642,6 @@
       "coffee": { "type": "String" }
     }
   },
-  "contributionCoverageNegative": "Los otros productos todavía no cubren nada: su aporte acumulado es {covered}, frente a {investment} invertidos en {coffee}.",
+  "contributionCoverageNegative": "Los otros productos todavía no cubren nada: su aporte acumulado es {covered}, frente a {investment} de inversión inicial en {coffee}.",
   "contributionCoverageNoData": "No se calcula: falta la inversión de siembra del café o los datos están en más de una moneda."
 }

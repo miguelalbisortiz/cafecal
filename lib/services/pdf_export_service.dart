@@ -1124,10 +1124,14 @@ class PdfExportService {
           l10n.reportHarvestedTotal,
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
         ),
+        // Si la cosecha ya viene en kg, el paréntesis normalizado repetiría
+        // la misma cifra: «1000 kg (1000 Kg (normalizado))».
         ...byCrop.map((c) => _statementRow(
               '    ${c.name}',
-              '${_num(c.amount)} ${c.unit}   '
-              '(${_numKg(c.kg)} ${l10n.reportHarvestKg})',
+              c.unit == 'kg'
+                  ? '${_num(c.amount)} ${c.unit}'
+                  : '${_num(c.amount)} ${c.unit}   '
+                      '(${_numKg(c.kg)} ${l10n.reportHarvestKg})',
               small: true,
             )),
         pw.SizedBox(height: 4),
@@ -1494,7 +1498,9 @@ class PdfExportService {
             for (final r in rows)
               pw.TableRow(
                 children: [
-                  cell('${taskIcon(r.task)} ${taskLabel(r.task)}'),
+                  // Sin el icono de la labor: la fuente del PDF no trae esos
+                  // glifos y salía un cuadro vacío delante del nombre.
+                  cell(taskLabel(r.task)),
                   cell(r.cropName),
                   cell(r.workers > 0 ? '${r.workers}' : '—'),
                   cell(r.days > 0 ? daysLabel(r.days) : '—'),

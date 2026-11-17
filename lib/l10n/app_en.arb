@@ -714,7 +714,7 @@
   "expenseGroupVenta": "Selling costs",
   "expenseGroupFijos": "Fixed costs",
   "expenseGroupInversion": "Equipment investment",
-  "ratioOperationOnlyNote": "Operating only: excludes equipment investment.",
+  "ratioOperationOnlyNote": "Excludes equipment investment; sowing and fencing still count.",
   "expenseGroupOtros": "Other costs",
   "menuCrops": "Crops",
   "cropsEmpty": "No crops yet. Add the first one.",
@@ -1411,7 +1411,7 @@
   "contributionUnassigned": "Unassigned plot expenses",
   "contributionCommon": "Expenses with no crop or plot",
   "contributionCoverageTitle": "Coffee coverage",
-  "contributionCoverageLine": "The other products cover {pct}% of the coffee's accumulated investment: {covered} of {investment}.",
-  "contributionCoverageNegative": "The other products do not cover anything yet: their accumulated contribution is {covered}, against {investment} invested in {coffee}.",
+  "contributionCoverageLine": "The other products cover {pct}% of the coffee's initial investment: {covered} of {investment}.",
+  "contributionCoverageNegative": "The other products do not cover anything yet: their accumulated contribution is {covered}, against {investment} of initial investment in {coffee}.",
   "contributionCoverageNoData": "Not calculated: the coffee's planting investment is missing or the data spans more than one currency."
 }

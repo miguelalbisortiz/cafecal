@@ -3338,7 +3338,7 @@ abstract class AppLocalizations {
   /// No description provided for @ratioOperationOnlyNote.
   ///
   /// In es, this message translates to:
-  /// **'Solo operación: no incluye la inversión en equipo.'**
+  /// **'No incluye la inversión en equipo; la siembra y las cercas sí cuentan.'**
   String get ratioOperationOnlyNote;
 
   /// No description provided for @expenseGroupOtros.
@@ -5720,13 +5720,13 @@ abstract class AppLocalizations {
   /// Porcentaje de la inversión acumulada del café cubierto por los otros productos
   ///
   /// In es, this message translates to:
-  /// **'Los otros productos cubren {pct}% de la inversión acumulada de {coffee}: {covered} de {investment}.'**
+  /// **'Los otros productos cubren {pct}% de la inversión inicial de {coffee}: {covered} de {investment}.'**
   String contributionCoverageLine(String pct, String coffee, String covered, String investment);
 
   /// Cuando el aporte acumulado de los otros productos es negativo
   ///
   /// In es, this message translates to:
-  /// **'Los otros productos todavía no cubren nada: su aporte acumulado es {covered}, frente a {investment} invertidos en {coffee}.'**
+  /// **'Los otros productos todavía no cubren nada: su aporte acumulado es {covered}, frente a {investment} de inversión inicial en {coffee}.'**
   String contributionCoverageNegative(String covered, String investment, String coffee);
 
   /// No description provided for @contributionCoverageNoData.

@@ -1771,7 +1771,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get expenseGroupInversion => 'Inversión en equipo';
 
   @override
-  String get ratioOperationOnlyNote => 'Solo operación: no incluye la inversión en equipo.';
+  String get ratioOperationOnlyNote => 'No incluye la inversión en equipo; la siembra y las cercas sí cuentan.';
 
   @override
   String get expenseGroupOtros => 'Otros gastos';
@@ -3229,12 +3229,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String contributionCoverageLine(String pct, String coffee, String covered, String investment) {
-    return 'Los otros productos cubren $pct% de la inversión acumulada de $coffee: $covered de $investment.';
+    return 'Los otros productos cubren $pct% de la inversión inicial de $coffee: $covered de $investment.';
   }
 
   @override
   String contributionCoverageNegative(String covered, String investment, String coffee) {
-    return 'Los otros productos todavía no cubren nada: su aporte acumulado es $covered, frente a $investment invertidos en $coffee.';
+    return 'Los otros productos todavía no cubren nada: su aporte acumulado es $covered, frente a $investment de inversión inicial en $coffee.';
   }
 
   @override
