@@ -1494,6 +1494,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get incomeFootnote => 'Vas a registrar un INGRESO. El monto se usará en tu resumen del mes.';
 
   @override
+  String get reportSalesByState => 'Ventas por estado';
+
+  @override
+  String get reportSalesByStateKg => 'Vendido';
+
+  @override
+  String get reportSalesByStatePrice => 'Precio medio por kg';
+
+  @override
+  String get reportSalesByStateNoKg => 'Sin kilos anotados';
+
+  @override
+  String get productStateLabel => 'Estado del producto';
+
+  @override
+  String get productStateHint => 'Opcional: en qué punto de la cadena vendiste el café.';
+
+  @override
+  String get productStateNone => 'Sin estado';
+
+  @override
+  String get productStateCereza => 'Cereza';
+
+  @override
+  String get productStatePergamino => 'Pergamino';
+
+  @override
+  String get productStateVerde => 'Verde';
+
+  @override
+  String get productStateTueste => 'Tueste';
+
+  @override
   String get prodSectionTitle => 'Datos de producción';
 
   @override

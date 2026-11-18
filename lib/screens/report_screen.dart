@@ -35,6 +35,7 @@ import '../services/report_insights_service.dart';
 import '../services/report_payroll_metrics.dart';
 import '../services/report_period_records.dart';
 import '../services/report_range.dart';
+import '../services/sales_by_state.dart';
 import '../services/unsold_stock.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
@@ -488,6 +489,8 @@ class _ReportScreenState extends State<ReportScreen> {
             _builtSowingCard(context, tx, l10n),
             const SizedBox(height: 20),
             _builtSoldVsHarvestedCard(context, tx, l10n),
+            const SizedBox(height: 20),
+            _builtSalesByStateCard(context, tx, l10n),
             const SizedBox(height: 20),
             _builtPayrollCard(context, tx, l10n),
             const SizedBox(height: 20),
@@ -1943,6 +1946,90 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
               );
             }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Fase 1 · ventas del período agrupadas por estado del café.
+  ///
+  /// Una sección por moneda: sumar pesos y dólares daría un precio medio que
+  /// no significa nada. Las ventas sin estado (plátano, otros cultivos, datos
+  /// viejos) no salen aquí — esta tarjeta es del café.
+  Widget _builtSalesByStateCard(
+      BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
+    final records = _recordsFor(tx);
+    final currencies = <String>{
+      for (final t in records)
+        if (!t.deleted &&
+            t.type == TransactionType.income &&
+            t.productState != null)
+          t.currency,
+    }.toList()
+      ..sort();
+    if (currencies.isEmpty) return const SizedBox.shrink();
+
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.reportSalesByState,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            for (final currency in currencies) ...[
+              // El código de la moneda solo hace falta cuando el período
+              // mezcla más de una; con una sola, el precio ya lo lleva.
+              if (currencies.length > 1)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 2),
+                  child: Text(
+                    currency,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              for (final row in salesByState(records,
+                  currency: currency, sacoKg: tx.settings.sacoKg))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.productState(row.state),
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      _harvestLine(
+                        label: l10n.reportSalesByStateKg,
+                        value:
+                            '${formatKg(row.kg, tx.settings.numberLocale)} kg',
+                        color: scheme.primary,
+                      ),
+                      _harvestLine(
+                        label: l10n.reportSalesByStatePrice,
+                        value: row.pricePerKg == null
+                            ? l10n.reportSalesByStateNoKg
+                            : formatMoneyFor(context, row.pricePerKg!,
+                                currency: currency),
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ],
         ),
       ),

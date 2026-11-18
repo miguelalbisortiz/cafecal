@@ -1,3 +1,5 @@
+import 'categories.dart';
+import 'product_state.dart';
 import 'tasks.dart';
 
 enum TransactionType {
@@ -108,6 +110,15 @@ class Transaction {
   /// cultivo, pero no se muestran por lote.
   final String? cohortSowingId;
 
+  /// Fase 1 · estado del café vendido: cereza, pergamino, verde o tueste.
+  ///
+  /// Es una propiedad **de lo que se vendió**, no del gasto, así que solo
+  /// vive en una venta. `null` = no se anotó (plátano, otros cultivos y todos
+  /// los datos viejos) y no se pinta nada. Un valor colgado de un gasto o de
+  /// una subvención se limpia al leer ([fromJson]) y se marca sucio para que
+  /// la corrección suba.
+  final ProductState? productState;
+
   const Transaction({
     required this.id,
     this.cropId,
@@ -135,6 +146,7 @@ class Transaction {
     this.harvestedKg,
     this.equivalentKg,
     this.cohortSowingId,
+    this.productState,
   });
 
   /// Lo que realmente se pagó: lo entregado menos lo descontado.
@@ -188,6 +200,7 @@ class Transaction {
     Object? harvestedKg = _keep,
     Object? equivalentKg = _keep,
     Object? cohortSowingId = _keep,
+    Object? productState = _keep,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -239,6 +252,11 @@ class Transaction {
       cohortSowingId: cohortSowingId == _keep
           ? this.cohortSowingId
           : cohortSowingId as String?,
+      // Sentinela: al convertir una venta en gasto hay que poder borrar el
+      // estado, no dejarlo escondido en un movimiento que ya no es venta.
+      productState: productState == _keep
+          ? this.productState
+          : productState as ProductState?,
     );
   }
 
@@ -269,6 +287,7 @@ class Transaction {
         'harvested_kg': harvestedKg,
         'equivalent_kg': equivalentKg,
         'cohort_sowing_id': cohortSowingId,
+        'product_state': productState?.serialize,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -279,6 +298,7 @@ class Transaction {
     final task = json['task'] as String?;
     final harvestedKg = (json['harvested_kg'] as num?)?.toDouble();
     final cohortRaw = json['cohort_sowing_id'] as String?;
+    final productStateRaw = json['product_state'] as String?;
 
     // Etapa B · el lote solo tiene sentido en un jornal de «Cosechar» con
     // kilos, dentro de un cultivo y sin lote de terreno. Un registro que llegue
@@ -297,6 +317,13 @@ class Transaction {
         terrenoId == null;
     final sucioLote = cohortRaw != null && !puedeLlevarLote;
 
+    // Fase 1 · el estado del café solo tiene sentido en una venta. Un valor
+    // colgado de un gasto o de una subvención se limpia y se marca sucio para
+    // que la corrección suba.
+    final puedeLlevarEstado =
+        type == TransactionType.income && isSaleCategory(category);
+    final sucioEstado = productStateRaw != null && !puedeLlevarEstado;
+
     return Transaction(
       id: json['id'] as String,
       cropId: cropId,
@@ -309,7 +336,8 @@ class Transaction {
       description: (json['description'] as String?) ?? '',
       date: DateTime.parse(json['date'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
-      pendingSync: ((json['pending_sync'] as bool?) ?? false) || sucioLote,
+      pendingSync:
+          ((json['pending_sync'] as bool?) ?? false) || sucioLote || sucioEstado,
       deleted: (json['deleted'] as bool?) ?? false,
       quantity: (json['quantity'] as num?)?.toDouble(),
       unit: json['unit'] as String?,
@@ -330,6 +358,8 @@ class Transaction {
       equivalentKg: (json['equivalent_kg'] as num?)?.toDouble(),
       // Etapa B · ausente en respaldos viejos → null → sin lote.
       cohortSowingId: puedeLlevarLote ? cohortRaw : null,
+      // Clave ausente en respaldos viejos → null → sin estado.
+      productState: puedeLlevarEstado ? ProductState.parse(productStateRaw) : null,
     );
   }
 }

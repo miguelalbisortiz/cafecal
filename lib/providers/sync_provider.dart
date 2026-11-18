@@ -405,6 +405,9 @@ class SyncProvider extends ChangeNotifier {
         // (incluida null): si se cambia de lote o se deja «sin lote», el pull
         // tiene que reflejarlo.
         'cohort_sowing_id': _uuidOrNull(t.cohortSowingId),
+        // Fase 1 · el estado del café vendido. Completo (incluida null): si se
+        // corrige una venta y se quita el estado, el pull tiene que verlo.
+        'product_state': t.productState?.serialize,
       };
 
   Future<void> _upsertRemote(SupabaseService supabase, Transaction t) async {
@@ -719,6 +722,8 @@ class SyncProvider extends ChangeNotifier {
       'equivalent_kg': (row['equivalent_kg'] as num?)?.toDouble(),
       // Etapa B · filas anteriores a la migración → null → «sin lote».
       'cohort_sowing_id': row['cohort_sowing_id'] as String?,
+      // Fase 1 · filas anteriores a la migración no traen la clave → null.
+      'product_state': row['product_state'] as String?,
     });
   }
 

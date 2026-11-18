@@ -8,6 +8,7 @@ import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/employee.dart';
 import '../models/harvest.dart';
+import '../models/product_state.dart';
 import '../models/settings.dart';
 import '../models/sowing.dart';
 import '../models/terreno.dart';
@@ -325,6 +326,7 @@ class TransactionProvider extends ChangeNotifier {
     double? harvestedKg,
     double? equivalentKg,
     String? cohortSowingId,
+    ProductState? productState,
   }) async {
     final txn = Transaction(
       id: _uuid.v4(),
@@ -356,6 +358,8 @@ class TransactionProvider extends ChangeNotifier {
       // Etapa B · lote al que se atribuyen los kilos del jornal (null = sin
       // lote). Es una medida, no un reparto de la venta.
       cohortSowingId: cohortSowingId,
+      // Fase 1 · estado del café vendido (null = no anotado).
+      productState: productState,
     );
     _transactions = [..._transactions, txn];
     await _store.saveTransactions(_transactions);

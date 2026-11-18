@@ -2825,6 +2825,72 @@ abstract class AppLocalizations {
   /// **'Vas a registrar un INGRESO. El monto se usará en tu resumen del mes.'**
   String get incomeFootnote;
 
+  /// No description provided for @reportSalesByState.
+  ///
+  /// In es, this message translates to:
+  /// **'Ventas por estado'**
+  String get reportSalesByState;
+
+  /// No description provided for @reportSalesByStateKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendido'**
+  String get reportSalesByStateKg;
+
+  /// No description provided for @reportSalesByStatePrice.
+  ///
+  /// In es, this message translates to:
+  /// **'Precio medio por kg'**
+  String get reportSalesByStatePrice;
+
+  /// No description provided for @reportSalesByStateNoKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin kilos anotados'**
+  String get reportSalesByStateNoKg;
+
+  /// No description provided for @productStateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del producto'**
+  String get productStateLabel;
+
+  /// No description provided for @productStateHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional: en qué punto de la cadena vendiste el café.'**
+  String get productStateHint;
+
+  /// No description provided for @productStateNone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin estado'**
+  String get productStateNone;
+
+  /// No description provided for @productStateCereza.
+  ///
+  /// In es, this message translates to:
+  /// **'Cereza'**
+  String get productStateCereza;
+
+  /// No description provided for @productStatePergamino.
+  ///
+  /// In es, this message translates to:
+  /// **'Pergamino'**
+  String get productStatePergamino;
+
+  /// No description provided for @productStateVerde.
+  ///
+  /// In es, this message translates to:
+  /// **'Verde'**
+  String get productStateVerde;
+
+  /// No description provided for @productStateTueste.
+  ///
+  /// In es, this message translates to:
+  /// **'Tueste'**
+  String get productStateTueste;
+
   /// No description provided for @prodSectionTitle.
   ///
   /// In es, this message translates to:

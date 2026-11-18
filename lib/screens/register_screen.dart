@@ -6,6 +6,7 @@ import '../l10n/strings.dart';
 import '../models/categories.dart';
 import '../models/currencies.dart';
 import '../models/harvest.dart';
+import '../models/product_state.dart';
 import '../models/sowing.dart';
 import '../models/tasks.dart';
 import '../models/transaction.dart';
@@ -102,6 +103,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// desplegable de cultivo no manda.
   List<ExpenseShare>? _split;
   String? _unit;
+
+  /// Fase 1 · estado del café vendido (cereza, pergamino, verde, tueste).
+  /// `null` = no anotado.
+  ProductState? _productState;
   String? _harvestId;
   String _currency = 'COP';
   DateTime _date = DateTime.now();
@@ -247,6 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _unit = e.unit;
       _currency = e.currency;
       _harvestId = e.harvestId;
+      _productState = e.productState;
       if (e.quantity != null) {
         _quantityController.text = (e.quantity! % 1 == 0)
             ? e.quantity!.toInt().toString()
@@ -706,6 +712,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       deductionReason = reason.isEmpty ? null : reason;
     }
     final paid = isSaleTxn ? _paid : true;
+    // Fase 1 · el estado del café solo viaja con una venta. Lo oculto no se
+    // guarda: convertir una venta en gasto deja el estado en null.
+    final productState = isSaleTxn ? _productState : null;
 
     final editing = widget.editing;
     if (editing != null) {
@@ -741,6 +750,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         harvestedKg: harvestedKg,
         equivalentKg: equivalentKg,
         cohortSowingId: cohortSowingId,
+        productState: productState,
       ));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -801,6 +811,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         harvestedKg: harvestedKg,
         equivalentKg: equivalentKg,
         cohortSowingId: cohortSowingId,
+        productState: productState,
       );
     }
 
@@ -846,6 +857,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // la anterior: cada registro empieza limpio.
       _hasDeduction = false;
       _paid = true;
+      _productState = null;
     });
   }
 
@@ -1307,6 +1319,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
               currency: _currency,
               locale: tx.settings.numberLocale,
               l10n: l10n,
+            ),
+            const SizedBox(height: 12),
+
+            // Fase 1 · estado del café: en qué punto de la cadena se vendió.
+            // Opcional; «Sin estado» guarda null, nunca un valor inventado
+            // para el plátano ni para los otros cultivos.
+            DropdownButtonFormField<ProductState>(
+              value: _productState,
+              decoration: InputDecoration(
+                labelText: l10n.productStateLabel,
+                helperText: l10n.productStateHint,
+                prefixIcon: const Icon(Icons.eco_outlined),
+                border: const OutlineInputBorder(),
+              ),
+              hint: Text(l10n.productStateNone),
+              items: [
+                DropdownMenuItem<ProductState>(
+                  value: null,
+                  child: Text(l10n.productStateNone),
+                ),
+                for (final s in ProductState.values)
+                  DropdownMenuItem(
+                    value: s,
+                    child: Text(l10n.productState(s)),
+                  ),
+              ],
+              onChanged: (v) => setState(() => _productState = v),
             ),
             const SizedBox(height: 12),
 

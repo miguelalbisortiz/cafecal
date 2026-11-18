@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'generated/app_localizations.dart';
 import '../models/crop.dart';
 import '../models/categories.dart';
+import '../models/product_state.dart';
 import '../models/report_period.dart';
 
 /// Devuelve las traducciones para un código de idioma ('es' o 'en').
@@ -85,6 +86,16 @@ extension L10nCategories on AppLocalizations {
     if (sep == -1) return incomeCategory(key);
     return incomeSaleLabel(cropNameOf(crops, key.substring(sep + 1)));
   }
+}
+
+extension L10nProductState on AppLocalizations {
+  /// Nombre del estado del café en el idioma activo.
+  String productState(ProductState state) => switch (state) {
+        ProductState.cereza => productStateCereza,
+        ProductState.pergamino => productStatePergamino,
+        ProductState.verde => productStateVerde,
+        ProductState.tueste => productStateTueste,
+      };
 }
 
 /// Clave de agrupación de un movimiento en los desgloses de ingresos.
