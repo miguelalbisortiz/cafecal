@@ -170,6 +170,19 @@ void main() {
       expect(r.first.pricePerKg, 10000);
     });
 
+    test('salesByStateByCurrency separa monedas y ordena sus códigos', () {
+      final r = salesByStateByCurrency([
+        _tx(id: 'usd', currency: 'USD', productState: ProductState.verde),
+        _tx(id: 'cop', productState: ProductState.cereza),
+        _tx(id: 'sin', productState: null),
+        _tx(id: 'del', deleted: true, productState: ProductState.tueste),
+      ]);
+
+      expect(r.map((g) => g.currency).toList(), ['COP', 'USD']);
+      expect(r.first.rows.single.state, ProductState.cereza);
+      expect(r.last.rows.single.state, ProductState.verde);
+    });
+
     test('un racimo sin peso no inventa kilos ni precio', () {
       final r = salesByState([
         _tx(quantity: 12, unit: 'racimo', productState: ProductState.cereza),

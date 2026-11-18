@@ -32,6 +32,7 @@ import 'report_insights_service.dart';
 import 'report_payroll_metrics.dart';
 import 'report_period_records.dart';
 import 'report_range.dart';
+import 'sales_by_state.dart';
 import 'unsold_stock.dart';
 import 'week_utils.dart';
 
@@ -480,6 +481,7 @@ class PdfExportService {
           _cropTable(context, periodTx, crops, terrenos, currency, l10n, harvests),
           _contributionSection(
               active, crops, period, year, month, l10n, harvests),
+          _salesByStateSection(periodTx, settings.sacoKg, l10n),
           if (showYearAnnex) ...[
             pw.SizedBox(height: 20),
             pw.Text(
@@ -1826,6 +1828,57 @@ class PdfExportService {
         );
       }),
     ];
+  }
+
+  /// Fase 1 · ventas del período por estado del café.
+  ///
+  /// Misma fuente y mismo criterio de moneda que la tarjeta de Reportes y el
+  /// Excel: `salesByStateByCurrency`, una sección por moneda. Nunca se promedia
+  /// un precio en pesos con otro en dólares.
+  pw.Widget _salesByStateSection(
+      List<Transaction> txs, double sacoKg, AppLocalizations l10n) {
+    final groups = salesByStateByCurrency(txs, sacoKg: sacoKg);
+    if (groups.isEmpty) return pw.SizedBox.shrink();
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.SizedBox(height: 20),
+        pw.Text(
+          l10n.reportSalesByState,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        for (final g in groups) ...[
+          if (groups.length > 1)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 2),
+              child: pw.Text(
+                g.currency,
+                style:
+                    const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+              ),
+            ),
+          for (final r in g.rows) ...[
+            pw.SizedBox(height: 6),
+            pw.Text(
+              l10n.productState(r.state),
+              style:
+                  pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+            ),
+            _statementRow(
+                l10n.reportSalesByStateKg,
+                '${formatKg(r.kg, _locale)} kg',
+                small: true),
+            _statementRow(
+              l10n.reportSalesByStatePrice,
+              r.pricePerKg == null
+                  ? l10n.reportSalesByStateNoKg
+                  : formatPdfMoney(r.pricePerKg!, g.currency),
+              small: true,
+            ),
+          ],
+        ],
+      ],
+    );
   }
 
   pw.Widget _recommendationsSection(

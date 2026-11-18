@@ -19,6 +19,42 @@ class SalesStateTotals {
   double? get pricePerKg => kg > 0 ? amount / kg : null;
 }
 
+/// Las ventas de un estado, dentro de **una** moneda.
+class SalesByStateGroup {
+  final String currency;
+  final List<SalesStateTotals> rows;
+
+  const SalesByStateGroup({required this.currency, required this.rows});
+}
+
+/// Ventas por estado agrupadas por moneda, en orden alfabético de código.
+///
+/// Es la **única** fuente de la tarjeta de Reportes, del PDF y del Excel: las
+/// tres salidas no pueden decidir distinto qué monedas entran ni cómo se
+/// ordenan. Cada grupo trae solo las ventas de su moneda; nunca se suman
+/// pesos con dólares.
+List<SalesByStateGroup> salesByStateByCurrency(
+  List<Transaction> transactions, {
+  double sacoKg = kSacoKgPorDefecto,
+}) {
+  final currencies = <String>{
+    for (final t in transactions)
+      if (!t.deleted &&
+          t.type == TransactionType.income &&
+          t.productState != null)
+        t.currency,
+  }.toList()
+    ..sort();
+
+  return [
+    for (final c in currencies)
+      SalesByStateGroup(
+        currency: c,
+        rows: salesByState(transactions, currency: c, sacoKg: sacoKg),
+      ),
+  ];
+}
+
 /// Agrupa las ventas por estado del café, **en una sola moneda**.
 ///
 /// Mezclar monedas produciría un total que no significa nada; el llamador pide

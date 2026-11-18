@@ -31,6 +31,7 @@ import 'report_payroll_metrics.dart';
 import 'report_period_records.dart';
 import '../utils/format.dart';
 import 'report_range.dart';
+import 'sales_by_state.dart';
 import 'unsold_stock.dart';
 import 'week_utils.dart';
 
@@ -944,6 +945,36 @@ class ExcelExportService {
                 .map((r) =>
                     '${r.name} ${byCurrencyText(r.netOf(m), (v, c) => v > 0 ? '+${formatMoneyLabel(v, c, locale: _locale)}' : formatMoneyLabel(v, c, locale: _locale))}')
                 .join(' · ')),
+          ]);
+        }
+      }
+    }
+
+    // ── Ventas por estado del café ──
+    //
+    // Misma fuente y mismo criterio de moneda que la tarjeta de Reportes y el
+    // PDF: una sección por moneda, sin promediar pesos con dólares.
+    final stateGroups =
+        salesByStateByCurrency(periodTx, sacoKg: settings.sacoKg);
+    if (stateGroups.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.reportSalesByState)]);
+      _styleHeaderRow(sheet, sheet.maxRows - 1, 3, _excelBrown);
+      for (final g in stateGroups) {
+        if (stateGroups.length > 1) row([TextCellValue(g.currency)]);
+        for (final r in g.rows) {
+          row([TextCellValue(l10n.productState(r.state))]);
+          _styleTableHeader(sheet, sheet.maxRows - 1, 3);
+          row([
+            TextCellValue(l10n.reportSalesByStateKg),
+            TextCellValue('${formatKg(r.kg, _locale)} kg'),
+          ]);
+          row([
+            TextCellValue(l10n.reportSalesByStatePrice),
+            TextCellValue(r.pricePerKg == null
+                ? l10n.reportSalesByStateNoKg
+                : formatMoneyLabel(r.pricePerKg!, g.currency,
+                    locale: _locale)),
           ]);
         }
       }

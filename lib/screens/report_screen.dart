@@ -1960,15 +1960,9 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget _builtSalesByStateCard(
       BuildContext context, TransactionProvider tx, AppLocalizations l10n) {
     final records = _recordsFor(tx);
-    final currencies = <String>{
-      for (final t in records)
-        if (!t.deleted &&
-            t.type == TransactionType.income &&
-            t.productState != null)
-          t.currency,
-    }.toList()
-      ..sort();
-    if (currencies.isEmpty) return const SizedBox.shrink();
+    final groups =
+        salesByStateByCurrency(records, sacoKg: tx.settings.sacoKg);
+    if (groups.isEmpty) return const SizedBox.shrink();
 
     final scheme = Theme.of(context).colorScheme;
     return Card(
@@ -1985,14 +1979,14 @@ class _ReportScreenState extends State<ReportScreen> {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            for (final currency in currencies) ...[
+            for (final group in groups) ...[
               // El código de la moneda solo hace falta cuando el período
               // mezcla más de una; con una sola, el precio ya lo lleva.
-              if (currencies.length > 1)
+              if (groups.length > 1)
                 Padding(
                   padding: const EdgeInsets.only(top: 4, bottom: 2),
                   child: Text(
-                    currency,
+                    group.currency,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -2000,8 +1994,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                   ),
                 ),
-              for (final row in salesByState(records,
-                  currency: currency, sacoKg: tx.settings.sacoKg))
+              for (final row in group.rows)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Column(
@@ -2023,7 +2016,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         value: row.pricePerKg == null
                             ? l10n.reportSalesByStateNoKg
                             : formatMoneyFor(context, row.pricePerKg!,
-                                currency: currency),
+                                currency: group.currency),
                         color: scheme.onSurfaceVariant,
                       ),
                     ],
