@@ -1,6 +1,6 @@
 ---
 prd: (sin PRD — nace de la revisión del ciclo cafetero pedida por el dueño)
-status: FASE 1 DONE 2026-11-18 · FASES 2 y 3 PENDIENTES
+status: FASES 1, 2 y 3 DONE (2026-11-18 → 11-19) · alerta costo vs precio pendiente
 created: 2026-11-18_1200
 source:
   - D:\proyecto\calcafe (código real en main, commit 8ce9558)
