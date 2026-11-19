@@ -909,7 +909,7 @@
   },
   "reportChipWeek": "Sem {week}",
   "harvestCargasLabel": "cargas",
-  "harvestCargasNote": "1 carga ≈ 60 lbs ≈ 27.2 kg",
+  "harvestCargasNote": "1 carga ≈ 60 lbs ≈ 27,2 kg",
   "incomeStatementTitle": "Estado de resultados",
   "noIncomePeriod": "Sin ingresos en este período",
   "totalExpensesLabel": "Total de gastos",

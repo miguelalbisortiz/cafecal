@@ -3926,7 +3926,7 @@ abstract class AppLocalizations {
   /// No description provided for @harvestCargasNote.
   ///
   /// In es, this message translates to:
-  /// **'1 carga ≈ 60 lbs ≈ 27.2 kg'**
+  /// **'1 carga ≈ 60 lbs ≈ 27,2 kg'**
   String get harvestCargasNote;
 
   /// No description provided for @incomeStatementTitle.

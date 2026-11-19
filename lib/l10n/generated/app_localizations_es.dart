@@ -2099,7 +2099,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get harvestCargasLabel => 'cargas';
 
   @override
-  String get harvestCargasNote => '1 carga ≈ 60 lbs ≈ 27.2 kg';
+  String get harvestCargasNote => '1 carga ≈ 60 lbs ≈ 27,2 kg';
 
   @override
   String get incomeStatementTitle => 'Estado de resultados';

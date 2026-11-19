@@ -988,6 +988,13 @@ class _ReportScreenState extends State<ReportScreen> {
         tx.storedHarvests.where((h) => _inPeriod(h.date)));
     final pendingSales = pendingWeightSales(_recordsFor(tx));
     final nameById = {for (final c in tx.crops) c.id: c.name};
+    // Kilos de café del período, calculados una sola vez: la línea de cargas
+    // repetía la misma búsqueda tres veces y cualquier cambio en una copia la
+    // desviaba de las otras.
+    final cafeCrops = byCrop.where((c) =>
+        c.name.toLowerCase().contains('café') ||
+        c.name.toLowerCase().contains('cafe'));
+    final cafeKg = cafeCrops.fold<double>(0, (a, c) => a + c.kg);
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -1018,25 +1025,21 @@ class _ReportScreenState extends State<ReportScreen> {
               ...byCrop.map((c) => _harvestLine(
                     label: c.name,
                     value: '${_num(c.amount)} ${c.unit}',
-                    extra: '${_numKg(c.kg)} kg',
+                    // Con la unidad en kg, el monto ya es el peso: mostrarlo
+                    // otra vez diría «300 kg 300 kg».
+                    extra: c.unit == 'kg' ? null : '${_numKg(c.kg)} kg',
                     color: scheme.primary,
                   )),
               // Métrica de cargas para café
-              if (byCrop.any((c) =>
-                  c.name.toLowerCase().contains('café') ||
-                  c.name.toLowerCase().contains('cafe'))) ...[
+              if (cafeCrops.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 _harvestLine(
                   label: '☕ ${l10n.harvestCargasLabel}',
-                  value: '${_numKg(byCrop
-                      .where((c) =>
-                          c.name.toLowerCase().contains('café') ||
-                          c.name.toLowerCase().contains('cafe'))
-                      .fold<double>(0, (a, c) => a + c.kg))} kg → ${kgToCargas(byCrop
-                      .where((c) =>
-                          c.name.toLowerCase().contains('café') ||
-                          c.name.toLowerCase().contains('cafe'))
-                      .fold<double>(0, (a, c) => a + c.kg))} ${l10n.harvestCargasLabel}',
+                  // Las cargas son una cantidad, no plata: coma decimal del
+                  // idioma («11,02»), no el punto de `toString()`.
+                  value: '${_numKg(cafeKg)} kg → '
+                      '${formatKg(kgToCargas(cafeKg), tx.settings.numberLocale)} '
+                      '${l10n.harvestCargasLabel}',
                   color: scheme.primary,
                   bold: true,
                 ),
