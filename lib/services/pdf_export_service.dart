@@ -1260,11 +1260,11 @@ class PdfExportService {
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
           ),
           for (final row in threshing) ...[
+            // Formatos compartidos: el factor sale con el decimal del idioma
+            // («5,2»), no con el punto de `toStringAsFixed`.
             _statementRow(
-              '    ${row.crop.name} · ${l10n.reportThreshingFactor} '
-                  '${_numKg(row.crop.threshingYield!)}',
-              l10n.reportThreshingRow(
-                  _numKg(row.cherryKg), _numKg(row.sellableKg)),
+              '    ${threshingLabel(row, l10n, _locale)}',
+              threshingKgLine(row, l10n, _locale),
               small: true,
             ),
             if (row.costPerSellableKg != null)

@@ -1902,10 +1902,8 @@ class ExcelExportService {
       row([TextCellValue(l10n.reportThreshingTitle)]);
       for (final r in threshing) {
         row([
-          TextCellValue('${r.crop.name} · ${l10n.reportThreshingFactor} '
-              '${formatKg(r.crop.threshingYield!, _locale)}'),
-          TextCellValue(l10n.reportThreshingRow(formatKg(r.cherryKg, _locale),
-              formatKg(r.sellableKg, _locale))),
+          TextCellValue(threshingLabel(r, l10n, _locale)),
+          TextCellValue(threshingKgLine(r, l10n, _locale)),
         ]);
         if (r.costPerSellableKg != null) {
           row([

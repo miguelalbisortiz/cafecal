@@ -15,13 +15,15 @@ import 'package:mi_cafetal/services/excel_export_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
 import 'package:mi_cafetal/services/pdf_export_service.dart';
 import 'package:mi_cafetal/services/threshing_yield.dart';
-import 'package:mi_cafetal/utils/format.dart';
 
 AppLocalizations get _es => stringsFor('es');
 
-/// Café con 300 kg de cereza, factor 5 y 300.000 de gastos de producción:
-/// 60 kg vendibles y 5.000 por kg vendible.
-Future<TransactionProvider> _fixture({double? factor = 5}) async {
+/// Café con 300 kg de cereza, factor 5,2 y 300.000 de gastos de producción:
+/// 57,69 kg vendibles y 5.200 por kg vendible.
+///
+/// El factor lleva decimal a propósito: es lo que destapó que el PDF lo
+/// escribía «5.20» y la pantalla «5,2».
+Future<TransactionProvider> _fixture({double? factor = 5.2}) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   final prefs = await SharedPreferences.getInstance();
   final store = LocalStore(prefs);
@@ -105,19 +107,25 @@ void main() {
       transactions: p.transactions,
       sacoKg: p.settings.sacoKg,
     ).single;
-    expect(servicio.sellableKg, 60);
-    expect(servicio.costPerSellableKg, 5000);
+    expect(servicio.sellableKg, closeTo(57.69, 0.01));
+    expect(servicio.costPerSellableKg, closeTo(5200, 0.01));
+
+    // El formato es el del idioma, y se fija acá: coma en español, punto en
+    // inglés. Las tres salidas usan estas mismas dos funciones.
+    final etiqueta = threshingLabel(servicio, _es, 'es');
+    expect(etiqueta, 'Café · factor 5,2');
+    expect(threshingLabel(servicio, stringsFor('en'), 'en'),
+        'Café · factor 5.2');
 
     expect(
         rows.any((r) =>
-            r.first == 'Café · ${_es.reportThreshingFactor} '
-                '${formatKg(5, 'es')}' &&
+            r.first == etiqueta &&
             r.length > 1 &&
-            r[1] ==
-                _es.reportThreshingRow(
-                    formatKg(300, 'es'), formatKg(60, 'es'))),
+            r[1] == threshingKgLine(servicio, _es, 'es')),
         isTrue,
         reason: 'falta la fila del rendimiento de trilla');
+    // El bug que esto cierra: `toStringAsFixed` daba «5.20» en el PDF.
+    expect(rows.any((r) => r.first.contains('5.20')), isFalse);
     expect(rows.any((r) => r.first == _es.reportThreshingTitle), isTrue);
     expect(rows.any((r) => r.first == _es.reportThreshingCost), isTrue);
     expect(rows.any((r) => r.first == _es.reportThreshingNote), isTrue);

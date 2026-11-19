@@ -1,7 +1,9 @@
+import '../l10n/generated/app_localizations.dart';
 import '../models/categories.dart';
 import '../models/crop.dart';
 import '../models/harvest.dart';
 import '../models/transaction.dart';
+import '../utils/format.dart';
 import 'report_harvest_metrics.dart';
 
 /// Fase 3 · kilos vendibles (pergamino) que salen de [cherryKg].
@@ -18,6 +20,22 @@ double? sellableKgFromCherry(double cherryKg, double? factor) {
   if (cherryKg <= 0) return null;
   return cherryKg / factor;
 }
+
+/// «Café · factor 5,2», con el decimal del idioma.
+///
+/// Una sola función para pantalla, PDF y Excel: el PDF formateaba el factor
+/// con `toStringAsFixed` y decía «5.20» mientras la pantalla decía «5,2».
+String threshingLabel(ThreshingRow row, AppLocalizations l10n, String locale) =>
+    '${row.crop.name} · ${l10n.reportThreshingFactor} '
+    '${formatKg(row.crop.threshingYield!, locale)}';
+
+/// «300 kg de cereza = 60 kg vendibles», también con el decimal del idioma.
+String threshingKgLine(
+        ThreshingRow row, AppLocalizations l10n, String locale) =>
+    l10n.reportThreshingRow(
+      formatKg(row.cherryKg, locale),
+      formatKg(row.sellableKg, locale),
+    );
 
 /// Una fila de rendimiento: un cultivo con factor anotado y kilos cosechados.
 class ThreshingRow {

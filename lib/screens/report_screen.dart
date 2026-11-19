@@ -1116,12 +1116,10 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(height: 4),
                 for (final row in threshing) ...[
                   _harvestLine(
-                    label: '${row.crop.name} · ${l10n.reportThreshingFactor} '
-                        '${formatKg(row.crop.threshingYield!, tx.settings.numberLocale)}',
-                    value: l10n.reportThreshingRow(
-                      formatKg(row.cherryKg, tx.settings.numberLocale),
-                      formatKg(row.sellableKg, tx.settings.numberLocale),
-                    ),
+                    label: threshingLabel(
+                        row, l10n, tx.settings.numberLocale),
+                    value: threshingKgLine(
+                        row, l10n, tx.settings.numberLocale),
                     color: scheme.primary,
                   ),
                   if (row.costPerSellableKg != null)
