@@ -252,6 +252,21 @@ class ReportHarvestMetrics {
     return out;
   }
 
+  /// Gastos de beneficio **sin** cosecha ligada.
+  ///
+  /// No entran al costo por kg (no se sabe a qué cosecha cargarlos), pero
+  /// tampoco se esconden: son costo del período y se muestran aparte. Quien
+  /// llama los suma por moneda con [amountsByCurrency].
+  Iterable<Transaction> benefitCostsWithoutHarvest(
+      List<Transaction> transactions) sync* {
+    for (final t in transactions) {
+      if (t.deleted || !t.type.isExpense) continue;
+      if (!isBenefitCategory(t.category)) continue;
+      if (t.harvestId != null) continue;
+      yield t;
+    }
+  }
+
   /// Monedas de los montos que suman [totalCostPerKg] y
   /// [accumulatedInvestment] de un cultivo.
   Set<String> cropAmountCurrencies(List<Transaction> cropRecords) {

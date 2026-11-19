@@ -2854,6 +2854,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportBenefitCostPerKg => 'Processing and drying per kg';
 
   @override
+  String get reportBenefitCostUnlinked => 'Processing with no harvest linked';
+
+  @override
+  String get reportBenefitCostUnlinkedNote => 'It stays a period cost: it is left out of the cost per kg because there is no harvest to charge it to.';
+
+  @override
   String get catRiego => 'Irrigation';
 
   @override

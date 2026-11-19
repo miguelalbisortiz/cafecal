@@ -5177,6 +5177,18 @@ abstract class AppLocalizations {
   /// **'Beneficio y secado por kg'**
   String get reportBenefitCostPerKg;
 
+  /// No description provided for @reportBenefitCostUnlinked.
+  ///
+  /// In es, this message translates to:
+  /// **'Beneficio sin cosecha ligada'**
+  String get reportBenefitCostUnlinked;
+
+  /// No description provided for @reportBenefitCostUnlinkedNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Es costo del período: no entra al costo por kg porque no se sabe a qué cosecha cargarlo.'**
+  String get reportBenefitCostUnlinkedNote;
+
   /// No description provided for @catRiego.
   ///
   /// In es, this message translates to:

@@ -1876,6 +1876,19 @@ class ExcelExportService {
         metrics.benefitCostPerKg(periodTx, periodHarvests),
         metrics.benefitCostCurrencies(periodTx));
 
+    // Beneficio anotado sin cosecha: costo del período, fuera del por kg.
+    final unlinkedBenefit =
+        amountsByCurrency(metrics.benefitCostsWithoutHarvest(periodTx));
+    if (unlinkedBenefit.isNotEmpty) {
+      row([null, null, null]);
+      row([
+        TextCellValue(l10n.reportBenefitCostUnlinked),
+        TextCellValue(byCurrencyText(unlinkedBenefit,
+            (v, c) => formatMoneyLabel(v, c, locale: _locale))),
+      ]);
+      row([TextCellValue(l10n.reportBenefitCostUnlinkedNote)]);
+    }
+
     // Costo total por kg / inversión acumulada y rendimiento por cultivo.
     row([null, null, null]);
     for (final c in byCrop) {

@@ -2854,6 +2854,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportBenefitCostPerKg => 'Beneficio y secado por kg';
 
   @override
+  String get reportBenefitCostUnlinked => 'Beneficio sin cosecha ligada';
+
+  @override
+  String get reportBenefitCostUnlinkedNote => 'Es costo del período: no entra al costo por kg porque no se sabe a qué cosecha cargarlo.';
+
+  @override
   String get catRiego => 'Riego';
 
   @override

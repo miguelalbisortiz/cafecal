@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mi_cafetal/models/categories.dart';
 import 'package:mi_cafetal/models/harvest.dart';
 import 'package:mi_cafetal/models/transaction.dart';
+import 'package:mi_cafetal/services/currency_totals.dart';
 import 'package:mi_cafetal/services/report_harvest_metrics.dart';
 
 Transaction _tx({
@@ -104,6 +105,33 @@ void main() {
       final harvests = [_h('h1', 100)];
       expect(metrics.benefitCostCurrencies(txs), hasLength(2));
       expect(metrics.benefitCostPerKg(txs, harvests), isNull);
+    });
+  });
+
+  group('beneficio sin cosecha ligada', () {
+    const metrics = ReportHarvestMetrics();
+
+    test('lista solo los gastos de beneficio sin harvestId, sin borrados', () {
+      final txs = [
+        _tx(id: 'b1', amount: 40000, harvestId: 'h1'),
+        _tx(id: 'b2', category: kExpenseCategoryDrying, amount: 25000),
+        _tx(id: 'b3', amount: 10000, deleted: true),
+        _tx(id: 'c1', category: kExpenseCategoryHarvest, amount: 5000),
+      ];
+      final out = metrics.benefitCostsWithoutHarvest(txs).toList();
+      expect(out.map((t) => t.id), ['b2']);
+      expect(amountsByCurrency(out), {'COP': 25000});
+    });
+
+    test('no se cuela en el costo por kg, que solo mira lo ligado', () {
+      final txs = [
+        _tx(id: 'b1', amount: 40000, harvestId: 'h1'),
+        _tx(id: 'b2', amount: 60000),
+      ];
+      final harvests = [_h('h1', 100)];
+      expect(metrics.benefitCostPerKg(txs, harvests), 400);
+      expect(amountsByCurrency(metrics.benefitCostsWithoutHarvest(txs)),
+          {'COP': 60000});
     });
   });
 

@@ -972,6 +972,10 @@ class _ReportScreenState extends State<ReportScreen> {
     // moneda. Los pinta el helper para que no se separen nunca.
     final pickupCurrencies = metrics.pickupCostCurrencies(pickupRecords);
     final benefitCurrencies = metrics.benefitCostCurrencies(pickupRecords);
+    // Beneficio anotado sin decir de qué cosecha: no se reparte por kg, se
+    // muestra como costo del período. Sumado por moneda, sin cruzar COP/USD.
+    final unlinkedBenefit =
+        amountsByCurrency(metrics.benefitCostsWithoutHarvest(pickupRecords));
     final staffHarvests = harvests
         .where((h) => h.workers != null || h.equivalentKg != null)
         .toList();
@@ -1073,6 +1077,23 @@ class _ReportScreenState extends State<ReportScreen> {
                 currencies: benefitCurrencies,
                 hintColor: scheme.onSurfaceVariant,
               ),
+              if (unlinkedBenefit.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _harvestLine(
+                  label: l10n.reportBenefitCostUnlinked,
+                  value: byCurrencyText(unlinkedBenefit,
+                      (v, c) => formatMoneyFor(context, v, currency: c)),
+                  color: scheme.onSurfaceVariant,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    l10n.reportBenefitCostUnlinkedNote,
+                    style: TextStyle(
+                        fontSize: 11, color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
               // Personal y kilos por cosecha (si se registraron).
               if (staffHarvests.isNotEmpty) ...[
                 const SizedBox(height: 8),

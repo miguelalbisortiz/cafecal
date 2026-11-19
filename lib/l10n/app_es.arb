@@ -1386,6 +1386,8 @@
   "benefitCategoryHint": "Lo que cuesta convertir cereza en pergamino: pelado, fermentación y lavado. Ligado a una cosecha, entra al costo de beneficio por kg.",
   "dryingCategoryHint": "Secado y clasificación: marquesas, secadora y selección por calidad. Ligado a una cosecha, entra al costo de beneficio por kg.",
   "reportBenefitCostPerKg": "Beneficio y secado por kg",
+  "reportBenefitCostUnlinked": "Beneficio sin cosecha ligada",
+  "reportBenefitCostUnlinkedNote": "Es costo del período: no entra al costo por kg porque no se sabe a qué cosecha cargarlo.",
   "catRiego": "Riego",
   "catEnergia": "Energía",
   "catAgua": "Agua",

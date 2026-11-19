@@ -1171,6 +1171,9 @@ class PdfExportService {
     final byDestination = metrics.totalsByDestination(periodHarvests);
     final pickupCurrencies = metrics.pickupCostCurrencies(srcTx);
     final benefitCurrencies = metrics.benefitCostCurrencies(srcTx);
+    // Beneficio anotado sin cosecha: costo del período, fuera del por kg.
+    final unlinkedBenefit =
+        amountsByCurrency(metrics.benefitCostsWithoutHarvest(srcTx));
     // Moneda mixta: esas cifras no son válidas y la nota final lo explica.
     final mixedCurrencies = <String>{
       if (pickupCurrencies.length > 1) ...pickupCurrencies,
@@ -1234,6 +1237,14 @@ class PdfExportService {
             l10n.reportBenefitCostPerKg,
             metrics.benefitCostPerKg(srcTx, periodHarvests),
             benefitCurrencies),
+        if (unlinkedBenefit.isNotEmpty) ...[
+          _statementRow(
+            l10n.reportBenefitCostUnlinked,
+            byCurrencyText(unlinkedBenefit, (v, c) => formatPdfMoney(v, c)),
+            small: true,
+          ),
+          _smallNote(l10n.reportBenefitCostUnlinkedNote),
+        ],
         // Costo total por kg e indicadores por cultivo (producción).
         ..._perCropHarvestRows(byCrop, crops, periodHarvests, allHarvests,
             srcTx, sowings,
@@ -1506,15 +1517,17 @@ class PdfExportService {
         child: pw.Text(text, style: style),
       );
 
+  /// Nota chica bajo una fila.
+  pw.Widget _smallNote(String text, {double fontSize = 8}) => pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: pw.Text(text,
+            style: pw.TextStyle(fontSize: fontSize, color: PdfColors.grey700)),
+      );
+
   /// Aviso genérico de moneda mixta (cada monto con su moneda; nunca se
   /// suman ni se comparan entre sí).
-  pw.Widget _mixedNote(AppLocalizations l10n, int currencies) => pw.Padding(
-        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        child: pw.Text(
-          l10n.currencyMixedByCurrencyNote(currencies),
-          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
-        ),
-      );
+  pw.Widget _mixedNote(AppLocalizations l10n, int currencies) =>
+      _smallNote(l10n.currencyMixedByCurrencyNote(currencies), fontSize: 9);
 
   /// Sección "Caja menor": una fila por mes del período con presupuesto,
   /// jornales, extras, total y saldo. Solo con monto configurado
