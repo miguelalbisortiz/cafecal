@@ -1,0 +1,7 @@
+# Los .dart van siempre con LF en el repo.
+#
+# En Windows, `flutter test` y `flutter gen-l10n` regeneran
+# lib/l10n/generated/*.dart con CRLF. Sin esta regla, el commit siguiente
+# reescribe esos archivos enteros (~12.000 líneas) aunque solo haya cambiado
+# una clave: el diff se vuelve ilegible y el merge, un conflicto seguro.
+*.dart text eol=lf
