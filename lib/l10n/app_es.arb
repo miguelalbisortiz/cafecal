@@ -1449,6 +1449,22 @@
     "placeholders": { "crop": { "type": "String" } }
   },
   "alertHarvestVsSalesSuggestion": "Compara tus registros de {crop}: asegúrate de registrar cada cosecha y cada venta con la misma unidad para evitar desfases.",
+  "@alertRealCostTitle": {
+    "placeholders": { "crop": { "type": "String" }, "state": { "type": "String" } }
+  },
+  "alertRealCostTitle": "{crop} en {state} deja menos del 10% de margen",
+  "@alertRealCostDangerTitle": {
+    "placeholders": { "crop": { "type": "String" }, "state": { "type": "String" } }
+  },
+  "alertRealCostDangerTitle": "Vendes {crop} en {state} por debajo del costo",
+  "@alertRealCostMessage": {
+    "placeholders": { "state": { "type": "String" }, "price": { "type": "String" }, "cost": { "type": "String" }, "margin": { "type": "String" } }
+  },
+  "alertRealCostMessage": "En los últimos 12 meses el precio medio en {state} fue {price} por kg y tu costo real de producción es {cost} por kg: te queda un margen del {margin}. Con menos del 10% no hay colchón para un imprevisto.",
+  "@alertRealCostSuggestion": {
+    "placeholders": { "crop": { "type": "String" } }
+  },
+  "alertRealCostSuggestion": "Renegocia el precio de {crop}, vende en un estado más avanzado o baja el costo de producción: si el margen es negativo, cada kilo que vendes pierde dinero.",
   "alertRecentlyPlantedTitle": "Registraste una siembra reciente",
   "@alertRecentlyPlantedMessage": {
     "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }

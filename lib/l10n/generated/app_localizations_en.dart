@@ -2975,6 +2975,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String alertRealCostTitle(String crop, String state) {
+    return '$crop sold as $state leaves less than 10% margin';
+  }
+
+  @override
+  String alertRealCostDangerTitle(String crop, String state) {
+    return 'You are selling $crop as $state below cost';
+  }
+
+  @override
+  String alertRealCostMessage(String state, String price, String cost, String margin) {
+    return 'In the last 12 months the average price for $state was $price per kg and your real production cost is $cost per kg: that leaves a $margin margin. Under 10% there is no cushion for a surprise.';
+  }
+
+  @override
+  String alertRealCostSuggestion(String crop) {
+    return 'Renegotiate the price for $crop, sell at a later stage or lower your production cost: if the margin is negative, every kilo you sell loses money.';
+  }
+
+  @override
   String get alertRecentlyPlantedTitle => 'You recorded a recent planting';
 
   @override

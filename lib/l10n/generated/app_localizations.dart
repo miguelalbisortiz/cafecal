@@ -5387,6 +5387,30 @@ abstract class AppLocalizations {
   /// **'Compara tus registros de {crop}: asegúrate de registrar cada cosecha y cada venta con la misma unidad para evitar desfases.'**
   String alertHarvestVsSalesSuggestion(String crop);
 
+  /// No description provided for @alertRealCostTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'{crop} en {state} deja menos del 10% de margen'**
+  String alertRealCostTitle(String crop, String state);
+
+  /// No description provided for @alertRealCostDangerTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vendes {crop} en {state} por debajo del costo'**
+  String alertRealCostDangerTitle(String crop, String state);
+
+  /// No description provided for @alertRealCostMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'En los últimos 12 meses el precio medio en {state} fue {price} por kg y tu costo real de producción es {cost} por kg: te queda un margen del {margin}. Con menos del 10% no hay colchón para un imprevisto.'**
+  String alertRealCostMessage(String state, String price, String cost, String margin);
+
+  /// No description provided for @alertRealCostSuggestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Renegocia el precio de {crop}, vende en un estado más avanzado o baja el costo de producción: si el margen es negativo, cada kilo que vendes pierde dinero.'**
+  String alertRealCostSuggestion(String crop);
+
   /// No description provided for @alertRecentlyPlantedTitle.
   ///
   /// In es, this message translates to:

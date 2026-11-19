@@ -28,6 +28,9 @@ enum AlertRule {
   // ninguna cosecha registrada. Se apaga sola al primer cosecha o a los
   // 12 meses de la fecha (no existe descarte de alertas en la app).
   firstHarvestOverdue,
+  // Fase 3 · el precio medio del estado en que vende no cubre el costo real
+  // por kg vendible (margen < 10%; en rojo si es negativo).
+  realCostVsPrice,
   // Tanda 3 · hito 1: aviso de stock por cultivo. No lo emite `evaluateAlerts`; las
   // filas se appendan en los tres pintadores después de `derive`.
   unsoldStock,

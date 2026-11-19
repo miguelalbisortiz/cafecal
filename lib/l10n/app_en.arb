@@ -1244,6 +1244,22 @@
     "placeholders": { "crop": { "type": "String" } }
   },
   "alertHarvestVsSalesSuggestion": "Compare your {crop} records: make sure each harvest and each sale uses the same unit to avoid mismatches.",
+  "@alertRealCostTitle": {
+    "placeholders": { "crop": { "type": "String" }, "state": { "type": "String" } }
+  },
+  "alertRealCostTitle": "{crop} sold as {state} leaves less than 10% margin",
+  "@alertRealCostDangerTitle": {
+    "placeholders": { "crop": { "type": "String" }, "state": { "type": "String" } }
+  },
+  "alertRealCostDangerTitle": "You are selling {crop} as {state} below cost",
+  "@alertRealCostMessage": {
+    "placeholders": { "state": { "type": "String" }, "price": { "type": "String" }, "cost": { "type": "String" }, "margin": { "type": "String" } }
+  },
+  "alertRealCostMessage": "In the last 12 months the average price for {state} was {price} per kg and your real production cost is {cost} per kg: that leaves a {margin} margin. Under 10% there is no cushion for a surprise.",
+  "@alertRealCostSuggestion": {
+    "placeholders": { "crop": { "type": "String" } }
+  },
+  "alertRealCostSuggestion": "Renegotiate the price for {crop}, sell at a later stage or lower your production cost: if the margin is negative, every kilo you sell loses money.",
   "alertRecentlyPlantedTitle": "You recorded a recent planting",
   "@alertRecentlyPlantedMessage": {
     "placeholders": { "crop": { "type": "String" }, "date": { "type": "String" } }

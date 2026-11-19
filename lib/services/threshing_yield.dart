@@ -54,11 +54,18 @@ class ThreshingRow {
   /// nada.
   final double? costPerSellableKg;
 
+  /// Moneda de [costPerSellableKg], o `null` si no hay costo.
+  ///
+  /// La necesita la alerta de costo real: sin saber en qué moneda está el
+  /// costo no se puede comparar con el precio de una venta sin mezclar.
+  final String? costCurrency;
+
   const ThreshingRow({
     required this.crop,
     required this.cherryKg,
     required this.sellableKg,
     required this.costPerSellableKg,
+    this.costCurrency,
   });
 }
 
@@ -90,12 +97,13 @@ List<ThreshingRow> threshingRows({
     final cherryKg = cherryByCrop[crop.id] ?? 0;
     final sellableKg = sellableKgFromCherry(cherryKg, crop.threshingYield);
     if (sellableKg == null) continue;
+    final cost = _productionCost(transactions, crop.id, sellableKg);
     out.add(ThreshingRow(
       crop: crop,
       cherryKg: cherryKg,
       sellableKg: sellableKg,
-      costPerSellableKg:
-          _productionCostPerSellableKg(transactions, crop.id, sellableKg),
+      costPerSellableKg: cost?.perKg,
+      costCurrency: cost?.currency,
     ));
   }
   // El que más kilos vendibles aporta va primero, como el resto de la tarjeta.
@@ -109,7 +117,7 @@ List<ThreshingRow> threshingRows({
 /// El equipo queda fuera: comprar una despulpadora no encarece el kilo de
 /// esta cosecha, igual que en [ReportHarvestMetrics.totalCostPerKg]. Venta,
 /// fijos e impuestos tampoco entran a un costo de producción.
-double? _productionCostPerSellableKg(
+({double perKg, String currency})? _productionCost(
     Iterable<Transaction> transactions, String cropId, double sellableKg) {
   if (sellableKg <= 0) return null;
   double cost = 0;
@@ -124,5 +132,5 @@ double? _productionCostPerSellableKg(
     monedas.add(t.currency);
   }
   if (!hay || monedas.length > 1) return null;
-  return cost / sellableKg;
+  return (perKg: cost / sellableKg, currency: monedas.first);
 }

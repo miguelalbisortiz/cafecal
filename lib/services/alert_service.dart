@@ -13,6 +13,7 @@ import '../models/units.dart';
 import '../utils/format.dart';
 import 'crop_totals.dart';
 import 'low_price_check.dart';
+import 'real_cost_vs_price.dart';
 import 'report_payroll_metrics.dart';
 
 /// El **único** punto por el que la app le pide alertas al motor.
@@ -110,6 +111,8 @@ class AlertService {
     _checkDeficitCrop(active, crops, harvests, l10n, alerts);
     _checkHarvestVsSales(active, crops, harvests, now, l10n, alerts,
         sacoKg: sacoKg);
+    _checkRealCostVsPrice(active, crops, harvests, now, l10n, alerts,
+        sacoKg: sacoKg);
     _checkRecentlyPlanted(sowings, now, crops, l10n, alerts);
     _checkMissingQuantity(active, now, l10n, alerts);
     _checkCashBox(active, now, l10n, alerts,
@@ -130,6 +133,27 @@ class AlertService {
   /// redondeo fijo a cero: una cuenta en dólares conserva los centavos.
   String _money(double value, String currency) =>
       formatAmount(value, currency: currency, locale: _locale);
+
+  /// El margen en porcentaje, con los decimales del idioma y sin el «-0%» que
+  /// sale de redondear.
+  ///
+  /// El resto de los avisos redondea a entero; acá no alcanza. Con el umbral
+  /// en el 10%, un margen del 0,4% se imprimía «0%» —que se lee como «no queda
+  /// nada»— y uno del −0,4%, «−0%». La precisión se elige por tamaño: entero
+  /// de 10% para arriba, un decimal hasta el 1%, dos decimales abajo.
+  String _marginPercent(double margin) {
+    final pct = margin * 100;
+    final abs = pct.abs();
+    final decimals = abs >= 10 ? 0 : (abs >= 1 ? 1 : 2);
+    final pattern = decimals == 0 ? '#,##0' : '#,##0.${'0' * decimals}';
+    final format = NumberFormat(pattern, _locale);
+    final limite = decimals == 0 ? 0.5 : (decimals == 1 ? 0.05 : 0.005);
+    if (abs < limite) {
+      // Redondear daría «0%» o «-0%»: un cero con signo no informa nada.
+      return '${format.format(0)}%';
+    }
+    return '${format.format(pct)}%';
+  }
 
   // ---- Regla 1: categoría de gasto > 2× promedio histórico mensual ----
 
@@ -563,6 +587,55 @@ class AlertService {
           suggestion: l10n.alertHarvestVsSalesSuggestion(label),
         ));
       }
+    }
+  }
+
+  // ---- Regla 14: el precio del estado no cubre el costo de producción ----
+
+  /// Fase 3 · pone frente a frente el **costo real por kg vendible** —el de la
+  /// tarjeta de trilla— y el precio medio del estado en que vende, en los
+  /// últimos 12 meses.
+  ///
+  /// Por debajo del 10% de margen avisa en amarillo: con tan poco colchón
+  /// cualquier imprevisto se come la ganancia. Con el margen **negativo** va en
+  /// rojo, porque no es un margen flaco: cada kilo vendido deja plata.
+  ///
+  /// La regla vive en [realCostWarnings], que es también la que se puede
+  /// probar sola; acá solo se elige el texto y el color.
+  void _checkRealCostVsPrice(
+    List<Transaction> txns,
+    List<Crop> crops,
+    List<Harvest> harvests,
+    DateTime now,
+    AppLocalizations l10n,
+    List<FarmAlert> out, {
+    double sacoKg = kSacoKgPorDefecto,
+  }) {
+    for (final row in realCostWarnings(
+      transactions: txns,
+      crops: crops,
+      harvests: harvests,
+      sacoKg: sacoKg,
+      now: now,
+    )) {
+      final state = l10n.productState(row.state);
+      final perdida = row.margin < 0;
+      out.add(FarmAlert(
+        id: 'real_cost_${row.crop.id}',
+        rule: AlertRule.realCostVsPrice,
+        severity:
+            perdida ? AlertSeverity.danger : AlertSeverity.warning,
+        title: perdida
+            ? l10n.alertRealCostDangerTitle(row.crop.name, state)
+            : l10n.alertRealCostTitle(row.crop.name, state),
+        message: l10n.alertRealCostMessage(
+          state,
+          _money(row.pricePerKg, row.currency),
+          _money(row.costPerKg, row.currency),
+          _marginPercent(row.margin),
+        ),
+        suggestion: l10n.alertRealCostSuggestion(row.crop.name),
+      ));
     }
   }
 
