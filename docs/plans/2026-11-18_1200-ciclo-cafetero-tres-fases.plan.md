@@ -1,10 +1,10 @@
 ---
 prd: (sin PRD — nace de la revisión del ciclo cafetero pedida por el dueño)
-status: FASES 1, 2 y 3 DONE (2026-11-18 → 11-19) · alerta costo vs precio pendiente
+status: FASES 1, 2 y 3 DONE (2026-11-18 → 11-19) · alerta costo vs precio DONE (`d34a9ac`)
 created: 2026-11-18_1200
 source:
-  - D:\proyecto\calcafe (código real en main, commit 8ce9558)
-repo_state: main en 8ce9558 con Fase 1 sin commitear al escribir este plan
+  - D:\proyecto\calcafe (código real en main)
+repo_state: main en `d34a9ac`; plan actualizado 2026-11-19 tras cerrar la alerta
 ---
 
 # Plan: ciclo cafetero en tres fases
@@ -106,7 +106,7 @@ mutua con recogida).
 - Las cifras de pantalla, PDF y Excel salen de la misma función.
 - Migración: ninguna (son categorías, no columnas). Los datos viejos no cambian.
 
-## Fase 3 — Rendimiento de trilla (DONE salvo la alerta)
+## Fase 3 — Rendimiento de trilla (DONE)
 
 **Alcance entregado**
 
@@ -123,8 +123,20 @@ mutua con recogida).
   glifo para «→».
 - 15 tests: 12 del servicio y el modelo, 3 de paridad en los exportadores.
 
-**Pendiente**: la alerta de costo real > precio logrado (ítem 4). Se dejó para
-cuando haya números reales con los que elegir el umbral.
+**Alerta costo real vs precio (DONE, `d34a9ac`)**
+
+- `lib/services/real_cost_vs_price.dart`: ventana de 12 meses; una fila por
+  cultivo con el estado de peor margen; costo de `threshingRows` frente al
+  precio medio por estado. Cereza divide el costo por el factor de trilla;
+  pergamino lo usa tal cual; verde y tueste no se comparan.
+- Umbral: aviso amarillo por debajo del **10%** de margen; rojo si el margen
+  es **negativo**. Sin factor, sin estado, sin kilos o con monedas no
+  comparables no se emite: nunca una fila con ceros.
+- `AlertRule.realCostVsPrice`, copy ES/EN y `test/real_cost_vs_price_test.dart`.
+  Se emite desde `evaluateAlerts`, con el mismo costo que ya muestran Reportes,
+  PDF y Excel.
+
+**Cierre**: la fase no deja pendiente de código declarado.
 
 **Objetivo**: saber cuánto café vendible sale de un kilo de cereza y cuál es el
 costo real por kilo vendible.
@@ -150,4 +162,5 @@ costo real por kilo vendible.
   elección del productor. Sin ella, la tarjeta no aparece.
 - El rendimiento de trilla varía por lote y por año; se guarda lo que él anota
   y no se promedia entre lotes sin decirlo.
-- Nada de esto requiere cambios de esquema salvo la columna de Fase 1.
+- La Fase 1 y la Fase 3 requieren columna nueva (`product_state` y
+  `threshing_yield`, ambas aplicadas en Supabase); la Fase 2 no toca esquema.
