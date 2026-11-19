@@ -988,9 +988,7 @@ class _ReportScreenState extends State<ReportScreen> {
         tx.storedHarvests.where((h) => _inPeriod(h.date)));
     final pendingSales = pendingWeightSales(_recordsFor(tx));
     final nameById = {for (final c in tx.crops) c.id: c.name};
-    // Kilos de café del período, calculados una sola vez: la línea de cargas
-    // repetía la misma búsqueda tres veces y cualquier cambio en una copia la
-    // desviaba de las otras.
+    // Kilos de café del período: la línea de cargas los pedía tres veces.
     final cafeCrops = byCrop.where((c) =>
         c.name.toLowerCase().contains('café') ||
         c.name.toLowerCase().contains('cafe'));
@@ -1035,11 +1033,12 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(height: 6),
                 _harvestLine(
                   label: '☕ ${l10n.harvestCargasLabel}',
-                  // Las cargas son una cantidad, no plata: coma decimal del
-                  // idioma («11,02»), no el punto de `toString()`.
-                  value: '${_numKg(cafeKg)} kg → '
-                      '${formatKg(kgToCargas(cafeKg), tx.settings.numberLocale)} '
-                      '${l10n.harvestCargasLabel}',
+                  // Los dos números de la línea con la misma regla: coma
+                  // decimal del idioma («11,02»), no el punto de `toString()`.
+                  value:
+                      '${formatKg(cafeKg, tx.settings.numberLocale)} kg → '
+                          '${formatKg(kgToCargas(cafeKg), tx.settings.numberLocale)} '
+                          '${l10n.harvestCargasLabel}',
                   color: scheme.primary,
                   bold: true,
                 ),
