@@ -2836,7 +2836,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get catCosecha => 'Cosecha y recolección';
 
   @override
+  String get catBeneficio => 'Beneficio y procesamiento';
+
+  @override
+  String get catSecado => 'Secado y clasificación';
+
+  @override
   String get catPlagas => 'Control plagas';
+
+  @override
+  String get benefitCategoryHint => 'Lo que cuesta convertir cereza en pergamino: pelado, fermentación y lavado. Ligado a una cosecha, entra al costo de beneficio por kg.';
+
+  @override
+  String get dryingCategoryHint => 'Secado y clasificación: marquesas, secadora y selección por calidad. Ligado a una cosecha, entra al costo de beneficio por kg.';
+
+  @override
+  String get reportBenefitCostPerKg => 'Beneficio y secado por kg';
 
   @override
   String get catRiego => 'Riego';

@@ -5141,11 +5141,41 @@ abstract class AppLocalizations {
   /// **'Cosecha y recolección'**
   String get catCosecha;
 
+  /// No description provided for @catBeneficio.
+  ///
+  /// In es, this message translates to:
+  /// **'Beneficio y procesamiento'**
+  String get catBeneficio;
+
+  /// No description provided for @catSecado.
+  ///
+  /// In es, this message translates to:
+  /// **'Secado y clasificación'**
+  String get catSecado;
+
   /// No description provided for @catPlagas.
   ///
   /// In es, this message translates to:
   /// **'Control plagas'**
   String get catPlagas;
+
+  /// No description provided for @benefitCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que cuesta convertir cereza en pergamino: pelado, fermentación y lavado. Ligado a una cosecha, entra al costo de beneficio por kg.'**
+  String get benefitCategoryHint;
+
+  /// No description provided for @dryingCategoryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Secado y clasificación: marquesas, secadora y selección por calidad. Ligado a una cosecha, entra al costo de beneficio por kg.'**
+  String get dryingCategoryHint;
+
+  /// No description provided for @reportBenefitCostPerKg.
+  ///
+  /// In es, this message translates to:
+  /// **'Beneficio y secado por kg'**
+  String get reportBenefitCostPerKg;
 
   /// No description provided for @catRiego.
   ///

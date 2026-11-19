@@ -45,6 +45,8 @@ extension L10nCategories on AppLocalizations {
         'fertilizante' => catFertilizante,
         'mano_obra' => catManoObra,
         kExpenseCategoryHarvest => catCosecha,
+        kExpenseCategoryBenefit => catBeneficio,
+        kExpenseCategoryDrying => catSecado,
         'plagas' => catPlagas,
         'riego' => catRiego,
         'energia' => catEnergia,

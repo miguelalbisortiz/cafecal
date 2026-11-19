@@ -135,6 +135,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// históricos.
   static const _harvestLinkCategories = {
     kExpenseCategoryHarvest,
+    kExpenseCategoryBenefit,
+    kExpenseCategoryDrying,
     'empaque',
     'transporte',
   };
@@ -227,6 +229,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return switch (_category) {
       kExpenseCategorySowing => l10n.sowingCategoryHint,
       kExpenseCategoryHarvest => l10n.harvestCategoryHint,
+      kExpenseCategoryBenefit => l10n.benefitCategoryHint,
+      kExpenseCategoryDrying => l10n.dryingCategoryHint,
       'mano_obra' => l10n.laborCategoryHint,
       'semillas_insumos' => l10n.seedsCategoryHint,
       'riego' => l10n.irrigationCategoryHint,

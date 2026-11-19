@@ -23,7 +23,7 @@ La propuesta inicial de tres mejoras se corrigió tras leer el código:
 |---|---|---|
 | Rendimiento por lote | Ya existe: `cohort_kilos`, `per_hectare_panel`, `expectedYieldPerHa` | **Descartada**; se reemplaza por rendimiento de trilla (Fase 3) |
 | Ingresos diferenciados por estado | No existe: todas las ventas de café caen en la misma fila | **Fase 1** |
-| Costos de beneficio/procesamiento | No existe: las 19 categorías no tienen beneficio | **Fase 2** |
+| Costos de beneficio/procesamiento | Existía el hueco: las categorías no tenían beneficio | **Fase 2 (DONE)** |
 
 ## Decisiones de diseño
 
@@ -59,10 +59,31 @@ La propuesta inicial de tres mejoras se corrigió tras leer el código:
 `buildTransactionPayload` manda la columna a mano y sin ella PostgREST
 responde PGRST204 y se cae el subido completo.
 
-## Fase 2 — Beneficio y procesamiento (PENDIENTE)
+## Fase 2 — Beneficio y procesamiento (DONE)
 
 **Objetivo**: registrar lo que cuesta pasar de cereza a pergamino/verde y
 saber el costo de beneficio por kilo.
+
+**Alcance entregado**
+
+- `beneficio` («Beneficio y procesamiento») y `secado` («Secado y
+  clasificación») en `expenseCategories` y en `_productionKeys` → 21
+  categorías; entran al costo de producción y no al bloque de inversión.
+- `kBenefitCategoryKeys` / `isBenefitCategory` en `categories.dart`.
+- Ambas en `_harvestLinkCategories` de `register_screen`: el gasto se puede
+  ligar a la cosecha que benefició.
+- `ReportHarvestMetrics.benefitCostPerKg` + `benefitCostCurrencies`: gastos de
+  beneficio **con `harvestId`** ÷ kg cosechados. Sin lazo no inventa un costo
+  por kg (el gasto sigue en su categoría y en el total del período).
+- `_pickupCosts` excluye las categorías de beneficio: beneficiar no es
+  recoger, y antes cualquier gasto con `harvestId` subía el costo de recogida.
+- Línea «Beneficio y secado por kg» en Reportes, PDF y Excel, todas desde la
+  misma función; con monedas mezcladas sale guion y la nota de moneda.
+- 5 claves ARB nuevas en ES/EN + ayuda de categoría para cada una.
+
+**Tests**: `test/benefit_cost_test.dart` (9 casos: grupo, catálogo, división,
+null sin vínculo / sin gastos / sin kg, borrados, moneda mixta y la exclusión
+mutua con recogida).
 
 **Alcance previsto**
 

@@ -2836,7 +2836,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catCosecha => 'Harvesting';
 
   @override
+  String get catBeneficio => 'Processing';
+
+  @override
+  String get catSecado => 'Drying and sorting';
+
+  @override
   String get catPlagas => 'Pest control';
+
+  @override
+  String get benefitCategoryHint => 'What it costs to turn cherry into parchment: pulping, fermentation and washing. Linked to a harvest, it feeds the processing cost per kg.';
+
+  @override
+  String get dryingCategoryHint => 'Drying and sorting: drying beds, dryer and quality selection. Linked to a harvest, it feeds the processing cost per kg.';
+
+  @override
+  String get reportBenefitCostPerKg => 'Processing and drying per kg';
 
   @override
   String get catRiego => 'Irrigation';

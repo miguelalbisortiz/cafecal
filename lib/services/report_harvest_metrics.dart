@@ -187,6 +187,9 @@ class ReportHarvestMetrics {
     final vistos = <String>{};
     for (final t in transactions) {
       if (t.deleted || !t.type.isExpense) continue;
+      // Fase 2 · beneficiar no es recoger: si este gasto entrara aquí, el
+      // costo de recogida por kg subiría con plata de otro eslabón.
+      if (isBenefitCategory(t.category)) continue;
       if (t.harvestId == null && !isMeasuredHarvestJornal(t)) continue;
       if (!vistos.add(t.id)) continue;
       yield t;
@@ -197,6 +200,53 @@ class ReportHarvestMetrics {
   Set<String> pickupCostCurrencies(List<Transaction> transactions) {
     final out = <String>{};
     for (final t in _pickupCosts(transactions)) {
+      out.add(t.currency);
+    }
+    return out;
+  }
+
+  /// Fase 2 · costo de beneficio por kg: pelado, secado y clasificación ÷ kg
+  /// cosechados.
+  ///
+  /// Solo cuenta lo **ligado a una cosecha** (`harvestId`): sin ese lazo no
+  /// hay kilos contra los que dividir, y repartirlo por un promedio sería
+  /// inventar. El gasto igual suma al total del período en su categoría.
+  ///
+  /// Devuelve `null` si no hay ningún gasto de beneficio (nunca un 0 que se
+  /// lea como «beneficiar fue gratis») y si esos gastos mezclan monedas.
+  double? benefitCostPerKg(
+      List<Transaction> transactions, List<Harvest> harvests) {
+    double kg = 0;
+    for (final h in harvests) {
+      kg += _kgOf(h);
+    }
+    if (kg <= 0) return null;
+
+    double cost = 0;
+    var hay = false;
+    for (final t in _benefitCosts(transactions)) {
+      cost += t.amount;
+      hay = true;
+    }
+    if (!hay) return null;
+    if (benefitCostCurrencies(transactions).length > 1) return null;
+    return cost / kg;
+  }
+
+  /// Gastos de beneficio ligados a una cosecha.
+  Iterable<Transaction> _benefitCosts(List<Transaction> transactions) sync* {
+    for (final t in transactions) {
+      if (t.deleted || !t.type.isExpense) continue;
+      if (!isBenefitCategory(t.category)) continue;
+      if (t.harvestId == null) continue;
+      yield t;
+    }
+  }
+
+  /// Monedas de los gastos de beneficio (los que forman su costo por kg).
+  Set<String> benefitCostCurrencies(List<Transaction> transactions) {
+    final out = <String>{};
+    for (final t in _benefitCosts(transactions)) {
       out.add(t.currency);
     }
     return out;

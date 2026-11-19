@@ -1846,21 +1846,21 @@ class ExcelExportService {
       ]);
     }
 
-    // Costo de recogida por kg. Solo es válido si todos los montos que lo
-    // componen son de una moneda; con mezcla sale en guion y se explica.
+    // Costos por kg: recogida y beneficio. Cada uno solo es válido si todos
+    // sus montos son de una moneda; con mezcla sale guion y se explica al pie.
     final mixedCurrencies = <String>{};
-    final pickupCurrencies = metrics.pickupCostCurrencies(periodTx);
-    final pickupMixed = pickupCurrencies.length > 1;
-    final pickupKg = metrics.pickupCostPerKg(periodTx, periodHarvests);
-    if (pickupKg != null || pickupMixed) {
-      if (pickupMixed) mixedCurrencies.addAll(pickupCurrencies);
+
+    void costPerKgRow(String label, double? perKg, Set<String> currencies) {
+      final mixed = currencies.length > 1;
+      if (perKg == null && !mixed) return;
+      if (mixed) mixedCurrencies.addAll(currencies);
       row([null, null, null]);
       row([
-        TextCellValue(l10n.reportPickupCostPerKg),
-        pickupMixed ? TextCellValue('—') : DoubleCellValue(pickupKg!),
+        TextCellValue(label),
+        mixed ? TextCellValue('—') : DoubleCellValue(perKg!),
       ]);
       // Es un precio unitario: dos decimales, o 21,96 se leería 22.
-      if (!pickupMixed) {
+      if (!mixed) {
         sheet
             .cell(CellIndex.indexByColumnRow(
                 columnIndex: 1, rowIndex: sheet.maxRows - 1))
@@ -1868,6 +1868,13 @@ class ExcelExportService {
             numberFormat: NumFormat.custom(formatCode: '#,##0.00'));
       }
     }
+
+    costPerKgRow(l10n.reportPickupCostPerKg,
+        metrics.pickupCostPerKg(periodTx, periodHarvests),
+        metrics.pickupCostCurrencies(periodTx));
+    costPerKgRow(l10n.reportBenefitCostPerKg,
+        metrics.benefitCostPerKg(periodTx, periodHarvests),
+        metrics.benefitCostCurrencies(periodTx));
 
     // Costo total por kg / inversión acumulada y rendimiento por cultivo.
     row([null, null, null]);

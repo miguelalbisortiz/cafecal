@@ -1169,13 +1169,30 @@ class PdfExportService {
     final srcTx = source.toList();
     final byCrop = metrics.totalsByCrop(periodHarvests, crops);
     final byDestination = metrics.totalsByDestination(periodHarvests);
-    final pickupKg = metrics.pickupCostPerKg(srcTx, periodHarvests);
-    // El costo por kg solo es válido si todos los montos que lo componen
-    // son de una moneda; con mezcla la fila sale en guion y se explica.
-    final pickupMixed = metrics.pickupCostCurrencies(srcTx).length > 1;
+    final pickupCurrencies = metrics.pickupCostCurrencies(srcTx);
+    final benefitCurrencies = metrics.benefitCostCurrencies(srcTx);
+    // Moneda mixta: esas cifras no son válidas y la nota final lo explica.
     final mixedCurrencies = <String>{
-      if (pickupMixed) ...metrics.pickupCostCurrencies(srcTx),
+      if (pickupCurrencies.length > 1) ...pickupCurrencies,
+      if (benefitCurrencies.length > 1) ...benefitCurrencies,
     };
+
+    // Un costo por kg (recogida, beneficio) sin gastos no se pinta; con
+    // monedas mezcladas sale en guion, nunca promediando pesos y dólares.
+    List<pw.Widget> costPerKg(
+        String label, double? perKg, Set<String> currencies) {
+      final mixed = currencies.length > 1;
+      if (perKg == null && !mixed) return const <pw.Widget>[];
+      return [
+        pw.SizedBox(height: 2),
+        _statementRow(
+          label,
+          mixed ? '—' : formatPdfMoney(perKg!, currency, decimals: 2),
+          small: true,
+          bold: true,
+        ),
+      ];
+    }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1209,17 +1226,14 @@ class PdfExportService {
               _num(e.value),
               small: true,
             )),
-        if (pickupKg != null || pickupMixed) ...[
-          pw.SizedBox(height: 2),
-          _statementRow(
+        ...costPerKg(
             l10n.reportPickupCostPerKg,
-            pickupMixed
-                ? '—'
-                : formatPdfMoney(pickupKg!, currency, decimals: 2),
-            small: true,
-            bold: true,
-          ),
-        ],
+            metrics.pickupCostPerKg(srcTx, periodHarvests),
+            pickupCurrencies),
+        ...costPerKg(
+            l10n.reportBenefitCostPerKg,
+            metrics.benefitCostPerKg(srcTx, periodHarvests),
+            benefitCurrencies),
         // Costo total por kg e indicadores por cultivo (producción).
         ..._perCropHarvestRows(byCrop, crops, periodHarvests, allHarvests,
             srcTx, sowings,

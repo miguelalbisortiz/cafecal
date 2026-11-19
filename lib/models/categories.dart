@@ -50,6 +50,23 @@ const String kExpenseCategoryFences = 'cercas_preparacion';
 /// manual y puede vincularse a una cosecha concreta desde el editor de gastos.
 const String kExpenseCategoryHarvest = 'cosecha';
 
+/// Fase 2 · lo que cuesta pasar de cereza a pergamino/verde: pelado,
+/// fermentación y lavado.
+const String kExpenseCategoryBenefit = 'beneficio';
+
+/// Fase 2 · secado, marquesas y clasificación por calidad.
+const String kExpenseCategoryDrying = 'secado';
+
+/// Categorías de beneficio: el segundo eslabón del café, entre recoger y
+/// vender. No son costo de recogida, así que no entran en su costo por kg.
+const Set<String> kBenefitCategoryKeys = {
+  kExpenseCategoryBenefit,
+  kExpenseCategoryDrying,
+};
+
+/// ¿Es una categoría de beneficio/procesamiento?
+bool isBenefitCategory(String key) => kBenefitCategoryKeys.contains(key);
+
 /// Categorías de gasto que descuentan de la caja menor además de los
 /// jornales (mano de obra). Son los "gastos extras o misceláneos" de la
 /// planilla: energía, agua, imprevistos y arreglos. Insumos, abonos y
@@ -95,6 +112,9 @@ const List<ExpenseCategory> expenseCategories = [
   ExpenseCategory(key: 'fertilizante', name: 'Fertilizante', icon: '🧪', color: '#43A047'),
   ExpenseCategory(key: 'mano_obra', name: 'Mano de obra', icon: '👷', color: '#1E88E5'),
   ExpenseCategory(key: kExpenseCategoryHarvest, name: 'Cosecha y recolección', icon: '🧺', color: '#F57F17'),
+  // Fase 2 · el eslabón que faltaba: convertir cereza en pergamino/verde.
+  ExpenseCategory(key: kExpenseCategoryBenefit, name: 'Beneficio y procesamiento', icon: '🫘', color: '#6D4C41'),
+  ExpenseCategory(key: kExpenseCategoryDrying, name: 'Secado y clasificación', icon: '☀️', color: '#F9A825'),
   ExpenseCategory(key: 'plagas', name: 'Control plagas', icon: '🐛', color: '#E53935'),
   ExpenseCategory(key: 'riego', name: 'Riego', icon: '💧', color: '#00ACC1'),
   ExpenseCategory(key: 'energia', name: 'Energía', icon: '⚡', color: '#FBC02D'),
@@ -125,7 +145,9 @@ const Set<String> _productionKeys = {
   'semillas_insumos',
   'fertilizante',
   'mano_obra',
-  'cosecha',
+  kExpenseCategoryHarvest,
+  kExpenseCategoryBenefit,
+  kExpenseCategoryDrying,
   'plagas',
   'riego',
 };
