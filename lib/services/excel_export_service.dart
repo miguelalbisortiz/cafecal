@@ -32,6 +32,7 @@ import 'report_period_records.dart';
 import '../utils/format.dart';
 import 'report_range.dart';
 import 'sales_by_state.dart';
+import 'threshing_yield.dart';
 import 'unsold_stock.dart';
 import 'week_utils.dart';
 
@@ -1887,6 +1888,33 @@ class ExcelExportService {
             (v, c) => formatMoneyLabel(v, c, locale: _locale))),
       ]);
       row([TextCellValue(l10n.reportBenefitCostUnlinkedNote)]);
+    }
+
+    // Fase 3 · rendimiento de trilla: solo cultivos con factor y cosecha.
+    final threshing = threshingRows(
+      crops: crops,
+      harvests: periodHarvests,
+      transactions: periodTx,
+      sacoKg: sacoKg,
+    );
+    if (threshing.isNotEmpty) {
+      row([null, null, null]);
+      row([TextCellValue(l10n.reportThreshingTitle)]);
+      for (final r in threshing) {
+        row([
+          TextCellValue('${r.crop.name} · ${l10n.reportThreshingFactor} '
+              '${formatKg(r.crop.threshingYield!, _locale)}'),
+          TextCellValue(l10n.reportThreshingRow(formatKg(r.cherryKg, _locale),
+              formatKg(r.sellableKg, _locale))),
+        ]);
+        if (r.costPerSellableKg != null) {
+          row([
+            TextCellValue(l10n.reportThreshingCost),
+            DoubleCellValue(r.costPerSellableKg!),
+          ]);
+        }
+      }
+      row([TextCellValue(l10n.reportThreshingNote)]);
     }
 
     // Costo total por kg / inversión acumulada y rendimiento por cultivo.

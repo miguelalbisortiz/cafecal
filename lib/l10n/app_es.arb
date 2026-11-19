@@ -1388,6 +1388,21 @@
   "reportBenefitCostPerKg": "Beneficio y secado por kg",
   "reportBenefitCostUnlinked": "Beneficio sin cosecha ligada",
   "reportBenefitCostUnlinkedNote": "Es costo del período: no entra al costo por kg porque no se sabe a qué cosecha cargarlo.",
+  "threshingYieldLabel": "Rendimiento de trilla",
+  "reportThreshingTitle": "Rendimiento de trilla",
+  "reportThreshingFactor": "factor",
+  "reportThreshingRow": "{cherry} kg de cereza = {sellable} kg vendibles",
+  "@reportThreshingRow": {
+    "placeholders": {
+      "cherry": { "type": "String" },
+      "sellable": { "type": "String" }
+    }
+  },
+  "reportThreshingCost": "Costo real por kg vendible",
+  "reportThreshingNote": "Sale del factor que anotaste en cada cultivo. Sin factor no se calcula.",
+  "helpThreshingYieldShort": "Kg de cereza para 1 kg de pergamino. Vacío = no se calcula.",
+  "helpThreshingYield": "Cuántos kilos de cereza hacen un kilo de pergamino. En café suele estar entre 4 y 6. Con ese dato la app pasa lo cosechado a café vendible y calcula el costo real por kilo vendible.",
+  "threshingYieldTooLow": "El rendimiento tiene que ser mayor que 1: de un kilo de cereza no puede salir más de un kilo de pergamino.",
   "catRiego": "Riego",
   "catEnergia": "Energía",
   "catAgua": "Agua",

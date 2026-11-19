@@ -404,6 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
           plantedAt: form.plantedAt,
           expectedYieldPerHa: form.expectedYieldPerHa,
           primerCosechaEsperada: form.primerCosechaEsperada,
+          threshingYield: form.threshingYield,
         ));
       },
       onEdit: (crop, d) => tx.updateCrop(crop.copyWith(

@@ -2860,6 +2860,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportBenefitCostUnlinkedNote => 'Es costo del período: no entra al costo por kg porque no se sabe a qué cosecha cargarlo.';
 
   @override
+  String get threshingYieldLabel => 'Rendimiento de trilla';
+
+  @override
+  String get reportThreshingTitle => 'Rendimiento de trilla';
+
+  @override
+  String get reportThreshingFactor => 'factor';
+
+  @override
+  String reportThreshingRow(String cherry, String sellable) {
+    return '$cherry kg de cereza = $sellable kg vendibles';
+  }
+
+  @override
+  String get reportThreshingCost => 'Costo real por kg vendible';
+
+  @override
+  String get reportThreshingNote => 'Sale del factor que anotaste en cada cultivo. Sin factor no se calcula.';
+
+  @override
+  String get helpThreshingYieldShort => 'Kg de cereza para 1 kg de pergamino. Vacío = no se calcula.';
+
+  @override
+  String get helpThreshingYield => 'Cuántos kilos de cereza hacen un kilo de pergamino. En café suele estar entre 4 y 6. Con ese dato la app pasa lo cosechado a café vendible y calcula el costo real por kilo vendible.';
+
+  @override
+  String get threshingYieldTooLow => 'El rendimiento tiene que ser mayor que 1: de un kilo de cereza no puede salir más de un kilo de pergamino.';
+
+  @override
   String get catRiego => 'Riego';
 
   @override

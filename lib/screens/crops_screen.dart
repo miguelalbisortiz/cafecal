@@ -300,6 +300,8 @@ class CropsScreen extends StatelessWidget {
         expectedYieldPerHa: form.expectedYieldPerHa,
         // E5: al crear el campo ni siquiera se enseña, así que siempre null.
         primerCosechaEsperada: form.primerCosechaEsperada,
+        // Fase 3: ídem el rendimiento de trilla.
+        threshingYield: form.threshingYield,
       );
       if (!wasEmpty || !context.mounted) return;
       // Primer cultivo: el onboarding invita a agregar varios existentes.
@@ -358,6 +360,8 @@ class CropsScreen extends StatelessWidget {
       expectedYieldPerHa: form.expectedYieldPerHa,
       // E5: ídem — la fecha estimada se puede borrar.
       primerCosechaEsperada: form.primerCosechaEsperada,
+      // Fase 3: ídem — vaciar el campo borra el rendimiento.
+      threshingYield: form.threshingYield,
       // W1: se puede sacar el cultivo de su terreno tan legítimo como
       // ponerlo, por eso el null va tal cual (centinela, no `??`).
       terrenoId: form.terrenoId,

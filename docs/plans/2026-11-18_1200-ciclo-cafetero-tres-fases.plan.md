@@ -106,7 +106,25 @@ mutua con recogida).
 - Las cifras de pantalla, PDF y Excel salen de la misma función.
 - Migración: ninguna (son categorías, no columnas). Los datos viejos no cambian.
 
-## Fase 3 — Rendimiento de trilla (PENDIENTE)
+## Fase 3 — Rendimiento de trilla (DONE salvo la alerta)
+
+**Alcance entregado**
+
+- `Crop.threshingYield`: **kg de cereza por 1 kg de pergamino** (5 = de 5 kg
+  de cereza sale 1 kg vendible). Se anota por cultivo, no por lote.
+- Migración aditiva `202611190001_add_crop_threshing_yield.sql`; payload y pull
+  del sync; campo «Rendimiento de trilla» en la ficha del cultivo, con
+  validación (un factor ≤ 1 diría que sale más pergamino que cereza).
+- `lib/services/threshing_yield.dart`: `sellableKgFromCherry` y
+  `threshingRows` con «costo real por kg vendible» = gastos de producción ÷
+  kg vendibles. Sin factor, sin cosecha o con monedas mezcladas no hay cifra.
+- Bloque «Rendimiento de trilla» en Reportes, PDF y Excel, desde la misma
+  función; la fila usa una frase traducida porque la fuente del PDF no tiene
+  glifo para «→».
+- 15 tests: 12 del servicio y el modelo, 3 de paridad en los exportadores.
+
+**Pendiente**: la alerta de costo real > precio logrado (ítem 4). Se dejó para
+cuando haya números reales con los que elegir el umbral.
 
 **Objetivo**: saber cuánto café vendible sale de un kilo de cereza y cuál es el
 costo real por kilo vendible.

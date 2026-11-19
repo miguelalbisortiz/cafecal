@@ -33,6 +33,7 @@ import 'report_payroll_metrics.dart';
 import 'report_period_records.dart';
 import 'report_range.dart';
 import 'sales_by_state.dart';
+import 'threshing_yield.dart';
 import 'unsold_stock.dart';
 import 'week_utils.dart';
 
@@ -1174,6 +1175,13 @@ class PdfExportService {
     // Beneficio anotado sin cosecha: costo del período, fuera del por kg.
     final unlinkedBenefit =
         amountsByCurrency(metrics.benefitCostsWithoutHarvest(srcTx));
+    // Fase 3 · rendimiento de trilla: solo cultivos con factor y cosecha.
+    final threshing = threshingRows(
+      crops: crops,
+      harvests: periodHarvests,
+      transactions: srcTx,
+      sacoKg: sacoKg,
+    );
     // Moneda mixta: esas cifras no son válidas y la nota final lo explica.
     final mixedCurrencies = <String>{
       if (pickupCurrencies.length > 1) ...pickupCurrencies,
@@ -1244,6 +1252,29 @@ class PdfExportService {
             small: true,
           ),
           _smallNote(l10n.reportBenefitCostUnlinkedNote),
+        ],
+        if (threshing.isNotEmpty) ...[
+          pw.SizedBox(height: 4),
+          pw.Text(
+            l10n.reportThreshingTitle,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          ),
+          for (final row in threshing) ...[
+            _statementRow(
+              '    ${row.crop.name} · ${l10n.reportThreshingFactor} '
+                  '${_numKg(row.crop.threshingYield!)}',
+              l10n.reportThreshingRow(
+                  _numKg(row.cherryKg), _numKg(row.sellableKg)),
+              small: true,
+            ),
+            if (row.costPerSellableKg != null)
+              _statementRow(
+                '        ${l10n.reportThreshingCost}',
+                formatPdfMoney(row.costPerSellableKg!, currency, decimals: 2),
+                small: true,
+              ),
+          ],
+          _smallNote(l10n.reportThreshingNote),
         ],
         // Costo total por kg e indicadores por cultivo (producción).
         ..._perCropHarvestRows(byCrop, crops, periodHarvests, allHarvests,

@@ -54,6 +54,13 @@ class Crop {
   /// `null` = no la estima → no se pinta nada.
   final DateTime? primerCosechaEsperada;
 
+  /// Fase 3 · kilos de cereza que hacen 1 kg de pergamino (5 = de 5 kg de
+  /// cereza sale 1 kg vendible). Lo escribe el productor: varía por lote, por
+  /// variedad y por año, así que no se precarga ni se promedia.
+  ///
+  /// `null` = no se calcula ningún rendimiento, y la app no pinta la cifra.
+  final double? threshingYield;
+
   /// W1 · **el terreno donde está plantado**, opcional.
   ///
   /// No es una categoría ni una etiqueta: es la tierra. Dentro de un terreno
@@ -80,6 +87,7 @@ class Crop {
     this.plantedAt,
     this.expectedYieldPerHa,
     this.primerCosechaEsperada,
+    this.threshingYield,
     this.terrenoId,
   });
 
@@ -99,6 +107,7 @@ class Crop {
     Object? plantedAt = _sentinel,
     Object? expectedYieldPerHa = _sentinel,
     Object? primerCosechaEsperada = _sentinel,
+    Object? threshingYield = _sentinel,
     Object? terrenoId = _sentinel,
   }) {
     return Crop(
@@ -128,6 +137,10 @@ class Crop {
       primerCosechaEsperada: primerCosechaEsperada == _sentinel
           ? this.primerCosechaEsperada
           : primerCosechaEsperada as DateTime?,
+      // Centinela por lo mismo que la meta: el campo vacío BORRA el factor.
+      threshingYield: threshingYield == _sentinel
+          ? this.threshingYield
+          : (threshingYield as num?)?.toDouble(),
       // Sentinela también: poder sacar un cultivo de su terreno es tan
       // legítimo como ponerlo, y con `String?` a secas no habría forma.
       terrenoId: terrenoId == _sentinel ? this.terrenoId : terrenoId as String?,
@@ -150,6 +163,7 @@ class Crop {
         'planted_at': plantedAt?.toIso8601String(),
         'expected_yield_kg_ha': expectedYieldPerHa,
         'primer_cosecha_esperada': primerCosechaEsperada?.toIso8601String(),
+        'threshing_yield': threshingYield,
         'terreno_id': terrenoId,
       };
 
@@ -181,6 +195,8 @@ class Crop {
       expectedYieldPerHa: (json['expected_yield_kg_ha'] as num?)?.toDouble(),
       // Respaldo anterior a E5 no trae la clave → null → sin fecha estimada.
       primerCosechaEsperada: _fechaDe(json['primer_cosecha_esperada']),
+      // Respaldo anterior a la migración no trae la clave → null → sin cifra.
+      threshingYield: (json['threshing_yield'] as num?)?.toDouble(),
       // Respaldo anterior a W1 no trae la clave → null → sin terreno.
       terrenoId: json['terreno_id'] as String?,
     );

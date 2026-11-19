@@ -424,6 +424,7 @@ class TransactionProvider extends ChangeNotifier {
     DateTime? plantedAt,
     double? expectedYieldPerHa,
     DateTime? primerCosechaEsperada,
+    double? threshingYield,
     String? terrenoId,
   }) async {
     final crop = Crop(
@@ -441,6 +442,7 @@ class TransactionProvider extends ChangeNotifier {
       plantedAt: plantedAt,
       expectedYieldPerHa: expectedYieldPerHa,
       primerCosechaEsperada: primerCosechaEsperada,
+      threshingYield: threshingYield,
       terrenoId: terrenoId,
       pendingSync: true,
     );

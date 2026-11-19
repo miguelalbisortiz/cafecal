@@ -115,6 +115,8 @@ class CropSetupPrompt {
       expectedYieldPerHa: form.expectedYieldPerHa,
       // E5: ídem — la fecha estimada se puede borrar.
       primerCosechaEsperada: form.primerCosechaEsperada,
+      // Fase 3: ídem — vaciar el campo borra el rendimiento.
+      threshingYield: form.threshingYield,
     ));
   }
 }

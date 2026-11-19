@@ -5189,6 +5189,60 @@ abstract class AppLocalizations {
   /// **'Es costo del período: no entra al costo por kg porque no se sabe a qué cosecha cargarlo.'**
   String get reportBenefitCostUnlinkedNote;
 
+  /// No description provided for @threshingYieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento de trilla'**
+  String get threshingYieldLabel;
+
+  /// No description provided for @reportThreshingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Rendimiento de trilla'**
+  String get reportThreshingTitle;
+
+  /// No description provided for @reportThreshingFactor.
+  ///
+  /// In es, this message translates to:
+  /// **'factor'**
+  String get reportThreshingFactor;
+
+  /// No description provided for @reportThreshingRow.
+  ///
+  /// In es, this message translates to:
+  /// **'{cherry} kg de cereza = {sellable} kg vendibles'**
+  String reportThreshingRow(String cherry, String sellable);
+
+  /// No description provided for @reportThreshingCost.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo real por kg vendible'**
+  String get reportThreshingCost;
+
+  /// No description provided for @reportThreshingNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Sale del factor que anotaste en cada cultivo. Sin factor no se calcula.'**
+  String get reportThreshingNote;
+
+  /// No description provided for @helpThreshingYieldShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Kg de cereza para 1 kg de pergamino. Vacío = no se calcula.'**
+  String get helpThreshingYieldShort;
+
+  /// No description provided for @helpThreshingYield.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuántos kilos de cereza hacen un kilo de pergamino. En café suele estar entre 4 y 6. Con ese dato la app pasa lo cosechado a café vendible y calcula el costo real por kilo vendible.'**
+  String get helpThreshingYield;
+
+  /// No description provided for @threshingYieldTooLow.
+  ///
+  /// In es, this message translates to:
+  /// **'El rendimiento tiene que ser mayor que 1: de un kilo de cereza no puede salir más de un kilo de pergamino.'**
+  String get threshingYieldTooLow;
+
   /// No description provided for @catRiego.
   ///
   /// In es, this message translates to:

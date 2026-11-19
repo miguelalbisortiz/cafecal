@@ -99,6 +99,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
   /// Su meta, escrita por él — no una tabla de referencia que la app le
   /// imponga. Vacío = sin meta.
   final _goalController = TextEditingController();
+  final _threshingController = TextEditingController();
   String? _error;
 
   @override
@@ -124,6 +125,9 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       // La meta llega con el mismo "sin .0" que la inversión.
       if (c.expectedYieldPerHa != null) {
         _goalController.text = _importe(c.expectedYieldPerHa!);
+      }
+      if (c.threshingYield != null) {
+        _threshingController.text = _importe(c.threshingYield!);
       }
     } else {
       // Moneda única de la cuenta: un cultivo nuevo no elige moneda, la
@@ -238,6 +242,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     _plantsController.dispose();
     _establishmentController.dispose();
     _goalController.dispose();
+    _threshingController.dispose();
     super.dispose();
   }
 
@@ -269,6 +274,16 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
     final goalText = _goalController.text.trim().replaceAll(',', '.');
     final expectedYieldPerHa =
         goalText.isEmpty ? null : double.tryParse(goalText);
+    // Fase 3 · opcional y borrable. Un factor ≤ 1 diría que sale más
+    // pergamino que cereza, así que se rechaza en vez de guardarlo.
+    final threshingText =
+        _threshingController.text.trim().replaceAll(',', '.');
+    final threshingYield =
+        threshingText.isEmpty ? null : double.tryParse(threshingText);
+    if (threshingYield != null && threshingYield <= 1) {
+      setState(() => _error = l10n.threshingYieldTooLow);
+      return;
+    }
     Navigator.pop(context, CropFormData(
       name: n,
       icon: _icon,
@@ -283,6 +298,7 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
       plantedAt: _plantedAt,
       expectedYieldPerHa: expectedYieldPerHa,
       primerCosechaEsperada: _firstHarvestAt,
+      threshingYield: threshingYield,
       terrenoId: _terrenoId,
     ));
   }
@@ -605,6 +621,27 @@ class _CropEditorDialogState extends State<CropEditorDialog> {
                 ),
               ),
             ],
+            // Fase 3 · su rendimiento de trilla, solo al editar: es lo que
+            // ya sabe de temporadas anteriores, no algo que haga falta para
+            // crear el cultivo.
+            if (editing) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _threshingController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.threshingYieldLabel,
+                  helperText: l10n.helpThreshingYieldShort,
+                  prefixIcon: const Icon(Icons.grain_outlined),
+                  suffixIcon: Tooltip(
+                    message: l10n.helpThreshingYield,
+                    child: const Icon(Icons.info_outline, size: 20),
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
             // E5 · su fecha, solo al editar. Igual que la meta: al crear no
             // hay nada que apuntar todavía, y la regla manda — si se puede
             // pedir después, no se pide ahora.
@@ -682,6 +719,9 @@ class CropFormData {
   /// se le enseñó el campo).
   final DateTime? primerCosechaEsperada;
 
+  /// Fase 3 · `null` = no anotó el rendimiento, y no se calcula nada.
+  final double? threshingYield;
+
   /// W1 · `null` = sin terreno (o no se le enseñó el campo porque no hay
   /// ninguno creado todavía).
   final String? terrenoId;
@@ -700,6 +740,7 @@ class CropFormData {
     this.plantedAt,
     this.expectedYieldPerHa,
     this.primerCosechaEsperada,
+    this.threshingYield,
     this.terrenoId,
   });
 }

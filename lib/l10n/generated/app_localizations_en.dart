@@ -2860,6 +2860,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportBenefitCostUnlinkedNote => 'It stays a period cost: it is left out of the cost per kg because there is no harvest to charge it to.';
 
   @override
+  String get threshingYieldLabel => 'Threshing yield';
+
+  @override
+  String get reportThreshingTitle => 'Threshing yield';
+
+  @override
+  String get reportThreshingFactor => 'factor';
+
+  @override
+  String reportThreshingRow(String cherry, String sellable) {
+    return '$cherry kg of cherry = $sellable kg sellable';
+  }
+
+  @override
+  String get reportThreshingCost => 'Real cost per sellable kg';
+
+  @override
+  String get reportThreshingNote => 'It comes from the factor you entered for each crop. With no factor, nothing is calculated.';
+
+  @override
+  String get helpThreshingYieldShort => 'Kg of cherry per 1 kg of parchment. Empty = not calculated.';
+
+  @override
+  String get helpThreshingYield => 'How many kilos of cherry make one kilo of parchment. For coffee it usually sits between 4 and 6. With that number the app turns harvested cherry into sellable coffee and works out the real cost per sellable kilo.';
+
+  @override
+  String get threshingYieldTooLow => 'The yield must be greater than 1: a kilo of cherry cannot give more than a kilo of parchment.';
+
+  @override
   String get catRiego => 'Irrigation';
 
   @override

@@ -472,6 +472,8 @@ class SyncProvider extends ChangeNotifier {
         // W1: ídem — la migración 202610120001 va ANTES del deploy. Omitir
         // esta columna tumbaría TODA la subida de cultivos con PGRST204.
         'terreno_id': c.terrenoId,
+        // Fase 3: ídem — la migración 202611190001 va ANTES del deploy.
+        'threshing_yield': c.threshingYield,
       };
 
   Future<void> _upsertRemoteCrop(SupabaseService supabase, Crop c) async {
@@ -752,6 +754,8 @@ class SyncProvider extends ChangeNotifier {
       // W1: respaldo anterior a la migración 202610120001 no trae la clave
       // → null → el cultivo queda sin terreno, igual que siempre.
       'terreno_id': row['terreno_id'] as String?,
+      // Fase 3: respaldo anterior a la migración no trae la clave → null.
+      'threshing_yield': (row['threshing_yield'] as num?)?.toDouble(),
     });
   }
 

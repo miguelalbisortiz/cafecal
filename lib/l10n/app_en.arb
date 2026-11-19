@@ -1183,6 +1183,21 @@
   "reportBenefitCostPerKg": "Processing and drying per kg",
   "reportBenefitCostUnlinked": "Processing with no harvest linked",
   "reportBenefitCostUnlinkedNote": "It stays a period cost: it is left out of the cost per kg because there is no harvest to charge it to.",
+  "threshingYieldLabel": "Threshing yield",
+  "reportThreshingTitle": "Threshing yield",
+  "reportThreshingFactor": "factor",
+  "reportThreshingRow": "{cherry} kg of cherry = {sellable} kg sellable",
+  "@reportThreshingRow": {
+    "placeholders": {
+      "cherry": { "type": "String" },
+      "sellable": { "type": "String" }
+    }
+  },
+  "reportThreshingCost": "Real cost per sellable kg",
+  "reportThreshingNote": "It comes from the factor you entered for each crop. With no factor, nothing is calculated.",
+  "helpThreshingYieldShort": "Kg of cherry per 1 kg of parchment. Empty = not calculated.",
+  "helpThreshingYield": "How many kilos of cherry make one kilo of parchment. For coffee it usually sits between 4 and 6. With that number the app turns harvested cherry into sellable coffee and works out the real cost per sellable kilo.",
+  "threshingYieldTooLow": "The yield must be greater than 1: a kilo of cherry cannot give more than a kilo of parchment.",
   "catRiego": "Irrigation",
   "catEnergia": "Energy",
   "catAgua": "Water",

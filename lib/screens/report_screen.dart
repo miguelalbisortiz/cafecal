@@ -36,6 +36,7 @@ import '../services/report_payroll_metrics.dart';
 import '../services/report_period_records.dart';
 import '../services/report_range.dart';
 import '../services/sales_by_state.dart';
+import '../services/threshing_yield.dart';
 import '../services/unsold_stock.dart';
 import '../services/week_utils.dart';
 import '../utils/format.dart';
@@ -976,6 +977,13 @@ class _ReportScreenState extends State<ReportScreen> {
     // muestra como costo del período. Sumado por moneda, sin cruzar COP/USD.
     final unlinkedBenefit =
         amountsByCurrency(metrics.benefitCostsWithoutHarvest(pickupRecords));
+    // Fase 3 · rendimiento de trilla: solo cultivos con factor y cosecha.
+    final threshing = threshingRows(
+      crops: tx.crops,
+      harvests: harvests,
+      transactions: pickupRecords,
+      sacoKg: tx.settings.sacoKg,
+    );
     final staffHarvests = harvests
         .where((h) => h.workers != null || h.equivalentKg != null)
         .toList();
@@ -1094,6 +1102,42 @@ class _ReportScreenState extends State<ReportScreen> {
                     style: TextStyle(
                         fontSize: 11, color: scheme.onSurfaceVariant),
                   ),
+                ),
+              ],
+              if (threshing.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  l10n.reportThreshingTitle,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                for (final row in threshing) ...[
+                  _harvestLine(
+                    label: '${row.crop.name} · ${l10n.reportThreshingFactor} '
+                        '${formatKg(row.crop.threshingYield!, tx.settings.numberLocale)}',
+                    value: l10n.reportThreshingRow(
+                      formatKg(row.cherryKg, tx.settings.numberLocale),
+                      formatKg(row.sellableKg, tx.settings.numberLocale),
+                    ),
+                    color: scheme.primary,
+                  ),
+                  if (row.costPerSellableKg != null)
+                    _harvestLine(
+                      label: '   ${l10n.reportThreshingCost}',
+                      value: formatMoneyFor(
+                          context, row.costPerSellableKg!,
+                          currency: _effectiveCurrency, decimals: 2),
+                      color: scheme.onSurfaceVariant,
+                    ),
+                ],
+                Text(
+                  l10n.reportThreshingNote,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                 ),
               ],
               // Personal y kilos por cosecha (si se registraron).
