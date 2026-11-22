@@ -1031,4 +1031,42 @@ void main() {
       expect(tester.widget<FilledButton>(guardar).onPressed, isNull);
     });
   });
+
+  testWidgets('el prefijo del siguiente paso cambia el tipo ya abierto',
+      (tester) async {
+    final provider = await makeProvider();
+    final tipo = ValueNotifier<TransactionType?>(TransactionType.expense);
+    addTearDown(tipo.dispose);
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: provider,
+      child: MaterialApp(
+        locale: const Locale('es'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: ValueListenableBuilder<TransactionType?>(
+            valueListenable: tipo,
+            builder: (_, value, __) => RegisterScreen(initialType: value),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    SegmentedButton<TransactionType> selector() =>
+        tester.widget<SegmentedButton<TransactionType>>(
+            find.byType(SegmentedButton<TransactionType>));
+    expect(selector().selected, {TransactionType.expense});
+
+    tipo.value = TransactionType.income;
+    await tester.pumpAndSettle();
+    expect(selector().selected, {TransactionType.income},
+        reason: 'con el widget vivo, initState no vuelve a correr');
+
+    // HomeScreen borra el prefijo después de usarlo: un null no pisa nada.
+    tipo.value = null;
+    await tester.pumpAndSettle();
+    expect(selector().selected, {TransactionType.income});
+  });
 }

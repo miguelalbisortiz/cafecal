@@ -342,12 +342,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _body() => switch (_tab) {
-        0 => _buildDashboard(),
-        1 => RegisterScreen(initialType: _registerInitialType),
-        2 => const MovementsScreen(),
-        _ => _buildDashboard(),
-      };
+  /// Las tres pestañas viven a la vez: cambiar de pestaña ya no destruye el
+  /// formulario, el scroll ni los filtros (Fase 1 del plan de navegación).
+  Widget _body() => IndexedStack(
+        index: _tab,
+        children: [
+          _buildDashboard(),
+          RegisterScreen(
+            initialType: _registerInitialType,
+            active: _tab == 1,
+          ),
+          const MovementsScreen(),
+        ],
+      );
 
   /// E6 · la puerta **"¿Qué cultivás?"**.
   ///

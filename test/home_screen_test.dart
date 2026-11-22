@@ -13,6 +13,7 @@ import 'package:mi_cafetal/providers/auth_provider.dart';
 import 'package:mi_cafetal/providers/sync_provider.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
 import 'package:mi_cafetal/screens/home_screen.dart';
+import 'package:mi_cafetal/screens/movements_screen.dart';
 import 'package:mi_cafetal/services/currency_conversion.dart';
 import 'package:mi_cafetal/services/currency_rates_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
@@ -245,5 +246,93 @@ void main() {
     expect(find.text(l10n.recordExpense), findsOneWidget,
         reason: 'las dos puertas de entrada siguen a mano');
     expect(find.text(l10n.recordIncome), findsOneWidget);
+  });
+
+  testWidgets('navegación: la barra tiene Resumen, Registrar e Historial',
+      (tester) async {
+    final (tx, auth, _) = await makeProviders();
+    // Un cultivo alcanza para salir de la puerta E6 y de la de moneda.
+    await tx.addCrop('Café');
+
+    await pumpHome(tester, tx, auth);
+
+    final l10n = stringsFor('es');
+    final barra = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    final etiquetas = barra.destinations
+        .cast<NavigationDestination>()
+        .map((d) => d.label)
+        .toList();
+    expect(etiquetas, [l10n.tabOverview, l10n.tabRegister, l10n.tabHistory],
+        reason: 'Fase 0: quitar o reordenar un destino tiene que doler aquí');
+
+    await tester.tap(find.text(l10n.tabRegister));
+    await tester.pumpAndSettle();
+    expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        1);
+
+    await tester.tap(find.text(l10n.tabHistory));
+    await tester.pumpAndSettle();
+    expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        2);
+  });
+
+  testWidgets('borrador: cambiar de pestaña no borra lo escrito',
+      (tester) async {
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    await tester.tap(find.text(l10n.tabRegister));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, l10n.amountFieldLabel), '12345');
+    await tester.pump();
+
+    await tester.tap(find.text(l10n.tabOverview));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.tabRegister));
+    await tester.pumpAndSettle();
+
+    expect(find.text('12345'), findsOneWidget,
+        reason: 'si la pestaña se recrea, el borrador se pierde en silencio');
+  });
+
+  testWidgets('movimientos: el scroll sobrevive al cambiar de pestaña',
+      (tester) async {
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+    final hoy = DateTime.now();
+    for (var i = 0; i < 25; i++) {
+      await tx.addTransaction(
+          type: TransactionType.expense,
+          category: 'fertilizante',
+          amount: 1000.0 + i,
+          date: hoy.subtract(Duration(days: i)));
+    }
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    await tester.tap(find.text(l10n.tabHistory));
+    await tester.pumpAndSettle();
+
+    final lista = find.descendant(
+        of: find.byType(MovementsScreen), matching: find.byType(Scrollable));
+    await tester.drag(lista, const Offset(0, -250));
+    await tester.pumpAndSettle();
+    final antes = tester.state<ScrollableState>(lista).position.pixels;
+    expect(antes, greaterThan(0));
+
+    await tester.tap(find.text(l10n.tabOverview));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.tabHistory));
+    await tester.pumpAndSettle();
+
+    expect(tester.state<ScrollableState>(lista).position.pixels, antes,
+        reason: 'volver a Movimientos no debe devolverlo al principio');
   });
 }

@@ -523,6 +523,10 @@
   "authResetSent": "We sent you a link to reset your password. Check your email (including spam).",
 
   "registerEditTitle": "Edit movement",
+  "discardTitle": "Discard this entry?",
+  "discardBody": "What you typed will be lost.",
+  "discardConfirm": "Discard",
+  "discardCancel": "Keep editing",
   "expenseTypeLabel": "Expense",
   "incomeTypeLabel": "Income",
   "cropFieldLabel": "Crop or plot (optional)",

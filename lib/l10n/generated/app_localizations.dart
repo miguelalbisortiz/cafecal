@@ -2495,6 +2495,30 @@ abstract class AppLocalizations {
   /// **'Editar movimiento'**
   String get registerEditTitle;
 
+  /// No description provided for @discardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Descartar este registro?'**
+  String get discardTitle;
+
+  /// No description provided for @discardBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que escribiste se pierde.'**
+  String get discardBody;
+
+  /// No description provided for @discardConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar'**
+  String get discardConfirm;
+
+  /// No description provided for @discardCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir escribiendo'**
+  String get discardCancel;
+
   /// No description provided for @expenseTypeLabel.
   ///
   /// In es, this message translates to:

@@ -1315,6 +1315,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerEditTitle => 'Edit movement';
 
   @override
+  String get discardTitle => 'Discard this entry?';
+
+  @override
+  String get discardBody => 'What you typed will be lost.';
+
+  @override
+  String get discardConfirm => 'Discard';
+
+  @override
+  String get discardCancel => 'Keep editing';
+
+  @override
   String get expenseTypeLabel => 'Expense';
 
   @override

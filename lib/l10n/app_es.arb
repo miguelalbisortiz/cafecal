@@ -538,6 +538,10 @@
   "authResetSent": "Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo (incluye spam).",
 
   "registerEditTitle": "Editar movimiento",
+  "discardTitle": "¿Descartar este registro?",
+  "discardBody": "Lo que escribiste se pierde.",
+  "discardConfirm": "Descartar",
+  "discardCancel": "Seguir escribiendo",
   "expenseTypeLabel": "Gasto",
   "incomeTypeLabel": "Ingreso",
   "cropFieldLabel": "Cultivo o lote (opcional)",

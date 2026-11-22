@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
@@ -26,7 +27,17 @@ class RegisterScreen extends StatefulWidget {
   /// no se está editando un registro existente.
   final TransactionType? initialType;
 
-  const RegisterScreen({super.key, this.editing, this.initialType});
+  /// ¿Es la pestaña que se está viendo? Solo entonces el atrás pregunta antes
+  /// de descartar: con `IndexedStack` esta pantalla sigue viva en segundo
+  /// plano y no debe bloquear al resto de la app.
+  final bool active;
+
+  const RegisterScreen({
+    super.key,
+    this.editing,
+    this.initialType,
+    this.active = true,
+  });
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -97,6 +108,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// terreno. Mutuamente excluyente con [_cropId]: o es de un cultivo, o es
   /// del lote — los dos a la vez sería contar el mismo peso dos veces.
   String? _terrenoId;
+
+  /// Lo que la pantalla puso sola al abrir. Sirve para no confundir una
+  /// preselección (el último cultivo o lote) con una elección suya al decidir
+  /// si hay un borrador que avisar.
+  String? _openedCropId;
+  String? _openedTerrenoId;
 
   /// T15 · reparto por porcentaje. `null` = gasto normal (de un cultivo, de un
   /// lote o común). Con valor, se guardan N gastos independientes y el
@@ -212,6 +229,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_jornalCohortTouched) return;
     final vivas = cohortes.where((c) => c.open).toList();
     _jornalCohortSowingId = vivas.length == 1 ? vivas.first.sowingId : null;
+  }
+
+  /// Cambia Gasto/Ingreso y limpia lo que deja de tener sentido.
+  ///
+  /// Lo comparten el botón de la pantalla y el prefijo del siguiente paso
+  /// ([RegisterScreen.initialType]): con la pestaña viva, `initState` ya no
+  /// vuelve a correr y sin esto el prefijo se ignoraría.
+  void _applyType(TransactionType type) {
+    _type = type;
+    _category = null;
+    // El reparto es cosa de gastos: un ingreso no se reparte entre cultivos,
+    // es de uno o de la finca entera.
+    _split = null;
+    // El lote también es cosa de gastos: un ingreso es de un cultivo o de la
+    // finca entera. Si estaba elegido y pasa a ingreso, se quita.
+    if (type == TransactionType.income) _terrenoId = null;
+    _clearHarvestedKgIfHidden();
+    _applyCohortDefault();
+  }
+
+  /// ¿Hay algo escrito que se perdería al salir?
+  ///
+  /// Cuenta lo que él escribió o eligió, no lo que la pantalla preselecciona
+  /// sola (último cultivo, lote): si contara eso, avisaría siempre.
+  bool get _hasDraft =>
+      widget.editing == null &&
+      (_amountController.text.trim().isNotEmpty ||
+          _descriptionController.text.trim().isNotEmpty ||
+          _quantityController.text.trim().isNotEmpty ||
+          _clientController.text.trim().isNotEmpty ||
+          _providerController.text.trim().isNotEmpty ||
+          _category != null ||
+          _split != null ||
+          _cropId != _openedCropId ||
+          _terrenoId != _openedTerrenoId);
+
+  /// «¿Descartar este registro?» — `true` solo si él eligió descartar.
+  Future<bool> _confirmDiscard() async {
+    final l10n = AppLocalizations.of(context)!;
+    final descartar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.discardTitle),
+        content: Text(l10n.discardBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.discardCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.discardConfirm),
+          ),
+        ],
+      ),
+    );
+    return descartar ?? false;
   }
 
   /// Ayuda que se muestra justo al elegir la categoría.
@@ -371,6 +445,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // Etapa B · el lote único del cultivo queda listo sin tocar nada.
       _applyCohortDefault();
     }
+    _openedCropId = _cropId;
+    _openedTerrenoId = _terrenoId;
+  }
+
+  @override
+  void didUpdateWidget(covariant RegisterScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final type = widget.initialType;
+    // El prefijo llega una sola vez y HomeScreen lo borra enseguida (`null`).
+    // Con la pestaña viva, `initState` ya no vuelve a correr: si el prefijo
+    // cambia de verdad, hay que aplicarlo aquí. Un `null` no pisa nada.
+    if (type == null || type == oldWidget.initialType) return;
+    if (widget.editing != null || type == _type) return;
+    _applyType(type);
   }
 
   @override
@@ -941,6 +1029,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
+    // La pestaña queda viva (IndexedStack): si la moneda de la cuenta cambió
+    // en Ajustes, el formulario no debe seguir grabando en la vieja. Solo se
+    // adopta con el formulario vacío, para no reetiquetar un borrador.
+    if (widget.active && widget.editing == null && !_hasDraft) {
+      _currency = tx.settings.currency;
+    }
     final categoryHint = _categoryHint(l10n);
     final crops = tx.crops;
     final isExpense = _type.isExpense;
@@ -1023,19 +1117,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ],
             selected: {_type},
-            onSelectionChanged: (s) => setState(() {
-              _type = s.first;
-              _category = null;
-              // El reparto es cosa de gastos: un ingreso no se reparte entre
-              // cultivos, es de uno o de la finca entera.
-              _split = null;
-              // El lote es cosa de gastos: un ingreso no se reparte por
-              // hectáreas, es de un cultivo o de la finca entera. Si estaba
-              // elegido y pasa a ingreso, se quita.
-              if (s.first == TransactionType.income) _terrenoId = null;
-              _clearHarvestedKgIfHidden();
-              _applyCohortDefault();
-            }),
+            onSelectionChanged: (s) => setState(() => _applyType(s.first)),
           ),
           const SizedBox(height: 16),
 
@@ -1832,6 +1914,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         ),
     );
+    // Fase 1 · el atrás no borra un registro empezado sin avisar. Solo cuando
+    // esta pantalla es la que se ve: en segundo plano (IndexedStack) no debe
+    // interceptar el atrás del resto de la app.
+    final guarded = PopScope(
+      canPop: !(widget.active && _hasDraft),
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Se captura antes del diálogo: después del await el contexto ya no
+        // se toca (use_build_context_synchronously).
+        final nav = Navigator.of(context);
+        final descartar = await _confirmDiscard();
+        if (!descartar || !mounted) return;
+        if (nav.canPop()) {
+          nav.pop(result);
+        } else {
+          // Era la raíz: el atrás normal salía de la app.
+          await SystemNavigator.pop();
+        }
+      },
+      child: form,
+    );
     if (widget.editing != null) {
       return Scaffold(
         appBar: AppBar(
@@ -1844,10 +1947,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ],
         ),
-        body: form,
+        body: guarded,
       );
     }
-    return form;
+    return guarded;
   }
 }
 
