@@ -67,9 +67,14 @@
 
 ## 6. Commit y push
 
-Ejecutados en esta sesión; hashes:
+Ejecutados y pusheados a `origin/main`. El push subió también `2ddd38e`, que
+venía pendiente de la sesión anterior:
 
-- _por completar al terminar el push_
+- `a72d94c` · feat(navegacion): barra de tres destinos, hub Finca y Registrar como ruta
+- `7778d2d` · test(navegacion): jerarquia, alcance real, paridad l10n y layout
+- `5f49c68` · docs(navegacion): cierre de fases, deviaciones y auditorias
+
+El commit que registra estos hashes va detrás de este snapshot.
 
 ## 7. Queda pendiente
 
