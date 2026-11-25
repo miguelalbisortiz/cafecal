@@ -13,11 +13,17 @@ void main() {
   /// Las entradas del menú que son **destinos de datos**: cada una tiene que
   /// aparecer en la Ayuda con el nombre real de la pantalla.
   const destinos = <String, String>{
-    'report': 'menuReport',
+    'finca': 'menuFinca',
+    'settings': 'menuSettings',
+  };
+
+  /// Las pantallas de datos maestros ya no cuelgan del menú: viven en el hub
+  /// Finca. La Ayuda las sigue nombrando porque es ahí donde el agricultor
+  /// aprende a llegar.
+  const destinosFinca = <String, String>{
     'crops': 'menuCrops',
     'sowings': 'menuSowings',
     'workers': 'menuWorkers',
-    'settings': 'menuSettings',
   };
 
   /// Entradas que no son destinos de datos: la Ayuda misma (es esta pantalla) y
@@ -65,14 +71,14 @@ void main() {
 
   test('la Ayuda nombra cada destino de datos del menú', () {
     const etiquetasEs = <String, String>{
-      'menuReport': 'Reporte',
+      'menuFinca': 'Finca',
       'menuCrops': 'Cultivos',
       'menuSowings': 'Siembras',
       'menuWorkers': 'Trabajadores',
       'menuSettings': 'Configuración',
     };
     const etiquetasEn = <String, String>{
-      'menuReport': 'Report',
+      'menuFinca': 'Farm',
       'menuCrops': 'Crops',
       'menuSowings': 'Plantings',
       'menuWorkers': 'Workers',
@@ -82,7 +88,7 @@ void main() {
     for (final ruta in ['lib/l10n/app_es.arb', 'lib/l10n/app_en.arb']) {
       final copy = copyDeLaAyuda(ruta);
       final etiquetas = ruta.endsWith('_en.arb') ? etiquetasEn : etiquetasEs;
-      for (final entrada in destinos.entries) {
+      for (final entrada in [...destinos.entries, ...destinosFinca.entries]) {
         final esperada = etiquetas[entrada.value]!;
         expect(copy.contains(esperada), isTrue,
             reason: '$ruta: «$esperada» no aparece nombrado en la Ayuda, y es '

@@ -12,8 +12,14 @@ import 'package:mi_cafetal/providers/alert_provider.dart';
 import 'package:mi_cafetal/providers/auth_provider.dart';
 import 'package:mi_cafetal/providers/sync_provider.dart';
 import 'package:mi_cafetal/providers/transaction_provider.dart';
+import 'package:mi_cafetal/screens/crops_screen.dart';
+import 'package:mi_cafetal/screens/finca_screen.dart';
 import 'package:mi_cafetal/screens/home_screen.dart';
 import 'package:mi_cafetal/screens/movements_screen.dart';
+import 'package:mi_cafetal/screens/register_screen.dart';
+import 'package:mi_cafetal/screens/report_screen.dart';
+import 'package:mi_cafetal/screens/sowing_screen.dart';
+import 'package:mi_cafetal/screens/workers_screen.dart';
 import 'package:mi_cafetal/services/currency_conversion.dart';
 import 'package:mi_cafetal/services/currency_rates_service.dart';
 import 'package:mi_cafetal/services/local_store.dart';
@@ -248,7 +254,14 @@ void main() {
     expect(find.text(l10n.recordIncome), findsOneWidget);
   });
 
-  testWidgets('navegación: la barra tiene Resumen, Registrar e Historial',
+  /// La etiqueta de una pestaña, sin confundirla con el encabezado de la
+  /// pantalla que lleva el mismo texto.
+  Finder navTab(String label) => find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text(label),
+      );
+
+  testWidgets('navegación: la barra tiene Resumen, Movimientos y Reportes',
       (tester) async {
     final (tx, auth, _) = await makeProviders();
     // Un cultivo alcanza para salir de la puerta E6 y de la de moneda.
@@ -262,23 +275,23 @@ void main() {
         .cast<NavigationDestination>()
         .map((d) => d.label)
         .toList();
-    expect(etiquetas, [l10n.tabOverview, l10n.tabRegister, l10n.tabHistory],
-        reason: 'Fase 0: quitar o reordenar un destino tiene que doler aquí');
+    expect(etiquetas, [l10n.tabOverview, l10n.tabMovements, l10n.tabReports],
+        reason: 'Fase 2: Registrar deja de ser pestaña; Reportes entra');
 
-    await tester.tap(find.text(l10n.tabRegister));
+    await tester.tap(navTab(l10n.tabMovements));
     await tester.pumpAndSettle();
     expect(
         tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
         1);
 
-    await tester.tap(find.text(l10n.tabHistory));
+    await tester.tap(navTab(l10n.tabReports));
     await tester.pumpAndSettle();
     expect(
         tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
         2);
   });
 
-  testWidgets('borrador: cambiar de pestaña no borra lo escrito',
+  testWidgets('Registrar es un FAB: abre una ruta y no marca una sección',
       (tester) async {
     final (tx, auth, _) = await makeProviders();
     await tx.addCrop('Café');
@@ -286,19 +299,204 @@ void main() {
     await pumpHome(tester, tx, auth);
     final l10n = stringsFor('es');
 
-    await tester.tap(find.text(l10n.tabRegister));
+    expect(find.byType(FloatingActionButton), findsOneWidget,
+        reason: 'registrar tiene que estar a un toque desde cualquier pestaña');
+    expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        0);
+
+    await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
+
+    expect(find.byType(RegisterScreen), findsOneWidget);
+    expect(find.widgetWithText(AppBar, l10n.registerTitle), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget,
+        reason: 'Registrar ahora es una ruta de salida y lleva flecha');
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RegisterScreen), findsNothing);
+    expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        0,
+        reason: 'volver de Registrar deja la pestaña de origen, no una nueva');
+  });
+
+  testWidgets('guardar desde la ruta de Registrar vuelve a la pestaña',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byWidgetPredicate((w) =>
+        w is DropdownButton<String> &&
+        (w.items ?? const []).any((i) => i.value == 'fertilizante')));
+    await tester.pumpAndSettle();
+    await tester
+        .tap(find.textContaining(l10n.expenseCategory('fertilizante')).last);
+    await tester.pumpAndSettle();
+
     await tester.enterText(
-        find.widgetWithText(TextFormField, l10n.amountFieldLabel), '12345');
-    await tester.pump();
+        find.widgetWithText(TextFormField, l10n.amountFieldLabel), '5000');
 
-    await tester.tap(find.text(l10n.tabOverview));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(l10n.tabRegister));
+    final guardar = find.text(l10n.saveRecord);
+    await tester.ensureVisible(guardar);
+    await tester.tap(guardar);
     await tester.pumpAndSettle();
 
-    expect(find.text('12345'), findsOneWidget,
-        reason: 'si la pestaña se recrea, el borrador se pierde en silencio');
+    expect(find.byType(RegisterScreen), findsNothing,
+        reason: 'guardar cierra la ruta y devuelve a la pestaña de origen');
+    expect(
+        tx.transactions.where((t) => !t.deleted).single.amount, 5000);
+  });
+
+  testWidgets('el FAB no aparece durante la puerta de bienvenida',
+      (tester) async {
+    final (tx, auth, _) = await makeProviders();
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    // Cuenta nueva: primero la moneda, después la puerta de cultivos.
+    await tester.tap(find.text(l10n.currencyGateCta('Peso colombiano (COP)')));
+    await tester.pumpAndSettle();
+    expect(find.byType(FloatingActionButton), findsNothing,
+        reason: 'todavía no hay finca: la puerta es el único camino');
+  });
+
+  testWidgets('el prefijo Gasto/Ingreso llega a la ruta de Registrar',
+      (tester) async {
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    SegmentedButton<TransactionType> tipo() =>
+        tester.widget<SegmentedButton<TransactionType>>(
+            find.byType(SegmentedButton<TransactionType>));
+
+    await tester.tap(find.text(l10n.recordExpense));
+    await tester.pumpAndSettle();
+    expect(find.byType(RegisterScreen), findsOneWidget);
+    expect(tipo().selected, {TransactionType.expense});
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.recordIncome));
+    await tester.pumpAndSettle();
+    expect(tipo().selected, {TransactionType.income},
+        reason: 'la ruta se crea nueva y el prefijo tiene que aplicarse');
+  });
+
+  testWidgets('Reportes es pestaña: la barra sigue y el mes se conserva',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+    await tx.addTransaction(
+        type: TransactionType.income,
+        category: 'venta_cafe',
+        amount: 5000,
+        date: DateTime.now());
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    await tester.tap(navTab(l10n.tabReports));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ReportScreen), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget,
+        reason: 'Reportes ya no pierde la barra al abrirse');
+    expect(find.byType(BackButton), findsNothing,
+        reason: 'una pestaña no es una salida');
+
+    // El mes elegido no puede volver al de hoy al cambiar de pestaña.
+    final meses = find.byType(DropdownButtonFormField<int>);
+    FormFieldState<int> mesState() =>
+        tester.state<FormFieldState<int>>(meses.first);
+    final original = mesState().value;
+    final objetivo = (original! % 12) + 1;
+
+    await tester.tap(meses.first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.monthFull[objetivo - 1]).last);
+    await tester.pumpAndSettle();
+    expect(mesState().value, objetivo);
+
+    await tester.tap(navTab(l10n.tabOverview));
+    await tester.pumpAndSettle();
+    await tester.tap(navTab(l10n.tabReports));
+    await tester.pumpAndSettle();
+
+    expect(mesState().value, objetivo,
+        reason: 'el IndexedStack tiene que conservar el mes del reporte');
+  });
+
+  testWidgets('el menú deja Finca, Ajustes, Ayuda y Salir; Finca es un hub',
+      (tester) async {
+    final (tx, auth, _) = await makeProviders();
+    await tx.addCrop('Café');
+
+    await pumpHome(tester, tx, auth);
+    final l10n = stringsFor('es');
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    for (final etiqueta in [
+      l10n.menuFinca,
+      l10n.menuSettings,
+      l10n.menuHelp,
+      l10n.menuLogout,
+    ]) {
+      expect(find.text(etiqueta), findsOneWidget);
+    }
+    expect(find.text(l10n.menuReport), findsNothing,
+        reason: 'Reportes ya es pestaña, no una entrada del menú');
+    expect(find.text(l10n.menuCrops), findsNothing,
+        reason: 'los datos maestros viven en el hub Finca');
+
+    await tester.tap(find.text(l10n.menuFinca));
+    await tester.pumpAndSettle();
+    expect(find.byType(FincaScreen), findsOneWidget);
+    expect(find.text(l10n.fincaHubTitle), findsOneWidget);
+
+    // Las tres pantallas de datos maestros siguen alcanzables y su flecha
+    // vuelve a Finca, no a Resumen.
+    for (final (etiqueta, pantalla) in [
+      (l10n.menuCrops, CropsScreen),
+      (l10n.menuSowings, SowingScreen),
+      (l10n.menuWorkers, WorkersScreen),
+    ]) {
+      await tester.tap(find.text(etiqueta));
+      await tester.pumpAndSettle();
+      expect(find.byType(pantalla), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(FincaScreen), findsOneWidget,
+          reason: 'la flecha vuelve a Finca, no a Resumen');
+    }
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('movimientos: el scroll sobrevive al cambiar de pestaña',
@@ -317,7 +515,7 @@ void main() {
     await pumpHome(tester, tx, auth);
     final l10n = stringsFor('es');
 
-    await tester.tap(find.text(l10n.tabHistory));
+    await tester.tap(navTab(l10n.tabMovements));
     await tester.pumpAndSettle();
 
     final lista = find.descendant(
@@ -327,9 +525,9 @@ void main() {
     final antes = tester.state<ScrollableState>(lista).position.pixels;
     expect(antes, greaterThan(0));
 
-    await tester.tap(find.text(l10n.tabOverview));
+    await tester.tap(navTab(l10n.tabOverview));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(l10n.tabHistory));
+    await tester.tap(navTab(l10n.tabMovements));
     await tester.pumpAndSettle();
 
     expect(tester.state<ScrollableState>(lista).position.pixels, antes,
