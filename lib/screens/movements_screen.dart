@@ -73,7 +73,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      l10n.tabHistory,
+                      l10n.tabMovements,
                       style: Theme.of(context)
                           .textTheme
                           .headlineSmall
@@ -301,7 +301,9 @@ class _MovementsScreenState extends State<MovementsScreen> {
       ..sort((a, b) => b.compareTo(a));
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      // Deja aire para el FAB de Registrar: sin esto, la última fila queda
+      // debajo del botón y no se puede leer.
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
       children: [
         for (final key in keys) ...[
           Padding(

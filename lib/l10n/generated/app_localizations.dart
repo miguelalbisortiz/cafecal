@@ -119,11 +119,23 @@ abstract class AppLocalizations {
   /// **'Registrar'**
   String get tabRegister;
 
-  /// No description provided for @tabHistory.
+  /// No description provided for @tabMovements.
   ///
   /// In es, this message translates to:
-  /// **'Historial'**
-  String get tabHistory;
+  /// **'Movimientos'**
+  String get tabMovements;
+
+  /// No description provided for @tabReports.
+  ///
+  /// In es, this message translates to:
+  /// **'Reportes'**
+  String get tabReports;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar'**
+  String get registerTitle;
 
   /// No description provided for @nextStepTitle.
   ///
@@ -320,7 +332,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpStartSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Elige cómo está tu finca hoy. En cinco minutos haces el primer registro.'**
+  /// **'Elige cómo está tu finca hoy: en Finca están tus cultivos, siembras y trabajadores. En cinco minutos haces el primer registro.'**
   String get helpStartSubtitle;
 
   /// No description provided for @helpStartQuestion.
@@ -860,7 +872,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpTrouble6Body.
   ///
   /// In es, this message translates to:
-  /// **'Mira Historial. Si no está, restaura el respaldo: lo que ya tenías se conserva y lo del archivo se suma.'**
+  /// **'Mira Movimientos. Si no está, restaura el respaldo: lo que ya tenías se conserva y lo del archivo se suma.'**
   String get helpTrouble6Body;
 
   /// No description provided for @helpTroubleFooter.
@@ -916,6 +928,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Reporte'**
   String get menuReport;
+
+  /// No description provided for @menuFinca.
+  ///
+  /// In es, this message translates to:
+  /// **'Finca'**
+  String get menuFinca;
+
+  /// No description provided for @fincaHubTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de la finca'**
+  String get fincaHubTitle;
+
+  /// No description provided for @fincaHubSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cultivos, siembras y trabajadores: lo que cambia poco.'**
+  String get fincaHubSubtitle;
 
   /// No description provided for @menuSettings.
   ///

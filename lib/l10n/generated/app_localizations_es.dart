@@ -21,7 +21,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tabRegister => 'Registrar';
 
   @override
-  String get tabHistory => 'Historial';
+  String get tabMovements => 'Movimientos';
+
+  @override
+  String get tabReports => 'Reportes';
+
+  @override
+  String get registerTitle => 'Registrar';
 
   @override
   String get nextStepTitle => 'Tu próximo paso';
@@ -122,7 +128,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpTabUnderstand => 'Entender';
 
   @override
-  String get helpStartSubtitle => 'Elige cómo está tu finca hoy. En cinco minutos haces el primer registro.';
+  String get helpStartSubtitle => 'Elige cómo está tu finca hoy: en Finca están tus cultivos, siembras y trabajadores. En cinco minutos haces el primer registro.';
 
   @override
   String get helpStartQuestion => '¿Cómo está tu finca hoy?';
@@ -392,7 +398,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpTrouble6Title => 'Borré sin querer';
 
   @override
-  String get helpTrouble6Body => 'Mira Historial. Si no está, restaura el respaldo: lo que ya tenías se conserva y lo del archivo se suma.';
+  String get helpTrouble6Body => 'Mira Movimientos. Si no está, restaura el respaldo: lo que ya tenías se conserva y lo del archivo se suma.';
 
   @override
   String get helpTroubleFooter => '¿No encuentras tu caso? Anota lo que pasó y el reporte se ajusta. La app no inventa cifras: si falta un dato, lo dice.';
@@ -420,6 +426,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get menuReport => 'Reporte';
+
+  @override
+  String get menuFinca => 'Finca';
+
+  @override
+  String get fincaHubTitle => 'Datos de la finca';
+
+  @override
+  String get fincaHubSubtitle => 'Cultivos, siembras y trabajadores: lo que cambia poco.';
 
   @override
   String get menuSettings => 'Configuración';

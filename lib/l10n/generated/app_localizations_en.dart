@@ -21,7 +21,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabRegister => 'Record';
 
   @override
-  String get tabHistory => 'History';
+  String get tabMovements => 'Movements';
+
+  @override
+  String get tabReports => 'Reports';
+
+  @override
+  String get registerTitle => 'Record';
 
   @override
   String get nextStepTitle => 'Your next step';
@@ -122,7 +128,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpTabUnderstand => 'Understand';
 
   @override
-  String get helpStartSubtitle => 'Choose how your farm is today. In five minutes you\'ll make your first entry.';
+  String get helpStartSubtitle => 'Choose how your farm is today: Farm holds your crops, plantings and workers. In five minutes you\'ll make your first entry.';
 
   @override
   String get helpStartQuestion => 'How is your farm today?';
@@ -392,7 +398,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpTrouble6Title => 'I deleted something by mistake';
 
   @override
-  String get helpTrouble6Body => 'Check History. If it isn\'t there, restore the backup: what you already had is kept and the file\'s data is added.';
+  String get helpTrouble6Body => 'Check Movements. If it isn\'t there, restore the backup: what you already had is kept and the file\'s data is added.';
 
   @override
   String get helpTroubleFooter => 'Can\'t find your case? Record what happened and the report adjusts. The app doesn\'t invent numbers: if a piece of data is missing, it says so.';
@@ -420,6 +426,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuReport => 'Report';
+
+  @override
+  String get menuFinca => 'Farm';
+
+  @override
+  String get fincaHubTitle => 'Farm records';
+
+  @override
+  String get fincaHubSubtitle => 'Crops, plantings and workers: the things that change slowly.';
 
   @override
   String get menuSettings => 'Settings';

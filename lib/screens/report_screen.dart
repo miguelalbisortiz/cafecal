@@ -50,7 +50,12 @@ import '../widgets/terminology_guide.dart';
 enum _PeriodMode { week, month, year, yearToDate }
 
 class ReportScreen extends StatefulWidget {
-  const ReportScreen({super.key});
+  /// Cuando vive dentro de una pestaña de `HomeScreen` la pantalla no trae su
+  /// propio `Scaffold`/AppBar: la barra de la app manda y el título va en el
+  /// cuerpo, como en Resumen y Movimientos.
+  final bool embedded;
+
+  const ReportScreen({super.key, this.embedded = false});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -178,9 +183,7 @@ class _ReportScreenState extends State<ReportScreen> {
       money: (v) => formatMoneyFor(context, v, currency: _effectiveCurrency),
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.menuReport)),
-      body: PeriodTotalsBuilder(
+    final content = PeriodTotalsBuilder(
         totals: periodTotals,
         targetCurrency: tx.settings.currency,
         builder: (context, converted) => RefreshIndicator(
@@ -189,24 +192,41 @@ class _ReportScreenState extends State<ReportScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 920),
             child: ListView(
-          padding: const EdgeInsets.all(16),
+          // Aire para el FAB de Registrar cuando Reportes es pestaña.
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           children: [
-            SegmentedButton<_PeriodMode>(
-              segments: [
-                ButtonSegment(
-                    value: _PeriodMode.week, label: Text(l10n.segWeek)),
-                ButtonSegment(
-                    value: _PeriodMode.month, label: Text(l10n.segMonth)),
-                ButtonSegment(
-                    value: _PeriodMode.year, label: Text(l10n.segYear)),
-                ButtonSegment(
-                    value: _PeriodMode.yearToDate,
-                    label: Text(l10n.segYearToDate)),
-              ],
-              selected: {_mode},
-              showSelectedIcon: false,
-              onSelectionChanged: (s) =>
-                  setState(() => _mode = s.first),
+            if (widget.embedded) ...[
+              Text(
+                l10n.menuReport,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+            ],
+            // Fase 5 · a 360 px «A la fecha» / «Year to date» partía el
+            // control en dos líneas. El segmentado se desplaza en horizontal
+            // en vez de romper: siempre mide una sola línea.
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SegmentedButton<_PeriodMode>(
+                segments: [
+                  ButtonSegment(
+                      value: _PeriodMode.week, label: Text(l10n.segWeek)),
+                  ButtonSegment(
+                      value: _PeriodMode.month, label: Text(l10n.segMonth)),
+                  ButtonSegment(
+                      value: _PeriodMode.year, label: Text(l10n.segYear)),
+                  ButtonSegment(
+                      value: _PeriodMode.yearToDate,
+                      label: Text(l10n.segYearToDate)),
+                ],
+                selected: {_mode},
+                showSelectedIcon: false,
+                onSelectionChanged: (s) =>
+                    setState(() => _mode = s.first),
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -246,6 +266,9 @@ class _ReportScreenState extends State<ReportScreen> {
                   Expanded(
                     child: DropdownButtonFormField<int>(
                       value: _month,
+                      // A 360 px «Septiembre» + la flecha no caben en la
+                      // mitad del ancho: recorta en vez de desbordar.
+                      isExpanded: true,
                       decoration: InputDecoration(
                         labelText: l10n.segMonth,
                         border: const OutlineInputBorder(),
@@ -264,6 +287,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     value: _year,
+                    isExpanded: true,
                     decoration: InputDecoration(
                       labelText: l10n.segYear,
                       border: const OutlineInputBorder(),
@@ -300,12 +324,16 @@ class _ReportScreenState extends State<ReportScreen> {
                           const Icon(Icons.auto_awesome,
                               size: 18, color: Color(0xFF1976D2)),
                           const SizedBox(width: 8),
-                          Text(
-                            l10n.insightsTitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          // A 360 px el título de las recomendaciones no
+                          // cabe junto al icono: envuelve en vez de salirse.
+                          Expanded(
+                            child: Text(
+                              l10n.insightsTitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),
@@ -568,7 +596,12 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
         ),
       ),
-      ),
+      );
+
+    if (widget.embedded) return content;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.menuReport)),
+      body: content,
     );
   }
 

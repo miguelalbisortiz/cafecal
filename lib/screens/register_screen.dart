@@ -27,16 +27,20 @@ class RegisterScreen extends StatefulWidget {
   /// no se está editando un registro existente.
   final TransactionType? initialType;
 
-  /// ¿Es la pestaña que se está viendo? Solo entonces el atrás pregunta antes
-  /// de descartar: con `IndexedStack` esta pantalla sigue viva en segundo
-  /// plano y no debe bloquear al resto de la app.
-  final bool active;
+  /// Al guardar, cerrar la ruta: Registrar se usa como pantalla empujada y el
+  /// guardado devuelve a la pestaña de origen.
+  final bool popOnSave;
+
+  /// Pinta el título dentro del formulario. La ruta lo apaga porque el AppBar
+  /// ya lo dice; el modo edición tiene el suyo.
+  final bool showTitle;
 
   const RegisterScreen({
     super.key,
     this.editing,
     this.initialType,
-    this.active = true,
+    this.popOnSave = false,
+    this.showTitle = true,
   });
 
   @override
@@ -453,9 +457,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void didUpdateWidget(covariant RegisterScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     final type = widget.initialType;
-    // El prefijo llega una sola vez y HomeScreen lo borra enseguida (`null`).
-    // Con la pestaña viva, `initState` ya no vuelve a correr: si el prefijo
-    // cambia de verdad, hay que aplicarlo aquí. Un `null` no pisa nada.
+    // Si el prefijo cambia con la pantalla ya montada (el `State` vivo), un
+    // `null` no pisa la elección: solo se aplica un tipo distinto de verdad.
     if (type == null || type == oldWidget.initialType) return;
     if (widget.editing != null || type == _type) return;
     _applyType(type);
@@ -951,6 +954,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _paid = true;
       _productState = null;
     });
+
+    // Registrar vive en una ruta: guardar devuelve a la pestaña de origen.
+    // `pop` directo no pasa por el PopScope del borrador (ese solo frena el
+    // atrás del sistema), así que el aviso no reaparece tras guardar.
+    if (widget.popOnSave && mounted) Navigator.of(context).pop();
   }
 
   Future<void> _confirmDelete() async {
@@ -1029,10 +1037,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final tx = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context)!;
-    // La pestaña queda viva (IndexedStack): si la moneda de la cuenta cambió
-    // en Ajustes, el formulario no debe seguir grabando en la vieja. Solo se
-    // adopta con el formulario vacío, para no reetiquetar un borrador.
-    if (widget.active && widget.editing == null && !_hasDraft) {
+    // La moneda de la cuenta manda mientras el formulario esté vacío. Si hay
+    // un borrador, no se reetiqueta lo que él ya escribió.
+    if (widget.editing == null && !_hasDraft) {
       _currency = tx.settings.currency;
     }
     final categoryHint = _categoryHint(l10n);
@@ -1094,13 +1101,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            widget.editing != null ? l10n.registerEditTitle : l10n.tabRegister,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 16),
+          if (widget.showTitle) ...[
+            Text(
+              widget.editing != null
+                  ? l10n.registerEditTitle
+                  : l10n.tabRegister,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Tipo: gasto o ingreso
           SegmentedButton<TransactionType>(
@@ -1129,6 +1140,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // El desplegable exige UN valor elegido; con lote puesto muestra
             // el lote y el cultivo se queda vacío.
             value: isExpense ? (_terrenoId ?? _cropId) : _cropId,
+            // A 360 px «🌱 Costos comunes» + icono no cabe: recorta el texto
+            // en vez de salirse del campo.
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: l10n.cropFieldLabel,
               prefixIcon: const Icon(Icons.grass_outlined),
@@ -1212,17 +1226,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // E2 · el aviso cambia con la elección: si el movimiento no es de
           // ningún cultivo, lo que hay que explicar es lo que eso implica.
           // Si sí lo es, se mantiene el de siempre.
-          Text(
-            // En ingresos el ítem nulo no son costos comunes, así que el
-            // aviso tampoco puede serlo. Con reparto, el aviso es el reparto.
-            _split != null
-                ? l10n.expenseSplitHint
-                : (_terrenoId != null
-                    ? l10n.terrenoGroupHint
-                    : (_cropId == null
-                        ? (isExpense ? l10n.commonCostsHint : l10n.noCropHint)
-                        : l10n.cropGroupHint)),
-            style: Theme.of(context).textTheme.bodySmall,
+          // Fase 5 · el aviso ocupa una sola línea; el texto completo sigue
+          // disponible al tocarlo. Antes eran tres líneas dentro del
+          // formulario y empujaban los campos fuera de la pantalla.
+          Builder(
+            builder: (context) {
+              // En ingresos el ítem nulo no son costos comunes, así que el
+              // aviso tampoco puede serlo. Con reparto, el aviso es el reparto.
+              final hint = _split != null
+                  ? l10n.expenseSplitHint
+                  : (_terrenoId != null
+                      ? l10n.terrenoGroupHint
+                      : (_cropId == null
+                          ? (isExpense ? l10n.commonCostsHint : l10n.noCropHint)
+                          : l10n.cropGroupHint));
+              return Tooltip(
+                message: hint,
+                triggerMode: TooltipTriggerMode.tap,
+                child: Text(
+                  hint,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 4),
           // T15 · repartir un gasto entre varios cultivos. Solo tiene sentido
@@ -1249,6 +1277,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Categoría
           DropdownButtonFormField<String>(
             value: _category,
+            // A 360 px la etiqueta del icono + nombre no cabe: con
+            // `isExpanded` el texto recorta en vez de salirse del campo.
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: l10n.categoryFieldLabel,
               prefixIcon: const Icon(Icons.category_outlined),
@@ -1507,10 +1538,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
           // Proveedor / Jornal (solo gastos)
           if (_type == TransactionType.expense) ...[
-            _ProdSectionHeader(
-                label:
-                    _isJornal ? l10n.jornalSectionTitle : l10n.providerFieldLabel),
-            const SizedBox(height: 12),
+            // Fase 5 · el rótulo de la sección solo hace falta en el jornal.
+            // En un gasto normal el campo ya dice «Proveedor / vendedor
+            // (opcional)»: repetirlo arriba era la etiqueta duplicada.
+            if (_isJornal) ...[
+              _ProdSectionHeader(label: l10n.jornalSectionTitle),
+              const SizedBox(height: 12),
+            ],
 
             if (_isJornal) ...[
               // Trabajador (dropdown de la lista + Otro nombre… + Crear…)
@@ -1914,11 +1948,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         ),
     );
-    // Fase 1 · el atrás no borra un registro empezado sin avisar. Solo cuando
-    // esta pantalla es la que se ve: en segundo plano (IndexedStack) no debe
-    // interceptar el atrás del resto de la app.
+    // Fase 1/2 · el atrás no borra un registro empezado sin avisar. Registrar
+    // es ahora una ruta empujada: el `PopScope` frena el atrás del sistema y
+    // el botón de la barra, nunca el de la app que quedó detrás.
     final guarded = PopScope(
-      canPop: !(widget.active && _hasDraft),
+      canPop: !_hasDraft,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         // Se captura antes del diálogo: después del await el contexto ya no
@@ -1965,12 +1999,16 @@ class _ProdSectionHeader extends StatelessWidget {
         Icon(Icons.factory_outlined,
             size: 18, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
+        // A 360 px el rótulo ("¿A quién le compraste?") no cabe en una línea:
+        // que envuelva en vez de salirse del formulario.
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
         ),
       ],
     );

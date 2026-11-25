@@ -32,9 +32,8 @@ import 'register_screen.dart';
 import 'report_screen.dart';
 import 'settings_screen.dart';
 import 'sowing_screen.dart';
-import 'harvest_screen.dart';
 import 'crops_screen.dart';
-import 'workers_screen.dart';
+import 'finca_screen.dart';
 import 'help_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -46,7 +45,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
-  TransactionType? _registerInitialType;
 
   /// E6 · la puerta se queda abierta hasta que él toca [Entrar] (G3).
   ///
@@ -145,7 +143,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
+        // M3 · expanded empieza en 840: entre 840 y 899 ya toca rail, no
+        // barra inferior.
+        final wide = constraints.maxWidth >= 840;
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -183,62 +183,17 @@ class _HomeScreenState extends State<HomeScreen> {
               PopupMenuButton<String>(
                 onSelected: (v) {
                   if (v == 'logout') context.read<AuthProvider>().signOut();
-                  if (v == 'report') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReportScreen()));
+                  if (v == 'finca') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FincaScreen()));
                   if (v == 'settings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
-                  if (v == 'sowings') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SowingScreen()));
-                  if (v == 'harvests') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HarvestScreen()));
-                  if (v == 'crops') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CropsScreen()));
-                  if (v == 'workers') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WorkersScreen()));
                   if (v == 'help') Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpScreen()));
                 },
                 itemBuilder: (_) => [
                   if (!onboarding) ...[
                     PopupMenuItem(
-                      value: 'report',
-                      child: ListTile(
-                        leading: const Icon(Icons.bar_chart_outlined),
-                        title: Text(l10n.menuReport),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'crops',
+                      value: 'finca',
                       child: ListTile(
                         leading: const Icon(Icons.grass_outlined),
-                        title: Text(l10n.menuCrops),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'sowings',
-                      child: ListTile(
-                        leading: const Icon(Icons.eco_outlined),
-                        title: Text(l10n.menuSowings),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    // Cosechas oculta del menú (2026-09-24): el pequeño
-                    // agricultor produce y vende sin almacenar, no usa esta
-                    // pantalla. El resto de la feature sigue intacta (reportes,
-                    // alertas, sync). Para restaurar: descomentar el bloque.
-                    // PopupMenuItem(
-                    //   value: 'harvests',
-                    //   child: ListTile(
-                    //     leading: const Icon(Icons.agriculture_outlined),
-                    //     title: Text(l10n.menuHarvests),
-                    //     dense: true,
-                    //     contentPadding: EdgeInsets.zero,
-                    //   ),
-                    // ),
-                    PopupMenuItem(
-                      value: 'workers',
-                      child: ListTile(
-                        leading: const Icon(Icons.people_outline),
-                        title: Text(l10n.menuWorkers),
+                        title: Text(l10n.menuFinca),
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -298,14 +253,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               label: Text(l10n.tabOverview),
                             ),
                             NavigationRailDestination(
-                              icon: const Icon(Icons.add_circle_outline),
-                              selectedIcon: const Icon(Icons.add_circle),
-                              label: Text(l10n.tabRegister),
+                              icon: const Icon(Icons.swap_vert_outlined),
+                              selectedIcon: const Icon(Icons.swap_vert),
+                              label: Text(l10n.tabMovements),
                             ),
                             NavigationRailDestination(
-                              icon: const Icon(Icons.history_outlined),
-                              selectedIcon: const Icon(Icons.history),
-                              label: Text(l10n.tabHistory),
+                              icon: const Icon(Icons.bar_chart_outlined),
+                              selectedIcon: const Icon(Icons.bar_chart),
+                              label: Text(l10n.tabReports),
                             ),
                           ],
                         ),
@@ -326,33 +281,64 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: l10n.tabOverview,
                     ),
                     NavigationDestination(
-                      icon: const Icon(Icons.add_circle_outline),
-                      selectedIcon: const Icon(Icons.add_circle),
-                      label: l10n.tabRegister,
+                      icon: const Icon(Icons.swap_vert_outlined),
+                      selectedIcon: const Icon(Icons.swap_vert),
+                      label: l10n.tabMovements,
                     ),
                     NavigationDestination(
-                      icon: const Icon(Icons.history_outlined),
-                      selectedIcon: const Icon(Icons.history),
-                      label: l10n.tabHistory,
+                      icon: const Icon(Icons.bar_chart_outlined),
+                      selectedIcon: const Icon(Icons.bar_chart),
+                      label: l10n.tabReports,
                     ),
                   ],
+                ),
+          // Fase 2 · Registrar deja de ser pestaña: es una acción, no un
+          // destino. Un FAB está a un toque desde las tres pestañas y no
+          // compite por el "seleccionado" de la barra.
+          floatingActionButton: onboarding
+              ? null
+              : FloatingActionButton(
+                  onPressed: _openRegister,
+                  tooltip: l10n.registerTitle,
+                  child: const Icon(Icons.add),
                 ),
         );
       },
     );
   }
 
+  /// Abre Registrar como ruta propia: formulario limpio, AppBar con el
+  /// título y, al guardar, vuelta a la pestaña de origen.
+  ///
+  /// [initialType] llega del próximo paso ("Registrar gasto" / "Registrar
+  /// venta") y solo prefija el tipo del formulario que se acaba de abrir.
+  Future<void> _openRegister([TransactionType? initialType]) async {
+    final l10n = AppLocalizations.of(context)!;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: Text(l10n.registerTitle)),
+          body: RegisterScreen(
+            initialType: initialType,
+            popOnSave: true,
+            showTitle: false,
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Las tres pestañas viven a la vez: cambiar de pestaña ya no destruye el
-  /// formulario, el scroll ni los filtros (Fase 1 del plan de navegación).
+  /// scroll ni los filtros (Fase 1). Registrar ya no es una de ellas: es la
+  /// ruta del FAB (Fase 2).
   Widget _body() => IndexedStack(
         index: _tab,
         children: [
           _buildDashboard(),
-          RegisterScreen(
-            initialType: _registerInitialType,
-            active: _tab == 1,
-          ),
           const MovementsScreen(),
+          // Reportes como pestaña: la barra sigue a la vista y el mes
+          // elegido sobrevive al cambiar de pestaña.
+          const ReportScreen(embedded: true),
         ],
       );
 
@@ -423,19 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Abre la pestaña Registrar, prefijando Gasto/Ingreso si el próximo paso lo
-  /// requiere. El prefijo se descarta tras montarse la pantalla para no
-  /// condicionar las siguientes visitas.
-  void _goRegister([TransactionType? initialType]) {
-    setState(() {
-      _registerInitialType = initialType;
-      _tab = 1;
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() => _registerInitialType = null);
-    });
-  }
-
+  /// Abre Registrar, prefijando Gasto/Ingreso si el próximo paso lo requiere.
   void _onNextStep(NextStepType type) {
     switch (type) {
       case NextStepType.crop:
@@ -449,10 +423,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         break;
       case NextStepType.expenses:
-        _goRegister(TransactionType.expense);
+        _openRegister(TransactionType.expense);
         break;
       case NextStepType.sale:
-        _goRegister(TransactionType.income);
+        _openRegister(TransactionType.income);
         break;
     }
   }
@@ -495,7 +469,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1120),
           child: ListView(
-        padding: const EdgeInsets.all(16),
+        // Deja aire para el FAB de Registrar: sin esto, la última fila queda
+        // debajo del botón y no se puede leer.
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: [
           Row(
             children: [
@@ -523,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
             AlertsBanner(alerts: alerts.bySeverity),
             _SectionHeader(title: l10n.sectionThisMonth),
             const SizedBox(height: 12),
-            SummaryEmptyCard(onRegister: _goRegister),
+            SummaryEmptyCard(onRegister: _openRegister),
           ] else ...[
             // A1 · lo primero que se ve es la plata: el objetivo de la app
             // no puede quedar debajo del pliegue de la pantalla.
@@ -564,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 month: month,
                 type: TransactionType.expense,
                 periodLabel: monthLabel,
-                onAddTap: _goRegister,
+                onAddTap: () => _openRegister(TransactionType.expense),
               ),
             ),
           ),
@@ -577,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 month: month,
                 type: TransactionType.income,
                 periodLabel: monthLabel,
-                onAddTap: _goRegister,
+                onAddTap: () => _openRegister(TransactionType.income),
               ),
             ),
           ),
@@ -724,59 +700,83 @@ class _HomeScreenState extends State<HomeScreen> {
     final noData = incomes == 0 && expenses == 0;
     final positive = scheme.primary;
     final negative = scheme.error;
-    return Row(
-      children: [
-        Expanded(
-          child: SummaryCard(
-            label: l10n.incomeLabel,
-            value: incomes,
-            color: positive,
-            icon: Icons.trending_up,
-            currency: currency,
-            locale: locale,
-            deltaText: comparison?.incomeText,
-            deltaSignal: comparison?.incomeSignal,
-            comparisonLabel: comparison?.vsLabel,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: SummaryCard(
-            label: l10n.expensesLabel,
-            value: expenses,
-            color: negative,
-            icon: Icons.trending_down,
-            currency: currency,
-            locale: locale,
-            deltaText: comparison?.expenseText,
-            deltaSignal: comparison?.expenseSignal,
-            comparisonLabel: comparison?.vsLabel,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: SummaryCard(
-            label: l10n.resultLabel,
-            value: balance,
-            color: noData
-                ? Colors.grey
-                : balance >= 0
-                    ? positive
-                    : negative,
-            highlighted: !noData,
-            icon: noData
-                ? Icons.remove
-                : balance >= 0
-                    ? Icons.savings
-                    : Icons.warning_amber,
-            currency: currency,
-            locale: locale,
-            deltaText: comparison?.resultText,
-            deltaSignal: comparison?.resultSignal,
-            comparisonLabel: comparison?.vsLabel,
-          ),
-        ),
-      ],
+    final cards = <Widget>[
+      SummaryCard(
+        label: l10n.incomeLabel,
+        value: incomes,
+        color: positive,
+        icon: Icons.trending_up,
+        currency: currency,
+        locale: locale,
+        deltaText: comparison?.incomeText,
+        deltaSignal: comparison?.incomeSignal,
+        comparisonLabel: comparison?.vsLabel,
+      ),
+      SummaryCard(
+        label: l10n.expensesLabel,
+        value: expenses,
+        color: negative,
+        icon: Icons.trending_down,
+        currency: currency,
+        locale: locale,
+        deltaText: comparison?.expenseText,
+        deltaSignal: comparison?.expenseSignal,
+        comparisonLabel: comparison?.vsLabel,
+      ),
+      SummaryCard(
+        label: l10n.resultLabel,
+        value: balance,
+        color: noData
+            ? Colors.grey
+            : balance >= 0
+                ? positive
+                : negative,
+        highlighted: !noData,
+        icon: noData
+            ? Icons.remove
+            : balance >= 0
+                ? Icons.savings
+                : Icons.warning_amber,
+        currency: currency,
+        locale: locale,
+        deltaText: comparison?.resultText,
+        deltaSignal: comparison?.resultSignal,
+        comparisonLabel: comparison?.vsLabel,
+      ),
+    ];
+
+    // Fase 5 · a 360 px tres columnas fijas recortaban las etiquetas
+    // («Inco…», «Expe…»). Una columna en teléfono, dos en tablet y tres solo
+    // cuando de verdad caben: la cifra y su nombre se leen completos.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final columns = width >= 720
+            ? 3
+            : width >= 400
+                ? 2
+                : 1;
+        if (columns == 1) {
+          return Column(
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(height: 10),
+                cards[i],
+              ],
+            ],
+          );
+        }
+        const gap = 10.0;
+        final cardWidth = (width - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final card in cards)
+              SizedBox(width: cardWidth, child: card),
+          ],
+        );
+      },
     );
   }
 }
