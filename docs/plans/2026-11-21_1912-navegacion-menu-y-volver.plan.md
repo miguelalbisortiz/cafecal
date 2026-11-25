@@ -1,9 +1,9 @@
 ---
 prd: no aplica (sale de la auditoría visual)
 audit: docs/audits/2026-11-21_1912-visual-menu-navegacion.audit.md
-status: IN_PROGRESS
-decisions: D1-D4 confirmadas por el usuario el 2026-11-22 (las cuatro como recomienda el plan)
-progress: F0 DONE · F1 DONE (2026-11-22) · F2-F6 pendientes
+status: DONE 2026-11-24_0923 (fases 0-3, 5 y 6; fase 4 fuera por decisión del usuario)
+decisions: D1-D4 confirmadas por el usuario el 2026-11-22 (las cuatro como recomienda el plan) · D5 el 2026-11-24: cerrar sin fase 4 y documentar la salida en README
+progress: F0 DONE (2026-11-22) · F1 DONE (2026-11-22) · F2 DONE (2026-11-24) · F3 DONE (2026-11-24) · F5 DONE (2026-11-24) · F6 DONE (2026-11-24) · F4 NO SE HACE (D5)
 created: 2026-11-21_1912
 ---
 
@@ -15,11 +15,11 @@ created: 2026-11-21_1912
 |---|---|---|
 | 0 · Línea base | **DONE** | `analyze` limpio · 1550 tests antes de tocar nada · guarda de humo de 3 destinos |
 | 1 · No perder lo escrito | **DONE** | `IndexedStack`, `didUpdateWidget` del prefijo, `PopScope` con diálogo; 5 tests nuevos |
-| 2 · Reparto de navegación | pendiente | — |
-| 3 · Retorno y jerarquía | pendiente | — |
-| 5 · Layout a 360 px | pendiente | — |
-| 6 · Accesibilidad y limpieza | pendiente | — |
-| 4 · Router / PWA | pendiente (con PRD) | — |
+| 2 · Reparto de navegación | **DONE** | FAB Registrar, barra Resumen · Movimientos · Reportes, hub Finca, menú de 4; tests de cobertura y a 360 px |
+| 3 · Retorno y jerarquía | **DONE** | pestañas sin flecha, rutas de salida con flecha, AppBar «Balance» + encabezado en el cuerpo |
+| 5 · Layout a 360 px | **DONE** | KPI en 1/2/3 columnas, segmentado en una línea, etiqueta duplicada fuera, breakpoint 840, aviso en una línea |
+| 6 · Accesibilidad y limpieza | **DONE** | destinos con semántica y acción de toque, español por defecto, sin bloque comentado |
+| 4 · Router / PWA | **NO SE HACE** | D5 (2026-11-24): la salida queda documentada en `README.md` |
 
 Reporte de las fases 0 y 1: `docs/reports/2026-11-22_0851-fase0-1-navegacion.report.md`.
 
@@ -157,9 +157,12 @@ Es la fase más barata y la que más se nota. Va primero.
 - Qué: hoy mezcla destino, datos maestros, sistema y sesión en 7 ítems.
 - Dónde: `home_screen.dart:183-277`.
 - Cómo: dejar **Finca · Ajustes · Ayuda · Salir** con los divisores actuales.
-- Test: el menú tiene 4 entradas; ninguna pantalla queda inalcanzable (test de
-  cobertura de rutas: toda pantalla de `lib/screens` se abre desde algún sitio).
-- Aceptación: 3 ítems + Salir, sin huérfanos.
+- Test: el menú tiene 4 entradas; el test de cobertura barre `lib/screens` y
+  exige que toda pantalla se abra desde algún sitio o esté en la lista de
+  excepciones justificadas.
+- Aceptación: 3 ítems + Salir. **Única excepción:** `HarvestScreen` sigue sin
+  puerta porque se ocultó del menú el 2026-09-24 por decisión de producto; D4
+  manda conservar el archivo y devolverle la puerta es otro PRD.
 
 ### 2.5 l10n ES/EN
 - Qué: claves nuevas y un renombre.
@@ -201,6 +204,12 @@ alcanzables en ≤2 toques).
 ---
 
 ## Fase 4 · Router / PWA (L) — P2, con PRD
+
+> **Decisión D5 (2026-11-24): no se hace en este plan.** El usuario eligió cerrar
+> sin router; la salida que el propio plan contempla quedó escrita en
+> `README.md` (usar la app instalada; el atrás del navegador no cambia de
+> pantalla). Retomarla exige PRD propio y subir/bajar `go_router` con el SDK
+> congelado en Flutter 3.24.
 
 > **No empezar sin decidir D3.** Esta fase toca la raíz de la app y puede romper
 > deep links, recargas y el atrás. Va al final a propósito.
@@ -249,6 +258,9 @@ funciona y que la app debe usarse instalada.
 - Qué: tres líneas explicando "+ New crop…" dentro del formulario.
 - Cómo: mover a un `Tooltip` o a la Ayuda contextual; dejar una línea.
 - Aceptación: el formulario cabe sin scroll en un teléfono de 640 px de alto.
+  **No alcanzada** (2026-11-24): medido a 360×640, el formulario conserva 164 px
+  de scroll. Se resolvió la parte accionable (3 líneas → 1 + tooltip); caber del
+  todo exige rediseñar el formulario y va con otro plan.
 
 **Gate 5:** capturas 360/768/912 + test de overflow con `setSurfaceSize`.
 
@@ -273,7 +285,9 @@ funciona y que la app debe usarse instalada.
 
 ### 6.3 Limpieza de Cosechas
 - Qué: bloque comentado en `home_screen.dart:224-236`.
-- Cómo: borrar el bloque; la pantalla y la ruta se conservan (decisión D4).
+- Cómo: borrar el bloque; la pantalla se conserva (decisión D4). La ruta ya no
+  existía: «Cosechas» se ocultó del menú el 2026-09-24 y la pantalla quedó sin
+  puerta desde entonces; devolverla es otro PRD.
 
 **Gate 6:** analyze + tests + revisión de que no quedan claves ni imports huérfanos.
 

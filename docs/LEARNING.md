@@ -198,3 +198,7 @@ Last updated: 2026-11-17
 - Preference: aprueba commit y push **solo con verbo explícito en el turno**; cerrar la sesión (snapshot + LEARNING.md) no autoriza tocar código ni git | Tanda 3 | 2026-11-17
 - Constraint: sin esquema, migración, sync, backfill ni entidades nuevas sin evidencia; los tres hitos se resolvieron con servicios puros sobre campos existentes | Tanda 3 | 2026-11-17
 - Preference: `/verify` y `/audit-report` se aceptan con skills equivalentes siempre que dejen rastro en `docs/reports/` y `docs/audits/` | Tanda 3 | 2026-11-17
+- Pattern: una guarda de cobertura debe exigir **instanciación** (`Clase(`), no `contains(clase)`: un import menciona la clase y daba falso verde | test/navigation_reachability_test.dart | 2026-11-24
+- Pattern: una aceptación no cumplida se deja con **test que mide** el desvío y texto en plan y reporte; el test falla si algún día se cumple y obliga a actualizar la documentación | test/navigation_hierarchy_test.dart (5.5) | 2026-11-24
+- Preference: Cosechas sigue sin puerta; conservar la pantalla no significa reabrir la feature, y devolverle acceso es otro PRD | navegación, D4 | 2026-11-24
+- Preference: la fase 4 (router/PWA) queda fuera del plan; mientras tanto `README.md` documenta que el atrás del navegador no cambia de pantalla y que se use la app instalada | navegación, D5 | 2026-11-24

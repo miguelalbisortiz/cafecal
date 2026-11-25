@@ -8,6 +8,11 @@ Control de gastos e ingresos para el cafetal. Registro rápido (~10 s), alertas 
 
 Instálala desde el navegador del celular (menú → "Agregar a pantalla de inicio" / "Instalar app") para usarla como app nativa, incluso sin conexión.
 
+> **Atrás del navegador:** la app todavía no tiene router. Dentro de la app
+> úsala con la barra inferior y el botón de volver de cada pantalla; el atrás
+> del navegador no cambia de pantalla y, en la PWA instalada, puede cerrarla.
+> Se recomienda usarla instalada.
+
 ## Funcionalidades
 
 - Registro de gastos e ingresos por cultivo (café, plátano, otros) y categoría
